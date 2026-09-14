@@ -2,41 +2,37 @@
 
 #include "CarSim/Core/Version.hpp"
 #include "CarSim/Render/Screenshot.hpp"
+#include "CarSim/Sim/Units.hpp"
 
 #include "Microsoft/Xna/Framework/Color.hpp"
-#include "Microsoft/Xna/Framework/MathHelper.hpp"
+#include "Microsoft/Xna/Framework/Rectangle.hpp"
 #include "Microsoft/Xna/Framework/Vector2.hpp"
 #include "Microsoft/Xna/Framework/Vector3.hpp"
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
-#include "Microsoft/Xna/Framework/Graphics/BufferUsage.hpp"
+#include "Microsoft/Xna/Framework/Graphics/ClearOptions.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthFormat.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
-#include "Microsoft/Xna/Framework/Graphics/DirectionalLight.hpp"
-#include "Microsoft/Xna/Framework/Graphics/EffectPass.hpp"
-#include "Microsoft/Xna/Framework/Graphics/EffectPassCollection.hpp"
-#include "Microsoft/Xna/Framework/Graphics/EffectTechnique.hpp"
-#include "Microsoft/Xna/Framework/Graphics/GraphicsProfile.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
-#include "Microsoft/Xna/Framework/Graphics/IndexElementSize.hpp"
-#include "Microsoft/Xna/Framework/Graphics/PrimitiveType.hpp"
+#include "Microsoft/Xna/Framework/Graphics/GraphicsProfile.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RasterizerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
-#include "Microsoft/Xna/Framework/Graphics/SamplerStateCollection.hpp"
-#include "Microsoft/Xna/Framework/Graphics/VertexPositionNormalTexture.hpp"
-#include "Microsoft/Xna/Framework/Input/Keyboard.hpp"
-#include "Microsoft/Xna/Framework/Input/KeyboardState.hpp"
-#include "Microsoft/Xna/Framework/Input/Keys.hpp"
+#include "Microsoft/Xna/Framework/Graphics/SpriteSortMode.hpp"
+#include "Microsoft/Xna/Framework/Graphics/Viewport.hpp"
 #include "System/TimeSpan.hpp"
 
-#include <cstdint>
+#include <algorithm>
+#include <chrono>
+#include <cstdio>
+#include <filesystem>
 #include <iostream>
-#include <vector>
+#include <numbers>
+#include <sstream>
 
 namespace CarSim::App
 {
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
-    using namespace Microsoft::Xna::Framework::Input;
+    using Input::GameAction;
 
     SimulatorGame::SimulatorGame(Core::CommandLineOptions options)
         : options_(std::move(options)),
@@ -49,110 +45,161 @@ namespace CarSim::App
         graphics_.setPreferredDepthStencilFormatProperty(DepthFormat::Depth24Stencil8);
         graphics_.setIsFullScreenProperty(options_.fullscreen);
         graphics_.setSynchronizeWithVerticalRetraceProperty(true);
+        graphics_.setPreferMultiSamplingProperty(true);
 
-        // The simulation runs on a fixed 60 Hz step; rendering follows the loop.
         setIsFixedTimeStepProperty(true);
         setTargetElapsedTimeProperty(System::TimeSpan::FromSeconds(1.0 / 60.0));
         setIsMouseVisibleProperty(true);
 
         getWindowProperty().setTitleProperty(Core::ProductName() + " " + Core::VersionString());
+        ResolveContentRoot();
     }
 
     SimulatorGame::~SimulatorGame() = default;
 
+    void SimulatorGame::ResolveContentRoot()
+    {
+        namespace fs = std::filesystem;
+        std::vector<fs::path> candidates;
+        if (!options_.contentDirectory.empty()) {
+            candidates.emplace_back(options_.contentDirectory);
+        }
+        candidates.emplace_back("content");
+        std::error_code ec;
+        const fs::path exe = fs::read_symlink("/proc/self/exe", ec);
+        if (!ec) {
+            candidates.push_back(exe.parent_path() / "content");
+        }
+#ifdef CARSIM_SOURCE_CONTENT_DIR
+        candidates.emplace_back(CARSIM_SOURCE_CONTENT_DIR);
+#endif
+        for (const auto& c : candidates) {
+            if (fs::exists(c / "vehicles", ec)) {
+                contentRoot_ = fs::absolute(c, ec).string();
+                break;
+            }
+        }
+        if (contentRoot_.empty()) {
+            contentRoot_ = "content";
+        }
+        getContentProperty().setRootDirectoryProperty(contentRoot_);
+        std::cout << "content root: " << contentRoot_ << "\n";
+    }
+
+    void SimulatorGame::LoadVehicle()
+    {
+        const std::string id = options_.vehicle.value_or("lipan_12");
+        const auto loaded = Sim::LoadVehicleDefinitionFile(contentRoot_ + "/vehicles/" + id + ".json");
+        if (loaded.ok()) {
+            definition_ = loaded.definition;
+        } else {
+            for (const auto& e : loaded.errors) {
+                std::cerr << "vehicle: " << e << "\n";
+            }
+            std::cerr << "vehicle: falling back to the built-in reference vehicle\n";
+            definition_ = Sim::MakeReferenceVehicle();
+        }
+        vehicle_ = std::make_unique<Sim::Vehicle>(definition_, definition_.gearbox.defaultMode);
+        vehicle_->PlaceAt(Vector3(0.0f, 0.0f, 0.0f), 0.0f);
+        std::cout << "vehicle: " << definition_.displayName << " (" << definition_.id << ")\n";
+    }
+
     void SimulatorGame::Initialize()
     {
         Game::Initialize();
+        cameraMode_ = options_.cockpit ? Render::CameraMode::Cockpit : Render::CameraMode::Chase;
+        if (options_.chaseYawDeg) {
+            chaseCamera_.yawOffset = *options_.chaseYawDeg * (std::numbers::pi_v<float> / 180.0f);
+        }
+        if (options_.chaseDistanceM) {
+            chaseCamera_.distance = *options_.chaseDistanceM;
+        }
+    }
+
+    void SimulatorGame::ApplyAutoDrive(Sim::DriverControls& controls)
+    {
+        if (!options_.autoDriveSeconds) {
+            return;
+        }
+        // Scripted drive for headless captures: automatic gearbox, engine start, gentle
+        // acceleration with a slow steering weave so wheels, needles and lamps are exercised.
+        const float t = static_cast<float>(elapsedSeconds_);
+        if (t > *options_.autoDriveSeconds) {
+            return;
+        }
+        if (!autoDriveStarted_) {
+            autoDriveStarted_ = true;
+            vehicle_->SetTransmissionMode(Sim::TransmissionMode::Automatic);
+            controls.toggleEngine = true;
+        }
+        if (t > 1.2f) {
+            controls.selector = Sim::AutomaticSelector::Drive;
+        }
+        controls.throttle = t > 1.6f ? 0.55f : 0.0f;
+        controls.brake = t <= 1.6f ? 1.0f : 0.0f;
+        controls.steering = t > 3.0f ? 0.18f * std::sin((t - 3.0f) * 0.9f) : 0.0f;
+        if (t > 2.0f && t < 2.05f) {
+            controls.indicator = Sim::IndicatorRequest::ToggleRight;
+        }
     }
 
     void SimulatorGame::LoadContent()
     {
-        BuildTestScene();
+        auto& device = getGraphicsDeviceProperty();
+        LoadVehicle();
+
+        sky_ = std::make_unique<Render::SkyRenderer>(device, rig_);
+        testGround_ = std::make_unique<Render::TestGround>(device, rig_);
+        vehicleMaterials_ = std::make_unique<Render::VehicleMaterials>(device, rig_);
+        vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
+        spriteBatch_ = std::make_unique<SpriteBatch>(device);
+
+        font_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_regular_28");
+        fontBold_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_bold_44");
+        if (!font_) {
+            std::cerr << "font: using the built-in fallback font\n";
+            font_ = Render::BitmapFont::CreateBuiltin(device);
+        }
+        if (!fontBold_) {
+            fontBold_ = Render::BitmapFont::CreateBuiltin(device);
+        }
+        chaseCamera_.Snap(vehicle_->Snapshot());
     }
 
     void SimulatorGame::UnloadContent()
     {
-        indices_.reset();
-        vertices_.reset();
-        checker_.reset();
-        effect_.reset();
+        vehicleRenderer_.reset();
+        vehicleMaterials_.reset();
+        testGround_.reset();
+        sky_.reset();
+        font_.reset();
+        fontBold_.reset();
+        spriteBatch_.reset();
     }
 
-    void SimulatorGame::BuildTestScene()
+    void SimulatorGame::HandleAppActions()
     {
-        auto& device = getGraphicsDeviceProperty();
-
-        // A 16x16 checker texture so texturing and sampling are visibly exercised.
-        constexpr int kTextureSize = 64;
-        std::vector<Color> pixels(static_cast<std::size_t>(kTextureSize) * kTextureSize);
-        for (int y = 0; y < kTextureSize; ++y) {
-            for (int x = 0; x < kTextureSize; ++x) {
-                const bool light = ((x / 8) + (y / 8)) % 2 == 0;
-                pixels[static_cast<std::size_t>(y) * kTextureSize + static_cast<std::size_t>(x)] =
-                    light ? Color(170, 170, 165, 255) : Color(90, 92, 90, 255);
-            }
+        if (input_.Pressed(GameAction::Quit)) {
+            exitRequested_ = true;
+            Exit();
         }
-        checker_ = std::make_unique<Texture2D>(device, kTextureSize, kTextureSize);
-        checker_->SetData(pixels.data(), static_cast<int>(pixels.size()));
-
-        // Ground plane (200 m square, tiled) plus a 4.2 x 1.5 x 1.8 m box standing in for a car.
-        std::vector<VertexPositionNormalTexture> vertices;
-        std::vector<std::uint16_t> indices;
-
-        const auto addQuad = [&](const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d,
-                                 const Vector3& normal, float uvScale) {
-            const auto base = static_cast<std::uint16_t>(vertices.size());
-            vertices.emplace_back(a, normal, Vector2(0.0f, 0.0f));
-            vertices.emplace_back(b, normal, Vector2(uvScale, 0.0f));
-            vertices.emplace_back(c, normal, Vector2(uvScale, uvScale));
-            vertices.emplace_back(d, normal, Vector2(0.0f, uvScale));
-            const std::uint16_t quad[6] = {base, static_cast<std::uint16_t>(base + 1), static_cast<std::uint16_t>(base + 2),
-                                           base, static_cast<std::uint16_t>(base + 2), static_cast<std::uint16_t>(base + 3)};
-            indices.insert(indices.end(), quad, quad + 6);
-        };
-
-        constexpr float kHalf = 100.0f;
-        addQuad(Vector3(-kHalf, 0.0f, -kHalf), Vector3(kHalf, 0.0f, -kHalf),
-                Vector3(kHalf, 0.0f, kHalf), Vector3(-kHalf, 0.0f, kHalf), Vector3::Up, 50.0f);
-
-        const Vector3 boxMin(-2.1f, 0.0f, -0.9f);
-        const Vector3 boxMax(2.1f, 1.5f, 0.9f);
-        // +Y (top)
-        addQuad(Vector3(boxMin.X, boxMax.Y, boxMax.Z), Vector3(boxMax.X, boxMax.Y, boxMax.Z),
-                Vector3(boxMax.X, boxMax.Y, boxMin.Z), Vector3(boxMin.X, boxMax.Y, boxMin.Z), Vector3::Up, 1.0f);
-        // +Z (front)
-        addQuad(Vector3(boxMin.X, boxMin.Y, boxMax.Z), Vector3(boxMax.X, boxMin.Y, boxMax.Z),
-                Vector3(boxMax.X, boxMax.Y, boxMax.Z), Vector3(boxMin.X, boxMax.Y, boxMax.Z), Vector3(0.0f, 0.0f, 1.0f), 1.0f);
-        // -Z (back)
-        addQuad(Vector3(boxMax.X, boxMin.Y, boxMin.Z), Vector3(boxMin.X, boxMin.Y, boxMin.Z),
-                Vector3(boxMin.X, boxMax.Y, boxMin.Z), Vector3(boxMax.X, boxMax.Y, boxMin.Z), Vector3(0.0f, 0.0f, -1.0f), 1.0f);
-        // +X (right)
-        addQuad(Vector3(boxMax.X, boxMin.Y, boxMax.Z), Vector3(boxMax.X, boxMin.Y, boxMin.Z),
-                Vector3(boxMax.X, boxMax.Y, boxMin.Z), Vector3(boxMax.X, boxMax.Y, boxMax.Z), Vector3::Right, 1.0f);
-        // -X (left)
-        addQuad(Vector3(boxMin.X, boxMin.Y, boxMin.Z), Vector3(boxMin.X, boxMin.Y, boxMax.Z),
-                Vector3(boxMin.X, boxMax.Y, boxMax.Z), Vector3(boxMin.X, boxMax.Y, boxMin.Z), Vector3(-1.0f, 0.0f, 0.0f), 1.0f);
-
-        vertexCount_ = static_cast<int>(vertices.size());
-        primitiveCount_ = static_cast<int>(indices.size() / 3);
-
-        vertices_ = std::make_unique<VertexBuffer>(device, VertexPositionNormalTexture::getVertexDeclarationStatic(),
-                                                   vertexCount_, BufferUsage::WriteOnly);
-        vertices_->SetData(vertices.data(), vertexCount_);
-        indices_ = std::make_unique<IndexBuffer>(device, IndexElementSize::SixteenBits,
-                                                 static_cast<int>(indices.size()), BufferUsage::WriteOnly);
-        indices_->SetData(indices.data(), static_cast<int>(indices.size()));
-
-        effect_ = std::make_unique<BasicEffect>(device);
-        effect_->EnableDefaultLighting();
-        effect_->setPreferPerPixelLightingProperty(true);
-        effect_->setTextureEnabledProperty(true);
-        effect_->setTextureProperty(checker_.get());
-        effect_->setSpecularColorProperty(Vector3(0.15f, 0.15f, 0.15f));
-        effect_->setSpecularPowerProperty(32.0f);
-        effect_->setAmbientLightColorProperty(Vector3(0.35f, 0.38f, 0.42f));
-        effect_->getDirectionalLight0Property().setDirectionProperty(Vector3(-0.45f, -0.80f, -0.35f));
-        effect_->getDirectionalLight0Property().setDiffuseColorProperty(Vector3(1.0f, 0.96f, 0.88f));
+        if (input_.Pressed(GameAction::ToggleCamera)) {
+            cameraMode_ = cameraMode_ == Render::CameraMode::Chase ? Render::CameraMode::Cockpit : Render::CameraMode::Chase;
+        }
+        if (input_.Pressed(GameAction::ToggleHelp)) {
+            showHelp_ = !showHelp_;
+        }
+        if (input_.Pressed(GameAction::ToggleDebug)) {
+            showDebug_ = !showDebug_;
+        }
+        if (input_.Pressed(GameAction::Screenshot)) {
+            screenshotRequested_ = true;
+        }
+        if (input_.Pressed(GameAction::ResetVehicle)) {
+            const auto s = vehicle_->Snapshot();
+            const Vector3 forward = s.worldMatrix.getForwardProperty();
+            vehicle_->PlaceAt(Vector3(s.originPosition.X, 0.0f, s.originPosition.Z), std::atan2(-forward.X, -forward.Z));
+        }
     }
 
     void SimulatorGame::Update(GameTime& gameTime)
@@ -160,57 +207,178 @@ namespace CarSim::App
         if (exitRequested_) {
             return;
         }
-        if (Keyboard::GetState().IsKeyDown(Keys::Escape)) {
-            exitRequested_ = true;
-            Exit();
+        const auto frameStart = std::chrono::steady_clock::now();
+        const float dt = static_cast<float>(gameTime.getElapsedGameTimeProperty().getTotalSecondsProperty());
+        elapsedSeconds_ += dt;
+
+        input_.Update();
+        HandleAppActions();
+        if (exitRequested_) {
             return;
         }
-        elapsedSeconds_ += gameTime.getElapsedGameTimeProperty().getTotalSecondsProperty();
+
+        Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
+        ApplyAutoDrive(controls);
+        vehicle_->Update(controls, dt, ground_);
+
+        const auto state = vehicle_->Snapshot();
+        chaseCamera_.Update(state, dt);
+        cockpitCamera_.Update(state, definition_, dt);
+
         Game::Update(gameTime);
+        frameMs_ = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - frameStart).count();
     }
 
     void SimulatorGame::Draw(const GameTime& gameTime)
     {
         auto& device = getGraphicsDeviceProperty();
-        device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil,
-                     Color(130, 170, 220, 255), 1.0f, 0);
+        const auto& viewport = device.getViewportProperty();
+        const float aspect = static_cast<float>(viewport.getWidthProperty()) / static_cast<float>(std::max(1, viewport.getHeightProperty()));
 
-        const float aspect = static_cast<float>(options_.width) / static_cast<float>(options_.height);
-        const auto angle = static_cast<float>(elapsedSeconds_ * 0.25);
-        const Vector3 eye(std::cos(angle) * 9.0f, 3.5f, std::sin(angle) * 9.0f);
-        const Matrix view = Matrix::CreateLookAt(eye, Vector3(0.0f, 0.75f, 0.0f), Vector3::Up);
-        const Matrix projection = Matrix::CreatePerspectiveFieldOfView(MathHelper::ToRadians(60.0f), aspect, 0.1f, 500.0f);
+        device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, Color(120, 160, 210, 255), 1.0f, 0);
 
-        device.setBlendStateProperty(BlendState::Opaque);
-        device.setDepthStencilStateProperty(DepthStencilState::Default);
-        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
-        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+        const auto state = vehicle_->Snapshot();
+        const Render::CameraPose& camera = cameraMode_ == Render::CameraMode::Chase ? chaseCamera_.Pose() : cockpitCamera_.Pose();
+        const Matrix view = camera.View();
+        const Matrix projection = camera.Projection(aspect);
 
-        effect_->setWorldProperty(Matrix::getIdentityProperty());
-        effect_->setViewProperty(view);
-        effect_->setProjectionProperty(projection);
+        sky_->Draw(device, camera, aspect);
+        testGround_->Draw(device, view, projection);
 
-        device.SetVertexBuffer(vertices_.get());
-        device.setIndicesProperty(indices_.get());
+        Render::GaugePose gauges;
+        gauges.speed = state.speedKmh / definition_.dashboard.speedometerMaxKmh;
+        gauges.rpm = state.engineRpm / definition_.dashboard.tachometerMaxRpm;
+        gauges.fuel = state.fuelFraction;
+        gauges.temperature = (state.coolantC - definition_.dashboard.temperatureMinC) /
+                             std::max(1.0f, definition_.dashboard.temperatureMaxC - definition_.dashboard.temperatureMinC);
+        const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit;
+        vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
+        vehicleRenderer_->DrawTransparent(device, state, view, projection);
 
-        auto& passes = effect_->getCurrentTechniqueProperty()->getPassesProperty();
-        for (int i = 0; i < passes.getCountProperty(); ++i) {
-            passes[i]->Apply();
-            device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, vertexCount_, 0, primitiveCount_);
+        DrawHud();
+        if (showHelp_) {
+            DrawHelp();
         }
 
         Game::Draw(gameTime);
         FinishFrame();
     }
 
+    void SimulatorGame::DrawHud()
+    {
+        auto& device = getGraphicsDeviceProperty();
+        const auto s = vehicle_->Snapshot();
+        const auto& vp = device.getViewportProperty();
+        const float w = static_cast<float>(vp.getWidthProperty());
+        const float h = static_cast<float>(vp.getHeightProperty());
+
+        spriteBatch_->Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None,
+                            &RasterizerState::CullNone);
+
+        char buffer[128];
+        std::snprintf(buffer, sizeof(buffer), "%3.0f km/h", s.speedKmh);
+        fontBold_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 120.0f), Color(255, 255, 255, 235), 1.0f, Render::TextAlign::Right);
+        std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", s.engineRpm, s.gearLabel.c_str(),
+                      s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
+        font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
+        std::string status = std::string("Engine: ") + Sim::ToString(s.engineState);
+        if (vehicle_->StartRefused()) {
+            status += "  (press the clutch or select N/P to start)";
+        }
+        font_->DrawShadowed(*spriteBatch_, status, Vector2(w - 24.0f, h - 42.0f), Color(220, 220, 220, 200), 0.8f, Render::TextAlign::Right);
+
+        std::string lamps;
+        if (s.leftIndicatorLit) lamps += "<  ";
+        if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
+        if (s.reserveWarning) lamps += "FUEL  ";
+        if (s.handbrake) lamps += "(P)  ";
+        if (s.rightIndicatorLit) lamps += "  >";
+        if (!lamps.empty()) {
+            fontBold_->DrawShadowed(*spriteBatch_, lamps, Vector2(w * 0.5f, 18.0f), Color(255, 200, 60, 230), 0.7f, Render::TextAlign::Center);
+        }
+
+        if (!showHelp_) {
+            font_->DrawShadowed(*spriteBatch_, "F1 help   C camera   E engine", Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
+        }
+
+        if (showDebug_) {
+            std::ostringstream dbg;
+            dbg.setf(std::ios::fixed);
+            dbg.precision(2);
+            dbg << "frame " << frameMs_ << " ms update, draw calls (vehicle) " << vehicleRenderer_->DrawCallsLastFrame()
+                << "\nthrottle " << s.throttlePedal << " brake " << s.brakePedal << " clutch " << s.clutchPedal
+                << " steer " << Sim::Units::RadToDeg(s.steeringWheelAngle) << " deg" << (s.clutchLocked ? " locked" : " slipping")
+                << "\nfuel " << s.fuelLiters << " L (" << s.instantConsumptionLPerH << " L/h)  coolant " << s.coolantC
+                << " C  odo " << s.odometerKm << " km  trip " << s.tripKm << " km"
+                << "\npos " << s.originPosition.X << ", " << s.originPosition.Y << ", " << s.originPosition.Z
+                << "  wheels";
+            for (const auto& wh : s.wheels) {
+                dbg << " [" << (wh.grounded ? "g" : "-") << " sr " << wh.slipRatio << " load " << static_cast<int>(wh.load) << "]";
+            }
+            font_->DrawShadowed(*spriteBatch_, dbg.str().substr(0, dbg.str().find('\n')), Vector2(20.0f, 20.0f), Color(255, 255, 255, 220), 0.7f);
+            std::string rest = dbg.str();
+            float y = 20.0f;
+            std::size_t pos = rest.find('\n');
+            while (pos != std::string::npos) {
+                rest = rest.substr(pos + 1);
+                y += 24.0f;
+                pos = rest.find('\n');
+                font_->DrawShadowed(*spriteBatch_, rest.substr(0, pos), Vector2(20.0f, y), Color(255, 255, 255, 220), 0.7f);
+            }
+        }
+        spriteBatch_->End();
+    }
+
+    void SimulatorGame::DrawHelp()
+    {
+        auto& device = getGraphicsDeviceProperty();
+        const auto& vp = device.getViewportProperty();
+        const float w = static_cast<float>(vp.getWidthProperty());
+        spriteBatch_->Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None,
+                            &RasterizerState::CullNone);
+        // Backdrop: a stretched pixel of the font texture would tint; use the white texture instead.
+        const Rectangle box(static_cast<int>(w * 0.5f - 330.0f), 50, 660, 30 + 24 * 18);
+        spriteBatch_->Draw(vehicleMaterials_->White(), box, Color(0, 0, 0, 170));
+        float y = 60.0f;
+        const float x = w * 0.5f - 310.0f;
+        fontBold_->Draw(*spriteBatch_, "Controls", Vector2(x, y), Color(255, 255, 255, 255), 0.6f);
+        y += 34.0f;
+        const GameAction rows[] = {
+            GameAction::Throttle, GameAction::Brake, GameAction::SteerLeft, GameAction::SteerRight, GameAction::Clutch,
+            GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
+            GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleEngine,
+            GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
+            GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera, GameAction::ResetVehicle,
+            GameAction::Quit};
+        for (const GameAction a : rows) {
+            std::string keys = input_.KeysFor(a);
+            if (a == GameAction::Gear1) {
+                keys = "1 - 6";
+            }
+            font_->Draw(*spriteBatch_, keys, Vector2(x, y), Color(255, 220, 120, 255), 0.75f);
+            font_->Draw(*spriteBatch_, Input::Describe(a), Vector2(x + 180.0f, y), Color(240, 240, 240, 255), 0.75f);
+            y += 23.0f;
+        }
+        spriteBatch_->End();
+    }
+
     void SimulatorGame::FinishFrame()
     {
         ++framesDrawn_;
+        auto& device = getGraphicsDeviceProperty();
+        if (screenshotRequested_) {
+            screenshotRequested_ = false;
+            char name[64];
+            std::snprintf(name, sizeof(name), "screenshot_%04d.png", framesDrawn_);
+            if (Render::SaveBackBufferPng(device, name)) {
+                std::cout << "screenshot saved to " << name << "\n";
+            }
+        }
         if (!options_.frames || framesDrawn_ < *options_.frames || exitRequested_) {
             return;
         }
         if (options_.screenshotPath) {
-            if (Render::SaveBackBufferPng(getGraphicsDeviceProperty(), *options_.screenshotPath)) {
+            if (Render::SaveBackBufferPng(device, *options_.screenshotPath)) {
                 std::cout << "screenshot saved to " << *options_.screenshotPath << "\n";
             }
         }

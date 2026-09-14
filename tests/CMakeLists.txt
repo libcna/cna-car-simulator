@@ -26,8 +26,10 @@ add_executable(carsim_tests
     Sim/TyreGroundTests.cpp
     Sim/VehicleDefinitionTests.cpp
     Sim/VehicleDriveTests.cpp
+    Render/MeshDataTests.cpp
+    Render/ImageTests.cpp
 )
-target_link_libraries(carsim_tests PRIVATE carsim_core GTest::gtest GTest::gtest_main)
+target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtest GTest::gtest_main)
 target_compile_definitions(carsim_tests PRIVATE CARSIM_TEST_CONTENT_DIR="${CMAKE_SOURCE_DIR}/content")
 carsim_apply_warnings(carsim_tests)
 add_test(NAME carsim_unit_tests COMMAND carsim_tests)
@@ -45,6 +47,12 @@ endif()
 
 # Smoke test: run the simulator for a few frames without a display requirement
 # beyond what the selected renderer needs. Labeled so headless CI can pick.
-add_test(NAME simulator_smoke
-    COMMAND cna-car-simulator --frames 3 --width 320 --height 200)
+if(UNIX AND NOT APPLE)
+    # scripts/run_headless.sh starts Xvfb when no DISPLAY is set and selects the dummy audio driver.
+    add_test(NAME simulator_smoke
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:cna-car-simulator> --frames 3 --width 320 --height 200)
+else()
+    add_test(NAME simulator_smoke
+        COMMAND cna-car-simulator --frames 3 --width 320 --height 200)
+endif()
 set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;display")

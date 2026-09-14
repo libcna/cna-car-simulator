@@ -2,17 +2,24 @@
 #pragma once
 
 #include "CarSim/Core/CommandLine.hpp"
+#include "CarSim/Input/InputMapper.hpp"
+#include "CarSim/Render/BitmapFont.hpp"
+#include "CarSim/Render/Camera.hpp"
+#include "CarSim/Render/LightingRig.hpp"
+#include "CarSim/Render/SkyRenderer.hpp"
+#include "CarSim/Render/TestGround.hpp"
+#include "CarSim/Render/VehicleRenderer.hpp"
+#include "CarSim/Sim/Ground.hpp"
+#include "CarSim/Sim/Vehicle.hpp"
+#include "CarSim/Sim/VehicleDefinition.hpp"
 
 #include "Microsoft/Xna/Framework/Game.hpp"
 #include "Microsoft/Xna/Framework/GameTime.hpp"
 #include "Microsoft/Xna/Framework/GraphicsDeviceManager.hpp"
-#include "Microsoft/Xna/Framework/Matrix.hpp"
-#include "Microsoft/Xna/Framework/Graphics/BasicEffect.hpp"
-#include "Microsoft/Xna/Framework/Graphics/IndexBuffer.hpp"
-#include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
-#include "Microsoft/Xna/Framework/Graphics/VertexBuffer.hpp"
+#include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
 
 #include <memory>
+#include <string>
 
 namespace CarSim::App
 {
@@ -33,23 +40,44 @@ namespace CarSim::App
         void Draw(const Microsoft::Xna::Framework::GameTime& gameTime) override;
 
     private:
-        void BuildTestScene();
+        void ResolveContentRoot();
+        void LoadVehicle();
+        void HandleAppActions();
+        void ApplyAutoDrive(Sim::DriverControls& controls);
+        void DrawHud();
+        void DrawHelp();
         void FinishFrame();
 
         Core::CommandLineOptions options_;
         Microsoft::Xna::Framework::GraphicsDeviceManager graphics_;
+        std::string contentRoot_;
 
-        // Temporary bootstrap scene (a lit ground plane and a box) used to prove
-        // the renderer path end to end; replaced by the world renderer.
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> effect_;
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> vertices_;
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> indices_;
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> checker_;
-        int primitiveCount_ = 0;
-        int vertexCount_ = 0;
+        // Simulation
+        Sim::VehicleDefinition definition_;
+        std::unique_ptr<Sim::Vehicle> vehicle_;
+        Sim::FlatGround ground_{0.0f};
+        Input::InputMapper input_;
 
+        // Rendering
+        Render::LightingRig rig_;
+        std::unique_ptr<Render::SkyRenderer> sky_;
+        std::unique_ptr<Render::TestGround> testGround_;
+        std::unique_ptr<Render::VehicleMaterials> vehicleMaterials_;
+        std::unique_ptr<Render::VehicleRenderer> vehicleRenderer_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::SpriteBatch> spriteBatch_;
+        std::unique_ptr<Render::BitmapFont> font_;
+        std::unique_ptr<Render::BitmapFont> fontBold_;
+        Render::ChaseCamera chaseCamera_;
+        Render::CockpitCamera cockpitCamera_;
+        Render::CameraMode cameraMode_ = Render::CameraMode::Chase;
+
+        bool showHelp_ = false;
+        bool showDebug_ = false;
         double elapsedSeconds_ = 0.0;
+        float frameMs_ = 0.0f;
         int framesDrawn_ = 0;
         bool exitRequested_ = false;
+        bool screenshotRequested_ = false;
+        bool autoDriveStarted_ = false;
     };
 }

@@ -82,6 +82,20 @@ namespace CarSim::Core
                 if (const auto value = takeValue(arg)) {
                     options.map = std::string(*value);
                 }
+            } else if (arg == "--cockpit") {
+                options.cockpit = true;
+            } else if (arg == "--auto-drive") {
+                int seconds = 0;
+                takeInt(arg, seconds, 0);
+                options.autoDriveSeconds = static_cast<float>(seconds);
+            } else if (arg == "--chase-yaw") {
+                int degrees = 0;
+                takeInt(arg, degrees, -360);
+                options.chaseYawDeg = static_cast<float>(degrees);
+            } else if (arg == "--chase-distance") {
+                int metres = 0;
+                takeInt(arg, metres, 2);
+                options.chaseDistanceM = static_cast<float>(metres);
             } else {
                 result.errors.push_back("unknown argument '" + std::string(arg) + "'");
             }
@@ -100,6 +114,10 @@ namespace CarSim::Core
             "  --content <dir>       Content root directory\n"
             "  --vehicle <name>      Vehicle definition to drive\n"
             "  --map <name>          Map to load\n"
+            "  --cockpit             Start in the cockpit camera\n"
+            "  --auto-drive <s>      Scripted drive: start the engine and accelerate for s seconds\n"
+            "  --chase-yaw <deg>     Rotate the exterior camera around the car (0 = behind)\n"
+            "  --chase-distance <m>  Exterior camera distance in metres\n"
             "  --frames <n>          Run n frames and exit (smoke tests)\n"
             "  --screenshot <file>   Save the last frame as PNG before exiting\n"
             "  -h, --help            Show this help\n";

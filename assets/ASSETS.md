@@ -12,7 +12,7 @@ code and are covered by the repository's MIT licence; they are not listed here.
 
 | Local name | Title | Author | Source | Licence | Attribution required | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| _(none yet)_ | | | | | | |
+| `font-d-din` | D-DIN, D-DIN Bold, D-DIN Condensed Bold (TrueType) | Datto Inc. / Monotype | https://github.com/amcchord/datto-d-din @ e199c844 (2026-09-14) | SIL OFL 1.1 (`assets/external/fonts/d-din/OFL-1.1.txt`) | yes: "D-DIN by Datto Inc., SIL Open Font License 1.1" | rasterised to glyph atlases in `content/fonts/` by `tools/fontatlas.py`; used for HUD, dashboard digits and plate characters |
 
 ## Evaluated and rejected sources (not used)
 

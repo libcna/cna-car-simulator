@@ -32,6 +32,16 @@ namespace CarSim::Core
 
         /// Name of the map to load (overrides the default map).
         std::optional<std::string> map;
+
+        /// Start in the cockpit camera instead of the exterior camera.
+        bool cockpit = false;
+
+        /// Scripted driving for headless captures: seconds of throttle to apply after starting.
+        std::optional<float> autoDriveSeconds;
+
+        /// Exterior camera framing overrides for screenshots (degrees around the car, metres).
+        std::optional<float> chaseYawDeg;
+        std::optional<float> chaseDistanceM;
     };
 
     /// Result of parsing: either options or an error message for the user.

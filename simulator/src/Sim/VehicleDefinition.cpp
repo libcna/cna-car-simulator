@@ -164,6 +164,9 @@ namespace CarSim::Sim
         require(fuel.refillToFraction > 0.0f && fuel.refillToFraction <= 1.0f, "fuel.refillToFraction must be in (0, 1]");
         require(fuel.initialLiters >= 0.0f && fuel.initialLiters <= fuel.tankLiters, "fuel.initialLiters out of range");
 
+        require(visual.driverEye.Y > 0.8f && visual.driverEye.Y < 2.0f, "visual.driverEye height must be plausible");
+        require(visual.cockpitFovDeg > 40.0f && visual.cockpitFovDeg < 110.0f, "visual.cockpitFovDeg out of range");
+        require(visual.steeringWheelDiameterM > 0.25f && visual.steeringWheelDiameterM < 0.5f, "visual.steeringWheelDiameterM out of range");
         require(electrics.indicatorPeriodS >= 0.5f && electrics.indicatorPeriodS <= 1.0f,
                 "electrics.indicatorPeriod must be between 0.5 s (120/min) and 1.0 s (60/min)");
         require(dashboard.speedometerMaxKmh > 100.0f && dashboard.tachometerMaxRpm >= engine.limiterRpm,
@@ -589,6 +592,19 @@ namespace CarSim::Sim
             }
             if (r.HasObject(root, "electrics", obj)) {
                 r.Float(obj, "indicatorPeriod", def.electrics.indicatorPeriodS, "electrics");
+            }
+            if (r.HasObject(root, "visual", obj)) {
+                auto& vis = def.visual;
+                r.String(obj, "bodyStyle", vis.bodyStyle, "visual");
+                r.Vec3(obj, "paintColor", vis.paintColor, "visual");
+                r.Vec3(obj, "interiorColor", vis.interiorColor, "visual");
+                r.Vec3(obj, "driverEye", vis.driverEye, "visual");
+                r.Float(obj, "cockpitFovDeg", vis.cockpitFovDeg, "visual");
+                r.Vec3(obj, "steeringWheelCenter", vis.steeringWheelCenter, "visual");
+                r.Float(obj, "steeringWheelTiltDeg", vis.steeringWheelTiltDeg, "visual");
+                r.Float(obj, "steeringWheelDiameterM", vis.steeringWheelDiameterM, "visual");
+                r.Vec3(obj, "mirrorCenter", vis.mirrorCenter, "visual");
+                r.Vec3(obj, "clusterCenter", vis.clusterCenter, "visual");
             }
             if (r.HasObject(root, "dashboard", obj)) {
                 auto& d = def.dashboard;

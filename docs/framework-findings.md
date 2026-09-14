@@ -84,6 +84,26 @@ the capability profiles are CNA-specific. The project does not call them; it rel
 XNA contract (`GraphicsProfile::HiDef` features) and treats a renderer that cannot fulfil it
 as unsupported, reporting the exception message.
 
+### 3.4 Observed behaviour on the OPENGLES3 (EasyGL) renderer
+
+Measured with the project's own scenes under Xvfb + Mesa llvmpipe (OpenGL ES 3.2):
+
+- **`BasicEffect` with lighting on and `TextureEnabled = false` rendered every surface black**
+  when fed `VertexPositionNormalTexture` geometry. Binding a 4x4 white texture and leaving
+  `TextureEnabled = true` produces the expected lit result, so the project keeps one textured
+  lit path for all solid-colour parts (`VehicleMaterials::Lit`). The untextured path has not
+  been reduced to a minimal reproduction yet; it is recorded here so the workaround is not
+  removed by accident (candidate upstream report, see plan risk R9).
+- **`EnvironmentMapEffect` adds `EnvironmentMapSpecular * cubemap.alpha`** unconditionally
+  (the XNA formula). A cube map with opaque alpha therefore adds the whole specular colour to
+  every pixel; the project stores a sun-highlight mask in the cube map alpha instead.
+- **Fresnel is evaluated per vertex** (`pow(1 - |N.E|, FresnelFactor) * EnvironmentMapAmount`,
+  clamped) and drives a `mix(lit, envmap)`; the diffuse colour survives head-on.
+- `SpriteBatch` default `AlphaBlend` expects **premultiplied** textures. PNGs loaded through
+  `ContentManager` are not premultiplied on this path, so the font atlas generator writes
+  premultiplied pixels (`tools/fontatlas.py`).
+- `GetBackBufferData` requires `GraphicsProfile::HiDef` (Reach throws).
+
 ## 4. Audio
 
 - `SoundEffect`, `SoundEffectInstance` (volume, pan, pitch in the XNA -1..1 octave range,

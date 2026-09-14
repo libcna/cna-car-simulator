@@ -29,7 +29,19 @@ carsim_apply_warnings(carsim_core)
 # audio devices and input. Depends on the CNA umbrella (XNA 4.0 API surface).
 # -----------------------------------------------------------------------------
 add_library(carsim_render STATIC
+    src/Input/InputMapper.cpp
+    src/Render/BitmapFont.cpp
+    src/Render/Camera.cpp
+    src/Render/GpuMesh.cpp
+    src/Render/Image.cpp
+    src/Render/LightingRig.cpp
+    src/Render/MeshData.cpp
+    src/Render/ProceduralCar.cpp
+    src/Render/ProceduralTextures.cpp
     src/Render/Screenshot.cpp
+    src/Render/SkyRenderer.cpp
+    src/Render/TestGround.cpp
+    src/Render/VehicleRenderer.cpp
 )
 target_include_directories(carsim_render PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(carsim_render PUBLIC carsim_core CNA)

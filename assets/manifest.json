@@ -1,5 +1,56 @@
 {
   "schemaVersion": 1,
   "description": "Provenance of every external asset used by cna-car-simulator. Generated assets are not listed.",
-  "assets": []
+  "assets": [
+    {
+      "id": "font-d-din",
+      "title": "D-DIN font family (D-DIN, D-DIN Bold, D-DIN Condensed Bold)",
+      "author": "Datto Inc. (commissioned from Monotype)",
+      "copyright": "Copyright (c) 2017, Datto Inc. (https://www.datto.com/fonts/d-din)",
+      "sourceUrl": "https://github.com/amcchord/datto-d-din",
+      "sourceRevision": "e199c8441e758d6e492cd01ef52c3c67ba4bae26",
+      "retrieved": "2026-09-14",
+      "license": "OFL-1.1",
+      "licenseUrl": "https://openfontlicense.org/open-font-license-official-text/",
+      "licenseFile": "assets/external/fonts/d-din/OFL-1.1.txt",
+      "redistributionAllowed": true,
+      "modificationAllowed": true,
+      "attributionRequired": true,
+      "attributionText": "D-DIN by Datto Inc., licensed under the SIL Open Font License 1.1. Reserved Font Name: D-DIN.",
+      "files": [
+        {
+          "path": "assets/external/fonts/d-din/D-DIN.ttf",
+          "sha256": "705bece88e33c8f86d0ace0c7d93ee143b745cba7a99643753a4f91c3c22e204"
+        },
+        {
+          "path": "assets/external/fonts/d-din/D-DIN-Bold.ttf",
+          "sha256": "69cc46d24509802693a2a5f6e1b18bcad65f8baf5fd3c08b9bd364beb2a8bdd5"
+        },
+        {
+          "path": "assets/external/fonts/d-din/D-DINCondensed-Bold.ttf",
+          "sha256": "664e694799db84a910f08edc717916763a2e3f23ee44b4530769968768b34293"
+        },
+        {
+          "path": "assets/external/fonts/d-din/OFL-1.1.txt",
+          "sha256": "59e505e11e6da3ac3020eb6b4163f4d0382524183db660bf52a08234c764b2e5"
+        },
+        {
+          "path": "assets/external/fonts/d-din/FONTLOG.txt",
+          "sha256": "e1e2e114db6aed0269e7f907bc0b2bd0da18c05b6339a8f712d3645d5d7e043f"
+        }
+      ],
+      "derivedFiles": [
+        "content/fonts/ui_regular_28.png",
+        "content/fonts/ui_regular_28.json",
+        "content/fonts/ui_bold_44.png",
+        "content/fonts/ui_bold_44.json",
+        "content/fonts/plate_bold_128.png",
+        "content/fonts/plate_bold_128.json",
+        "content/fonts/gauge_condensed_96.png",
+        "content/fonts/gauge_condensed_96.json"
+      ],
+      "modifications": "Rasterised into bitmap glyph atlases by tools/fontatlas.py (Pillow); the atlases are derivative Font Software under the OFL and are not named D-DIN.",
+      "usage": "HUD/help text, dashboard digits, registration plate characters (DIN 1451-like typeface, see docs/research/czech-plates.md)."
+    }
+  ]
 }

@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M1 vehicle core complete except SIM-019).
+Last synchronised with the repository: 2026-09-14 (M2 rendering base complete except RND-009; SIM-019 open).
 
 ---
 
@@ -344,17 +344,17 @@ that logs frame statistics for a scripted camera path.
 - [x] `SIM-020` Physics model documented with compromises (`docs/vehicle-physics.md`).
 
 ### M2 Rendering base (`Render`)
-- [ ] `RND-001` Renderer frame orchestration; camera interfaces; frustum from view/projection.
-- [ ] `RND-002` `MeshBuilder`/`GpuMesh` for the XNA vertex structs + 40-byte dual-UV layout.
-- [ ] `RND-003` Procedural texture generator (asphalt, grass, gravel, paving, plaster, roof tiles, leaves, dials) + mip chain builder; PNG cache.
-- [ ] `RND-004` Bitmap font tool (`tools/fontatlas.py`) + `BitmapFont` renderer via `SpriteBatch`.
-- [ ] `RND-005` Procedural car mesh generator (body loft, glass, wheels, lamps, mirrors, interior shell, dashboard, steering wheel) from definition data; node table for animation.
-- [ ] `RND-006` `VehicleRenderer`: wheel rotation/steer, steering wheel, suspension, lamps (emissive), paint environment map.
-- [ ] `RND-007` Chase camera (smooth follow, look-ahead, collision-aware distance) and cockpit camera (eye point, head sway minimal).
-- [ ] `RND-008` Sky dome + sun + clouds; fixed lighting rig constants documented.
+- [x] `RND-001` Frame orchestration in `SimulatorGame` (sky, ground, vehicle opaque/transparent, HUD); `CameraPose` with view/projection/frustum.
+- [x] `RND-002` `MeshData` builder (box, cylinder, torus, loft, smooth normals, winding tests) and `GpuMesh` for the XNA vertex structs + 40-byte dual-UV layout.
+- [x] `RND-003` Procedural texture generator (asphalt, grass, gravel, soil, paving, plaster, roof tiles, bark, leaves, sky cube, clouds) + CPU mip chain upload. PNG cache deferred (generation is fast enough; PERF-004).
+- [x] `RND-004` Bitmap font tool (`tools/fontatlas.py`, premultiplied atlases, `tools/generate_fonts.sh`) + `BitmapFont` renderer via `SpriteBatch` (UTF-8, Czech glyphs, shadowed text, built-in fallback).
+- [x] `RND-005` Procedural car mesh generator (`ProceduralCar`: lofted hatchback body classified per loft quad into paint/glass/trim, wheels, lamps, mirrors, plates, interior shell, dashboard, cluster, steering wheel, seats) from definition data; part roles drive animation. Body-shape polish tracked as UX-006.
+- [x] `RND-006` `VehicleRenderer`: wheel spin/steer/suspension from `VehicleState`, steering wheel rotation, needle poses, emissive lamps, environment-mapped paint with sun glint (cube map alpha mask), separate interior lighting.
+- [x] `RND-007` Chase camera (smoothed yaw/position, speed pull-back, `--chase-yaw`/`--chase-distance` framing) and cockpit camera (driver eye from data, subtle lateral sway). Collision-aware distance moves to COL-006.
+- [x] `RND-008` Sky dome + sun billboard + cloud layer; fixed lighting rig constants in `LightingRig` (documented in section 8).
 - [ ] `RND-009` Renderer conformance probe at start-up (dual-UV layout, instancing) with graceful fallback and log.
-- [ ] `RND-010` Debug overlay (FPS, frame time, speed, RPM, gear, engine state, pedals, culling counts).
-- [ ] `RND-011` Screenshot verification workflow under Xvfb (`scripts/run_headless.sh`).
+- [x] `RND-010` HUD and debug overlay (`F3`): frame time, speed, RPM, gear, engine state, pedals, clutch lock, fuel, coolant; culling counts follow with the world renderer (ENV-008).
+- [x] `RND-011` Screenshot verification workflow under Xvfb (`scripts/run_headless.sh`, `--frames/--screenshot/--auto-drive/--cockpit`); screenshots inspected for every rendering change.
 
 ### M3 Map and roads (`Map`)
 - [ ] `MAP-001` Map JSON schema v1 documents + loader (`MapDocument`) with version checks.
@@ -423,6 +423,7 @@ that logs frame statistics for a scripted camera path.
 - [ ] `AUDIT-001` Asset licence audit; `assets/ASSETS.md` regenerated; manifest test.
 - [ ] `AUDIT-002` Final audit checklist (section 21) executed and recorded.
 - [ ] `DOC-001` README complete (status, build, controls, architecture, limitations, testing).
+- [ ] `UX-006` Car body polish: nose/tail sculpting, bumper split lines, lamp housings, wheel arch lips, seam lines; compare against reference proportions in screenshots.
 
 ## 20. Acceptance criteria (product level)
 
@@ -456,6 +457,7 @@ matches reality; clean tree; pushed.
 | R6 | Headless environment (llvmpipe) hides GPU-only issues | keep renderer-agnostic XNA usage; measure on real hardware when available |
 | R7 | Long CNA build times slow iteration | ccache, EXCLUDE_FROM_ALL, minimal CNA options |
 | R8 | Network policy blocks most asset hosts | procedural assets by default; GitHub-hosted per-item-licensed sources only |
+| R9 | Renderer-specific behaviour behind the XNA API (e.g. the untextured lit `BasicEffect` path rendering black on OPENGLES3) | observed-behaviour list in `docs/framework-findings.md` section 3.4; workarounds stay inside the XNA API; screenshots after every rendering change |
 
 ## 23. Deferred features
 

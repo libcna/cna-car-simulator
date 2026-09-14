@@ -1,0 +1,174 @@
+{
+ "font": "D-DINCondensed-Bold.ttf",
+ "license": "SIL Open Font License 1.1 (see assets/external/fonts/d-din/OFL-1.1.txt)",
+ "size": 96,
+ "premultipliedAlpha": true,
+ "charset": "digits",
+ "lineHeight": 97,
+ "ascent": 80,
+ "descent": 17,
+ "atlasWidth": 512,
+ "atlasHeight": 512,
+ "glyphs": [
+  {
+   "code": 48,
+   "x": 2,
+   "y": 2,
+   "w": 39,
+   "h": 68,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 39.266
+  },
+  {
+   "code": 49,
+   "x": 43,
+   "y": 2,
+   "w": 28,
+   "h": 66,
+   "xoff": 0,
+   "yoff": 14,
+   "advance": 28.125
+  },
+  {
+   "code": 50,
+   "x": 73,
+   "y": 2,
+   "w": 38,
+   "h": 67,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 38.109
+  },
+  {
+   "code": 51,
+   "x": 113,
+   "y": 2,
+   "w": 38,
+   "h": 68,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 38.297
+  },
+  {
+   "code": 52,
+   "x": 153,
+   "y": 2,
+   "w": 41,
+   "h": 66,
+   "xoff": 0,
+   "yoff": 14,
+   "advance": 40.984
+  },
+  {
+   "code": 53,
+   "x": 196,
+   "y": 2,
+   "w": 39,
+   "h": 67,
+   "xoff": 0,
+   "yoff": 14,
+   "advance": 38.969
+  },
+  {
+   "code": 54,
+   "x": 237,
+   "y": 2,
+   "w": 38,
+   "h": 67,
+   "xoff": 0,
+   "yoff": 14,
+   "advance": 38.406
+  },
+  {
+   "code": 55,
+   "x": 277,
+   "y": 2,
+   "w": 37,
+   "h": 66,
+   "xoff": 0,
+   "yoff": 14,
+   "advance": 36.578
+  },
+  {
+   "code": 56,
+   "x": 316,
+   "y": 2,
+   "w": 39,
+   "h": 68,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 39.359
+  },
+  {
+   "code": 57,
+   "x": 357,
+   "y": 2,
+   "w": 38,
+   "h": 67,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 38.406
+  },
+  {
+   "code": 46,
+   "x": 397,
+   "y": 2,
+   "w": 17,
+   "h": 13,
+   "xoff": 0,
+   "yoff": 67,
+   "advance": 16.797
+  },
+  {
+   "code": 58,
+   "x": 416,
+   "y": 2,
+   "w": 17,
+   "h": 45,
+   "xoff": 0,
+   "yoff": 35,
+   "advance": 16.797
+  },
+  {
+   "code": 45,
+   "x": 435,
+   "y": 2,
+   "w": 34,
+   "h": 39,
+   "xoff": 0,
+   "yoff": 41,
+   "advance": 33.703
+  },
+  {
+   "code": 47,
+   "x": 471,
+   "y": 2,
+   "w": 29,
+   "h": 68,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 28.609
+  },
+  {
+   "code": 32,
+   "x": 2,
+   "y": 72,
+   "w": 17,
+   "h": 1,
+   "xoff": 0,
+   "yoff": 80,
+   "advance": 16.797
+  },
+  {
+   "code": 37,
+   "x": 21,
+   "y": 72,
+   "w": 73,
+   "h": 68,
+   "xoff": 0,
+   "yoff": 13,
+   "advance": 73.156
+  }
+ ]
+}
