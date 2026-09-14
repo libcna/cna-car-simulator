@@ -40,7 +40,7 @@ scripts/     run_headless.sh, check_xna_only.py, check_assets.py
 docs/        api-boundary, framework-findings, map-format, vehicle-physics, audio-design,
              materials, cameras, performance, renderer-conformance, real-hardware-validation,
              research/, screenshots/ (curated set, m10-baseline/, renderers/)
-plan.md      ledger; section 24 = Phase 11 "Realism & Production Quality" (24.4 = record)
+plan.md      ledger; section 24 = Phase 11 (24.4 = record and final audit, 24.5 = follow-up)
 ```
 
 ## Building and testing in this environment
@@ -72,6 +72,9 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
 
 - `--lockstep`: one 1/60 s simulation step per drawn frame, so `--frames N` = N/60 s of
   simulated time (480 frames = 8 s; the car reaches about 35 km/h with `--auto-drive 8`).
+- Content edits alone do not reach the binary: the content directory is copied next to the
+  executable by a POST_BUILD step of the simulator target, so after editing JSON either touch a
+  source file and rebuild, or pass `--content content`.
 - Spawns in `content/maps/lipova/traffic.json`: `square` (east-bound in town), `forest`
   (forest edge, heading NNW), `fields` (avenue through the fields), `east` (main road east of
   town), `kostel` (90 m west of the church junction E1, east-bound).
@@ -105,34 +108,29 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   housing only when all four of its corners are inside the lens polygon, otherwise the housing
   shows as black notches around the lens.
 
-## State of Phase 11 (plan.md section 24)
+## State of the project (plan.md section 24)
 
-Every ledger row in section 24 is `[x]` except `RQ-150`, the final audit (see Open below).
-The last commits, newest first:
+Phase 11 ("Realism & Production Quality") is complete and its final audit is recorded in
+section 24.4; section 24.5 holds the follow-up work done after that audit, all of it `[x]`:
 
-- `7120cc5` fog lamps projected onto the nose skin, lamp housing cuts eroded to the lens
-  interior, lens decals 6 mm proud; closes the hero body row after the close-up review.
-- `4ef8b39` headlamp lens contrast (dark when off, bright with emissive when lit) and the
-  `--lights` capture flag, which was a no-op without `--auto-drive` because the electrics gate
-  every lamp except the hazards on the ignition.
-- `663cef7` / `07e5d0b` curated screenshot set, README tables and status, the `kostel` spawn,
-  this file.
-- `dc48f78` chase camera orbit fix + regression test, traffic spawn-visibility test, renderer
-  conformance and real-hardware validation docs.
-- `5fa7dd3` cameras, mirror interval, per-pass instrumentation and benchmark JSON, audio
-  layers, driving-feel tests.
+- `RQ-160` the paved town square (a `square` terrain region drawn with generated granite setts,
+  cobbles under the wheels, town houses lining three sides, lime trees, benches, lamps),
+- `RQ-161` parked cars (`objects.vehicles[]`, drawn by `TrafficRenderer::DrawParked`, solid in
+  the collision world),
+- `RQ-162` the memorial column on the square,
+- `RQ-163` street parking generated along urban local and residential streets.
 
-Open:
+Recent commits, newest first: street parking; the memorial; refreshed screenshots; the
+benchmark table and parked-car LOD radii; parked cars; the paved square; the Phase 11 audit
+record; the interior mirror height; the fog lamps and lamp housing cuts; the headlamp lens and
+`--lights`; the curated screenshot set; the chase camera fix.
 
-- **RQ-150 final audit**: fresh clone of the branch, configure with the dependency paths above,
-  build all targets, `ctest --preset opengles3`, both static checks, confirm README and plan.md
-  agree, then record the verified SHA and the ctest summary in plan.md section 24.4 and mark
-  RQ-150 `[x]`. The audit passed on `4ef8b39` (5/5 ctest registrations, 151 unit tests, both
-  static checks, map validation without warnings); repeat it on the final commit.
-- Optional polish, not in the ledger: the church junction (`--spawn kostel`) is captured but the
-  square junction reads better, so the README keeps the latter; the town square is a lawn with
-  few buildings around it; traffic body diversity is visible but the palette is small; the sun
-  elevation is fixed; the fog lamp lens is dark gloss rather than a clear lens.
+Open / next ideas (nothing is blocking):
+
+- A fresh-clone audit of the follow-up work (the Phase 11 one covered `a1a7efd`).
+- Traffic variety: the paint palette is ten colours and there is no bus or lorry body class.
+- The fog lamp lens is dark gloss rather than a clear lens; shop fascia signs are missing.
+- The village (north of the estate) is thinner than the town centre.
 
 ## Working conventions that kept things sane
 
