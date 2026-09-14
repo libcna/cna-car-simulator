@@ -110,6 +110,7 @@ namespace CarSim::Map
         Forest,
         Town,
         Square,     // paved town square: the ground is drawn as paving and drives like cobbles
+        Yard,       // paved yard or forecourt: concrete slabs, drives like concrete
         Orchard
     };
 

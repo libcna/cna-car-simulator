@@ -839,3 +839,9 @@ committed with its own regression test and screenshot check.
 - [x] `RQ-169` Help overlay wording: the gear row read "1 - 6 / 1st gear" and the shift rows were
   cut off as "Left Shift / Right Sh...". The row now reads "Select a gear (manual)" and the
   modifier names are shortened to "L Shift / R Shift" instead of being truncated.
+- [x] `RQ-171` Filling station and paved yards: a `yard` terrain region paves with concrete slabs
+  (`Sim::SurfaceType::Concrete`), and paved areas with a four-corner outline are now filled with
+  a bilinear grid over the outline itself, so a rotated forecourt has straight edges instead of
+  a stair-stepped boundary. New props `fuel_canopy` (deck on four solid columns) and `fuel_pump`
+  (island, body, displays, hose stacks) make a station on the eastern approach of Lipova, with a
+  shop building, a lamp, a bin and a car on the forecourt.

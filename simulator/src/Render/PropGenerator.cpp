@@ -142,6 +142,28 @@ namespace CarSim::Render
                 red.AddCylinder(Vector3(0, 0.75f, 0), Vector3(0, 1, 0), 0.11f, 0.12f, 10, true);
                 break;
             }
+            case PropType::FuelCanopy: {
+                // Flat canopy over the pumps on four square columns, with a painted fascia band.
+                const float hw = 7.0f, hd = 5.0f, top = 5.2f;
+                for (const float cx : {-hw + 0.9f, hw - 0.9f}) {
+                    for (const float cz : {-hd + 0.9f, hd - 0.9f}) {
+                        white.AddBox(Vector3(cx - 0.18f, -0.1f, cz - 0.18f), Vector3(cx + 0.18f, top - 0.6f, cz + 0.18f), 1.0f);
+                    }
+                }
+                white.AddBox(Vector3(-hw, top - 0.6f, -hd), Vector3(hw, top - 0.05f, hd), 1.0f);   // deck
+                metal.AddBox(Vector3(-hw - 0.12f, top - 0.62f, -hd - 0.12f), Vector3(hw + 0.12f, top - 0.30f, hd + 0.12f), 1.0f);   // fascia
+                break;
+            }
+            case PropType::FuelPump: {
+                white.AddBox(Vector3(-0.55f, -0.05f, -0.30f), Vector3(0.55f, 0.25f, 0.30f), 1.0f);   // island kerb
+                white.AddBox(Vector3(-0.40f, 0.25f, -0.22f), Vector3(0.40f, 1.75f, 0.22f), 1.0f);    // pump body
+                black.AddBox(Vector3(-0.32f, 1.05f, -0.24f), Vector3(0.32f, 1.45f, -0.20f), 1.0f);   // display
+                black.AddBox(Vector3(-0.32f, 1.05f, 0.20f), Vector3(0.32f, 1.45f, 0.24f), 1.0f);
+                metal.AddBox(Vector3(-0.44f, 1.75f, -0.24f), Vector3(0.44f, 1.86f, 0.24f), 1.0f);    // top rail
+                black.AddCylinder(Vector3(-0.46f, 0.95f, 0.0f), Vector3(0, 1, 0), 0.05f, 0.5f, 6, true);   // hose stack
+                black.AddCylinder(Vector3(0.46f, 0.95f, 0.0f), Vector3(0, 1, 0), 0.05f, 0.5f, 6, true);
+                break;
+            }
             case PropType::Memorial: {
                 // Marian column: two stone steps, a pedestal, a tapered shaft with a capital and
                 // a cross. Plain stone, no figure (nothing to license, nothing to misread).

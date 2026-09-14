@@ -41,6 +41,7 @@ namespace CarSim::Map
             case RegionType::Field: s.surface = Sim::SurfaceType::Dirt; break;
             case RegionType::Forest: s.surface = Sim::SurfaceType::Dirt; break;
             case RegionType::Square: s.surface = Sim::SurfaceType::Cobbles; break;
+            case RegionType::Yard: s.surface = Sim::SurfaceType::Concrete; break;
             default: s.surface = Sim::SurfaceType::Grass; break;
         }
         s.onRoad = false;

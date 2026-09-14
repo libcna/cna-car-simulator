@@ -157,6 +157,9 @@ namespace CarSim::Render
                     case Map::RegionType::Square:
                         tint = Rgb{0.46f, 0.45f, 0.43f};
                         break;
+                    case Map::RegionType::Yard:
+                        tint = Rgb{0.52f, 0.52f, 0.50f};
+                        break;
                     case Map::RegionType::Orchard:
                         tint = Rgb{0.56f, 0.60f, 0.38f};
                         break;
@@ -406,58 +409,81 @@ namespace CarSim::Render
 
     void WorldRenderer::BuildPavedAreas(GraphicsDevice& device, const Image& shadow)
     {
+        using Microsoft::Xna::Framework::Vector2;
         const auto& terrain = world_.Terrain();
         const auto& ground = world_.Ground();
         constexpr float kCell = 2.0f;        // grid step of the paved surface
-        constexpr float kTileM = 0.8f;       // one cobble texture tile
+        constexpr float kSettTileM = 0.8f;   // one cobble texture tile
+        constexpr float kSlabTileM = 1.6f;
         constexpr float kLift = 0.02f;       // above the terrain, under the road surface
-        MeshData mesh;
+        MeshData setts;     // cobbled squares
+        MeshData slabs;     // concrete yards and forecourts
         for (const auto& region : terrain.Spec().regions) {
-            if (region.type != Map::RegionType::Square || region.polygon.size() < 3) continue;
+            const bool square = region.type == Map::RegionType::Square;
+            const bool yard = region.type == Map::RegionType::Yard;
+            if ((!square && !yard) || region.polygon.size() < 3) continue;
+            MeshData& mesh = square ? setts : slabs;
+            const float tile = square ? kSettTileM : kSlabTileM;
+            // A four-cornered area (the usual case) is filled with its own bilinear grid, so the
+            // paving follows the outline exactly even when it is not axis-aligned; anything else
+            // falls back to a grid over the bounding box.
+            const bool quad = region.polygon.size() == 4;
+            Vector2 c0, c1, c2, c3;
             float minX = 1e9f, maxX = -1e9f, minZ = 1e9f, maxZ = -1e9f;
             for (const auto& p : region.polygon) {
                 minX = std::min(minX, p.X); maxX = std::max(maxX, p.X);
                 minZ = std::min(minZ, p.Y); maxZ = std::max(maxZ, p.Y);
             }
-            const int nx = std::max(1, static_cast<int>(std::ceil((maxX - minX) / kCell)));
-            const int nz = std::max(1, static_cast<int>(std::ceil((maxZ - minZ) / kCell)));
-            const float stepX = (maxX - minX) / static_cast<float>(nx);
-            const float stepZ = (maxZ - minZ) / static_cast<float>(nz);
-            for (int iz = 0; iz < nz; ++iz) {
-                for (int ix = 0; ix < nx; ++ix) {
-                    const float x0 = minX + static_cast<float>(ix) * stepX;
-                    const float z0 = minZ + static_cast<float>(iz) * stepZ;
-                    const float x1 = x0 + stepX;
-                    const float z1 = z0 + stepZ;
-                    // Only cells wholly inside the region and clear of the road surface: roads
-                    // carry their own paving and sit above the terrain.
-                    bool inside = true;
-                    for (const auto& c : {Microsoft::Xna::Framework::Vector2(x0, z0), Microsoft::Xna::Framework::Vector2(x1, z0),
-                                          Microsoft::Xna::Framework::Vector2(x1, z1), Microsoft::Xna::Framework::Vector2(x0, z1)}) {
-                        if (terrain.RegionAt(c.X, c.Y) != Map::RegionType::Square) { inside = false; break; }
+            if (quad) {
+                c0 = region.polygon[0]; c1 = region.polygon[1]; c2 = region.polygon[2]; c3 = region.polygon[3];
+            }
+            const float spanU = quad ? std::max(Vector2::Distance(c0, c1), Vector2::Distance(c3, c2)) : (maxX - minX);
+            const float spanV = quad ? std::max(Vector2::Distance(c0, c3), Vector2::Distance(c1, c2)) : (maxZ - minZ);
+            const int nu = std::max(1, static_cast<int>(std::ceil(spanU / kCell)));
+            const int nv = std::max(1, static_cast<int>(std::ceil(spanV / kCell)));
+            const auto point = [&](const float u, const float v) {
+                if (!quad) return Vector2(minX + u * (maxX - minX), minZ + v * (maxZ - minZ));
+                const Vector2 a = Vector2::Lerp(c0, c1, u);
+                const Vector2 b = Vector2::Lerp(c3, c2, u);
+                return Vector2::Lerp(a, b, v);
+            };
+            for (int iv = 0; iv < nv; ++iv) {
+                for (int iu = 0; iu < nu; ++iu) {
+                    const float u0 = static_cast<float>(iu) / static_cast<float>(nu);
+                    const float u1 = static_cast<float>(iu + 1) / static_cast<float>(nu);
+                    const float v0 = static_cast<float>(iv) / static_cast<float>(nv);
+                    const float v1 = static_cast<float>(iv + 1) / static_cast<float>(nv);
+                    const Vector2 corners[4] = {point(u0, v0), point(u0, v1), point(u1, v1), point(u1, v0)};
+                    // Cells are dropped where the road surface already paves the ground: roads
+                    // carry their own surface and sit above the terrain.
+                    bool clear = true;
+                    for (const Vector2& c : corners) {
+                        if (!quad && terrain.RegionAt(c.X, c.Y) != region.type) { clear = false; break; }
                         const Map::SurfaceSample gs = ground.Sample(c.X, c.Y);
-                        if (gs.onRoad || gs.distanceToPavedEdge < 0.6f) { inside = false; break; }
+                        if (gs.onRoad || gs.distanceToPavedEdge < 0.6f) { clear = false; break; }
                     }
-                    if (!inside) continue;
+                    if (!clear) continue;
                     // Corner order matches the terrain mesh (counter-clockwise from above), so the
                     // paving is not back-face culled.
                     const std::uint32_t base = static_cast<std::uint32_t>(mesh.vertices.size());
-                    for (const auto& c : {Microsoft::Xna::Framework::Vector2(x0, z0), Microsoft::Xna::Framework::Vector2(x0, z1),
-                                          Microsoft::Xna::Framework::Vector2(x1, z1), Microsoft::Xna::Framework::Vector2(x1, z0)}) {
+                    for (const Vector2& c : corners) {
                         const Vector3 position(c.X, terrain.Height(c.X, c.Y) + kLift, c.Y);
-                        mesh.AddVertex(position, terrain.Normal(c.X, c.Y),
-                                       Microsoft::Xna::Framework::Vector2(c.X / kTileM, c.Y / kTileM), Color(255, 255, 255, 255));
+                        mesh.AddVertex(position, terrain.Normal(c.X, c.Y), Vector2(c.X / tile, c.Y / tile), Color(255, 255, 255, 255));
                     }
                     mesh.AddQuad(base, base + 1, base + 2, base + 3);
                 }
             }
         }
-        if (mesh.TriangleCount() == 0) return;
-        BakeRoadColours(mesh, shadow, nullptr);
-        Batch b;
-        b.mesh = GpuMesh::Create(device, mesh, VertexLayout::PositionColorTexture);
-        b.surface = Surface::Cobbles;
-        roadBatches_.push_back(std::move(b));
+        const auto push = [&](MeshData& m, const Surface surface) {
+            if (m.TriangleCount() == 0) return;
+            BakeRoadColours(m, shadow, nullptr);
+            Batch b;
+            b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
+            b.surface = surface;
+            roadBatches_.push_back(std::move(b));
+        };
+        push(setts, Surface::Cobbles);
+        push(slabs, Surface::Paving);
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
     }
 

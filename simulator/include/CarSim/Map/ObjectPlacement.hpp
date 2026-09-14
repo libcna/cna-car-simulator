@@ -92,6 +92,8 @@ namespace CarSim::Map
         Shed,           // garden shed behind a house (generated)
         UtilityPole,    // wooden pole with a crossarm along village roads (generated)
         Memorial,       // stone column on a stepped plinth with a cross (town squares)
+        FuelCanopy,     // filling station canopy on four columns
+        FuelPump,       // filling station pump with a hose and a display
         Unknown
     };
 

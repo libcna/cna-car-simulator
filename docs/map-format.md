@@ -92,7 +92,7 @@ north = -z). Headings: 0 = north, 90 = east (clockwise).
 | `noise` | object | `amplitude`, `wavelength`, `octaves`, `seed` (signed fBm) |
 | `roadBlendWidth` | number | distance over which terrain blends into the road edge |
 | `features[]` | object | `type` `hill`/`ridge`/`plateau`, `center`, `end` (ridge), `radius`, `height` (negative = basin) |
-| `regions[]` | object | `type` `meadow`/`field`/`forest`/`town`/`square`/`orchard`, `polygon`, `crop`, `seed`; later regions win. A `square` region is paved with cobbles (drawn as a separate ground mesh, cut around the roads) and drives and sounds like cobbles |
+| `regions[]` | object | `type` `meadow`/`field`/`forest`/`town`/`square`/`yard`/`orchard`, `polygon`, `crop`, `seed`; later regions win. A `square` region is paved with cobbles and a `yard` with concrete slabs (both drawn as a separate ground mesh cut around the roads, a four-corner outline filled exactly); they drive and sound like cobbles and concrete |
 
 ### roads.json
 `nodes[]`: `id`, `position`, optional `elevation`, `urban` (built-up area: urban speed limit,
@@ -117,7 +117,7 @@ conflicts and yield lists (priority, right-hand rule, left turn yields to oncomi
 `rotationDeg` = facade heading, `width`, `depth`, `eavesHeight`, `roofPitchDeg`, `floors`,
 `wallColor`, `roofColor`, `seed`), Cars are also parked automatically along urban local and residential streets (see
 `ObjectPlacement::PlaceStreetParking`); `vehicles[]` is for the ones the map author places.
-`props[]` (`type` incl. `memorial`, `position`, `rotationDeg`, `length`,
+`props[]` (`type` incl. `memorial`, `fuel_canopy`, `fuel_pump`, `position`, `rotationDeg`, `length`,
 `scale`), `signs[]` (`code` from the Czech catalogue subset, `position`, `headingDeg` = the
 direction the face points, `text`, `value`), `vehicles[]` (parked cars: `body`
 hatchback/sedan/estate/suv/van, `position`, `rotationDeg` of the nose, `seed` for the style

@@ -96,6 +96,7 @@ namespace CarSim::Map
         else if (t == "forest") out = RegionType::Forest;
         else if (t == "town") out = RegionType::Town;
         else if (t == "square") out = RegionType::Square;
+        else if (t == "yard") out = RegionType::Yard;
         else if (t == "orchard") out = RegionType::Orchard;
         else return false;
         return true;

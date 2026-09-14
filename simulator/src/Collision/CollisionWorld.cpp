@@ -123,6 +123,17 @@ namespace CarSim::Collision
                 case PropType::BusStop:
                     AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 1.3f, 0.0f), Vector3(2.1f, 1.4f, 1.2f), p.headingRad));
                     break;
+                case PropType::FuelCanopy:
+                    // Only the four columns are solid; the deck is 4.6 m up.
+                    for (const float cx : {-6.1f, 6.1f}) {
+                        for (const float cz : {-4.1f, 4.1f}) {
+                            AddStatic(CylinderCollider(ColliderKind::Post, p.position + Offset(p.headingRad, Vector3(cx, -0.1f, cz)), 0.26f, 4.6f));
+                        }
+                    }
+                    break;
+                case PropType::FuelPump:
+                    AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 0.9f, 0.0f), Vector3(0.55f, 0.95f, 0.32f), p.headingRad));
+                    break;
                 case PropType::Memorial:
                     AddStatic(BoxCollider(ColliderKind::Wall, p.position + Vector3(0.0f, 1.3f, 0.0f), Vector3(1.3f, 1.4f, 1.3f), p.headingRad));
                     break;

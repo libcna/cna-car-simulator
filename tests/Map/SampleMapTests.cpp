@@ -201,11 +201,14 @@ TEST(SampleMap, ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads)
     const std::size_t authored = world->Data().objects.vehicles.size();
     ASSERT_GE(authored, 10u) << "the square has a few cars parked on it";
     ASSERT_GE(parked.size(), authored) << "authored cars come first, generated street parking after";
+    int onSquare = 0;
     for (std::size_t i = 0; i < authored; ++i) {
         const auto& car = parked[i];
         const float x = car.position.X;
         const float z = car.position.Z;
-        EXPECT_EQ(world->Terrain().RegionAt(x, z), Map::RegionType::Square) << "parked cars stand on the paved square";
+        const Map::RegionType region = world->Terrain().RegionAt(x, z);
+        EXPECT_TRUE(region == Map::RegionType::Square || region == Map::RegionType::Yard) << "authored cars stand on paving";
+        if (region == Map::RegionType::Square) ++onSquare;
         const auto sample = world->Ground().Sample(x, z);
         EXPECT_FALSE(sample.onRoad) << "a parked car must not stand in the carriageway";
         EXPECT_NEAR(car.position.Y, sample.height, 0.01f) << "parked cars sit on the ground";
@@ -221,6 +224,8 @@ TEST(SampleMap, ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads)
             EXPECT_FALSE(insideFootprint) << "parked car inside a building footprint";
         }
     }
+    EXPECT_GE(onSquare, 10) << "most of the authored cars are parked on the square";
+
     // Cars generated along the town streets stand clear of the carriageway and of buildings.
     for (std::size_t i = authored; i < parked.size(); ++i) {
         const auto& car = parked[i];

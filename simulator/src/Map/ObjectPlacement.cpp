@@ -106,6 +106,8 @@ namespace CarSim::Map
         else if (text == "bin") out = PropType::Bin;
         else if (text == "delineator") out = PropType::Delineator;
         else if (text == "memorial") out = PropType::Memorial;
+        else if (text == "fuel_canopy") out = PropType::FuelCanopy;
+        else if (text == "fuel_pump") out = PropType::FuelPump;
         else if (text == "wire_fence") out = PropType::WireFence;
         else if (text == "hedge") out = PropType::Hedge;
         else if (text == "shed") out = PropType::Shed;

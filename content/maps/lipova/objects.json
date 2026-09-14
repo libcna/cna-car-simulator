@@ -5166,6 +5166,20 @@
    "roofPitchDeg": 46,
    "floors": 1,
    "seed": 7701
+  },
+  {
+   "type": "shop",
+   "position": [
+    845.5,
+    -104.8
+   ],
+   "rotationDeg": 247.9,
+   "width": 11.0,
+   "depth": 7.5,
+   "eavesHeight": 3.4,
+   "roofPitchDeg": 12,
+   "floors": 1,
+   "seed": 7810
   }
  ],
  "props": [
@@ -5546,6 +5560,46 @@
    "position": [
     -57.0,
     -40.0
+   ],
+   "rotationDeg": 0.0
+  },
+  {
+   "type": "fuel_canopy",
+   "position": [
+    839.5,
+    -119.7
+   ],
+   "rotationDeg": 67.9
+  },
+  {
+   "type": "fuel_pump",
+   "position": [
+    835.3,
+    -118.0
+   ],
+   "rotationDeg": 157.9
+  },
+  {
+   "type": "fuel_pump",
+   "position": [
+    843.6,
+    -121.4
+   ],
+   "rotationDeg": 157.9
+  },
+  {
+   "type": "lamp",
+   "position": [
+    818.7,
+    -117.7
+   ],
+   "rotationDeg": 0.0
+  },
+  {
+   "type": "bin",
+   "position": [
+    848.3,
+    -129.7
    ],
    "rotationDeg": 0.0
   }
@@ -6286,6 +6340,15 @@
    ],
    "rotationDeg": 270.0,
    "seed": 8314
+  },
+  {
+   "body": "estate",
+   "position": [
+    856.6,
+    -114.7
+   ],
+   "rotationDeg": 247.9,
+   "seed": 8400
   }
  ]
 }
