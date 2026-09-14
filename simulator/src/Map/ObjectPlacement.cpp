@@ -345,6 +345,8 @@ namespace CarSim::Map
             s.spec = &spec;
             s.headingRad = spec.headingDeg * kPi / 180.0f;
             s.position = Vector3(spec.position.X, ground.HeightAt(spec.position.X, spec.position.Y), spec.position.Y);
+            RoadHit hit;
+            s.urban = world.Roads().NearestRoad(spec.position, 25.0f, hit) && hit.sample.urban;
             signs_.push_back(s);
         }
     }

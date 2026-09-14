@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CarSim/Map/MapWorld.hpp"
+#include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/GpuMesh.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 
@@ -38,7 +39,9 @@ namespace CarSim::Render
     class WorldRenderer
     {
     public:
-        WorldRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world);
+        /// `signFont` sets the text on road signs (town names, directions); null uses no text.
+        WorldRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world,
+                      const BitmapFont* signFont);
 
         /// `mirrored`: the projection flips x (mirror pass), so front faces are clockwise.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Microsoft::Xna::Framework::Matrix& view,
@@ -79,6 +82,7 @@ namespace CarSim::Render
         };
 
         void BuildObjects(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        void BuildSigns(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const BitmapFont* font);
         void BuildTrees(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildTerrain(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildMacroTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
@@ -114,6 +118,8 @@ namespace CarSim::Render
         std::vector<Batch> roadBatches_;
         std::vector<ObjectBatch> objectBatches_;
         std::vector<TreeBatch> treeBatches_;
+        std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> signTextures_;
+        std::vector<TreeBatch> signBatches_;   // alpha-tested faces (share the tree effect)
         WorldRenderStats stats_;
     };
 }

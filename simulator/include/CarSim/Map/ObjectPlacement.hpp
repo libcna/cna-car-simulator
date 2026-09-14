@@ -61,6 +61,7 @@ namespace CarSim::Map
         const SignSpec* spec = nullptr;
         Microsoft::Xna::Framework::Vector3 position{};   // post base on the ground
         float headingRad = 0.0f;                        // direction the face points to
+        bool urban = false;                             // mounted at sidewalk height inside built-up areas
     };
 
     enum class PropType

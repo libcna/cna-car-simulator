@@ -185,9 +185,18 @@ namespace CarSim::App
         LoadVehicle();
 
         sky_ = std::make_unique<Render::SkyRenderer>(device, rig_);
+        font_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_regular_28");
+        fontBold_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_bold_44");
+        if (!font_) {
+            std::cerr << "font: using the built-in fallback font\n";
+            font_ = Render::BitmapFont::CreateBuiltin(device);
+        }
+        if (!fontBold_) {
+            fontBold_ = Render::BitmapFont::CreateBuiltin(device);
+        }
         if (map_) {
             const auto start = std::chrono::steady_clock::now();
-            worldRenderer_ = std::make_unique<Render::WorldRenderer>(device, rig_, *map_);
+            worldRenderer_ = std::make_unique<Render::WorldRenderer>(device, rig_, *map_, fontBold_.get());
             std::cout << "world: " << worldRenderer_->Stats().terrainChunksTotal << " terrain chunks, "
                       << worldRenderer_->Stats().roadBatchesTotal << " road batches, built in "
                       << std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count() << " s\n";
@@ -198,15 +207,6 @@ namespace CarSim::App
         vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
         spriteBatch_ = std::make_unique<SpriteBatch>(device);
 
-        font_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_regular_28");
-        fontBold_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_bold_44");
-        if (!font_) {
-            std::cerr << "font: using the built-in fallback font\n";
-            font_ = Render::BitmapFont::CreateBuiltin(device);
-        }
-        if (!fontBold_) {
-            fontBold_ = Render::BitmapFont::CreateBuiltin(device);
-        }
         gaugeFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/gauge_condensed_96");
         if (!gaugeFont_) {
             gaugeFont_ = Render::BitmapFont::CreateBuiltin(device);
@@ -342,6 +342,18 @@ namespace CarSim::App
         }
 
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
+        {
+            // Ground plane for the projected shadow: lowest grounded wheel contact, terrain normal there.
+            Vector3 groundPoint = state.originPosition;
+            Vector3 groundNormal(0.0f, 1.0f, 0.0f);
+            if (map_) {
+                groundPoint.Y = map_->Ground().HeightAt(state.originPosition.X, state.originPosition.Z);
+                groundNormal = map_->Ground().NormalAt(state.originPosition.X, state.originPosition.Z);
+            } else {
+                groundPoint.Y = 0.0f;
+            }
+            vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundPoint, groundNormal);
+        }
         vehicleRenderer_->DrawTransparent(device, state, view, projection);
 
         DrawHud();

@@ -7,6 +7,7 @@
 #include "CarSim/Sim/Vehicle.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BasicEffect.hpp"
+#include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EnvironmentMapEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
@@ -27,6 +28,8 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Graphics::BasicEffect& Lit() { return *lit_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& LitTextured() { return *litTextured_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& InteriorLit() { return *interiorLit_; }
+        Microsoft::Xna::Framework::Graphics::BasicEffect& Shadow() { return *shadow_; }
+        Microsoft::Xna::Framework::Graphics::DepthStencilState& ShadowStencil() { return *shadowStencil_; }
         Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect& Paint() { return *paint_; }
         Microsoft::Xna::Framework::Graphics::TextureCube& Environment() { return *environment_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& White() { return *white_; }
@@ -37,6 +40,8 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> lit_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> litTextured_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> interiorLit_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> shadow_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::DepthStencilState> shadowStencil_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect> paint_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::TextureCube> environment_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
@@ -69,6 +74,12 @@ namespace CarSim::Render
                         const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
                         bool drawInterior, const GaugePose& gauges, bool mirrored = false);
         /// Transparent parts (glass), drawn after all opaque geometry.
+        /// Planar projected shadow of the exterior onto the ground plane under the car (sun light),
+        /// stencil-masked so overlapping parts darken once. Call after the opaque world and vehicle.
+        void DrawShadow(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
+                        const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
+                        const Microsoft::Xna::Framework::Vector3& sunDirection, const Microsoft::Xna::Framework::Vector3& groundPoint,
+                        const Microsoft::Xna::Framework::Vector3& groundNormal);
         void DrawTransparent(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
                              const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection, bool mirrored = false);
 

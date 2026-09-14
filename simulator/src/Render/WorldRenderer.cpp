@@ -6,6 +6,7 @@
 #include "CarSim/Render/BuildingGenerator.hpp"
 #include "CarSim/Render/PropGenerator.hpp"
 #include "CarSim/Render/RoadMeshBuilder.hpp"
+#include "CarSim/Render/SignGenerator.hpp"
 #include "CarSim/Render/VegetationGenerator.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
@@ -43,7 +44,7 @@ namespace CarSim::Render
         float Clamp01(const float v) { return std::clamp(v, 0.0f, 1.0f); }
     }
 
-    WorldRenderer::WorldRenderer(GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world)
+    WorldRenderer::WorldRenderer(GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world, const BitmapFont* signFont)
         : world_(world), rig_(rig)
     {
         grass_ = UploadTexture(device, Textures::Grass(512, 1u), true);
@@ -59,6 +60,7 @@ namespace CarSim::Render
         BuildIntersections(device);
         BuildObjects(device);
         BuildTrees(device);
+        BuildSigns(device, signFont);
 
         treeEffect_ = std::make_unique<AlphaTestEffect>(device);
         treeEffect_->setAlphaFunctionProperty(CompareFunction::Greater);
@@ -388,6 +390,53 @@ namespace CarSim::Render
         stats_.treeBatchesTotal = static_cast<int>(treeBatches_.size());
     }
 
+    void WorldRenderer::BuildSigns(GraphicsDevice& device, const BitmapFont* font)
+    {
+        const auto& signs = world_.Objects().Signs();
+        if (signs.empty()) {
+            return;
+        }
+        std::unique_ptr<BitmapFont> fallback;
+        if (!font) {
+            fallback = BitmapFont::CreateBuiltin(device);
+            font = fallback.get();
+        }
+        const Image atlas = font->AtlasImage();
+        std::map<std::string, std::size_t> faceIndex;
+        std::vector<SignFace> faces;
+        std::vector<MeshData> faceMeshes;
+        MeshData posts;
+        for (const auto& sign : signs) {
+            const std::string key = SignGenerator::FaceKey(*sign.spec);
+            auto it = faceIndex.find(key);
+            if (it == faceIndex.end()) {
+                it = faceIndex.emplace(key, faces.size()).first;
+                faces.push_back(SignGenerator::Face(*sign.spec, *font, atlas));
+                faceMeshes.emplace_back();
+            }
+            SignGenerator::AppendSign(sign, faces[it->second], faceMeshes[it->second], posts);
+        }
+        for (std::size_t i = 0; i < faces.size(); ++i) {
+            Image img = faces[i].image;
+            DilateColour(img, 4);
+            signTextures_.push_back(UploadTexture(device, img, true));
+            TreeBatch b;
+            b.mesh = GpuMesh::Create(device, faceMeshes[i], VertexLayout::PositionColorTexture);
+            b.texture = signTextures_.back().get();
+            signBatches_.push_back(std::move(b));
+        }
+        if (posts.TriangleCount() > 0) {
+            ObjectBatch b;
+            b.mesh = GpuMesh::Create(device, posts, VertexLayout::PositionNormalTexture);
+            b.texture = white_.get();
+            b.diffuse = Vector3(0.52f, 0.54f, 0.56f);
+            b.specular = Vector3(0.4f, 0.4f, 0.4f);
+            b.specularPower = 24.0f;
+            objectBatches_.push_back(std::move(b));
+            stats_.objectBatchesTotal = static_cast<int>(objectBatches_.size());
+        }
+    }
+
     Texture2D* WorldRenderer::TextureFor(const Surface s) const
     {
         switch (s) {
@@ -489,6 +538,17 @@ namespace CarSim::Render
             treeEffect_->setTextureProperty(b.texture);
             ApplyAll(*treeEffect_, device, *b.mesh);
             ++stats_.treeBatchesDrawn;
+            ++stats_.drawCalls;
+            stats_.triangles += b.mesh->PrimitiveCount();
+        }
+        // Sign faces: alpha-tested, both sides drawn (two quads), no distance cull beyond the frustum.
+        device.setRasterizerStateProperty(RasterizerState::CullNone);
+        for (const auto& b : signBatches_) {
+            if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
+                continue;
+            }
+            treeEffect_->setTextureProperty(b.texture);
+            ApplyAll(*treeEffect_, device, *b.mesh);
             ++stats_.drawCalls;
             stats_.triangles += b.mesh->PrimitiveCount();
         }

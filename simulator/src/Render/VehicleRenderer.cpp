@@ -5,6 +5,9 @@
 #include "CarSim/Sim/Units.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
+#include "Microsoft/Xna/Framework/Graphics/CompareFunction.hpp"
+#include "Microsoft/Xna/Framework/Graphics/StencilOperation.hpp"
+#include "Microsoft/Xna/Framework/Plane.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPass.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPassCollection.hpp"
@@ -181,6 +184,26 @@ namespace CarSim::Render
         interiorLit_->setTextureEnabledProperty(true);
         interiorLit_->setVertexColorEnabledProperty(false);
 
+        // Shadow: flat dark translucent colour, no lighting; stencil so the projected parts
+        // darken each pixel only once.
+        shadow_ = std::make_unique<BasicEffect>(device);
+        shadow_->setLightingEnabledProperty(false);
+        shadow_->setTextureEnabledProperty(true);
+        shadow_->setVertexColorEnabledProperty(false);
+        shadow_->setDiffuseColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        shadow_->setAlphaProperty(0.42f);
+        shadow_->setFogEnabledProperty(false);
+        shadowStencil_ = std::make_unique<DepthStencilState>();
+        shadowStencil_->setDepthBufferEnableProperty(true);
+        shadowStencil_->setDepthBufferWriteEnableProperty(false);
+        shadowStencil_->setDepthBufferFunctionProperty(CompareFunction::LessEqual);
+        shadowStencil_->setStencilEnableProperty(true);
+        shadowStencil_->setStencilFunctionProperty(CompareFunction::Equal);
+        shadowStencil_->setReferenceStencilProperty(0);
+        shadowStencil_->setStencilPassProperty(StencilOperation::Increment);
+        shadowStencil_->setStencilFailProperty(StencilOperation::Keep);
+        shadowStencil_->setStencilDepthBufferFailProperty(StencilOperation::Keep);
+
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
 
         // Default plate: blank white face with the blue band (the traffic system supplies real plates).
@@ -345,6 +368,40 @@ namespace CarSim::Render
             }
             DrawPart(device, gpu, state, view, projection, gauges);
         }
+    }
+
+    void VehicleRenderer::DrawShadow(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection,
+                                     const Vector3& sunDirection, const Vector3& groundPoint, const Vector3& groundNormal)
+    {
+        // Plane slightly above the ground so the shadow wins the depth test against the road.
+        Vector3 n = groundNormal;
+        if (n.LengthSquared() < 1e-6f) n = Vector3(0.0f, 1.0f, 0.0f);
+        n.Normalize();
+        const Vector3 p = groundPoint + n * 0.02f;
+        const Plane plane(n, -Vector3::Dot(n, p));
+        Vector3 toSun = sunDirection * -1.0f;
+        toSun.Normalize();
+        const Matrix shadow = Matrix::CreateShadow(toSun, plane);
+
+        device.setBlendStateProperty(BlendState::AlphaBlend);
+        device.setDepthStencilStateProperty(materials_.ShadowStencil());
+        device.setRasterizerStateProperty(RasterizerState::CullNone);
+        auto& e = materials_.Shadow();
+        e.setViewProperty(view);
+        e.setProjectionProperty(projection);
+        e.setTextureProperty(&materials_.White());
+        GaugePose none;
+        for (const auto& gpu : parts_) {
+            const CarPart& part = *gpu.part;
+            if (!gpu.mesh || part.material == CarMaterial::Glass || IsInteriorPart(part)) {
+                continue;
+            }
+            e.setWorldProperty(PartWorld(part, state, none) * shadow);
+            ApplyAll(e, device, *gpu.mesh);
+        }
+        device.setBlendStateProperty(BlendState::Opaque);
+        device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
     }
 
     void VehicleRenderer::DrawTransparent(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,

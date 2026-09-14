@@ -45,6 +45,7 @@ add_library(carsim_render STATIC
     src/Render/Camera.cpp
     src/Render/GpuMesh.cpp
     src/Render/Image.cpp
+    src/Render/ImageText.cpp
     src/Render/InstrumentCluster.cpp
     src/Render/LightingRig.cpp
     src/Render/MeshData.cpp
@@ -54,6 +55,7 @@ add_library(carsim_render STATIC
     src/Render/PropGenerator.cpp
     src/Render/RoadMeshBuilder.cpp
     src/Render/Screenshot.cpp
+    src/Render/SignGenerator.cpp
     src/Render/SkyRenderer.cpp
     src/Render/TestGround.cpp
     src/Render/VegetationGenerator.cpp

@@ -237,4 +237,19 @@ namespace CarSim::Render
         Draw(batch, utf8, position + Vector2(offset, offset), Color(0, 0, 0, static_cast<int>(color.getAProperty()) * 3 / 4), scale, align);
         Draw(batch, utf8, position, color, scale, align);
     }
+
+    const BitmapFont::Glyph* BitmapFont::FindGlyph(const std::uint32_t codePoint) const
+    {
+        const auto it = glyphs_.find(codePoint);
+        return it == glyphs_.end() ? nullptr : &it->second;
+    }
+
+    Image BitmapFont::AtlasImage() const
+    {
+        const int w = texture_.getWidthProperty();
+        const int h = texture_.getHeightProperty();
+        Image img(w, h);
+        texture_.GetData(img.Pixels().data(), w * h);
+        return img;
+    }
 }

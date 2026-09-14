@@ -4,6 +4,8 @@
 #include "Microsoft/Xna/Framework/Color.hpp"
 #include "Microsoft/Xna/Framework/Content/ContentManager.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
+#include "CarSim/Render/Image.hpp"
+
 #include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
 #include "Microsoft/Xna/Framework/Vector2.hpp"
@@ -58,6 +60,12 @@ namespace CarSim::Render
                           float scale = 1.0f, TextAlign align = TextAlign::Left) const;
 
         [[nodiscard]] const Microsoft::Xna::Framework::Graphics::Texture2D& Texture() const { return texture_; }
+        [[nodiscard]] const std::unordered_map<std::uint32_t, Glyph>& Glyphs() const { return glyphs_; }
+        [[nodiscard]] int Ascent() const { return ascent_; }
+        /// Glyph for a code point or nullptr.
+        [[nodiscard]] const Glyph* FindGlyph(std::uint32_t codePoint) const;
+        /// Reads the atlas back from the GPU (premultiplied white glyphs); used for CPU text rendering.
+        [[nodiscard]] Image AtlasImage() const;
 
         /// Decodes UTF-8 into code points (invalid bytes become U+FFFD).
         [[nodiscard]] static std::vector<std::uint32_t> DecodeUtf8(const std::string& utf8);
