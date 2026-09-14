@@ -298,8 +298,8 @@ Screenshots were reviewed for every rendering change; the headless workflow is
 
 `--benchmark --lockstep --frames 150 --auto-drive 6` on the development container (Mesa
 llvmpipe software rendering, four threads, 1280 x 720): update below 0.5 ms; draw submission
-115 ms in town with 20 traffic cars and 15 parked ones (1024 draw calls, 868k triangles),
-55 ms on the forest road, 26 ms in the fields; the cockpit view with the mirror adds 62 ms
+120 ms in town with 20 traffic cars and 91 parked ones (1078 draw calls, 878k triangles),
+54 ms on the forest road, 25 ms in the fields; the cockpit view with the mirror adds 63 ms
 (31 ms with the mirror redrawn every second frame). A GPU renders the same frames in a few milliseconds. Per-pass
 timings, visible counts and the LOD/culling levers are in
 [`docs/performance.md`](docs/performance.md); `--benchmark-json` writes them as JSON. The
