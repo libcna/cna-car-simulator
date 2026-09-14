@@ -13,6 +13,7 @@ add_library(carsim_core STATIC
     src/Map/MapData.cpp
     src/Map/MapDocument.cpp
     src/Map/MapWorld.cpp
+    src/Map/ObjectPlacement.cpp
     src/Map/RoadNetwork.cpp
     src/Map/SpatialGrid.cpp
     src/Map/TerrainField.cpp
@@ -40,6 +41,7 @@ carsim_apply_warnings(carsim_core)
 add_library(carsim_render STATIC
     src/Input/InputMapper.cpp
     src/Render/BitmapFont.cpp
+    src/Render/BuildingGenerator.cpp
     src/Render/Camera.cpp
     src/Render/GpuMesh.cpp
     src/Render/Image.cpp
@@ -49,10 +51,12 @@ add_library(carsim_render STATIC
     src/Render/MirrorView.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralTextures.cpp
+    src/Render/PropGenerator.cpp
     src/Render/RoadMeshBuilder.cpp
     src/Render/Screenshot.cpp
     src/Render/SkyRenderer.cpp
     src/Render/TestGround.cpp
+    src/Render/VegetationGenerator.cpp
     src/Render/VehicleRenderer.cpp
     src/Render/WorldRenderer.cpp
 )

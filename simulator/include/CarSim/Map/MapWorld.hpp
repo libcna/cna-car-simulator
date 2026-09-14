@@ -4,6 +4,7 @@
 
 #include "CarSim/Map/LaneGraph.hpp"
 #include "CarSim/Map/MapData.hpp"
+#include "CarSim/Map/ObjectPlacement.hpp"
 #include "CarSim/Map/RoadNetwork.hpp"
 #include "CarSim/Map/TerrainField.hpp"
 #include "CarSim/Sim/Ground.hpp"
@@ -48,6 +49,7 @@ namespace CarSim::Map
         double roadSeconds = 0.0;
         double terrainSeconds = 0.0;
         double laneSeconds = 0.0;
+        double objectSeconds = 0.0;
     };
 
     class MapWorld
@@ -64,6 +66,8 @@ namespace CarSim::Map
         [[nodiscard]] const LaneGraph& Lanes() const { return lanes_; }
         [[nodiscard]] const TerrainField& Terrain() const { return terrain_; }
         [[nodiscard]] const MapGround& Ground() const { return *ground_; }
+        [[nodiscard]] const ObjectPlacement& Objects() const { return objects_; }
+        [[nodiscard]] const std::vector<std::string>& BuildWarnings() const { return buildWarnings_; }
         [[nodiscard]] const MapBuildStats& Stats() const { return stats_; }
 
         /// Player spawn: named or the first one; falls back to the first lane start.
@@ -79,6 +83,8 @@ namespace CarSim::Map
         TerrainField terrain_;
         LaneGraph lanes_;
         std::unique_ptr<MapGround> ground_;
+        ObjectPlacement objects_;
+        std::vector<std::string> buildWarnings_;
         MapBuildStats stats_;
     };
 

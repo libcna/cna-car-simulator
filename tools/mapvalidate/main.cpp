@@ -155,8 +155,10 @@ int main(int argc, char** argv)
         std::printf("objects: %zu buildings, %zu props, %zu signs, %zu trees, %zu forests, %zu avenues\n",
                     world->Data().objects.buildings.size(), world->Data().objects.props.size(), world->Data().objects.signs.size(),
                     world->Data().objects.trees.size(), world->Data().objects.forests.size(), world->Data().objects.avenues.size());
-        std::printf("build times: load %.2f s (roads %.2f s, terrain %.2f s, lanes %.2f s)\n", world->Stats().loadSeconds,
-                    world->Stats().roadSeconds, world->Stats().terrainSeconds, world->Stats().laneSeconds);
+        std::printf("placed: %zu buildings, %zu trees, %zu signs, %zu props (incl. delineators)\n", world->Objects().Buildings().size(),
+                    world->Objects().Trees().size(), world->Objects().Signs().size(), world->Objects().Props().size());
+        std::printf("build times: load %.2f s (roads %.2f s, terrain %.2f s, lanes %.2f s, objects %.2f s)\n", world->Stats().loadSeconds,
+                    world->Stats().roadSeconds, world->Stats().terrainSeconds, world->Stats().laneSeconds, world->Stats().objectSeconds);
     }
     if (problems > 0) {
         std::printf("map-validate: FAILED (%d problem(s))\n", problems);

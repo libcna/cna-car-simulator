@@ -77,6 +77,96 @@ namespace CarSim::Render
         }
     }
 
+    void Image::Blend(const int x, const int y, const Color& color)
+    {
+        if (x < 0 || y < 0 || x >= width_ || y >= height_) {
+            return;
+        }
+        const float a = static_cast<float>(color.getAProperty()) / 255.0f;
+        if (a <= 0.0f) {
+            return;
+        }
+        Color& dst = At(x, y);
+        const auto mix = [&](const int d, const int s) { return static_cast<int>(static_cast<float>(d) * (1.0f - a) + static_cast<float>(s) * a + 0.5f); };
+        const int da = static_cast<int>(dst.getAProperty());
+        const int outA = std::min(255, static_cast<int>(static_cast<float>(da) * (1.0f - a) + 255.0f * a + 0.5f));
+        dst = Color(mix(static_cast<int>(dst.getRProperty()), static_cast<int>(color.getRProperty())),
+                    mix(static_cast<int>(dst.getGProperty()), static_cast<int>(color.getGProperty())),
+                    mix(static_cast<int>(dst.getBProperty()), static_cast<int>(color.getBProperty())), outA);
+    }
+
+    void Image::FillPolygon(const std::vector<std::pair<float, float>>& points, const Color& color)
+    {
+        if (points.size() < 3) {
+            return;
+        }
+        float minY = points[0].second;
+        float maxY = minY;
+        for (const auto& p : points) {
+            minY = std::min(minY, p.second);
+            maxY = std::max(maxY, p.second);
+        }
+        const int y0 = std::max(0, static_cast<int>(std::floor(minY)));
+        const int y1 = std::min(height_ - 1, static_cast<int>(std::ceil(maxY)));
+        std::vector<float> crossings;
+        for (int y = y0; y <= y1; ++y) {
+            const float sy = static_cast<float>(y) + 0.5f;
+            crossings.clear();
+            for (std::size_t i = 0, j = points.size() - 1; i < points.size(); j = i++) {
+                const auto& a = points[j];
+                const auto& b = points[i];
+                if ((a.second > sy) != (b.second > sy)) {
+                    crossings.push_back(a.first + (sy - a.second) / (b.second - a.second) * (b.first - a.first));
+                }
+            }
+            std::sort(crossings.begin(), crossings.end());
+            for (std::size_t k = 0; k + 1 < crossings.size(); k += 2) {
+                const int xa = std::max(0, static_cast<int>(std::round(crossings[k])));
+                const int xb = std::min(width_, static_cast<int>(std::round(crossings[k + 1])));
+                for (int x = xa; x < xb; ++x) {
+                    Blend(x, y, color);
+                }
+            }
+        }
+    }
+
+    void Image::FillTriangle(const float x0, const float y0, const float x1, const float y1, const float x2, const float y2, const Color& color)
+    {
+        FillPolygon({{x0, y0}, {x1, y1}, {x2, y2}}, color);
+    }
+
+    void Image::DrawLine(const float x0, const float y0, const float x1, const float y1, const float thickness, const Color& color)
+    {
+        const float dx = x1 - x0;
+        const float dy = y1 - y0;
+        const float len = std::sqrt(dx * dx + dy * dy);
+        if (len < 1e-4f) {
+            FillCircle(x0, y0, thickness * 0.5f, color);
+            return;
+        }
+        const float nx = -dy / len * thickness * 0.5f;
+        const float ny = dx / len * thickness * 0.5f;
+        FillPolygon({{x0 + nx, y0 + ny}, {x1 + nx, y1 + ny}, {x1 - nx, y1 - ny}, {x0 - nx, y0 - ny}}, color);
+    }
+
+    void Image::FillRing(const float cx, const float cy, const float outerRadius, const float innerRadius, const Color& color)
+    {
+        const int x0 = std::max(0, static_cast<int>(cx - outerRadius - 1.0f));
+        const int x1 = std::min(width_ - 1, static_cast<int>(cx + outerRadius + 1.0f));
+        const int y0 = std::max(0, static_cast<int>(cy - outerRadius - 1.0f));
+        const int y1 = std::min(height_ - 1, static_cast<int>(cy + outerRadius + 1.0f));
+        for (int y = y0; y <= y1; ++y) {
+            for (int x = x0; x <= x1; ++x) {
+                const float d = std::sqrt((static_cast<float>(x) + 0.5f - cx) * (static_cast<float>(x) + 0.5f - cx) +
+                                          (static_cast<float>(y) + 0.5f - cy) * (static_cast<float>(y) + 0.5f - cy));
+                const float coverage = std::clamp(outerRadius - d + 0.5f, 0.0f, 1.0f) * std::clamp(d - innerRadius + 0.5f, 0.0f, 1.0f);
+                if (coverage <= 0.0f) continue;
+                Blend(x, y, Color(static_cast<int>(color.getRProperty()), static_cast<int>(color.getGProperty()), static_cast<int>(color.getBProperty()),
+                                  static_cast<int>(static_cast<float>(color.getAProperty()) * coverage)));
+            }
+        }
+    }
+
     void Image::BlendOver(const Image& top, const int ox, const int oy)
     {
         for (int y = 0; y < top.Height(); ++y) {

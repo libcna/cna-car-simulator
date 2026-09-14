@@ -51,6 +51,16 @@ namespace CarSim::Render
         void FillRect(int x0, int y0, int x1, int y1, const Color& color);
         /// Draws a filled disc.
         void FillCircle(float cx, float cy, float radius, const Color& color);
+        /// Draws a filled triangle (pixel coordinates).
+        void FillTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const Color& color);
+        /// Draws a filled convex or concave polygon (even-odd rule).
+        void FillPolygon(const std::vector<std::pair<float, float>>& points, const Color& color);
+        /// Draws a line of the given thickness.
+        void DrawLine(float x0, float y0, float x1, float y1, float thickness, const Color& color);
+        /// Draws a ring (annulus) between two radii.
+        void FillRing(float cx, float cy, float outerRadius, float innerRadius, const Color& color);
+        /// Alpha-blends `color` over the pixel (colour has straight alpha).
+        void Blend(int x, int y, const Color& color);
         /// Blends `top` over this image at offset (x, y) using top's alpha.
         void BlendOver(const Image& top, int x, int y);
 

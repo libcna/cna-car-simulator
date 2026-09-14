@@ -3,9 +3,13 @@
 #include "CarSim/Core/Noise.hpp"
 #include "CarSim/Render/Image.hpp"
 #include "CarSim/Render/ProceduralTextures.hpp"
+#include "CarSim/Render/BuildingGenerator.hpp"
+#include "CarSim/Render/PropGenerator.hpp"
 #include "CarSim/Render/RoadMeshBuilder.hpp"
+#include "CarSim/Render/VegetationGenerator.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
+#include "Microsoft/Xna/Framework/Graphics/CompareFunction.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPass.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPassCollection.hpp"
@@ -15,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 
 namespace CarSim::Render
 {
@@ -52,6 +57,18 @@ namespace CarSim::Render
         BuildTerrain(device);
         BuildRoads(device);
         BuildIntersections(device);
+        BuildObjects(device);
+        BuildTrees(device);
+
+        treeEffect_ = std::make_unique<AlphaTestEffect>(device);
+        treeEffect_->setAlphaFunctionProperty(CompareFunction::Greater);
+        treeEffect_->setReferenceAlphaProperty(110);
+        treeEffect_->setVertexColorEnabledProperty(true);
+        treeEffect_->setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
+        treeEffect_->setFogEnabledProperty(true);
+        treeEffect_->setFogColorProperty(rig.fogColor);
+        treeEffect_->setFogStartProperty(rig.fogStart);
+        treeEffect_->setFogEndProperty(rig.fogEnd);
 
         terrainEffect_ = std::make_unique<DualTextureEffect>(device);
         terrainEffect_->setVertexColorEnabledProperty(false);
@@ -239,6 +256,138 @@ namespace CarSim::Render
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
     }
 
+    namespace
+    {
+        constexpr float kObjectChunkM = 256.0f;
+
+        std::pair<int, int> ChunkKey(const float x, const float z)
+        {
+            return {static_cast<int>(std::floor(x / kObjectChunkM)), static_cast<int>(std::floor(z / kObjectChunkM))};
+        }
+
+        /// Spreads opaque colours into transparent texels so mip levels do not darken at the edges.
+        void DilateColour(Image& img, const int passes)
+        {
+            for (int pass = 0; pass < passes; ++pass) {
+                Image copy = img;
+                for (int y = 0; y < img.Height(); ++y) {
+                    for (int x = 0; x < img.Width(); ++x) {
+                        if (copy.At(x, y).getAProperty() != 0) continue;
+                        int r = 0, g = 0, b = 0, n = 0;
+                        for (int dy = -1; dy <= 1; ++dy) {
+                            for (int dx = -1; dx <= 1; ++dx) {
+                                const int sx = x + dx;
+                                const int sy = y + dy;
+                                if (sx < 0 || sy < 0 || sx >= img.Width() || sy >= img.Height()) continue;
+                                const Color& c = copy.At(sx, sy);
+                                if (c.getAProperty() == 0 && !(c.getRProperty() | c.getGProperty() | c.getBProperty())) continue;
+                                r += static_cast<int>(c.getRProperty());
+                                g += static_cast<int>(c.getGProperty());
+                                b += static_cast<int>(c.getBProperty());
+                                ++n;
+                            }
+                        }
+                        if (n > 0) {
+                            img.At(x, y) = Color(r / n, g / n, b / n, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void WorldRenderer::BuildObjects(GraphicsDevice& device)
+    {
+        // Textures per material.
+        for (int i = 0; i < BuildingPalette::kWallColours; ++i) {
+            wallTextures_.push_back(UploadTexture(device, Textures::Plaster(256, BuildingPalette::Wall(i), 20u + static_cast<unsigned>(i)), true));
+        }
+        for (int i = 0; i < BuildingPalette::kRoofColours; ++i) {
+            roofTextures_.push_back(UploadTexture(device, Textures::RoofTiles(256, BuildingPalette::Roof(i), 40u + static_cast<unsigned>(i)), true));
+        }
+        windowTexture_ = UploadTexture(device, BuildingGenerator::WindowTexture(128, 3u), true);
+        woodTexture_ = UploadTexture(device, Textures::Bark(128, 9u), true);
+        barkTexture_ = UploadTexture(device, Textures::Bark(256, 5u), true);
+
+        const auto& objects = world_.Objects();
+        std::map<std::pair<int, int>, BuildingMeshes> buildingChunks;
+        std::map<std::pair<int, int>, PropMeshes> propChunks;
+        std::map<std::pair<int, int>, MeshData> trunkChunks;
+        for (const auto& b : objects.Buildings()) {
+            BuildingGenerator::Generate(b, buildingChunks[ChunkKey(b.position.X, b.position.Z)]);
+        }
+        for (const auto& p : objects.Props()) {
+            PropGenerator::Generate(p, propChunks[ChunkKey(p.position.X, p.position.Z)]);
+        }
+        for (const auto& t : objects.Trees()) {
+            VegetationGenerator::AppendTrunk(t, trunkChunks[ChunkKey(t.position.X, t.position.Z)]);
+        }
+        const auto push = [&](MeshData& m, Texture2D* texture, const Vector3& diffuse, const Vector3& specular, const float power,
+                              const Vector3& emissive = Vector3(0.0f, 0.0f, 0.0f)) {
+            if (m.TriangleCount() == 0) return;
+            ObjectBatch b;
+            b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionNormalTexture);
+            b.texture = texture;
+            b.diffuse = diffuse;
+            b.specular = specular;
+            b.specularPower = power;
+            b.emissive = emissive;
+            objectBatches_.push_back(std::move(b));
+        };
+        const Vector3 one(1.0f, 1.0f, 1.0f);
+        const Vector3 matte(0.04f, 0.04f, 0.04f);
+        for (auto& [key, bm] : buildingChunks) {
+            for (int i = 0; i < BuildingPalette::kWallColours; ++i) {
+                push(bm.walls[static_cast<std::size_t>(i)], wallTextures_[static_cast<std::size_t>(i)].get(), one, matte, 6.0f);
+            }
+            for (int i = 0; i < BuildingPalette::kRoofColours; ++i) {
+                push(bm.roofs[static_cast<std::size_t>(i)], roofTextures_[static_cast<std::size_t>(i)].get(), one, Vector3(0.10f, 0.10f, 0.10f), 12.0f);
+            }
+            push(bm.windows, windowTexture_.get(), one, Vector3(0.6f, 0.6f, 0.6f), 40.0f);
+            push(bm.glassDark, white_.get(), Vector3(0.20f, 0.25f, 0.30f), Vector3(0.8f, 0.8f, 0.8f), 60.0f);
+            push(bm.trim, white_.get(), Vector3(0.28f, 0.22f, 0.18f), matte, 6.0f);
+        }
+        for (auto& [key, pm] : propChunks) {
+            push(pm.metal, white_.get(), Vector3(0.50f, 0.52f, 0.54f), Vector3(0.5f, 0.5f, 0.5f), 30.0f);
+            push(pm.wood, woodTexture_.get(), Vector3(0.9f, 0.78f, 0.62f), matte, 6.0f);
+            push(pm.concrete, concrete_.get(), one, matte, 6.0f);
+            push(pm.white, white_.get(), Vector3(0.92f, 0.92f, 0.90f), Vector3(0.2f, 0.2f, 0.2f), 12.0f);
+            push(pm.black, white_.get(), Vector3(0.05f, 0.05f, 0.05f), Vector3(0.2f, 0.2f, 0.2f), 12.0f);
+            push(pm.reflectorOrange, white_.get(), Vector3(1.0f, 0.45f, 0.05f), Vector3(0.6f, 0.6f, 0.6f), 40.0f, Vector3(0.45f, 0.18f, 0.0f));
+            push(pm.reflectorWhite, white_.get(), Vector3(0.95f, 0.95f, 0.95f), Vector3(0.6f, 0.6f, 0.6f), 40.0f, Vector3(0.35f, 0.35f, 0.35f));
+            push(pm.glass, white_.get(), Vector3(0.22f, 0.27f, 0.32f), Vector3(0.9f, 0.9f, 0.9f), 70.0f);
+            push(pm.red, white_.get(), Vector3(0.75f, 0.08f, 0.06f), Vector3(0.3f, 0.3f, 0.3f), 20.0f);
+        }
+        for (auto& [key, m] : trunkChunks) {
+            push(m, barkTexture_.get(), one, matte, 6.0f);
+        }
+        stats_.objectBatchesTotal = static_cast<int>(objectBatches_.size());
+    }
+
+    void WorldRenderer::BuildTrees(GraphicsDevice& device)
+    {
+        for (int i = 0; i < VegetationGenerator::kSpeciesCount; ++i) {
+            Image card = VegetationGenerator::CardTexture(static_cast<Map::TreeSpecies>(i), 256, 512, 100u + static_cast<unsigned>(i));
+            DilateColour(card, 8);
+            treeCards_.push_back(UploadTexture(device, card, true));
+        }
+        std::map<std::pair<int, int>, std::array<MeshData, VegetationGenerator::kSpeciesCount>> chunks;
+        for (const auto& t : world_.Objects().Trees()) {
+            VegetationGenerator::AppendTree(t, chunks[ChunkKey(t.position.X, t.position.Z)][static_cast<std::size_t>(t.species)]);
+        }
+        for (auto& [key, perSpecies] : chunks) {
+            for (int i = 0; i < VegetationGenerator::kSpeciesCount; ++i) {
+                MeshData& m = perSpecies[static_cast<std::size_t>(i)];
+                if (m.TriangleCount() == 0) continue;
+                TreeBatch b;
+                b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
+                b.texture = treeCards_[static_cast<std::size_t>(i)].get();
+                treeBatches_.push_back(std::move(b));
+            }
+        }
+        stats_.treeBatchesTotal = static_cast<int>(treeBatches_.size());
+    }
+
     Texture2D* WorldRenderer::TextureFor(const Surface s) const
     {
         switch (s) {
@@ -299,6 +448,51 @@ namespace CarSim::Render
                 stats_.triangles += b.mesh->PrimitiveCount();
             }
         }
+        // Static objects: buildings, props, trunks (lit, textured).
+        device.setRasterizerStateProperty(solid);
+        stats_.objectBatchesDrawn = 0;
+        for (const auto& b : objectBatches_) {
+            if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
+                continue;
+            }
+            roadEffect_->setTextureProperty(b.texture);
+            roadEffect_->setDiffuseColorProperty(b.diffuse);
+            roadEffect_->setEmissiveColorProperty(b.emissive);
+            roadEffect_->setSpecularColorProperty(b.specular);
+            roadEffect_->setSpecularPowerProperty(b.specularPower);
+            ApplyAll(*roadEffect_, device, *b.mesh);
+            ++stats_.objectBatchesDrawn;
+            ++stats_.drawCalls;
+            stats_.triangles += b.mesh->PrimitiveCount();
+        }
+        roadEffect_->setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
+        roadEffect_->setEmissiveColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        roadEffect_->setSpecularColorProperty(Vector3(0.06f, 0.06f, 0.06f));
+        roadEffect_->setSpecularPowerProperty(10.0f);
+
+        // Trees: alpha-tested cards, both windings present, distance culled.
+        const Vector3 cameraPosition = Matrix::Invert(view).getTranslationProperty();
+        const float treeRange = 1100.0f;
+        device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        treeEffect_->setWorldProperty(Matrix::getIdentityProperty());
+        treeEffect_->setViewProperty(view);
+        treeEffect_->setProjectionProperty(projection);
+        stats_.treeBatchesDrawn = 0;
+        for (const auto& b : treeBatches_) {
+            if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
+                continue;
+            }
+            const BoundingSphere& sphere = b.mesh->Sphere();
+            if (Vector3::Distance(sphere.Center, cameraPosition) - sphere.Radius > treeRange) {
+                continue;
+            }
+            treeEffect_->setTextureProperty(b.texture);
+            ApplyAll(*treeEffect_, device, *b.mesh);
+            ++stats_.treeBatchesDrawn;
+            ++stats_.drawCalls;
+            stats_.triangles += b.mesh->PrimitiveCount();
+        }
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
     }
 }

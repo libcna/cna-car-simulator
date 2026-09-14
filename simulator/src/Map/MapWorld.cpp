@@ -128,6 +128,9 @@ namespace CarSim::Map
         auto world = Build(std::move(loaded.data), errors);
         if (world) {
             world->stats_.loadSeconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+            if (warnings) {
+                warnings->insert(warnings->end(), world->buildWarnings_.begin(), world->buildWarnings_.end());
+            }
         }
         return world;
     }
@@ -150,6 +153,9 @@ namespace CarSim::Map
         world->lanes_.Build(world->roads_);
         auto t4 = clock::now();
         world->ground_ = std::make_unique<MapGround>(world->roads_, world->terrain_);
+        world->objects_.Build(*world, world->buildWarnings_);
+        auto t5 = clock::now();
+        world->stats_.objectSeconds = std::chrono::duration<double>(t5 - t4).count();
         world->stats_.terrainSeconds = std::chrono::duration<double>(t1 - t0).count() + std::chrono::duration<double>(t3 - t2).count();
         world->stats_.roadSeconds = std::chrono::duration<double>(t2 - t1).count();
         world->stats_.laneSeconds = std::chrono::duration<double>(t4 - t3).count();

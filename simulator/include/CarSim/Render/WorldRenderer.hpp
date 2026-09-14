@@ -8,6 +8,7 @@
 #include "CarSim/Render/LightingRig.hpp"
 
 #include "Microsoft/Xna/Framework/BoundingFrustum.hpp"
+#include "Microsoft/Xna/Framework/Graphics/AlphaTestEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/BasicEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DualTextureEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
@@ -26,6 +27,10 @@ namespace CarSim::Render
         int terrainChunksTotal = 0;
         int roadBatchesDrawn = 0;
         int roadBatchesTotal = 0;
+        int objectBatchesDrawn = 0;
+        int objectBatchesTotal = 0;
+        int treeBatchesDrawn = 0;
+        int treeBatchesTotal = 0;
         int drawCalls = 0;
         int triangles = 0;
     };
@@ -58,6 +63,23 @@ namespace CarSim::Render
             Surface surface = Surface::Asphalt;
         };
 
+        struct ObjectBatch
+        {
+            std::unique_ptr<GpuMesh> mesh;
+            Microsoft::Xna::Framework::Graphics::Texture2D* texture = nullptr;
+            Microsoft::Xna::Framework::Vector3 diffuse{1.0f, 1.0f, 1.0f};
+            Microsoft::Xna::Framework::Vector3 emissive{0.0f, 0.0f, 0.0f};
+            Microsoft::Xna::Framework::Vector3 specular{0.05f, 0.05f, 0.05f};
+            float specularPower = 8.0f;
+        };
+        struct TreeBatch
+        {
+            std::unique_ptr<GpuMesh> mesh;
+            Microsoft::Xna::Framework::Graphics::Texture2D* texture = nullptr;
+        };
+
+        void BuildObjects(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        void BuildTrees(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildTerrain(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildMacroTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildRoads(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
@@ -80,8 +102,18 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> concrete_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
 
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::AlphaTestEffect> treeEffect_;
+        std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
+        std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> roofTextures_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> windowTexture_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> woodTexture_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> barkTexture_;
+        std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> treeCards_;
+
         std::vector<std::unique_ptr<GpuMesh>> terrainChunks_;
         std::vector<Batch> roadBatches_;
+        std::vector<ObjectBatch> objectBatches_;
+        std::vector<TreeBatch> treeBatches_;
         WorldRenderStats stats_;
     };
 }
