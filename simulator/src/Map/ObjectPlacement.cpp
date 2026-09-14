@@ -137,7 +137,53 @@ namespace CarSim::Map
         PlaceUtilityPoles(world);
         PlaceBushes(world);
         PlaceGardenTrees(world);
+        PlaceMeadowTrees(world);
         BuildGrids(world);
+    }
+
+    void ObjectPlacement::PlaceMeadowTrees(const MapWorld& world)
+    {
+        // Solitary trees and small clumps in the meadows: without them the open country between
+        // the villages is a bare lawn.
+        const MapGround& ground = world.Ground();
+        const TerrainField& terrain = world.Terrain();
+        const std::size_t existing = trees_.size();
+        const auto nearTree = [&](const Vector2& p, const float radius) {
+            for (std::size_t i = 0; i < existing; ++i) {
+                const PlacedTree& t = trees_[i];
+                if (std::fabs(t.position.X - p.X) > radius || std::fabs(t.position.Z - p.Y) > radius) continue;
+                if (Vector2::DistanceSquared(Vector2(t.position.X, t.position.Z), p) < radius * radius) return true;
+            }
+            return false;
+        };
+        const TreeSpecies species[] = {TreeSpecies::Oak, TreeSpecies::Linden, TreeSpecies::Maple, TreeSpecies::Birch};
+        constexpr float kCell = 130.0f;
+        const int cols = static_cast<int>((terrain.MaxX() - terrain.MinX()) / kCell);
+        const int rows = static_cast<int>((terrain.MaxZ() - terrain.MinZ()) / kCell);
+        for (int r = 0; r < rows; ++r) {
+            for (int c = 0; c < cols; ++c) {
+                if (Hash01(c, r, 1301u) > 0.42f) continue;
+                const float jx = Hash01(c, r, 733u), jz = Hash01(c, r, 977u);
+                const Vector2 centre(terrain.MinX() + (static_cast<float>(c) + jx) * kCell,
+                                     terrain.MinZ() + (static_cast<float>(r) + jz) * kCell);
+                if (terrain.RegionAt(centre.X, centre.Y) != RegionType::Meadow) continue;
+                const int clump = Hash01(c, r, 613u) < 0.3f ? 3 : 1;
+                for (int i = 0; i < clump; ++i) {
+                    const float ox = (Hash01(c * 7 + i, r, 191u) - 0.5f) * 16.0f;
+                    const float oz = (Hash01(c, r * 7 + i, 197u) - 0.5f) * 16.0f;
+                    const Vector2 p(centre.X + ox, centre.Y + oz);
+                    if (!terrain.Contains(p.X, p.Y) || terrain.RegionAt(p.X, p.Y) != RegionType::Meadow) continue;
+                    if (InsideBuilding(p, 6.0f) || !ClearOfRoads(world, p, 8.0f) || nearTree(p, 18.0f)) continue;
+                    PlacedTree t;
+                    t.species = species[(static_cast<unsigned>(c * 13 + r * 7 + i)) % 4u];
+                    t.scale = 0.9f + 0.4f * Hash01(c + i, r, 419u);
+                    t.seed = static_cast<unsigned>(c * 1009 + r * 31 + i) + 90000u;
+                    t.rotationRad = Hash01(static_cast<int>(t.seed), 3, 77u) * 2.0f * kPi;
+                    t.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
+                    trees_.push_back(t);
+                }
+            }
+        }
     }
 
     void ObjectPlacement::PlaceGardenTrees(const MapWorld& world)

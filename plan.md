@@ -845,3 +845,7 @@ committed with its own regression test and screenshot check.
   a stair-stepped boundary. New props `fuel_canopy` (deck on four solid columns) and `fuel_pump`
   (island, body, displays, hose stacks) make a station on the eastern approach of Lipova, with a
   shop building, a lamp, a bin and a car on the forecourt.
+- [x] `RQ-172` Meadow trees: the open country between the villages was a bare lawn.
+  `ObjectPlacement::PlaceMeadowTrees` scatters a solitary tree or a clump of three per 130 m
+  cell with a 42 % chance, only inside meadow regions and clear of roads, buildings and other
+  trees (570 trees; the fields benchmark moves from 25.4 to 26.7 ms).
