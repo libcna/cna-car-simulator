@@ -114,7 +114,18 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> barkTexture_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> treeCards_;
 
-        std::vector<std::unique_ptr<GpuMesh>> terrainChunks_;
+        struct TerrainChunk
+        {
+            std::unique_ptr<GpuMesh> lod0;   // full resolution
+            std::unique_ptr<GpuMesh> lod1;   // every second vertex
+            std::unique_ptr<GpuMesh> lod2;   // every fourth vertex
+            Microsoft::Xna::Framework::Vector3 centre{};
+            float radius = 0.0f;
+        };
+        std::vector<TerrainChunk> terrainChunks_;
+        float lod1DistanceM = 420.0f;
+        float lod2DistanceM = 1000.0f;
+        float terrainCullDistanceM = 2300.0f;
         std::vector<Batch> roadBatches_;
         std::vector<ObjectBatch> objectBatches_;
         std::vector<TreeBatch> treeBatches_;

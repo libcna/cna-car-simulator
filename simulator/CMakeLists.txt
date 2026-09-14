@@ -12,6 +12,7 @@ add_library(carsim_core STATIC
     src/Core/JsonReader.cpp
     src/Core/Noise.cpp
     src/Core/PiecewiseLinear.cpp
+    src/Core/SaveData.cpp
     src/Core/Version.cpp
     src/Map/LaneGraph.cpp
     src/Map/MapData.cpp

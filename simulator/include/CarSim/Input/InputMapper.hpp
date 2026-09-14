@@ -7,6 +7,7 @@
 #include "Microsoft/Xna/Framework/Input/Keys.hpp"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace CarSim::Input
@@ -19,6 +20,7 @@ namespace CarSim::Input
         SelectorPark, SelectorDrive, ToggleTransmission,
         IndicatorLeft, IndicatorRight, Hazard, Headlights, HighBeam,
         ToggleCamera, ToggleHelp, ToggleDebug, Screenshot, ResetVehicle, ResetTrip, Quit,
+        VolumeUp, VolumeDown, ToggleMirror, ToggleHud,
         Count
     };
 
@@ -55,6 +57,14 @@ namespace CarSim::Input
 
         /// Human-readable key name for the help overlay ("Left Shift", ",", "F1").
         [[nodiscard]] static std::string KeyName(Microsoft::Xna::Framework::Input::Keys key);
+        /// Inverse of KeyName (case-insensitive; also accepts "key <code>"). False when unknown.
+        [[nodiscard]] static bool KeyFromName(const std::string& name, Microsoft::Xna::Framework::Input::Keys& out);
+        /// Action from its ToString name (case-insensitive). False when unknown.
+        [[nodiscard]] static bool ActionFromName(const std::string& name, GameAction& out);
+        /// Applies (action, key) overrides on top of the current bindings; unknown names are reported.
+        void ApplyOverrides(const std::vector<std::pair<std::string, std::string>>& overrides, std::vector<std::string>& warnings);
+        /// Current bindings as (action, key) name pairs (for saving).
+        [[nodiscard]] std::vector<std::pair<std::string, std::string>> NamedBindings() const;
         /// All keys bound to an action, joined with " / ".
         [[nodiscard]] std::string KeysFor(GameAction action) const;
 

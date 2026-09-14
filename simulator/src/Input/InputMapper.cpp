@@ -44,6 +44,10 @@ namespace CarSim::Input
             case GameAction::ResetVehicle: return "ResetVehicle";
             case GameAction::ResetTrip: return "ResetTrip";
             case GameAction::Quit: return "Quit";
+            case GameAction::VolumeUp: return "VolumeUp";
+            case GameAction::VolumeDown: return "VolumeDown";
+            case GameAction::ToggleMirror: return "ToggleMirror";
+            case GameAction::ToggleHud: return "ToggleHud";
             case GameAction::Count: break;
         }
         return "?";
@@ -60,8 +64,8 @@ namespace CarSim::Input
             case GameAction::Handbrake: return "Handbrake";
             case GameAction::Horn: return "Horn";
             case GameAction::ToggleEngine: return "Start / stop engine";
-            case GameAction::ShiftUp: return "Gear up (manual) / selector towards P (automatic)";
-            case GameAction::ShiftDown: return "Gear down (manual) / selector towards D (automatic)";
+            case GameAction::ShiftUp: return "Gear up / selector up";
+            case GameAction::ShiftDown: return "Gear down / selector down";
             case GameAction::GearNeutral: return "Neutral";
             case GameAction::GearReverse: return "Reverse";
             case GameAction::Gear1: return "1st gear";
@@ -85,6 +89,10 @@ namespace CarSim::Input
             case GameAction::ResetVehicle: return "Recover vehicle";
             case GameAction::ResetTrip: return "Reset trip odometer";
             case GameAction::Quit: return "Quit";
+            case GameAction::VolumeUp: return "Volume up";
+            case GameAction::VolumeDown: return "Volume down";
+            case GameAction::ToggleMirror: return "Toggle rear-view mirror";
+            case GameAction::ToggleHud: return "Toggle HUD text";
             case GameAction::Count: break;
         }
         return "";
@@ -122,6 +130,10 @@ namespace CarSim::Input
             {GameAction::ResetVehicle, Keys::Back},
             {GameAction::ResetTrip, Keys::F5},
             {GameAction::Quit, Keys::Escape},
+            {GameAction::VolumeUp, Keys::PageUp},
+            {GameAction::VolumeDown, Keys::PageDown},
+            {GameAction::ToggleMirror, Keys::M},
+            {GameAction::ToggleHud, Keys::Tab},
         };
     }
 
@@ -220,6 +232,21 @@ namespace CarSim::Input
             case Keys::Right: return "Right";
             case Keys::Enter: return "Enter";
             case Keys::Tab: return "Tab";
+            case Keys::PageUp: return "Page Up";
+            case Keys::PageDown: return "Page Down";
+            case Keys::Home: return "Home";
+            case Keys::End: return "End";
+            case Keys::Insert: return "Insert";
+            case Keys::Delete: return "Delete";
+            case Keys::OemMinus: return "-";
+            case Keys::OemPlus: return "=";
+            case Keys::OemSemicolon: return ";";
+            case Keys::OemQuotes: return "'";
+            case Keys::OemOpenBrackets: return "[";
+            case Keys::OemCloseBrackets: return "]";
+            case Keys::OemQuestion: return "/";
+            case Keys::LeftAlt: return "Left Alt";
+            case Keys::RightAlt: return "Right Alt";
             default: break;
         }
         const int code = static_cast<int>(key);
@@ -245,6 +272,91 @@ namespace CarSim::Input
                 }
                 out += KeyName(b.key);
             }
+        }
+        return out;
+    }
+
+    bool InputMapper::KeyFromName(const std::string& name, Keys& out)
+    {
+        std::string n;
+        for (const char ch : name) {
+            if (ch != ' ') n.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+        }
+        if (n.empty()) {
+            return false;
+        }
+        // Try every key the mapper knows how to name.
+        for (int code = 0; code < 256; ++code) {
+            const Keys key = static_cast<Keys>(code);
+            std::string candidate = KeyName(key);
+            std::string c;
+            for (const char ch : candidate) {
+                if (ch != ' ') c.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+            }
+            if (c == n) {
+                out = key;
+                return true;
+            }
+        }
+        if (n.rfind("key", 0) == 0) {
+            try {
+                out = static_cast<Keys>(std::stoi(n.substr(3)));
+                return true;
+            } catch (const std::exception&) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    bool InputMapper::ActionFromName(const std::string& name, GameAction& out)
+    {
+        std::string n;
+        for (const char ch : name) n.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
+        for (int i = 0; i < static_cast<int>(GameAction::Count); ++i) {
+            const GameAction a = static_cast<GameAction>(i);
+            std::string c = ToString(a);
+            for (char& ch : c) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+            if (c == n) {
+                out = a;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void InputMapper::ApplyOverrides(const std::vector<std::pair<std::string, std::string>>& overrides, std::vector<std::string>& warnings)
+    {
+        for (const auto& [actionName, keyName] : overrides) {
+            GameAction action;
+            Keys key;
+            if (!ActionFromName(actionName, action)) {
+                warnings.push_back("bindings: unknown action '" + actionName + "'");
+                continue;
+            }
+            if (!KeyFromName(keyName, key)) {
+                warnings.push_back("bindings: unknown key '" + keyName + "' for " + actionName);
+                continue;
+            }
+            // Replace the first binding of the action (keeps alternates such as arrow keys).
+            bool replaced = false;
+            for (auto& b : bindings_) {
+                if (b.action == action && !replaced) {
+                    b.key = key;
+                    replaced = true;
+                }
+            }
+            if (!replaced) {
+                bindings_.push_back(Binding{action, key});
+            }
+        }
+    }
+
+    std::vector<std::pair<std::string, std::string>> InputMapper::NamedBindings() const
+    {
+        std::vector<std::pair<std::string, std::string>> out;
+        for (const auto& b : bindings_) {
+            out.emplace_back(ToString(b.action), KeyName(b.key));
         }
         return out;
     }

@@ -4,6 +4,7 @@
 #include "CarSim/Audio/VehicleAudio.hpp"
 #include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Core/CommandLine.hpp"
+#include "CarSim/Core/SaveData.hpp"
 #include "CarSim/Input/InputMapper.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/Camera.hpp"
@@ -26,6 +27,7 @@
 #include "Microsoft/Xna/Framework/GraphicsDeviceManager.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,9 +49,13 @@ namespace CarSim::App
         void UnloadContent() override;
         void Update(Microsoft::Xna::Framework::GameTime& gameTime) override;
         void Draw(const Microsoft::Xna::Framework::GameTime& gameTime) override;
+        void OnExiting(System::Object* sender, const System::EventArgs& args) override;
 
     private:
         void ResolveContentRoot();
+        void LoadSave();
+        void ApplySaveToVehicle();
+        void WriteSave();
         void LoadMap();
         void LoadVehicle();
         void HandleAppActions();
@@ -61,6 +67,13 @@ namespace CarSim::App
         void FinishFrame();
 
         Core::CommandLineOptions options_;
+        Core::SaveData save_;
+        std::string savePath_;
+        bool saveReadOnly_ = false;
+        bool saveEnabled_ = true;
+        double saveTimer_ = 0.0;
+        bool hudVisible_ = true;
+        bool mirrorEnabled_ = true;
         Microsoft::Xna::Framework::GraphicsDeviceManager graphics_;
         std::string contentRoot_;
 
@@ -101,6 +114,19 @@ namespace CarSim::App
         bool showDebug_ = false;
         double elapsedSeconds_ = 0.0;
         float frameMs_ = 0.0f;
+        float drawMs_ = 0.0f;
+        int viewportWidth_ = 0;
+        int viewportHeight_ = 0;
+        struct BenchmarkStats
+        {
+            int frames = 0;
+            double updateSum = 0.0, updateMax = 0.0;
+            double drawSum = 0.0, drawMax = 0.0;
+            double wallSum = 0.0;
+            long long drawCalls = 0, triangles = 0;
+            int warmupFrames = 30;
+        } bench_;
+        std::chrono::steady_clock::time_point lastFrameEnd_{};
         int framesDrawn_ = 0;
         bool exitRequested_ = false;
         bool screenshotRequested_ = false;

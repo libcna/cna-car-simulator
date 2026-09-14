@@ -30,6 +30,13 @@ namespace CarSim::Core
         bool fullscreen = false;
         bool showHelp = false;
         bool noAudio = false;   // skip the audio stream (headless runs, tests)
+        bool benchmark = false;         // collect frame statistics and print them at exit
+        bool showHelpOverlay = false;   // start with the F1 help overlay open (captures)
+        bool showDebugOverlay = false;  // start with the F3 debug overlay open
+
+        /// Save file override; empty = DefaultSavePath(). `--no-save` disables loading and saving.
+        std::string savePath;
+        bool noSave = false;
 
         /// Name of the vehicle definition to drive (overrides the saved setting).
         std::optional<std::string> vehicle;

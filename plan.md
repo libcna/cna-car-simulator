@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M5 collision and M6 traffic complete except TRF-007/008; ENV-007, ENV-008, UI-001, RND-009 and SIM-019 open).
+Last synchronised with the repository: 2026-09-14 (M1-M9 complete except TRF-007/008, ENV-007, ENV-008, AUD-006, RND-009 and SIM-019; M10 audit in progress).
 
 ---
 
@@ -369,7 +369,7 @@ that logs frame statistics for a scripted camera path.
 - [x] `MAP-010` Sample map "Lipová" v1: road network (17 km, 13 intersections), terrain, regions, 356 buildings, signs, forests, avenues and spawns authored by `tools/maps/generate_lipova.py`, validated, loaded by the simulator (`--map`, `--spawn`) and driven on; screenshots of the square, the church junction and the eastern approach reviewed. Buildings, vegetation, signs and props are drawn in M8.
 
 ### M4 Cockpit and controls (`Render`, `Input`)
-- [ ] `UI-001` Input mapper with action bindings: `InputMapper` with default keyboard bindings and action enumeration is in place (M2); JSON overrides and the gamepad path follow in M9 (`UX-002`).
+- [x] `UI-001` Input mapper with action bindings: default keyboard bindings, action enumeration, name-based overrides from the save file (`bindings` array), `KeyFromName`/`ActionFromName`; the gamepad layer remains a deferred feature (section 23).
 - [x] `UI-002` Instrument cluster rendered into a `RenderTarget2D` with `SpriteBatch` (`InstrumentCluster`): speedometer and tachometer with tick marks, numerals (D-DIN condensed) and red zone, fuel and coolant gauges, odometer/trip display, gear and mode, consumption; ignition-off state; `--screenshot-cluster` dump for review.
 - [x] `UI-003` Cluster lamps with procedural icons: indicators, low/high beam, handbrake, coolant, low fuel, battery, engine; `InstrumentCluster::LampLit` is the single source of the lamp logic.
 - [x] `UI-004` Steering wheel rotates with the simulated steering-wheel angle (ratio from the vehicle definition); interior shell, door cards, dashboard, hooded binnacle, seats and mirror visible in the cockpit view.
@@ -413,14 +413,14 @@ that logs frame statistics for a scripted camera path.
 - [ ] `ENV-008` Visual pass: screenshots reviewed at each map segment; fixes recorded.
 
 ### M9 Persistence and UX
-- [ ] `PER-001` Versioned save/settings JSON with tests (round trip, migration, corruption).
-- [ ] `PER-002` Odometer persistence; transmission mode; selected car.
-- [ ] `PER-003` Settings for mirror quality, volumes, key bindings.
-- [ ] `UX-001` In-game help overlay listing controls; README controls table synchronized.
+- [x] `PER-001` Versioned save JSON (`Core::SaveData`, schema 1) with atomic writes, corruption fallback, read-only handling of newer schemas, in-memory upgrade hook; tests for round trip, corruption, newer version, file I/O.
+- [x] `PER-002` Odometer and trip, transmission mode, selected vehicle and map persist (`--save <file>`, `--no-save`; default under `$XDG_DATA_HOME/cna-car-simulator`); saved every 30 s and on exit.
+- [x] `PER-003` Settings: master/engine/effects volumes (`Page Up`/`Page Down` for master), mirror on/off (`M`), HUD text on/off (`Tab`), start camera, key binding overrides as (action, key) names with validation warnings. Mirror resolution stays fixed at 768 x 200.
+- [x] `UX-001` In-game help overlay (`F1`, `--help-overlay`) lists the live bindings; the README controls table is synchronised in DOC-001.
 
 ### M10 Polish and audit
-- [ ] `PERF-001` Frame-time instrumentation, `--benchmark`, measurements recorded in `docs/performance.md`.
-- [ ] `PERF-002` Culling/LOD/instancing tuning against measurements.
+- [x] `PERF-001` Frame-time instrumentation (update/draw/wall, draw calls, triangles in the debug overlay), `--benchmark` summary at exit, measurements recorded in `docs/performance.md`.
+- [ ] `PERF-002` Culling/LOD tuning: terrain LOD (3 levels) and distance culls cut the frame from 828k to 231k triangles (see `docs/performance.md`); batch merging and instanced trees remain as listed levers.
 - [ ] `AUDIT-001` Asset licence audit; `assets/ASSETS.md` regenerated; manifest test.
 - [ ] `AUDIT-002` Final audit checklist (section 21) executed and recorded.
 - [ ] `DOC-001` README complete (status, build, controls, architecture, limitations, testing).

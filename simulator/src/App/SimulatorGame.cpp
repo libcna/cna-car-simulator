@@ -88,9 +88,87 @@ namespace CarSim::App
         std::cout << "content root: " << contentRoot_ << "\n";
     }
 
+    void SimulatorGame::LoadSave()
+    {
+        saveEnabled_ = !options_.noSave;
+        if (!saveEnabled_) {
+            std::cout << "save: disabled\n";
+            return;
+        }
+        savePath_ = options_.savePath.empty() ? Core::DefaultSavePath() : options_.savePath;
+        const Core::SaveLoadResult result = Core::LoadSaveData(savePath_);
+        for (const auto& w : result.warnings) {
+            std::cerr << "save: " << w << "\n";
+        }
+        saveReadOnly_ = result.readOnly;
+        if (result.loaded) {
+            save_ = result.data;
+            std::cout << "save: loaded " << savePath_ << " (odometer " << save_.odometerKm << " km)\n";
+        } else {
+            std::cout << "save: new profile at " << savePath_ << "\n";
+        }
+        hudVisible_ = save_.settings.hudVisible;
+        mirrorEnabled_ = save_.settings.mirrorEnabled;
+        if (!options_.cockpit && save_.settings.startInCockpit) {
+            options_.cockpit = true;
+        }
+        std::vector<std::string> bindingWarnings;
+        input_.ApplyOverrides(save_.bindings, bindingWarnings);
+        for (const auto& w : bindingWarnings) {
+            std::cerr << "save: " << w << "\n";
+        }
+    }
+
+    void SimulatorGame::ApplySaveToVehicle()
+    {
+        if (!vehicle_ || !saveEnabled_) {
+            return;
+        }
+        vehicle_->GetOdometer().SetTotalKm(save_.odometerKm);
+        vehicle_->GetOdometer().SetTripKm(save_.tripKm);
+        if (save_.transmissionMode == "automatic") {
+            vehicle_->SetTransmissionMode(Sim::TransmissionMode::Automatic);
+        } else if (save_.transmissionMode == "manual") {
+            vehicle_->SetTransmissionMode(Sim::TransmissionMode::Manual);
+        }
+    }
+
+    void SimulatorGame::WriteSave()
+    {
+        if (!saveEnabled_ || saveReadOnly_ || !vehicle_) {
+            return;
+        }
+        save_.odometerKm = vehicle_->GetOdometer().TotalKm();
+        save_.tripKm = vehicle_->GetOdometer().TripKm();
+        save_.transmissionMode = vehicle_->GetTransmission().Mode() == Sim::TransmissionMode::Automatic ? "automatic" : "manual";
+        save_.vehicleId = definition_.id;
+        if (map_) {
+            save_.mapId = map_->Data().info.id;
+        }
+        if (audio_) {
+            save_.settings.masterVolume = audio_->levels.master;
+            save_.settings.engineVolume = audio_->levels.engine;
+            save_.settings.effectsVolume = audio_->levels.effects;
+        }
+        save_.settings.hudVisible = hudVisible_;
+        save_.settings.mirrorEnabled = mirrorEnabled_;
+        save_.settings.startInCockpit = cameraMode_ == Render::CameraMode::Cockpit;
+        save_.bindings = input_.NamedBindings();
+        std::string error;
+        if (!Core::WriteSaveData(savePath_, save_, error)) {
+            std::cerr << "save: " << error << "\n";
+        }
+    }
+
+    void SimulatorGame::OnExiting(System::Object* sender, const System::EventArgs& args)
+    {
+        WriteSave();
+        Game::OnExiting(sender, args);
+    }
+
     void SimulatorGame::LoadMap()
     {
-        const std::string name = options_.map.value_or("lipova");
+        const std::string name = options_.map.value_or(save_.mapId.empty() ? std::string("lipova") : save_.mapId);
         if (name == "none") {
             std::cout << "map: none (flat proving ground)\n";
             return;
@@ -119,7 +197,7 @@ namespace CarSim::App
 
     void SimulatorGame::LoadVehicle()
     {
-        const std::string id = options_.vehicle.value_or("lipan_12");
+        const std::string id = options_.vehicle.value_or(save_.vehicleId.empty() ? std::string("lipan_12") : save_.vehicleId);
         const auto loaded = Sim::LoadVehicleDefinitionFile(contentRoot_ + "/vehicles/" + id + ".json");
         if (loaded.ok()) {
             definition_ = loaded.definition;
@@ -146,6 +224,8 @@ namespace CarSim::App
     {
         Game::Initialize();
         cameraMode_ = options_.cockpit ? Render::CameraMode::Cockpit : Render::CameraMode::Chase;
+        showHelp_ = options_.showHelpOverlay;
+        showDebug_ = options_.showDebugOverlay;
         if (options_.chaseYawDeg) {
             chaseCamera_.yawOffset = *options_.chaseYawDeg * (std::numbers::pi_v<float> / 180.0f);
         }
@@ -184,8 +264,10 @@ namespace CarSim::App
     void SimulatorGame::LoadContent()
     {
         auto& device = getGraphicsDeviceProperty();
+        LoadSave();
         LoadMap();
         LoadVehicle();
+        ApplySaveToVehicle();
 
         sky_ = std::make_unique<Render::SkyRenderer>(device, rig_);
         font_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_regular_28");
@@ -227,6 +309,9 @@ namespace CarSim::App
         mirror_ = std::make_unique<Render::MirrorView>(device);
         chaseCamera_.Snap(vehicle_->Snapshot());
         audio_ = std::make_unique<Audio::VehicleAudio>(!options_.noAudio);
+        audio_->levels.master = save_.settings.masterVolume;
+        audio_->levels.engine = save_.settings.engineVolume;
+        audio_->levels.effects = save_.settings.effectsVolume;
         std::cout << "audio: " << (audio_->Enabled() ? "stereo stream at 44.1 kHz" : "disabled") << "\n";
     }
 
@@ -266,6 +351,17 @@ namespace CarSim::App
         }
         if (input_.Pressed(GameAction::Screenshot)) {
             screenshotRequested_ = true;
+        }
+        if (input_.Pressed(GameAction::ToggleHud)) {
+            hudVisible_ = !hudVisible_;
+        }
+        if (input_.Pressed(GameAction::ToggleMirror)) {
+            mirrorEnabled_ = !mirrorEnabled_;
+        }
+        if (audio_ && (input_.Pressed(GameAction::VolumeUp) || input_.Pressed(GameAction::VolumeDown))) {
+            const float step = input_.Pressed(GameAction::VolumeUp) ? 0.1f : -0.1f;
+            audio_->levels.master = std::clamp(audio_->levels.master + step, 0.0f, 1.0f);
+            std::cout << "audio: master volume " << static_cast<int>(audio_->levels.master * 100.0f + 0.5f) << " %\n";
         }
         if (input_.Pressed(GameAction::ResetVehicle)) {
             const auto s = vehicle_->Snapshot();
@@ -348,6 +444,11 @@ namespace CarSim::App
         if (audio_) {
             audio_->Update(state, cameraMode_ == Render::CameraMode::Cockpit, contactEvents_, dt);
         }
+        saveTimer_ += static_cast<double>(dt);
+        if (saveTimer_ > 30.0) {
+            saveTimer_ = 0.0;
+            WriteSave();
+        }
 
         Game::Update(gameTime);
         frameMs_ = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - frameStart).count();
@@ -355,9 +456,12 @@ namespace CarSim::App
 
     void SimulatorGame::Draw(const GameTime& gameTime)
     {
+        const auto drawStart = std::chrono::steady_clock::now();
         auto& device = getGraphicsDeviceProperty();
         const auto& viewport = device.getViewportProperty();
         const float aspect = static_cast<float>(viewport.getWidthProperty()) / static_cast<float>(std::max(1, viewport.getHeightProperty()));
+        viewportWidth_ = viewport.getWidthProperty();
+        viewportHeight_ = viewport.getHeightProperty();
 
         const auto state = vehicle_->Snapshot();
         Render::GaugePose gauges;
@@ -367,11 +471,12 @@ namespace CarSim::App
         gauges.temperature = (state.coolantC - definition_.dashboard.temperatureMinC) /
                              std::max(1.0f, definition_.dashboard.temperatureMaxC - definition_.dashboard.temperatureMinC);
         const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
+        const bool mirrorPass = cockpit && mirrorEnabled_;
 
         // Off-screen passes first: the instrument cluster and, in the cockpit, the rear-view mirror.
         cluster_->Render(device, *spriteBatch_, state, elapsedSeconds_);
         vehicleRenderer_->SetClusterTexture(cluster_->Texture());
-        if (cockpit) {
+        if (mirrorPass) {
             mirror_->Update(state, definition_);
             mirror_->Begin(device);
             sky_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, true);
@@ -434,12 +539,33 @@ namespace CarSim::App
         }
         vehicleRenderer_->DrawTransparent(device, state, view, projection);
 
-        DrawHud();
+        if (hudVisible_ || showHelp_ || showDebug_) {
+            DrawHud();
+        }
         if (showHelp_) {
             DrawHelp();
         }
 
         Game::Draw(gameTime);
+        const auto drawEnd = std::chrono::steady_clock::now();
+        drawMs_ = std::chrono::duration<float, std::milli>(drawEnd - drawStart).count();
+        if (options_.benchmark) {
+            if (framesDrawn_ >= bench_.warmupFrames) {
+                ++bench_.frames;
+                bench_.updateSum += frameMs_;
+                bench_.updateMax = std::max(bench_.updateMax, static_cast<double>(frameMs_));
+                bench_.drawSum += drawMs_;
+                bench_.drawMax = std::max(bench_.drawMax, static_cast<double>(drawMs_));
+                if (lastFrameEnd_.time_since_epoch().count() != 0) {
+                    bench_.wallSum += std::chrono::duration<double, std::milli>(drawEnd - lastFrameEnd_).count();
+                }
+                if (worldRenderer_) {
+                    bench_.drawCalls += worldRenderer_->Stats().drawCalls + vehicleRenderer_->DrawCallsLastFrame();
+                    bench_.triangles += worldRenderer_->Stats().triangles;
+                }
+            }
+            lastFrameEnd_ = drawEnd;
+        }
         FinishFrame();
     }
 
@@ -484,7 +610,7 @@ namespace CarSim::App
             std::ostringstream dbg;
             dbg.setf(std::ios::fixed);
             dbg.precision(2);
-            dbg << "frame " << frameMs_ << " ms update, draw calls (vehicle) " << vehicleRenderer_->DrawCallsLastFrame()
+            dbg << "frame " << frameMs_ << " ms update, " << drawMs_ << " ms draw, draw calls (vehicle) " << vehicleRenderer_->DrawCallsLastFrame()
                 << "\nthrottle " << s.throttlePedal << " brake " << s.brakePedal << " clutch " << s.clutchPedal
                 << " steer " << Sim::Units::RadToDeg(s.steeringWheelAngle) << " deg" << (s.clutchLocked ? " locked" : " slipping")
                 << "\nfuel " << s.fuelLiters << " L (" << s.instantConsumptionLPerH << " L/h)  coolant " << s.coolantC
@@ -521,30 +647,48 @@ namespace CarSim::App
         auto& device = getGraphicsDeviceProperty();
         const auto& vp = device.getViewportProperty();
         const float w = static_cast<float>(vp.getWidthProperty());
-        spriteBatch_->Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None,
-                            &RasterizerState::CullNone);
-        // Backdrop: a stretched pixel of the font texture would tint; use the white texture instead.
-        const Rectangle box(static_cast<int>(w * 0.5f - 330.0f), 50, 660, 30 + 24 * 18);
-        spriteBatch_->Draw(vehicleMaterials_->White(), box, Color(0, 0, 0, 170));
-        float y = 60.0f;
-        const float x = w * 0.5f - 310.0f;
-        fontBold_->Draw(*spriteBatch_, "Controls", Vector2(x, y), Color(255, 255, 255, 255), 0.6f);
-        y += 34.0f;
+        const float h = static_cast<float>(vp.getHeightProperty());
         const GameAction rows[] = {
             GameAction::Throttle, GameAction::Brake, GameAction::SteerLeft, GameAction::SteerRight, GameAction::Clutch,
             GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
             GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleEngine,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
-            GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera, GameAction::ResetVehicle,
-            GameAction::Quit};
-        for (const GameAction a : rows) {
+            GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera, GameAction::ToggleMirror,
+            GameAction::ToggleHud, GameAction::ToggleHelp, GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
+            GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown, GameAction::Quit};
+        const int count = static_cast<int>(sizeof(rows) / sizeof(rows[0]));
+        const int perColumn = (count + 1) / 2;
+        const float scale = h >= 700.0f ? 0.7f : 0.6f;
+        const float rowHeight = 22.0f * scale / 0.7f;
+        const float keyWidth = 190.0f * scale / 0.7f;
+        const float columnWidth = 540.0f * scale / 0.7f;
+        const float panelWidth = columnWidth * 2.0f + 40.0f;
+        const float panelHeight = 70.0f + rowHeight * static_cast<float>(perColumn) + 16.0f;
+        const float left = w * 0.5f - panelWidth * 0.5f;
+        const float top = std::max(20.0f, h * 0.5f - panelHeight * 0.5f - 40.0f);
+
+        spriteBatch_->Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None,
+                            &RasterizerState::CullNone);
+        const Rectangle box(static_cast<int>(left), static_cast<int>(top), static_cast<int>(panelWidth), static_cast<int>(panelHeight));
+        spriteBatch_->Draw(vehicleMaterials_->White(), box, Color(0, 0, 0, 175));
+        fontBold_->Draw(*spriteBatch_, "Controls", Vector2(left + 20.0f, top + 12.0f), Color(255, 255, 255, 255), 0.6f);
+        font_->Draw(*spriteBatch_, "F1 closes this overlay. Bindings can be changed in the save file (see README).",
+                    Vector2(left + 20.0f, top + panelHeight - 30.0f), Color(200, 200, 200, 220), 0.6f);
+        for (int i = 0; i < count; ++i) {
+            const GameAction a = rows[i];
+            const int column = i / perColumn;
+            const int row = i % perColumn;
+            const float x = left + 20.0f + static_cast<float>(column) * columnWidth;
+            const float y = top + 52.0f + static_cast<float>(row) * rowHeight;
             std::string keys = input_.KeysFor(a);
             if (a == GameAction::Gear1) {
                 keys = "1 - 6";
             }
-            font_->Draw(*spriteBatch_, keys, Vector2(x, y), Color(255, 220, 120, 255), 0.75f);
-            font_->Draw(*spriteBatch_, Input::Describe(a), Vector2(x + 180.0f, y), Color(240, 240, 240, 255), 0.75f);
-            y += 23.0f;
+            if (keys.size() > 22) {
+                keys = keys.substr(0, 21) + "…";
+            }
+            font_->Draw(*spriteBatch_, keys, Vector2(x, y), Color(255, 220, 120, 255), scale);
+            font_->Draw(*spriteBatch_, Input::Describe(a), Vector2(x + keyWidth, y), Color(240, 240, 240, 255), scale);
         }
         spriteBatch_->End();
     }
@@ -573,6 +717,16 @@ namespace CarSim::App
             if (Render::SaveBackBufferPng(device, *options_.screenshotPath)) {
                 std::cout << "screenshot saved to " << *options_.screenshotPath << "\n";
             }
+        }
+        if (options_.benchmark && bench_.frames > 0) {
+            const double n = static_cast<double>(bench_.frames);
+            std::cout << "benchmark: " << bench_.frames << " frames after " << bench_.warmupFrames << " warm-up frames, "
+                      << viewportWidth_ << "x" << viewportHeight_ << "\n"
+                      << "  update  avg " << bench_.updateSum / n << " ms, max " << bench_.updateMax << " ms\n"
+                      << "  draw    avg " << bench_.drawSum / n << " ms, max " << bench_.drawMax << " ms (CPU submission)\n"
+                      << "  frame   avg " << bench_.wallSum / std::max(1.0, n - 1.0) << " ms wall clock\n"
+                      << "  scene   avg " << static_cast<double>(bench_.drawCalls) / n << " draw calls, "
+                      << static_cast<double>(bench_.triangles) / n / 1000.0 << "k triangles\n";
         }
         std::cout << "frame limit reached (" << framesDrawn_ << " frames); exiting\n";
         exitRequested_ = true;

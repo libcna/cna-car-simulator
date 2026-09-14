@@ -176,36 +176,55 @@ namespace CarSim::Render
         const float cell = terrain.CellSize();
         const float sizeX = terrain.MaxX() - terrain.MinX();
         const float sizeZ = terrain.MaxZ() - terrain.MinZ();
+        // Builds one chunk mesh with the given vertex step (1, 2, 4); the last row/column of a
+        // chunk always lands on the chunk edge so neighbours share their boundary vertices.
+        const auto build = [&](const int cx, const int cz, const int x1, const int z1, const int step) {
+            MeshData mesh;
+            std::vector<int> xs;
+            std::vector<int> zs;
+            for (int x = cx; x < x1; x += step) xs.push_back(x);
+            xs.push_back(x1);
+            for (int z = cz; z < z1; z += step) zs.push_back(z);
+            zs.push_back(z1);
+            const int w = static_cast<int>(xs.size());
+            for (const int z : zs) {
+                for (const int x : xs) {
+                    const float wx = terrain.MinX() + static_cast<float>(x) * cell;
+                    const float wz = terrain.MinZ() + static_cast<float>(z) * cell;
+                    MeshVertex v;
+                    v.position = Vector3(wx, terrain.HeightAtVertex(x, z), wz);
+                    v.normal = terrain.Normal(wx, wz);
+                    v.uv = Vector2(wx / kGrassTileM, wz / kGrassTileM);
+                    v.uv2 = Vector2((wx - terrain.MinX()) / sizeX, (wz - terrain.MinZ()) / sizeZ);
+                    mesh.AddVertex(v);
+                }
+            }
+            for (int zi = 0; zi + 1 < static_cast<int>(zs.size()); ++zi) {
+                for (int xi = 0; xi + 1 < w; ++xi) {
+                    const std::uint32_t i00 = static_cast<std::uint32_t>(zi * w + xi);
+                    const std::uint32_t i10 = i00 + 1;
+                    const std::uint32_t i01 = i00 + static_cast<std::uint32_t>(w);
+                    const std::uint32_t i11 = i01 + 1;
+                    // Diagonal (0,0)-(1,1) to match TerrainField::Height; counter-clockwise from above.
+                    mesh.AddTriangle(i00, i01, i11);
+                    mesh.AddTriangle(i00, i11, i10);
+                }
+            }
+            return GpuMesh::Create(device, mesh, VertexLayout::PositionNormalDualTexture);
+        };
         for (int cz = 0; cz + 1 < rows; cz += kChunkCells) {
             for (int cx = 0; cx + 1 < cols; cx += kChunkCells) {
                 const int x1 = std::min(cols - 1, cx + kChunkCells);
                 const int z1 = std::min(rows - 1, cz + kChunkCells);
-                MeshData mesh;
-                const int w = x1 - cx + 1;
-                for (int z = cz; z <= z1; ++z) {
-                    for (int x = cx; x <= x1; ++x) {
-                        const float wx = terrain.MinX() + static_cast<float>(x) * cell;
-                        const float wz = terrain.MinZ() + static_cast<float>(z) * cell;
-                        MeshVertex v;
-                        v.position = Vector3(wx, terrain.HeightAtVertex(x, z), wz);
-                        v.normal = terrain.Normal(wx, wz);
-                        v.uv = Vector2(wx / kGrassTileM, wz / kGrassTileM);
-                        v.uv2 = Vector2((wx - terrain.MinX()) / sizeX, (wz - terrain.MinZ()) / sizeZ);
-                        mesh.AddVertex(v);
-                    }
+                TerrainChunk chunk;
+                chunk.lod0 = build(cx, cz, x1, z1, 1);
+                chunk.lod1 = build(cx, cz, x1, z1, 2);
+                chunk.lod2 = build(cx, cz, x1, z1, 4);
+                if (chunk.lod0) {
+                    chunk.centre = chunk.lod0->Sphere().Center;
+                    chunk.radius = chunk.lod0->Sphere().Radius;
                 }
-                for (int z = cz; z < z1; ++z) {
-                    for (int x = cx; x < x1; ++x) {
-                        const std::uint32_t i00 = static_cast<std::uint32_t>((z - cz) * w + (x - cx));
-                        const std::uint32_t i10 = i00 + 1;
-                        const std::uint32_t i01 = i00 + static_cast<std::uint32_t>(w);
-                        const std::uint32_t i11 = i01 + 1;
-                        // Diagonal (0,0)-(1,1) to match TerrainField::Height; counter-clockwise from above.
-                        mesh.AddTriangle(i00, i01, i11);
-                        mesh.AddTriangle(i00, i11, i10);
-                    }
-                }
-                terrainChunks_.push_back(GpuMesh::Create(device, mesh, VertexLayout::PositionNormalDualTexture));
+                terrainChunks_.push_back(std::move(chunk));
             }
         }
         stats_.terrainChunksTotal = static_cast<int>(terrainChunks_.size());
@@ -476,14 +495,21 @@ namespace CarSim::Render
         terrainEffect_->setWorldProperty(Matrix::getIdentityProperty());
         terrainEffect_->setViewProperty(view);
         terrainEffect_->setProjectionProperty(projection);
+        const Vector3 eye = Matrix::Invert(view).getTranslationProperty();
         for (const auto& chunk : terrainChunks_) {
-            if (!chunk || !frustum.Intersects(chunk->Sphere())) {
+            if (!chunk.lod0) {
                 continue;
             }
-            ApplyAll(*terrainEffect_, device, *chunk);
+            const float distance = Vector3::Distance(eye, chunk.centre) - chunk.radius;
+            if (distance > terrainCullDistanceM || !frustum.Intersects(chunk.lod0->Sphere())) {
+                continue;
+            }
+            const GpuMesh* mesh = distance < lod1DistanceM ? chunk.lod0.get() : (distance < lod2DistanceM ? chunk.lod1.get() : chunk.lod2.get());
+            if (!mesh) mesh = chunk.lod0.get();
+            ApplyAll(*terrainEffect_, device, *mesh);
             ++stats_.terrainChunksDrawn;
             ++stats_.drawCalls;
-            stats_.triangles += chunk->PrimitiveCount();
+            stats_.triangles += mesh->PrimitiveCount();
         }
 
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;

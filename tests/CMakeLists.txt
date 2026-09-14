@@ -17,6 +17,7 @@ endif()
 add_executable(carsim_tests
     CommandLineTests.cpp
     Core/PiecewiseLinearTests.cpp
+    Core/SaveDataTests.cpp
     Sim/ClutchTests.cpp
     Sim/ElectricsTests.cpp
     Sim/EngineTests.cpp

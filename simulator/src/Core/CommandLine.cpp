@@ -80,6 +80,18 @@ namespace CarSim::Core
                 options.fullscreen = true;
             } else if (arg == "--no-audio") {
                 options.noAudio = true;
+            } else if (arg == "--benchmark") {
+                options.benchmark = true;
+            } else if (arg == "--help-overlay") {
+                options.showHelpOverlay = true;
+            } else if (arg == "--debug-overlay") {
+                options.showDebugOverlay = true;
+            } else if (arg == "--no-save") {
+                options.noSave = true;
+            } else if (arg == "--save") {
+                if (const auto value = takeValue(arg)) {
+                    options.savePath = std::string(*value);
+                }
             } else if (arg == "--vehicle") {
                 if (const auto value = takeValue(arg)) {
                     options.vehicle = std::string(*value);
@@ -144,6 +156,10 @@ namespace CarSim::Core
             "  --height <px>         Back buffer height (default 720)\n"
             "  --fullscreen          Start in full-screen mode\n"
             "  --no-audio            Disable the audio stream\n"
+            "  --save <file>         Save file (default: $XDG_DATA_HOME/cna-car-simulator/save.json)\n"
+            "  --no-save             Do not load or write the save file\n"            "  --benchmark           Print frame-time statistics at exit (combine with --frames)\n"
+            "  --help-overlay        Start with the help overlay open\n"
+            "  --debug-overlay       Start with the debug overlay open\n"
             "  --content <dir>       Content root directory\n"
             "  --vehicle <name>      Vehicle definition to drive\n"
             "  --map <name>          Map to load\n"
