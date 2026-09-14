@@ -117,6 +117,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> gravel_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paving_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> cobbles_;
+        std::unique_ptr<GpuMesh> terrainSkirt_;   // flat apron around the map so the ground does not end in mid-air
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> concrete_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> marking_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;

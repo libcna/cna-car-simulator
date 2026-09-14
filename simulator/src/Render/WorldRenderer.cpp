@@ -256,6 +256,68 @@ namespace CarSim::Render
             }
         }
         stats_.terrainChunksTotal = static_cast<int>(terrainChunks_.size());
+
+        // Horizon apron: the terrain grid ends 2 km from the centre, and from any high ground the
+        // edge used to read as the world ending in mid-air. A flat skirt carries the edge height
+        // and the macro colour (the macro sampler clamps) out to the fog.
+        {
+            constexpr float kSkirtM = 8000.0f;
+            MeshData skirt;
+            const auto add = [&](const float x, const float z, const float height, const float u2x, const float u2z) {
+                MeshVertex v;
+                v.position = Vector3(x, height, z);
+                v.normal = Vector3(0.0f, 1.0f, 0.0f);
+                v.uv = Vector2(x / kGrassTileM, z / kGrassTileM);
+                v.uv2 = Vector2(u2x, u2z);
+                return skirt.AddVertex(v);
+            };
+            const float minX = terrain.MinX(), maxX = terrain.MaxX(), minZ = terrain.MinZ(), maxZ = terrain.MaxZ();
+            const int step = 8;   // every eighth terrain vertex is plenty for a flat apron
+            for (int x = 0; x + step < cols; x += step) {
+                const int xn = std::min(cols - 1, x + step);
+                const float x0 = minX + static_cast<float>(x) * cell;
+                const float x1 = minX + static_cast<float>(xn) * cell;
+                const float u0 = (x0 - minX) / sizeX, u1 = (x1 - minX) / sizeX;
+                // North edge (z = minZ): outward is -z.
+                skirt.AddQuad(add(x0, minZ - kSkirtM, terrain.HeightAtVertex(x, 0), u0, 0.0f),
+                              add(x0, minZ, terrain.HeightAtVertex(x, 0), u0, 0.0f),
+                              add(x1, minZ, terrain.HeightAtVertex(xn, 0), u1, 0.0f),
+                              add(x1, minZ - kSkirtM, terrain.HeightAtVertex(xn, 0), u1, 0.0f));
+                // South edge (z = maxZ): outward is +z.
+                skirt.AddQuad(add(x0, maxZ, terrain.HeightAtVertex(x, rows - 1), u0, 1.0f),
+                              add(x0, maxZ + kSkirtM, terrain.HeightAtVertex(x, rows - 1), u0, 1.0f),
+                              add(x1, maxZ + kSkirtM, terrain.HeightAtVertex(xn, rows - 1), u1, 1.0f),
+                              add(x1, maxZ, terrain.HeightAtVertex(xn, rows - 1), u1, 1.0f));
+            }
+            for (int z = 0; z + step < rows; z += step) {
+                const int zn = std::min(rows - 1, z + step);
+                const float z0 = minZ + static_cast<float>(z) * cell;
+                const float z1 = minZ + static_cast<float>(zn) * cell;
+                const float v0 = (z0 - minZ) / sizeZ, v1 = (z1 - minZ) / sizeZ;
+                // West edge (x = minX): outward is -x.
+                skirt.AddQuad(add(minX - kSkirtM, z0, terrain.HeightAtVertex(0, z), 0.0f, v0),
+                              add(minX - kSkirtM, z1, terrain.HeightAtVertex(0, zn), 0.0f, v1),
+                              add(minX, z1, terrain.HeightAtVertex(0, zn), 0.0f, v1),
+                              add(minX, z0, terrain.HeightAtVertex(0, z), 0.0f, v0));
+                // East edge (x = maxX): outward is +x.
+                skirt.AddQuad(add(maxX, z0, terrain.HeightAtVertex(cols - 1, z), 1.0f, v0),
+                              add(maxX, z1, terrain.HeightAtVertex(cols - 1, zn), 1.0f, v1),
+                              add(maxX + kSkirtM, z1, terrain.HeightAtVertex(cols - 1, zn), 1.0f, v1),
+                              add(maxX + kSkirtM, z0, terrain.HeightAtVertex(cols - 1, z), 1.0f, v0));
+            }
+            // Corner patches.
+            const float hNW = terrain.HeightAtVertex(0, 0), hNE = terrain.HeightAtVertex(cols - 1, 0);
+            const float hSW = terrain.HeightAtVertex(0, rows - 1), hSE = terrain.HeightAtVertex(cols - 1, rows - 1);
+            skirt.AddQuad(add(minX - kSkirtM, minZ - kSkirtM, hNW, 0.0f, 0.0f), add(minX - kSkirtM, minZ, hNW, 0.0f, 0.0f),
+                          add(minX, minZ, hNW, 0.0f, 0.0f), add(minX, minZ - kSkirtM, hNW, 0.0f, 0.0f));
+            skirt.AddQuad(add(maxX, minZ - kSkirtM, hNE, 1.0f, 0.0f), add(maxX, minZ, hNE, 1.0f, 0.0f),
+                          add(maxX + kSkirtM, minZ, hNE, 1.0f, 0.0f), add(maxX + kSkirtM, minZ - kSkirtM, hNE, 1.0f, 0.0f));
+            skirt.AddQuad(add(minX - kSkirtM, maxZ, hSW, 0.0f, 1.0f), add(minX - kSkirtM, maxZ + kSkirtM, hSW, 0.0f, 1.0f),
+                          add(minX, maxZ + kSkirtM, hSW, 0.0f, 1.0f), add(minX, maxZ, hSW, 0.0f, 1.0f));
+            skirt.AddQuad(add(maxX, maxZ, hSE, 1.0f, 1.0f), add(maxX, maxZ + kSkirtM, hSE, 1.0f, 1.0f),
+                          add(maxX + kSkirtM, maxZ + kSkirtM, hSE, 1.0f, 1.0f), add(maxX + kSkirtM, maxZ, hSE, 1.0f, 1.0f));
+            terrainSkirt_ = GpuMesh::Create(device, skirt, VertexLayout::PositionNormalDualTexture);
+        }
     }
 
     void WorldRenderer::BakeRoadColours(MeshData& mesh, const Image& shadow, const Image* tint) const
@@ -628,6 +690,11 @@ namespace CarSim::Render
         terrainEffect_->setViewProperty(view);
         terrainEffect_->setProjectionProperty(projection);
         const Vector3 eye = Matrix::Invert(view).getTranslationProperty();
+        if (terrainSkirt_) {
+            ApplyAll(*terrainEffect_, device, *terrainSkirt_);
+            ++stats_.drawCalls;
+            stats_.triangles += terrainSkirt_->PrimitiveCount();
+        }
         for (const auto& chunk : terrainChunks_) {
             if (!chunk.lod0) {
                 continue;

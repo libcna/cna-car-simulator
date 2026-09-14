@@ -832,3 +832,7 @@ committed with its own regression test and screenshot check.
   `ObjectPlacement::PlaceGardenTrees` scatters one to three trees per house and cottage on the
   far side of the building from its street, clear of buildings, roads, the square and other
   trees (662 trees on the sample map). Benchmarks unchanged within noise.
+- [x] `RQ-168` Horizon apron: the terrain grid stops 2 km from the centre, and from the hills the
+  edge read as the world ending in mid-air. `WorldRenderer::BuildTerrain` now also builds a flat
+  skirt that carries each edge vertex height and the clamped macro colour 8 km outwards, so the
+  ground runs into the fog (one extra draw call, about 700 triangles).
