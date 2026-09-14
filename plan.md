@@ -779,3 +779,17 @@ EasyGL and MetaGL beside them), Release, Ninja, `CNA_GRAPHICS_RENDERER=OPENGLES3
 
 `README.md` and this ledger agree: every row of section 24 is `[x]` and the README claims no
 feature the ledger does not mark as done.
+
+### 24.5 Follow-up work after the Phase 11 audit
+
+Small, self-contained improvements found while reviewing the finished build. Each one is
+committed with its own regression test and screenshot check.
+
+- [x] `RQ-160` Town square: the centre of Lipova was a lawn. A new `square` terrain region is
+  paved with generated granite setts (`Textures::Cobbles`, running bond, domed tops, dark
+  joints) drawn as a ground mesh draped on the terrain and cut around the roads
+  (`WorldRenderer::BuildPavedAreas`); the ground there drives and sounds like cobbles
+  (`SurfaceType::Cobbles`). The sample map gains a 77 x 75 m namesti with the church standing
+  on it, eleven two- and three-storey town houses and shops lining the west, east and north
+  sides, a row of lime trees, benches, bins and lamps. Test:
+  `TheSquareIsPavedAndLinedWithTownHouses`; `docs/map-format.md` documents the region type.

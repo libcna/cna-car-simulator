@@ -115,6 +115,32 @@ namespace CarSim::Render::Textures
         return img;
     }
 
+    Image Cobbles(const int size, const std::uint32_t seed)
+    {
+        Image img(size, size);
+        const float rows = 8.0f;   // 8 setts per tile
+        img.Generate([&](int, int, float u, float v) {
+            const float fv = v * rows;
+            const int iy = static_cast<int>(fv);
+            const float offset = (iy % 2 == 0) ? 0.0f : 0.5f;   // running bond
+            const float fu = u * rows + offset;
+            const int ix = static_cast<int>(fu);
+            const float jitter = (Noise::Hash(ix, iy, seed + 11u) - 0.5f) * 0.14f;
+            const float cu = fu - static_cast<float>(ix) - 0.5f + jitter;
+            const float cv = fv - static_cast<float>(iy) - 0.5f;
+            const float d = std::max(std::fabs(cu), std::fabs(cv));
+            const float tone = Noise::Hash(ix, iy, seed);
+            const float warm = Noise::Hash(ix, iy, seed + 3u);
+            float g = 0.44f + 0.15f * tone;
+            g *= 0.86f + 0.20f * std::clamp(1.0f - d * 1.7f, 0.0f, 1.0f);   // domed top
+            if (d > 0.42f) g *= 0.60f;                                      // joint
+            const float grain = Noise::Value(u * 220.0f, v * 220.0f, 220, seed + 5u);
+            g += (grain - 0.5f) * 0.05f;
+            return ToColor({g, g * (0.98f + 0.03f * warm), g * (0.93f + 0.03f * warm)});
+        });
+        return img;
+    }
+
     Image MarkingPaint(const int size, const std::uint32_t seed)
     {
         // Worn white paint: speckled with asphalt showing through and a slightly warm tone.

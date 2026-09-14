@@ -59,7 +59,8 @@ namespace CarSim::Render
             Paving,
             Concrete,
             Marking,
-            Grass      // road verges (share the terrain's grass texture)
+            Grass,     // road verges (share the terrain's grass texture)
+            Cobbles    // paved town squares
         };
 
         struct Batch
@@ -93,6 +94,9 @@ namespace CarSim::Render
         void BuildMacroTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow, Image& tintOut);
         void BuildRoads(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow, const Image& tint);
         void BuildIntersections(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow);
+        /// Paves every `RegionType::Square` region with cobbles, draped on the terrain and cut
+        /// around the roads that cross it.
+        void BuildPavedAreas(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow);
         /// Multiplies the rig lighting and the ground shadow into the wear colours of a road
         /// mesh; `tint` (verges) blends the outer vertices into the terrain's macro tint.
         void BakeRoadColours(MeshData& mesh, const Image& shadow, const Image* tint) const;
@@ -112,6 +116,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> asphalt_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> gravel_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paving_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> cobbles_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> concrete_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> marking_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;

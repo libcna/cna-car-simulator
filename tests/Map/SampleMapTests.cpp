@@ -140,3 +140,43 @@ TEST(SampleMap, BushesLineRuralVergesAndForestEdges)
     }
     EXPECT_GT(bushes, 300);
 }
+
+TEST(SampleMap, TheSquareIsPavedAndLinedWithTownHouses)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    // The naměstí is a paved region: the ground there drives and sounds like cobbles.
+    const Map::RegionSpec* square = nullptr;
+    for (const auto& region : world->Data().terrain.regions) {
+        if (region.type == Map::RegionType::Square) square = &region;
+    }
+    ASSERT_NE(square, nullptr) << "the sample map has a paved square";
+    float minX = 1e9f, maxX = -1e9f, minZ = 1e9f, maxZ = -1e9f;
+    for (const auto& p : square->polygon) {
+        minX = std::min(minX, p.X); maxX = std::max(maxX, p.X);
+        minZ = std::min(minZ, p.Y); maxZ = std::max(maxZ, p.Y);
+    }
+    EXPECT_GT((maxX - minX) * (maxZ - minZ), 2000.0f) << "a square worth the name";
+    const float centreX = 0.5f * (minX + maxX);
+    const float centreZ = 0.5f * (minZ + maxZ);
+    EXPECT_EQ(world->Terrain().RegionAt(centreX, centreZ), Map::RegionType::Square);
+    EXPECT_EQ(world->Ground().Sample(centreX, centreZ).surface, Sim::SurfaceType::Cobbles);
+    EXPECT_EQ(world->Ground().Sample(minX - 40.0f, centreZ).surface, Sim::SurfaceType::Grass) << "outside the square it is grass again";
+
+    // Buildings line at least three sides, and one of them is the church.
+    int west = 0, east = 0, north = 0, church = 0;
+    for (const auto& b : world->Objects().Buildings()) {
+        const float x = b.position.X;
+        const float z = b.position.Z;
+        if (z < minZ - 14.0f || z > maxZ + 14.0f) continue;
+        if (x > minX - 12.0f && x < minX + 2.0f) ++west;
+        if (x > maxX - 2.0f && x < maxX + 12.0f) ++east;
+        if (z < minZ + 2.0f && x > minX - 6.0f && x < maxX + 6.0f) ++north;
+        if (b.spec && b.spec->type == "church" && x > minX && x < maxX && z > minZ && z < maxZ) ++church;
+    }
+    EXPECT_GE(west, 3) << "town houses along the west side";
+    EXPECT_GE(east, 3) << "town houses along the east side";
+    EXPECT_GE(north, 2) << "town houses along the north side";
+    EXPECT_EQ(church, 1) << "the church stands on the square";
+}

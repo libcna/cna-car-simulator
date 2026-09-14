@@ -53,6 +53,7 @@ namespace CarSim::Render
         asphalt_ = UploadTexture(device, Textures::Asphalt(512, 2u), true);
         gravel_ = UploadTexture(device, Textures::Gravel(256, 4u), true);
         paving_ = UploadTexture(device, Textures::PavingSlabs(256, 5u), true);
+        cobbles_ = UploadTexture(device, Textures::Cobbles(256, 9u), true);
         concrete_ = UploadTexture(device, Textures::Plaster(128, Rgb::FromBytes(176, 174, 168), 6u), true);
         marking_ = UploadTexture(device, Textures::MarkingPaint(64, 7u), true);
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
@@ -68,6 +69,7 @@ namespace CarSim::Render
         BuildTerrain(device);
         BuildRoads(device, shadow, tint);
         BuildIntersections(device, shadow);
+        BuildPavedAreas(device, shadow);
         BuildObjects(device);
         BuildTrees(device);
         BuildSigns(device, signFont);
@@ -151,6 +153,9 @@ namespace CarSim::Render
                     case Map::RegionType::Forest:
                         tint = Rgb{0.38f, 0.35f, 0.25f};
                         light *= 0.72f;   // canopy shade
+                        break;
+                    case Map::RegionType::Square:
+                        tint = Rgb{0.46f, 0.45f, 0.43f};
                         break;
                     case Map::RegionType::Orchard:
                         tint = Rgb{0.56f, 0.60f, 0.38f};
@@ -334,6 +339,63 @@ namespace CarSim::Render
         push(asphalt, Surface::Asphalt);
         push(gravel, Surface::Gravel);
         push(markings, Surface::Marking);
+        stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
+    }
+
+    void WorldRenderer::BuildPavedAreas(GraphicsDevice& device, const Image& shadow)
+    {
+        const auto& terrain = world_.Terrain();
+        const auto& ground = world_.Ground();
+        constexpr float kCell = 2.0f;        // grid step of the paved surface
+        constexpr float kTileM = 0.8f;       // one cobble texture tile
+        constexpr float kLift = 0.02f;       // above the terrain, under the road surface
+        MeshData mesh;
+        for (const auto& region : terrain.Spec().regions) {
+            if (region.type != Map::RegionType::Square || region.polygon.size() < 3) continue;
+            float minX = 1e9f, maxX = -1e9f, minZ = 1e9f, maxZ = -1e9f;
+            for (const auto& p : region.polygon) {
+                minX = std::min(minX, p.X); maxX = std::max(maxX, p.X);
+                minZ = std::min(minZ, p.Y); maxZ = std::max(maxZ, p.Y);
+            }
+            const int nx = std::max(1, static_cast<int>(std::ceil((maxX - minX) / kCell)));
+            const int nz = std::max(1, static_cast<int>(std::ceil((maxZ - minZ) / kCell)));
+            const float stepX = (maxX - minX) / static_cast<float>(nx);
+            const float stepZ = (maxZ - minZ) / static_cast<float>(nz);
+            for (int iz = 0; iz < nz; ++iz) {
+                for (int ix = 0; ix < nx; ++ix) {
+                    const float x0 = minX + static_cast<float>(ix) * stepX;
+                    const float z0 = minZ + static_cast<float>(iz) * stepZ;
+                    const float x1 = x0 + stepX;
+                    const float z1 = z0 + stepZ;
+                    // Only cells wholly inside the region and clear of the road surface: roads
+                    // carry their own paving and sit above the terrain.
+                    bool inside = true;
+                    for (const auto& c : {Microsoft::Xna::Framework::Vector2(x0, z0), Microsoft::Xna::Framework::Vector2(x1, z0),
+                                          Microsoft::Xna::Framework::Vector2(x1, z1), Microsoft::Xna::Framework::Vector2(x0, z1)}) {
+                        if (terrain.RegionAt(c.X, c.Y) != Map::RegionType::Square) { inside = false; break; }
+                        const Map::SurfaceSample gs = ground.Sample(c.X, c.Y);
+                        if (gs.onRoad || gs.distanceToPavedEdge < 0.6f) { inside = false; break; }
+                    }
+                    if (!inside) continue;
+                    // Corner order matches the terrain mesh (counter-clockwise from above), so the
+                    // paving is not back-face culled.
+                    const std::uint32_t base = static_cast<std::uint32_t>(mesh.vertices.size());
+                    for (const auto& c : {Microsoft::Xna::Framework::Vector2(x0, z0), Microsoft::Xna::Framework::Vector2(x0, z1),
+                                          Microsoft::Xna::Framework::Vector2(x1, z1), Microsoft::Xna::Framework::Vector2(x1, z0)}) {
+                        const Vector3 position(c.X, terrain.Height(c.X, c.Y) + kLift, c.Y);
+                        mesh.AddVertex(position, terrain.Normal(c.X, c.Y),
+                                       Microsoft::Xna::Framework::Vector2(c.X / kTileM, c.Y / kTileM), Color(255, 255, 255, 255));
+                    }
+                    mesh.AddQuad(base, base + 1, base + 2, base + 3);
+                }
+            }
+        }
+        if (mesh.TriangleCount() == 0) return;
+        BakeRoadColours(mesh, shadow, nullptr);
+        Batch b;
+        b.mesh = GpuMesh::Create(device, mesh, VertexLayout::PositionColorTexture);
+        b.surface = Surface::Cobbles;
+        roadBatches_.push_back(std::move(b));
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
     }
 
@@ -542,6 +604,7 @@ namespace CarSim::Render
             case Surface::Concrete: return concrete_.get();
             case Surface::Marking: return marking_.get();
             case Surface::Grass: return grass_.get();
+            case Surface::Cobbles: return cobbles_.get();
         }
         return white_.get();
     }

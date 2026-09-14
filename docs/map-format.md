@@ -92,7 +92,7 @@ north = -z). Headings: 0 = north, 90 = east (clockwise).
 | `noise` | object | `amplitude`, `wavelength`, `octaves`, `seed` (signed fBm) |
 | `roadBlendWidth` | number | distance over which terrain blends into the road edge |
 | `features[]` | object | `type` `hill`/`ridge`/`plateau`, `center`, `end` (ridge), `radius`, `height` (negative = basin) |
-| `regions[]` | object | `type` `meadow`/`field`/`forest`/`town`/`orchard`, `polygon`, `crop`, `seed`; later regions win |
+| `regions[]` | object | `type` `meadow`/`field`/`forest`/`town`/`square`/`orchard`, `polygon`, `crop`, `seed`; later regions win. A `square` region is paved with cobbles (drawn as a separate ground mesh, cut around the roads) and drives and sounds like cobbles |
 
 ### roads.json
 `nodes[]`: `id`, `position`, optional `elevation`, `urban` (built-up area: urban speed limit,
