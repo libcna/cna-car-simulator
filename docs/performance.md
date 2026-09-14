@@ -26,20 +26,20 @@ average includes llvmpipe's rasterisation and the swap.
 
 | Scene | draw submission | draw calls | triangles | cluster | mirror | sky | world | traffic | vehicle | hud |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Town chase (`--spawn square`, 20 traffic cars) | 114.6 ms | 1024 | 868k | 0.5 | 0 | 1.0 | 65.4 | 42.5 | 4.9 | 0.2 |
-| Town cockpit, mirror every frame | 174.2 ms | 1020 | 872k | 0.5 | 61.6 | 0.3 | 66.6 | 40.9 | 4.1 | 0.2 |
-| Town cockpit, `--mirror-every 2` | 145.4 ms | 1020 | 872k | 0.5 | 30.7 | 1.0 | 67.5 | 41.3 | 4.2 | 0.2 |
-| Forest road (`--spawn forest`) | 55.0 ms | 441 | 611k | 0.5 | 0 | 1.6 | 42.9 | 3.6 | 6.1 | 0.2 |
-| Fields (`--spawn fields`) | 26.2 ms | 421 | 360k | 0.5 | 0 | 1.6 | 19.0 | 0 | 4.9 | 0.2 |
+| Town chase (`--spawn square`, 20 traffic cars) | 120.3 ms | 1078 | 878k | 0.5 | 0 | 1.1 | 68.7 | 44.7 | 5.0 | 0.2 |
+| Town cockpit, mirror every frame | 181.7 ms | 1097 | 883k | 0.5 | 62.9 | 0.4 | 67.1 | 46.6 | 4.0 | 0.2 |
+| Town cockpit, `--mirror-every 2` | 159.3 ms | 1097 | 883k | 0.5 | 31.0 | 1.0 | 74.9 | 47.7 | 4.0 | 0.2 |
+| Forest road (`--spawn forest`) | 54.3 ms | 443 | 611k | 0.5 | 0 | 1.7 | 42.5 | 3.4 | 5.9 | 0.3 |
+| Fields (`--spawn fields`) | 25.4 ms | 425 | 361k | 0.4 | 0 | 1.2 | 18.7 | 0 | 4.9 | 0.2 |
 
 Pass columns are milliseconds per frame. Visible batches on the town chase run: 296 terrain
-chunks, 35 road batches, 264 object batches, 8 tree batches; of the 20 traffic cars and 15
-parked cars, 16 are drawn per frame on average. The forest run draws 67 tree batches and 73
+chunks, 35 road batches, 272 object batches, 33 tree batches; of the 20 traffic cars and 91
+parked cars, 17 are drawn per frame on average. The forest run draws 68 tree batches and 73
 object batches; the fields run 301 terrain chunks and 56 object batches.
 
-These numbers replace an earlier table measured before two changes that moved them: the chase
-camera used to sit on the mirror image of its orbit (so a different part of the map was in
-view), and the town gained a paved square, twelve more buildings and fifteen parked cars.
+These numbers replace an earlier table measured before the chase camera fix (the camera used
+to sit on the mirror image of its orbit, so a different part of the map was in view) and before
+the town gained a paved square, thirteen more buildings, 91 parked cars and planted gardens.
 
 ### Levers in use
 
@@ -51,8 +51,8 @@ view), and the town gained a paved square, twelve more buildings and fifteen par
   LOD 2 (reduced body, no glass, lamp glows or plate) to 900 m, nothing further; ground
   shadows only within 120 m. Cars outside the frustum are skipped by their bounding sphere.
 - **Parked cars** are scenery, so they drop detail sooner: LOD 0 within 25 m, LOD 1 to 70 m,
-  LOD 2 to 400 m, shadows within 60 m. Their fifteen cars cost about 12 ms of the town
-  traffic pass; with the traffic radii they cost 27 ms.
+  LOD 2 to 400 m, shadows within 60 m. The cars visible from the town road cost about 14 ms of
+  the traffic pass; with the traffic radii they would cost roughly twice that.
 - **Mirror update interval** (`mirrorUpdateEvery` in the save file, `--mirror-every <n>`):
   the mirror target is redrawn every n frames and the previous image is shown in between.
   Every second frame halves the mirror cost (61.6 to 30.7 ms here, 29 ms per frame overall);
