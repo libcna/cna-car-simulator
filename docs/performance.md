@@ -26,14 +26,14 @@ average includes llvmpipe's rasterisation and the swap.
 
 | Scene | draw submission | draw calls | triangles | cluster | mirror | sky | world | traffic | vehicle | hud |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Town chase (`--spawn square`, 20 traffic cars) | 120.3 ms | 1078 | 878k | 0.5 | 0 | 1.1 | 68.7 | 44.7 | 5.0 | 0.2 |
-| Town cockpit, mirror every frame | 181.7 ms | 1097 | 883k | 0.5 | 62.9 | 0.4 | 67.1 | 46.6 | 4.0 | 0.2 |
-| Town cockpit, `--mirror-every 2` | 159.3 ms | 1097 | 883k | 0.5 | 31.0 | 1.0 | 74.9 | 47.7 | 4.0 | 0.2 |
+| Town chase (`--spawn square`, 20 traffic cars) | 124.1 ms | 1092 | 882k | 0.5 | 0 | 1.2 | 71.2 | 45.7 | 5.2 | 0.2 |
+| Town cockpit, mirror every frame | 181.8 ms | 1111 | 886k | 0.5 | 63.3 | 0.4 | 67.6 | 46.0 | 3.9 | 0.2 |
+| Town cockpit, `--mirror-every 2` | 159.6 ms | 1111 | 886k | 0.5 | 31.8 | 1.0 | 74.3 | 47.8 | 4.1 | 0.2 |
 | Forest road (`--spawn forest`) | 54.3 ms | 443 | 611k | 0.5 | 0 | 1.7 | 42.5 | 3.4 | 5.9 | 0.3 |
 | Fields (`--spawn fields`) | 26.7 ms | 451 | 363k | 0.4 | 0 | 1.2 | 19.6 | 0 | 4.9 | 0.2 |
 
 Pass columns are milliseconds per frame. Visible batches on the town chase run: 296 terrain
-chunks, 35 road batches, 272 object batches, 33 tree batches; of the 20 traffic cars 5 are
+chunks, 36 road batches, 280 object batches, 36 tree batches; of the 20 traffic cars 5 are
 drawn per frame on average and of the 91 parked cars 12 (the debug overlay and the benchmark
 JSON count them separately). The forest run draws 68 tree batches and 73
 object batches; the fields run 301 terrain chunks and 56 object batches.
