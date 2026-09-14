@@ -1,3 +1,4 @@
+#include "CarSim/Sim/CarStyle.hpp"
 #include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Collision/Shapes.hpp"
 #include "CarSim/Map/MapDocument.hpp"
@@ -197,4 +198,29 @@ TEST(CollisionWorld, SampleMapHasCollidersAndClearSpawns)
         vehicle.PlaceAt(map->SpawnPosition(spawn), -spawn.headingDeg * 3.14159265f / 180.0f);
         EXPECT_FALSE(world.Overlaps(CollisionWorld::VehicleBox(vehicle))) << "spawn " << spawn.name;
     }
+}
+
+TEST(CollisionWorld, VehicleStopsAgainstAParkedCar)
+{
+    // A parked car is a solid box of its body class: driving into one stops the player and
+    // reports a Vehicle contact, not a wall.
+    Rig rig;
+    const Sim::CarStyle parked = Sim::CarStyle::Preset(Sim::CarStyle::Body::Estate, 3u);
+    StaticCollider car;
+    car.kind = ColliderKind::Vehicle;
+    car.box = Obb::FromHeading(Vector3(0.0f, 0.5f * parked.height, -18.0f),
+                               Vector3(0.5f * parked.width, 0.5f * parked.height, 0.5f * parked.length), 0.0f);
+    car.centre = car.box.centre;
+    car.boundingRadius = car.box.BoundingRadius();
+    rig.world.AddStatic(car);
+    rig.world.Finish();
+    rig.vehicle.PlaceAt(Vector3(0.0f, 0.0f, 0.0f), 0.0f);
+    rig.Settle();
+    rig.vehicle.ForceForwardSpeed(10.0f);
+    rig.Run(3.0f);
+    EXPECT_LT(std::fabs(rig.vehicle.ForwardSpeedMs()), 0.8f);
+    const Obb box = CollisionWorld::VehicleBox(rig.vehicle);
+    EXPECT_GT(box.centre.Z - box.half.Z, -18.0f + 0.5f * parked.length - 0.08f) << "no more than 8 cm into the parked car";
+    ASSERT_FALSE(rig.events.empty());
+    EXPECT_EQ(rig.events.front().kind, ColliderKind::Vehicle);
 }
