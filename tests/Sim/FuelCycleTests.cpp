@@ -44,7 +44,7 @@ namespace
                 settledStartKm = km;
                 startLiters = vehicle.Fuel().Liters();
             }
-            if (settledStartKm >= 0.0 && km - settledStartKm >= measureKm) {
+            if (settledStartKm >= 0.0 && km - settledStartKm >= static_cast<double>(measureKm)) {
                 const float used = startLiters - vehicle.Fuel().Liters();
                 return used / static_cast<float>(km - settledStartKm) * 100.0f;
             }

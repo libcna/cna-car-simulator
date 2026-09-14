@@ -21,13 +21,6 @@ namespace CarSim::Traffic
         constexpr float kPi = std::numbers::pi_v<float>;
         constexpr float kKmhToMs = 1.0f / 3.6f;
         constexpr float kWheelRadius = 0.31f;
-
-        float WrapAngle(float a)
-        {
-            while (a > kPi) a -= 2.0f * kPi;
-            while (a <= -kPi) a += 2.0f * kPi;
-            return a;
-        }
     }
 
     Matrix TrafficVehicle::WorldMatrix() const
