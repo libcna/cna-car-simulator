@@ -22,6 +22,11 @@ Two driving cameras plus two inspection modes for captures. All poses are built 
   sampled ground height under it, so slopes, kerbs and road embankments never swallow the
   camera. The clamp uses the same map ground query the physics uses.
 - Field of view 60 degrees, near plane 0.3 m.
+- Convention: the body yaw is `atan2(-forward.x, -forward.z)` (0 facing -Z, positive turning
+  left, the same as `Matrix::CreateRotationY`), so behind is `(sin yaw, 0, cos yaw)` and the
+  right-hand side `(cos yaw, 0, -sin yaw)`. A test checks that the camera sits `distance`
+  metres behind and aims ahead for seven headings; an earlier version had the mirror image
+  and put the camera in front of an east-bound car.
 
 ## Cockpit camera
 

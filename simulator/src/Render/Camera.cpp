@@ -56,7 +56,7 @@ namespace CarSim::Render
         previousBodyYaw_ = smoothedYaw_;
         yawRate_ = 0.0f;
         lookAhead_ = 0.0f;
-        const Vector3 behind(-std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
+        const Vector3 behind(std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
         smoothedPosition_ = state.originPosition + behind * distance + Vector3(0.0f, height, 0.0f);
         initialised_ = true;
         Update(state, 0.0f);
@@ -90,11 +90,13 @@ namespace CarSim::Render
 
         const float speedPull = speedFraction * 1.2f;
         const float speedRise = speedFraction * 0.35f;
-        // With yaw = 0 the car faces -Z, so "behind" is +Z; rotate that by the smoothed yaw.
-        const Vector3 behind(-std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
-        const Vector3 rightOf(std::cos(smoothedYaw_), 0.0f, std::sin(smoothedYaw_));
+        // With yaw = 0 the car faces -Z, so "behind" is +Z. A positive yaw turns the car left
+        // (CreateRotationY), so forward is (-sin, 0, -cos), behind (sin, 0, cos) and the right-hand
+        // side (cos, 0, -sin).
+        const Vector3 behind(std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
+        const Vector3 rightOf(std::cos(smoothedYaw_), 0.0f, -std::sin(smoothedYaw_));
         const float orbitYaw = smoothedYaw_ + yawOffset;
-        const Vector3 orbit(-std::sin(orbitYaw), 0.0f, std::cos(orbitYaw));
+        const Vector3 orbit(std::sin(orbitYaw), 0.0f, std::cos(orbitYaw));
         const Vector3 desired = state.originPosition + orbit * (distance + speedPull) + Vector3(0.0f, height + speedRise, 0.0f);
         // Position follow: near-critically damped exponential approach (9/s), independent of the
         // frame rate; a snap on large jumps (vehicle reset) avoids a long fly-in.

@@ -560,20 +560,20 @@ capture under `docs/screenshots/` reviewed against the baseline.
 #### Traffic and vehicle variety
 - [x] `RQ-030` Traffic body variants: generator presets for hatchback, sedan, estate, small SUV and van (dimensions, greenhouse, overhangs, roof line, ride height) selected per traffic car with paint, wheel style and plate; traffic cars share materials. Acceptance: traffic screenshot with at least three distinct silhouettes; soak test unchanged.
 - [x] `RQ-031` Vehicle LOD: traffic beyond a near radius drops interior, glass, shadow and small parts; beyond a far radius uses a reduced body. Draw calls per traffic car reported in the debug overlay.
-- [ ] `RQ-032` Traffic presentation polish: lane centring and steering smoothness checked while driving, spawning outside the view, wheel spin matches speed, brake lights and indicators verified.
+- [x] `RQ-032` Traffic presentation polish: lane centring and steering smoothness checked while driving, spawning outside the view, wheel spin matches speed, brake lights and indicators verified. Test `NewCarsAppearOutsideThePlayersViewConeAndWheelsSpinWithSpeed` (no car appears within 230 m inside the 55 degree cone ahead; wheel spin integrates the travelled distance at the 0.31 m reference radius); brake lights and indicators checked in the traffic captures.
 
 #### Environment
 - [x] `RQ-040` Fixed daytime lighting rebalance: stronger sun, cooler and weaker ambient, sky and ground fill tuned, fog haze colour matched to the sky, sky dome with proper horizon glow and readable clouds. Acceptance: before/after pair for town and countryside; cockpit not crushed; paint reads.
 - [x] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked). Done: vehicle sun shadow (stencil-free convex hull with penumbra rim, draped on the ground) and contact shadow; `GroundShadowBaker` bakes building sweeps and tree crown discs into the macro and the road vertex colours.
 - [x] `RQ-050` Roads: reworked asphalt (wear tracks, patches, edge weathering), quieter sidewalk paving, kerb profile with gutter, grass verge strip blending road and terrain outside town, gravel shoulder texture, intersection surface continuity, marking wear. Acceptance: road no longer reads as a clean strip on a plane; lane widths unchanged (map tests).
-- [ ] `RQ-051` Czech road details review: sign plate sizes and post heights, delineator spacing, crossing bars, stop line position; corrections applied where wrong.
+- [x] `RQ-051` Czech road details review against `docs/research/czech-roads.md`: sign faces 0.7 m (circles, P 2/P 3 diamonds, P 6 octagon), 0.9 m (warning and P 4 triangles), 0.5 m (IP 6, IJ 4c), 1.0 x 0.5 m (IZ 4a/b), 1.6 x 0.4 m (IS 3); lower edge 1.5 m rural and 2.2 m in built-up areas on 64 mm posts; Z 11 delineators every 50 m on rural class I-III roads at 0.35 m outside the shoulder, 1.05 m high with the black band at 0.70-0.95 m, orange reflector towards the driver on the right and white on the left; V 7 crossing 0.5 m bars and gaps, 4 m long; V 5 stop line 0.5 m wide 1 m before the junction patch; V 6a give-way triangles 0.6 m. All within the TP 65 / TP 133 basic sizes; no correction was needed.
 - [x] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
 - [x] `RQ-061` Plots and street furniture: fences (wood, wire, wall) and hedges around house plots with gates and driveways generated from the placed buildings, garden sheds, utility poles along village roads, bus shelter and bench polish. Acceptance: houses no longer stand loose on the meadow. Done: street-side picket/wire/hedge lines with a gate gap, side fences on cottages, sheds behind every second house, utility poles on class III/local/residential roads; open: driveways, shelter/bench polish.
 - [x] `RQ-070` Vegetation: new species card textures (lit crowns, several variants per species), near-tree trunk with branches, bushes along roads and forest edges, roadside grass tufts within 60 m, forest understory darkening and edge blending, jittered placement with clumping. Acceptance: forest screenshot without visible rows; town avenue reads as trees. Done: darker, finer-grained crowns with an underside shade gradient, a bush species along rural verges and forest edges; open: grass tufts, branch geometry.
 - [x] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
 
 #### Cameras, mirror, audio, driving
-- [x] `RQ-080` Chase camera: spring-damped follow with speed-dependent distance, look-ahead in turns, correct reversing behaviour, low-speed stability, terrain clipping avoidance. Cockpit camera: eye position and FOV verified, tiny motion cues, no jitter. Acceptance: description in `docs/cameras.md` and a scripted drive without visible jumps.
+- [x] `RQ-080` Chase camera: spring-damped follow with speed-dependent distance, look-ahead in turns, correct reversing behaviour, low-speed stability, terrain clipping avoidance. Cockpit camera: eye position and FOV verified, tiny motion cues, no jitter. Acceptance: description in `docs/cameras.md` and a scripted drive without visible jumps. Defect found in the screenshot loop and fixed: the orbit basis was the mirror image of -forward, so the camera sat in front of an east-bound car and beside a north-west-bound one (present since M10); regression test `SitsBehindTheCarAndAimsAheadForEveryHeading`.
 - [x] `RQ-081` Mirror: framing and FOV checked, traffic visible, optional half-rate update setting, cost measured and recorded (llvmpipe: 62.8 ms per frame at every frame, 31.8 ms at every second frame).
 - [x] `RQ-090` Audio polish: layered engine (intake/exhaust/mechanical crossfades by load and rpm, overrun burble, gear-change dip), surface-dependent rolling noise, brake and wind layers; tests for continuity and level ordering; `docs/audio-design.md` updated.
 - [x] `RQ-100` Driving feel audit: scripted drives at parking, 50 and 90 km/h, launches, braking, reversing, slopes; defects fixed with regression tests.
@@ -581,8 +581,8 @@ capture under `docs/screenshots/` reviewed against the baseline.
 #### Performance and validation
 - [x] `RQ-120` Instrumentation: per-pass CPU timings (cluster, mirror, world, traffic, vehicle, HUD), visible/culled counts per class, traffic count, draw calls, triangles in the debug overlay and in the `--benchmark` summary (also written as JSON with `--benchmark-json`).
 - [x] `RQ-121` LOD and culling: distance culling for props and buildings with far LOD, tree far LOD, vehicle LOD (RQ-031); measured before/after in `docs/performance.md`.
-- [ ] `RQ-130` Renderer conformance: build and run the same code on the renderers available in the environment (OPENGLES3, OPENGL33, SOFTWARE where it links); results, screenshots and differences recorded in `docs/renderer-conformance.md`. No renderer-specific project code.
-- [ ] `RQ-131` `docs/real-hardware-validation.md`: reproducible procedure for a real PC (build, launch, views, controls, overlay, capture, metrics to report, checklist).
+- [x] `RQ-130` Renderer conformance: build and run the same code on the renderers available in the environment (OPENGLES3, OPENGL33, SOFTWARE where it links); results, screenshots and differences recorded in `docs/renderer-conformance.md`. No renderer-specific project code.
+- [x] `RQ-131` `docs/real-hardware-validation.md`: reproducible procedure for a real PC (build, launch, views, controls, overlay, capture, metrics to report, checklist).
 - [ ] `RQ-140` Screenshot loop: curated final set in `docs/screenshots/` (hero exterior, cockpit, dashboard, traffic, town, countryside, forest, intersection), README updated.
 - [ ] `RQ-150` Final audit: fresh clone build, all tests, static and asset checks, plan/README synchronised, final SHA recorded in section 24.4.
 
@@ -706,3 +706,21 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   `VehicleDriveTests`: `FullLockAtParkingSpeedTurnsInAPlausibleCircle`,
   `ReverseGearDrivesBackwardsAndSwingsTheNoseTheOtherWay`, `HoldsFiftyOnTheFlatWithPartThrottle`,
   `ClimbsAnEightPercentGradeWithoutLosingMuchSpeed`.
+- Renderer conformance and validation procedure (`docs/renderer-conformance.md`,
+  `docs/real-hardware-validation.md`): the `opengles3`, `opengl33` and `software` presets were
+  built from the same source (no renderer-specific code; `vulkan` has no ICD in the container)
+  and the same lockstep town frame captured on each: identical draw calls and triangles
+  (606 / 575k exterior, 869 / 832k cockpit), pixel differences of 0.4-6.5 levels mean and
+  under 3.5 % of pixels over 32 levels, all explained by edge rasterisation and llvmpipe's
+  anisotropic filtering on the ES3 path; the cluster target is bit-identical between the GL
+  renderers. Comparison grids in `docs/screenshots/renderers/`. The SOFTWARE renderer runs
+  the scene at 1.8 s per frame, fifteen times slower than llvmpipe. The validation page gives
+  the build, launch, checklist, capture set, benchmark set and reporting list for a real PC.
+  Traffic presentation (RQ-032) got a spawn-visibility and wheel-spin test; the Czech road
+  detail review (RQ-051) found all sizes within the basic TP 65 / TP 133 values.
+- Chase camera defect (found while curating the final screenshots): `ChaseCamera` built its
+  "behind" vector as (-sin yaw, 0, cos yaw), the mirror image of -forward for any heading off
+  the north-south axis, so every exterior capture since M10 showed the car from the front
+  (square spawn, east-bound) or from the left-rear quarter (forest spawn); the look-ahead
+  side was mirrored the same way. Fixed in `Camera.cpp` (behind = (sin, 0, cos), right =
+  (cos, 0, -sin)); test `SitsBehindTheCarAndAimsAheadForEveryHeading` checks seven headings.

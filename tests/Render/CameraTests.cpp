@@ -66,3 +66,32 @@ TEST(ChaseCamera, LooksIntoTheBendAndFollowsIndependentOfFrameRate)
     EXPECT_LT(Vector3::Distance(a.Pose().position, b.Pose().position), 0.8f);
     EXPECT_NEAR(a.SmoothedYaw(), b.SmoothedYaw(), 0.08f);
 }
+
+TEST(ChaseCamera, SitsBehindTheCarAndAimsAheadForEveryHeading)
+{
+    // Regression: the orbit basis used (-sin, 0, cos) for "behind", which is the mirror image
+    // of -forward for any heading off the north-south axis (the camera ended up in front of an
+    // east-bound car and beside a north-west-bound one).
+    for (const float yawDeg : {0.0f, 90.0f, 180.0f, 270.0f, -88.3f, 32.8f, 135.0f}) {
+        const float yaw = yawDeg * 3.14159265f / 180.0f;
+        ChaseCamera cam;
+        const Vector3 origin(100.0f, 0.0f, -50.0f);
+        auto state = StateAt(origin, yaw, 0.0f);
+        const Vector3 forward = state.worldMatrix.getForwardProperty();
+        const Vector3 right = state.worldMatrix.getRightProperty();
+        cam.Snap(state);
+        for (int i = 0; i < 240; ++i) {
+            cam.Update(state, 1.0f / 60.0f);
+        }
+        const Vector3 toCamera = cam.Pose().position - origin;
+        EXPECT_NEAR(Vector3::Dot(toCamera, forward), -cam.distance, 0.05f) << "heading " << yawDeg;
+        EXPECT_NEAR(Vector3::Dot(toCamera, right), 0.0f, 0.05f) << "heading " << yawDeg;
+        const Vector3 toTarget = cam.Pose().target - origin;
+        EXPECT_GT(Vector3::Dot(toTarget, forward), 0.5f) << "heading " << yawDeg;
+        EXPECT_NEAR(Vector3::Dot(toTarget, right), 0.0f, 0.05f) << "heading " << yawDeg;
+        // --chase-yaw 90 orbits to the car's right-hand side.
+        cam.yawOffset = 3.14159265f * 0.5f;
+        cam.Update(state, 10.0f);
+        EXPECT_GT(Vector3::Dot(cam.Pose().position - origin, right), cam.distance * 0.9f) << "heading " << yawDeg;
+    }
+}

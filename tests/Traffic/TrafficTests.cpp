@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 
 using namespace CarSim;
@@ -184,4 +185,56 @@ TEST(TrafficSystem, SpawnsAroundThePlayerAndDespawnsFarAway)
     for (const auto& v : traffic.Vehicles()) {
         EXPECT_LT(Vector3::Distance(v.position, player.position), world->Data().traffic.despawnDistance + 50.0f);
     }
+}
+
+TEST(TrafficSystem, NewCarsAppearOutsideThePlayersViewConeAndWheelsSpinWithSpeed)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 11);
+    traffic.SetDensity(16);
+    Traffic::PlayerProbe player;
+    player.valid = true;
+    player.position = world->SpawnPosition(world->PlayerSpawn());
+    player.forward = Vector3(1.0f, 0.0f, 0.0f);
+    const float cosCone = std::cos(traffic.params.spawnViewAngleDeg * 3.14159265f / 180.0f);
+    std::vector<int> seen;
+    std::vector<std::pair<int, float>> previousSpin;
+    int spawnsChecked = 0;
+    int spinChecked = 0;
+    for (int i = 0; i < 60 * 40; ++i) {
+        traffic.Update(1.0f / 60.0f, player);
+        for (const auto& v : traffic.Vehicles()) {
+            const bool isNew = std::find(seen.begin(), seen.end(), v.id) == seen.end();
+            if (isNew) {
+                seen.push_back(v.id);
+                Vector3 to = v.position - player.position;
+                to.Y = 0.0f;
+                const float d = to.Length();
+                if (d > 1e-3f) {
+                    to /= d;
+                    const bool inCone = Vector3::Dot(to, player.forward) > cosCone;
+                    EXPECT_FALSE(d < traffic.params.spawnViewDistance && inCone)
+                        << "car " << v.id << " appeared " << d << " m ahead inside the view cone";
+                }
+                EXPECT_GE(d, world->Data().traffic.spawnMinDistance - 1.0f);
+                ++spawnsChecked;
+            }
+            // Wheel spin integrates the travelled distance at the 0.31 m reference radius.
+            auto it = std::find_if(previousSpin.begin(), previousSpin.end(), [&](const auto& p) { return p.first == v.id; });
+            if (it != previousSpin.end()) {
+                if (!v.backingOff) {   // reversing out of a blocked junction spins the wheels backwards
+                    const float expected = v.speed * (1.0f / 60.0f) / 0.31f;
+                    EXPECT_NEAR(v.wheelSpin - it->second, expected, 0.25f * expected + 1e-3f);
+                    ++spinChecked;
+                }
+                it->second = v.wheelSpin;
+            } else {
+                previousSpin.emplace_back(v.id, v.wheelSpin);
+            }
+        }
+    }
+    EXPECT_GE(spawnsChecked, 12);
+    EXPECT_GT(spinChecked, 1000);
 }
