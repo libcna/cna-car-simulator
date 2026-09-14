@@ -861,3 +861,8 @@ committed with its own regression test and screenshot check.
   emits a concrete kerb (0.11 m high, 0.22 m wide) with a top and an outer face, so the square
   and the filling station forecourt end in an edging instead of a bare seam against the grass.
   The cut around the roads produces the kerb automatically.
+- [x] `RQ-176` Session audit: commit `2d97012e6215ff24e691edbcf94233a1599588f8` cloned fresh from
+  `origin` and built against the dependency checkouts: every target builds, `ctest` passes all
+  five registrations in 33 s (159 unit and scenario tests), both static checks are clean and the
+  map validator reports no warnings. `scripts/capture_set.sh` reproduces the curated screenshot
+  set in one command.
