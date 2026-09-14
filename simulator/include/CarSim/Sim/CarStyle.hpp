@@ -2,6 +2,8 @@
 // (Render) and the traffic system (collision boxes, masses). Pure data, no graphics.
 #pragma once
 
+#include <string>
+
 #include "CarSim/Sim/VehicleDefinition.hpp"
 
 namespace CarSim::Sim
@@ -58,6 +60,8 @@ namespace CarSim::Sim
         /// Traffic preset with typical dimensions of the class; `seed` picks small variations.
         [[nodiscard]] static CarStyle Preset(Body body, unsigned seed);
         [[nodiscard]] static const char* ToString(Body body);
+        /// Parses a body name ("hatchback", "sedan", "estate", "suv", "van"); false if unknown.
+        [[nodiscard]] static bool ParseBody(const std::string& text, Body& out);
     };
 
     /// Typical kerb mass of the body class (kg), for traffic collisions.

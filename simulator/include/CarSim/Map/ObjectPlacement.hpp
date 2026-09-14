@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CarSim/Map/MapData.hpp"
+#include "CarSim/Sim/CarStyle.hpp"
 #include "CarSim/Map/SpatialGrid.hpp"
 
 #include "Microsoft/Xna/Framework/Vector2.hpp"
@@ -43,6 +44,15 @@ namespace CarSim::Map
         float halfDepth = 4.5f;
         float height = 6.0f;                            // eaves height above position
         float roofHeight = 3.0f;                        // ridge above the eaves
+    };
+
+    /// A parked car: a static body drawn like a traffic car and solid in the collision world.
+    struct PlacedVehicle
+    {
+        Sim::CarStyle::Body body = Sim::CarStyle::Body::Hatchback;
+        Microsoft::Xna::Framework::Vector3 position{};   // origin on the ground
+        float headingRad = 0.0f;                         // nose direction (atan2(x, -z))
+        unsigned seed = 1;                               // style variant, paint and plate
     };
 
     struct PlacedTree
@@ -105,6 +115,7 @@ namespace CarSim::Map
         [[nodiscard]] const std::vector<PlacedTree>& Trees() const { return trees_; }
         [[nodiscard]] const std::vector<PlacedSign>& Signs() const { return signs_; }
         [[nodiscard]] const std::vector<PlacedProp>& Props() const { return props_; }
+        [[nodiscard]] const std::vector<PlacedVehicle>& Vehicles() const { return vehicles_; }
 
         /// Broad-phase grids (ids index the vectors above).
         [[nodiscard]] const SpatialGrid& BuildingGrid() const { return buildingGrid_; }
@@ -119,6 +130,7 @@ namespace CarSim::Map
         void PlaceAvenues(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceSigns(const MapWorld& world);
         void PlaceProps(const MapWorld& world, std::vector<std::string>& warnings);
+        void PlaceVehicles(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceDelineators(const MapWorld& world);
         /// Front fences (picket, wire or hedge) with a gate gap along the street side of houses
         /// and cottages, side fences on cottages, and a shed behind every second one.
@@ -134,6 +146,7 @@ namespace CarSim::Map
         std::vector<PlacedTree> trees_;
         std::vector<PlacedSign> signs_;
         std::vector<PlacedProp> props_;
+        std::vector<PlacedVehicle> vehicles_;
         SpatialGrid buildingGrid_;
         SpatialGrid treeGrid_;
     };

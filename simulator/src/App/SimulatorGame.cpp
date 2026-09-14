@@ -320,6 +320,15 @@ namespace CarSim::App
             }
             playerPlate_ = trafficRenderer_->PlateTexture(device, plate);
         }
+        if (map_) {
+            // One plate per parked car, deterministic for a map so captures stay comparable.
+            Traffic::PlateGenerator plates(7331u);
+            parkedPlates_.clear();
+            parkedPlates_.reserve(map_->Objects().Vehicles().size());
+            for (std::size_t i = 0; i < map_->Objects().Vehicles().size(); ++i) {
+                parkedPlates_.push_back(plates.Next());
+            }
+        }
         spriteBatch_ = std::make_unique<SpriteBatch>(device);
 
         gaugeFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/gauge_condensed_96");
@@ -544,6 +553,10 @@ namespace CarSim::App
                 trafficRenderer_->Draw(device, *traffic_, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), mirror_->Pose().position, rig_,
                                        groundQuery, true);
             }
+            if (map_ && trafficRenderer_) {
+                trafficRenderer_->DrawParked(device, map_->Objects().Vehicles(), parkedPlates_, mirror_->View(), mirror_->Projection(),
+                                             mirror_->Frustum(), mirror_->Pose().position, rig_, groundQuery, true);
+            }
             mirror_->End(device);
             vehicleRenderer_->SetMirrorTexture(mirror_->Texture());
         } else if (cockpit && mirrorEnabled_) {
@@ -580,6 +593,10 @@ namespace CarSim::App
 
         if (traffic_ && trafficRenderer_) {
             trafficRenderer_->Draw(device, *traffic_, view, projection, camera.Frustum(aspect), camera.position, rig_, groundQuery, false);
+        }
+        if (map_ && trafficRenderer_) {
+            trafficRenderer_->DrawParked(device, map_->Objects().Vehicles(), parkedPlates_, view, projection, camera.Frustum(aspect),
+                                         camera.position, rig_, groundQuery, false);
         }
         lap(kPassTraffic);
         vehicleRenderer_->SetPlateTexture(playerPlate_);

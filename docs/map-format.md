@@ -117,7 +117,9 @@ conflicts and yield lists (priority, right-hand rule, left turn yields to oncomi
 `rotationDeg` = facade heading, `width`, `depth`, `eavesHeight`, `roofPitchDeg`, `floors`,
 `wallColor`, `roofColor`, `seed`), `props[]` (`type`, `position`, `rotationDeg`, `length`,
 `scale`), `signs[]` (`code` from the Czech catalogue subset, `position`, `headingDeg` = the
-direction the face points, `text`, `value`), `trees[]` (`species`, `position`, `scale`, `seed`),
+direction the face points, `text`, `value`), `vehicles[]` (parked cars: `body`
+hatchback/sedan/estate/suv/van, `position`, `rotationDeg` of the nose, `seed` for the style
+variant, paint and plate), `trees[]` (`species`, `position`, `scale`, `seed`),
 `forests[]` (`polygon`, `density` trees/m^2, `species[]` `{species, weight}`, `margin`, `seed`),
 `avenues[]` (`road`, `fromNode`, `toNode`, `species`, `spacing`, `offset`, `left`, `right`, `seed`).
 

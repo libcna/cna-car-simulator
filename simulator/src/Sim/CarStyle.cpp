@@ -17,6 +17,16 @@ namespace CarSim::Sim
         return "?";
     }
 
+    bool CarStyle::ParseBody(const std::string& text, Body& out)
+    {
+        if (text == "hatchback") { out = Body::Hatchback; return true; }
+        if (text == "sedan") { out = Body::Sedan; return true; }
+        if (text == "estate") { out = Body::Estate; return true; }
+        if (text == "suv") { out = Body::Suv; return true; }
+        if (text == "van") { out = Body::Van; return true; }
+        return false;
+    }
+
     CarStyle CarStyle::FromDefinition(const VehicleDefinition& d)
     {
         CarStyle s;

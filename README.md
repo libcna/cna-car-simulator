@@ -46,7 +46,8 @@ What you get today:
 - Cockpit camera with a live instrument cluster, rotating steering wheel and a working
   rear-view mirror; exterior chase camera.
 - Ambient traffic with Czech registration plates that follows lanes, keeps distance, obeys
-  priority, yield, stop and the right-hand rule, and reacts to the player.
+  priority, yield, stop and the right-hand rule, and reacts to the player; cars parked on the
+  town square that are as solid as any other obstacle.
 - Physical collisions with buildings, street furniture, trees and traffic cars.
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
   horn, gear and impact sounds.

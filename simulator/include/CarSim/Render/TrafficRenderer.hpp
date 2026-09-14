@@ -3,6 +3,7 @@
 // animation, brake lights and indicators, distance LODs and shadows for nearby cars.
 #pragma once
 
+#include "CarSim/Map/ObjectPlacement.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/VehicleRenderer.hpp"
@@ -19,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace CarSim::Render
 {
@@ -43,6 +45,14 @@ namespace CarSim::Render
                   const Microsoft::Xna::Framework::BoundingFrustum& frustum, const Microsoft::Xna::Framework::Vector3& cameraPosition,
                   const LightingRig& rig, const GroundQuery& ground, bool mirrored = false);
 
+        /// Draws the parked cars of the map: same models, LOD and shadows, but standing still with
+        /// the engine off. `plates` must have one entry per car (empty strings are allowed).
+        void DrawParked(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const std::vector<Map::PlacedVehicle>& cars,
+                        const std::vector<std::string>& plates, const Microsoft::Xna::Framework::Matrix& view,
+                        const Microsoft::Xna::Framework::Matrix& projection, const Microsoft::Xna::Framework::BoundingFrustum& frustum,
+                        const Microsoft::Xna::Framework::Vector3& cameraPosition, const LightingRig& rig, const GroundQuery& ground,
+                        bool mirrored = false);
+
         /// Plate texture for a text (cached); also used for the player's plate.
         [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* PlateTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
                                                                                     const std::string& text);
@@ -64,6 +74,7 @@ namespace CarSim::Render
     private:
         [[nodiscard]] Sim::VehicleState StateOf(const Traffic::TrafficVehicle& v, const CarModel& model) const;
         [[nodiscard]] VehicleRenderer& RendererFor(const Traffic::TrafficVehicle& v);
+        [[nodiscard]] VehicleRenderer& RendererFor(Sim::CarStyle::Body body, unsigned seed);
 
         std::array<std::unique_ptr<VehicleRenderer>, 5 * kVariantsPerBody> renderers_;
         const BitmapFont* plateFont_;

@@ -121,11 +121,13 @@ namespace CarSim::Map
         trees_.clear();
         signs_.clear();
         props_.clear();
+        vehicles_.clear();
         PlaceBuildings(world);
         PlaceTrees(world, warnings);
         PlaceAvenues(world, warnings);
         PlaceSigns(world);
         PlaceProps(world, warnings);
+        PlaceVehicles(world, warnings);
         PlaceDelineators(world);
         PlacePlots(world);
         PlaceUtilityPoles(world);
@@ -547,6 +549,24 @@ namespace CarSim::Map
             p.scale = spec.scale > 0.0f ? spec.scale : 1.0f;
             p.position = Vector3(spec.position.X, ground.HeightAt(spec.position.X, spec.position.Y), spec.position.Y);
             props_.push_back(p);
+        }
+    }
+
+    void ObjectPlacement::PlaceVehicles(const MapWorld& world, std::vector<std::string>& warnings)
+    {
+        const MapGround& ground = world.Ground();
+        std::size_t index = 0;
+        for (const VehicleSpec& spec : world.Data().objects.vehicles) {
+            ++index;
+            PlacedVehicle v;
+            if (!Sim::CarStyle::ParseBody(spec.body, v.body)) {
+                warnings.push_back("objects.vehicles[" + std::to_string(index - 1) + "]: unknown body '" + spec.body + "'");
+                continue;
+            }
+            v.headingRad = spec.rotationDeg * kPi / 180.0f;
+            v.seed = spec.seed;
+            v.position = Vector3(spec.position.X, ground.HeightAt(spec.position.X, spec.position.Y), spec.position.Y);
+            vehicles_.push_back(v);
         }
     }
 

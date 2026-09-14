@@ -1,3 +1,4 @@
+#include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Map/MapDocument.hpp"
 #include "CarSim/Map/MapWorld.hpp"
 
@@ -179,4 +180,40 @@ TEST(SampleMap, TheSquareIsPavedAndLinedWithTownHouses)
     EXPECT_GE(east, 3) << "town houses along the east side";
     EXPECT_GE(north, 2) << "town houses along the north side";
     EXPECT_EQ(church, 1) << "the church stands on the square";
+}
+
+TEST(SampleMap, ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    const auto& parked = world->Objects().Vehicles();
+    ASSERT_GE(parked.size(), 10u) << "the square has a few cars parked on it";
+    for (const auto& car : parked) {
+        const float x = car.position.X;
+        const float z = car.position.Z;
+        EXPECT_EQ(world->Terrain().RegionAt(x, z), Map::RegionType::Square) << "parked cars stand on the paved square";
+        const auto sample = world->Ground().Sample(x, z);
+        EXPECT_FALSE(sample.onRoad) << "a parked car must not stand in the carriageway";
+        EXPECT_NEAR(car.position.Y, sample.height, 0.01f) << "parked cars sit on the ground";
+        for (const auto& b : world->Objects().Buildings()) {
+            // Local frame of the footprint: +z along the facade heading, +x to its right.
+            const float dx = x - b.position.X;
+            const float dz = z - b.position.Z;
+            const float fx = std::sin(b.headingRad);
+            const float fz = -std::cos(b.headingRad);
+            const float along = dx * fx + dz * fz;              // depth axis
+            const float across = dx * -fz + dz * fx;            // width axis
+            const bool insideFootprint = std::fabs(along) < b.halfDepth + 1.2f && std::fabs(across) < b.halfWidth + 1.2f;
+            EXPECT_FALSE(insideFootprint) << "parked car inside a building footprint";
+        }
+    }
+    // Every parked car is solid.
+    Collision::CollisionWorld collision;
+    collision.Build(*world);
+    std::size_t vehicles = 0;
+    for (const auto& c : collision.Statics()) {
+        if (c.kind == Collision::ColliderKind::Vehicle) ++vehicles;
+    }
+    EXPECT_EQ(vehicles, parked.size());
 }

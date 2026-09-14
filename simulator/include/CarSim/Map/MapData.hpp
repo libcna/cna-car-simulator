@@ -160,6 +160,15 @@ namespace CarSim::Map
         float scale = 1.0f;
     };
 
+    /// A car parked in the town: drawn like a traffic car but never moves, and solid.
+    struct VehicleSpec
+    {
+        std::string body = "hatchback";   // hatchback, sedan, estate, suv, van
+        Microsoft::Xna::Framework::Vector2 position{};
+        float rotationDeg = 0.0f;         // heading of the nose (0 = facing -Z / north)
+        unsigned seed = 1;                // picks the style variant, the paint and the plate
+    };
+
     struct SignSpec
     {
         std::string code;             // P1, P2, P3, P4, P6, B20a, B20b, IZ4a, IZ4b, IS3c, IP6, IJ4c, A7a, A12a, A14, A22
@@ -204,6 +213,7 @@ namespace CarSim::Map
         std::vector<BuildingSpec> buildings;
         std::vector<PropSpec> props;
         std::vector<SignSpec> signs;
+        std::vector<VehicleSpec> vehicles;
         std::vector<TreeSpec> trees;
         std::vector<ForestSpec> forests;
         std::vector<AvenueSpec> avenues;

@@ -793,3 +793,12 @@ committed with its own regression test and screenshot check.
   on it, eleven two- and three-storey town houses and shops lining the west, east and north
   sides, a row of lime trees, benches, bins and lamps. Test:
   `TheSquareIsPavedAndLinedWithTownHouses`; `docs/map-format.md` documents the region type.
+- [x] `RQ-161` Parked cars: `objects.vehicles[]` places a static car of any body class with a
+  heading and a seed (`Map::PlacedVehicle`). They are drawn by `TrafficRenderer::DrawParked`
+  with the same models, paint palette, plates, distance LODs and ground shadows as moving
+  traffic but standing still with the engine off, and they are solid: `CollisionWorld::Build`
+  adds a box the size of the body class. Fifteen cars are parked nose-in around the Lipova
+  square. Plates come from a `PlateGenerator` seeded per map, so captures stay comparable.
+  Tests: `ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads` (on the paving, off the
+  carriageway, clear of every footprint, one collider each); `carsim-mapvalidate` reports the
+  parked cars; `docs/map-format.md` documents the array.

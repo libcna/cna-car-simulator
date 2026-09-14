@@ -239,6 +239,18 @@ namespace CarSim::Map
                     o.signs.push_back(std::move(s));
                 }
             }
+            if (r.HasArray(root, "vehicles", arr)) {
+                std::size_t i = 0;
+                for (const auto& e : arr.EnumerateArray()) {
+                    const std::string p = "objects.vehicles[" + std::to_string(i++) + "]";
+                    VehicleSpec v;
+                    r.String(e, "body", v.body, p);
+                    r.Vec2(e, "position", v.position, p, true);
+                    r.Float(e, "rotationDeg", v.rotationDeg, p);
+                    v.seed = SeedOf(r, e, p, static_cast<unsigned>(i));
+                    o.vehicles.push_back(std::move(v));
+                }
+            }
             if (r.HasArray(root, "trees", arr)) {
                 std::size_t i = 0;
                 for (const auto& e : arr.EnumerateArray()) {

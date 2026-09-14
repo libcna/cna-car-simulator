@@ -97,6 +97,7 @@ namespace CarSim::App
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;
         std::unique_ptr<Render::TrafficRenderer> trafficRenderer_;
         std::unique_ptr<Render::BitmapFont> plateFont_;
+        std::vector<std::string> parkedPlates_;   // one per map vehicle, generated at load time
         Microsoft::Xna::Framework::Graphics::Texture2D* playerPlate_ = nullptr;
         std::unique_ptr<Render::VehicleMaterials> vehicleMaterials_;
         std::unique_ptr<Render::VehicleRenderer> vehicleRenderer_;

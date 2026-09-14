@@ -6116,5 +6116,142 @@
    "right": false,
    "seed": 3
   }
+ ],
+ "vehicles": [
+  {
+   "body": "hatchback",
+   "position": [
+    -22.5,
+    -68.0
+   ],
+   "rotationDeg": 90.0,
+   "seed": 8100
+  },
+  {
+   "body": "estate",
+   "position": [
+    -22.5,
+    -65.3
+   ],
+   "rotationDeg": 90.0,
+   "seed": 8101
+  },
+  {
+   "body": "sedan",
+   "position": [
+    -22.5,
+    -62.6
+   ],
+   "rotationDeg": 90.0,
+   "seed": 8102
+  },
+  {
+   "body": "hatchback",
+   "position": [
+    -22.5,
+    -59.9
+   ],
+   "rotationDeg": 90.0,
+   "seed": 8103
+  },
+  {
+   "body": "suv",
+   "position": [
+    -22.5,
+    -57.2
+   ],
+   "rotationDeg": 90.0,
+   "seed": 8104
+  },
+  {
+   "body": "van",
+   "position": [
+    -22.5,
+    -54.5
+   ],
+   "rotationDeg": 90.0,
+   "seed": 8105
+  },
+  {
+   "body": "hatchback",
+   "position": [
+    -46.0,
+    -80.5
+   ],
+   "rotationDeg": 0.0,
+   "seed": 8206
+  },
+  {
+   "body": "estate",
+   "position": [
+    -43.2,
+    -80.5
+   ],
+   "rotationDeg": 0.0,
+   "seed": 8207
+  },
+  {
+   "body": "hatchback",
+   "position": [
+    -40.4,
+    -80.5
+   ],
+   "rotationDeg": 0.0,
+   "seed": 8208
+  },
+  {
+   "body": "estate",
+   "position": [
+    -37.6,
+    -80.5
+   ],
+   "rotationDeg": 0.0,
+   "seed": 8209
+  },
+  {
+   "body": "sedan",
+   "position": [
+    -34.8,
+    -80.5
+   ],
+   "rotationDeg": 0.0,
+   "seed": 8210
+  },
+  {
+   "body": "hatchback",
+   "position": [
+    -90.5,
+    -62.0
+   ],
+   "rotationDeg": 270.0,
+   "seed": 8311
+  },
+  {
+   "body": "suv",
+   "position": [
+    -90.5,
+    -59.0
+   ],
+   "rotationDeg": 270.0,
+   "seed": 8312
+  },
+  {
+   "body": "van",
+   "position": [
+    -90.5,
+    -56.0
+   ],
+   "rotationDeg": 270.0,
+   "seed": 8313
+  },
+  {
+   "body": "hatchback",
+   "position": [
+    -90.5,
+    -53.0
+   ],
+   "rotationDeg": 270.0,
+   "seed": 8314
+  }
  ]
 }

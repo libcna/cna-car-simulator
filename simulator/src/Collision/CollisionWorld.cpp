@@ -1,5 +1,7 @@
 #include "CarSim/Collision/CollisionWorld.hpp"
 
+#include "CarSim/Sim/CarStyle.hpp"
+
 #include "CarSim/Map/MapWorld.hpp"
 
 #include <algorithm>
@@ -105,6 +107,12 @@ namespace CarSim::Collision
         }
         for (const auto& t : objects.Trees()) {
             AddStatic(CylinderCollider(ColliderKind::Tree, t.position - Vector3(0.0f, 0.5f, 0.0f), t.TrunkRadius(), 6.0f));
+        }
+        for (const auto& v : objects.Vehicles()) {
+            // Parked car: a box the size of its body class, standing on the ground.
+            const Sim::CarStyle style = Sim::CarStyle::Preset(v.body, v.seed);
+            const Vector3 centre = v.position + Vector3(0.0f, 0.5f * style.height, 0.0f);
+            AddStatic(BoxCollider(ColliderKind::Vehicle, centre, Vector3(0.5f * style.width, 0.5f * style.height, 0.5f * style.length), v.headingRad));
         }
         for (const auto& s : objects.Signs()) {
             AddStatic(CylinderCollider(ColliderKind::Post, s.position - Vector3(0.0f, 0.3f, 0.0f), 0.045f, 3.4f));
