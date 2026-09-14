@@ -74,8 +74,7 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   simulated time (480 frames = 8 s; the car reaches about 35 km/h with `--auto-drive 8`).
 - Spawns in `content/maps/lipova/traffic.json`: `square` (east-bound in town), `forest`
   (forest edge, heading NNW), `fields` (avenue through the fields), `east` (main road east of
-  town), `kostel` (added last; 90 m west of the church junction E1, east-bound, untested in a
-  capture yet).
+  town), `kostel` (90 m west of the church junction E1, east-bound).
 - `--cockpit` (+ `--screenshot-cluster file`), `--chase-yaw <deg>` (positive = orbit to the
   car's right), `--chase-distance <m>` (INTEGER, `5.5` is rejected), `--view x y z heading pitch`
   (fixed camera; y is absolute, terrain is not flat, check for underground views),
@@ -99,36 +98,41 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   `MeshData::SignedVolume()` is negative when outward, `OrientOutward()` fixes inside-out lofts.
 - Chase camera convention: yaw = atan2(-fwd.x, -fwd.z), behind = (sin, 0, cos), right =
   (cos, 0, -sin). It was mirrored until commit dc48f78 (camera in front of east-bound cars).
+- Details on the car body must be projected onto the skin (`SkinGrid::Sample`, and
+  `FrontFacePoint` for the nose): the loft sweeps inwards at the nose and tail, so a position
+  computed from the centre-line setback floats beside the bumper at the corners.
+- Lamp lenses are decals cut from the skin in UV space; a skin quad is turned into a recessed
+  housing only when all four of its corners are inside the lens polygon, otherwise the housing
+  shows as black notches around the lens.
 
 ## State of Phase 11 (plan.md section 24)
 
-Done and committed (ledger `[x]`): RQ-001, 011-014, 020, 021, 030-032, 040, 041, 050, 051,
-060, 061, 070, 071, 080, 081, 090, 100, 120, 121, 130, 131. RQ-010 is `[~]` (hero car: done
-except items noted in the ledger). Last commits:
+Every ledger row in section 24 is `[x]` except `RQ-150`, the final audit (see Open below).
+The last commits, newest first:
 
-- `5fa7dd3` cameras, mirror interval, per-pass instrumentation and benchmark JSON, audio layers,
-  driving-feel tests.
+- `7120cc5` fog lamps projected onto the nose skin, lamp housing cuts eroded to the lens
+  interior, lens decals 6 mm proud; closes the hero body row after the close-up review.
+- `4ef8b39` headlamp lens contrast (dark when off, bright with emissive when lit) and the
+  `--lights` capture flag, which was a no-op without `--auto-drive` because the electrics gate
+  every lamp except the hazards on the ignition.
+- `663cef7` / `07e5d0b` curated screenshot set, README tables and status, the `kostel` spawn,
+  this file.
 - `dc48f78` chase camera orbit fix + regression test, traffic spawn-visibility test, renderer
   conformance and real-hardware validation docs.
-- The commit carrying this file: curated screenshot set (RQ-140), README tables and status,
-  the `kostel` spawn.
+- `5fa7dd3` cameras, mirror interval, per-pass instrumentation and benchmark JSON, audio
+  layers, driving-feel tests.
 
 Open:
 
-- **RQ-140 polish (optional)**: the intersection tile is the chase-camera approach to the
-  square junction (`--spawn square --frames 840 --auto-drive 14 --traffic-warmup 40`); the
-  church junction (`--spawn kostel --frames 480 --auto-drive 8 --traffic-warmup 40`) has not
-  been captured yet. The forest tile is the forest edge; a picture deeper in the forest
-  (`--spawn forest --frames 720 --auto-drive 12`) would show the canopy better. A "lights"
-  capture was dropped from the README: lit headlamps are only subtly brighter in daylight
-  (possible material tweak: stronger emissive on the headlamp material when on).
-- **RQ-150 final audit** (not done): fresh clone of the branch, configure with the dependency
-  paths above, build all targets, `ctest --preset opengles3`, both static checks, confirm
-  README and plan.md agree, then record the verified SHA and the ctest summary in plan.md
-  section 24.4 and mark RQ-150 `[x]`. A fresh-clone build of `dc48f78` was started in the
-  session scratchpad but its result was not recorded; repeat it on the final commit.
-- Known cosmetic items not in the ledger: the town square is a lawn with few buildings around
-  it; traffic body diversity is visible but the palette is small; sun elevation is fixed.
+- **RQ-150 final audit**: fresh clone of the branch, configure with the dependency paths above,
+  build all targets, `ctest --preset opengles3`, both static checks, confirm README and plan.md
+  agree, then record the verified SHA and the ctest summary in plan.md section 24.4 and mark
+  RQ-150 `[x]`. The audit passed on `4ef8b39` (5/5 ctest registrations, 151 unit tests, both
+  static checks, map validation without warnings); repeat it on the final commit.
+- Optional polish, not in the ledger: the church junction (`--spawn kostel`) is captured but the
+  square junction reads better, so the README keeps the latter; the town square is a lawn with
+  few buildings around it; traffic body diversity is visible but the palette is small; the sun
+  elevation is fixed; the fog lamp lens is dark gloss rather than a clear lens.
 
 ## Working conventions that kept things sane
 
