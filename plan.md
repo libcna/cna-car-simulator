@@ -857,3 +857,7 @@ committed with its own regression test and screenshot check.
   midnight grey, burgundy on top of the common ones) and the traffic draws from a weighted table
   so white, silver, grey and black still take about two thirds of the cars. Parked cars use the
   whole palette. The draw stays a single RNG step, so the traffic scenarios remain deterministic.
+- [x] `RQ-175` Kerbs around the paving: where a paved cell has no paved neighbour the builder now
+  emits a concrete kerb (0.11 m high, 0.22 m wide) with a top and an outer face, so the square
+  and the filling station forecourt end in an edging instead of a bare seam against the grass.
+  The cut around the roads produces the kerb automatically.

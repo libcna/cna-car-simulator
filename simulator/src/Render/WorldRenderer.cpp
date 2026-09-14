@@ -418,6 +418,7 @@ namespace CarSim::Render
         constexpr float kLift = 0.02f;       // above the terrain, under the road surface
         MeshData setts;     // cobbled squares
         MeshData slabs;     // concrete yards and forecourts
+        MeshData kerbs;     // concrete edging where the paving meets grass or a road
         for (const auto& region : terrain.Spec().regions) {
             const bool square = region.type == Map::RegionType::Square;
             const bool yard = region.type == Map::RegionType::Yard;
@@ -447,6 +448,7 @@ namespace CarSim::Render
                 const Vector2 b = Vector2::Lerp(c3, c2, u);
                 return Vector2::Lerp(a, b, v);
             };
+            std::vector<std::uint8_t> kept(static_cast<std::size_t>(nu) * static_cast<std::size_t>(nv), 0u);
             for (int iv = 0; iv < nv; ++iv) {
                 for (int iu = 0; iu < nu; ++iu) {
                     const float u0 = static_cast<float>(iu) / static_cast<float>(nu);
@@ -471,6 +473,62 @@ namespace CarSim::Render
                         mesh.AddVertex(position, terrain.Normal(c.X, c.Y), Vector2(c.X / tile, c.Y / tile), Color(255, 255, 255, 255));
                     }
                     mesh.AddQuad(base, base + 1, base + 2, base + 3);
+                    kept[static_cast<std::size_t>(iv) * static_cast<std::size_t>(nu) + static_cast<std::size_t>(iu)] = 1u;
+                }
+            }
+            // Kerb along the outer boundary of the paving: wherever a kept cell has no kept
+            // neighbour, a low concrete band closes the edge against the grass or the road.
+            const auto isKept = [&](const int iu, const int iv) {
+                if (iu < 0 || iv < 0 || iu >= nu || iv >= nv) return false;
+                return kept[static_cast<std::size_t>(iv) * static_cast<std::size_t>(nu) + static_cast<std::size_t>(iu)] != 0u;
+            };
+            constexpr float kKerbHeight = 0.11f;
+            constexpr float kKerbWidth = 0.22f;
+            for (int iv = 0; iv < nv; ++iv) {
+                for (int iu = 0; iu < nu; ++iu) {
+                    if (!isKept(iu, iv)) continue;
+                    const float u0 = static_cast<float>(iu) / static_cast<float>(nu);
+                    const float u1 = static_cast<float>(iu + 1) / static_cast<float>(nu);
+                    const float v0 = static_cast<float>(iv) / static_cast<float>(nv);
+                    const float v1 = static_cast<float>(iv + 1) / static_cast<float>(nv);
+                    const std::pair<Vector2, Vector2> edges[4] = {
+                        {point(u0, v0), point(u0, v1)},   // -u side
+                        {point(u1, v1), point(u1, v0)},   // +u side
+                        {point(u1, v0), point(u0, v0)},   // -v side
+                        {point(u0, v1), point(u1, v1)},   // +v side
+                    };
+                    const bool open[4] = {!isKept(iu - 1, iv), !isKept(iu + 1, iv), !isKept(iu, iv - 1), !isKept(iu, iv + 1)};
+                    for (int e = 0; e < 4; ++e) {
+                        if (!open[e]) continue;
+                        const Vector2 a = edges[e].first;
+                        const Vector2 b = edges[e].second;
+                        Vector2 along(b.X - a.X, b.Y - a.Y);
+                        const float length = along.Length();
+                        if (length < 1e-3f) continue;
+                        along = along * (1.0f / length);
+                        const Vector2 outward(along.Y, -along.X);   // the kept cell is on the left of a->b
+                        const Vector2 a2(a.X + outward.X * kKerbWidth, a.Y + outward.Y * kKerbWidth);
+                        const Vector2 b2(b.X + outward.X * kKerbWidth, b.Y + outward.Y * kKerbWidth);
+                        const float ya = terrain.Height(a.X, a.Y) + kLift + kKerbHeight;
+                        const float yb = terrain.Height(b.X, b.Y) + kLift + kKerbHeight;
+                        const std::uint32_t base = static_cast<std::uint32_t>(kerbs.vertices.size());
+                        const Vector3 up(0.0f, 1.0f, 0.0f);
+                        kerbs.AddVertex(Vector3(a.X, ya, a.Y), up, Vector2(a.X * 0.5f, a.Y * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddVertex(Vector3(b.X, yb, b.Y), up, Vector2(b.X * 0.5f, b.Y * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddVertex(Vector3(b2.X, yb, b2.Y), up, Vector2(b2.X * 0.5f, b2.Y * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddVertex(Vector3(a2.X, ya, a2.Y), up, Vector2(a2.X * 0.5f, a2.Y * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddQuad(base, base + 3, base + 2, base + 1);   // top face, seen from above
+                        // Outer face down to the ground.
+                        const float ga = terrain.Height(a2.X, a2.Y) + kLift;
+                        const float gb = terrain.Height(b2.X, b2.Y) + kLift;
+                        const std::uint32_t side = static_cast<std::uint32_t>(kerbs.vertices.size());
+                        const Vector3 n(outward.X, 0.0f, outward.Y);
+                        kerbs.AddVertex(Vector3(a2.X, ya, a2.Y), n, Vector2(a2.X * 0.5f, ya * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddVertex(Vector3(b2.X, yb, b2.Y), n, Vector2(b2.X * 0.5f, yb * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddVertex(Vector3(b2.X, gb, b2.Y), n, Vector2(b2.X * 0.5f, gb * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddVertex(Vector3(a2.X, ga, a2.Y), n, Vector2(a2.X * 0.5f, ga * 0.5f), Color(255, 255, 255, 255));
+                        kerbs.AddQuad(side, side + 1, side + 2, side + 3);
+                    }
                 }
             }
         }
@@ -484,6 +542,7 @@ namespace CarSim::Render
         };
         push(setts, Surface::Cobbles);
         push(slabs, Surface::Paving);
+        push(kerbs, Surface::Concrete);
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
     }
 
