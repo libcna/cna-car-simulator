@@ -109,7 +109,9 @@ namespace CarSim::App
             std::cerr << "map: '" << name << "' failed to load; using the flat proving ground\n";
             return;
         }
+        collision_.Build(*map_);
         const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        std::cout << "collision: " << collision_.StaticCount() << " static colliders\n";
         std::cout << "map: " << map_->Data().info.displayName << " (" << name << "), " << map_->Roads().Roads().size() << " roads, "
                   << map_->Lanes().Lanes().size() << " lanes, built in " << seconds << " s\n";
     }
@@ -276,6 +278,14 @@ namespace CarSim::App
         ApplyAutoDrive(controls);
         const Sim::GroundSurface& ground = map_ ? static_cast<const Sim::GroundSurface&>(map_->Ground()) : ground_;
         vehicle_->Update(controls, dt, ground);
+        contactEvents_.clear();
+        collision_.ResolveVehicle(*vehicle_, contactEvents_);
+        for (const auto& e : contactEvents_) {
+            if (e.closingSpeed > 0.5f) {
+                ++collisionCount_;
+                lastImpactSpeed_ = std::max(lastImpactSpeed_, e.closingSpeed);
+            }
+        }
 
         const auto state = vehicle_->Snapshot();
         chaseCamera_.Update(state, dt);
@@ -412,7 +422,14 @@ namespace CarSim::App
                 << "\nfuel " << s.fuelLiters << " L (" << s.instantConsumptionLPerH << " L/h)  coolant " << s.coolantC
                 << " C  odo " << s.odometerKm << " km  trip " << s.tripKm << " km"
                 << "\npos " << s.originPosition.X << ", " << s.originPosition.Y << ", " << s.originPosition.Z
-                << "  wheels";
+                << "  collisions " << collisionCount_ << " (last " << lastImpactSpeed_ * 3.6f << " km/h)";
+            if (worldRenderer_) {
+                const auto& ws = worldRenderer_->Stats();
+                dbg << "\nworld: terrain " << ws.terrainChunksDrawn << "/" << ws.terrainChunksTotal << " chunks, roads " << ws.roadBatchesDrawn << "/"
+                    << ws.roadBatchesTotal << ", objects " << ws.objectBatchesDrawn << "/" << ws.objectBatchesTotal << ", trees " << ws.treeBatchesDrawn
+                    << "/" << ws.treeBatchesTotal << ", " << ws.drawCalls << " draws, " << ws.triangles / 1000 << "k tris";
+            }
+            dbg << "\nwheels";
             for (const auto& wh : s.wheels) {
                 dbg << " [" << (wh.grounded ? "g" : "-") << " sr " << wh.slipRatio << " load " << static_cast<int>(wh.load) << "]";
             }

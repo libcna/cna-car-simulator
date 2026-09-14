@@ -378,11 +378,11 @@ that logs frame statistics for a scripted camera path.
 - [x] `UI-007` Camera switch (`C`) toggles cockpit/chase immediately (the chase camera snaps on first use); help overlay (`F1`) lists the bindings; `F3` debug overlay; `F12` screenshot.
 
 ### M5 Collision (`Collision`)
-- [ ] `COL-001` Shapes (OBB, convex prism, heightfield query), SAT contact generation with tests.
-- [ ] `COL-002` Impulse solver with restitution/friction/angular terms; positional correction; tests.
-- [ ] `COL-003` Static collider extraction from map objects (buildings, walls, posts, trees, kerbs).
-- [ ] `COL-004` Vehicle-vehicle collision integration (player vs traffic, traffic vs traffic).
-- [ ] `COL-005` Scenario tests: bumper tap, side impact, head-on, static clip; stability under load.
+- [x] `COL-001` Shapes: oriented boxes and vertical cylinders with SAT (15 axes) and segment-box contact generation (`Collision/Shapes`); unit tests for separation, penetration, rotated boxes and cylinders. Convex prisms were not needed: buildings are boxes; the terrain is handled by the suspension raycasts.
+- [x] `COL-002` Impulse response with restitution, Coulomb friction and angular terms (world inverse inertia), split positional correction with slop and per-resolve cap; contact events (point, normal, impulse, closing speed, collider kind) for audio and the debug overlay.
+- [x] `COL-003` Static colliders from `ObjectPlacement`: buildings, walls, fences, shelters, benches, timber, posts, lamps, signs, tree trunks and map boundary walls (44k+ on the sample map) in a spatial grid; delineators stay soft. Kerbs are not colliders (the suspension rides over the 12 cm step).
+- [ ] `COL-004` Vehicle-vehicle collision: `ResolveVehiclePair` (two physics bodies) and `ResolveVehicleAgainstBox` (player against a traffic car treated as a moving box with mass) are implemented and tested; the traffic integration lands with M6.
+- [x] `COL-005` Scenario tests: wall stop from 43 km/h (no more than 6 cm penetration), offset post impact induces yaw, head-on pair separates with bounded momentum error, sample-map spawns are clear of colliders.
 
 ### M6 Traffic (`Traffic`)
 - [ ] `TRF-001` Route planner (A* over lane graph) with tests.

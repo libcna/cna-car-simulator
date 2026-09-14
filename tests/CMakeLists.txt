@@ -32,6 +32,7 @@ add_executable(carsim_tests
     Map/LaneGraphTests.cpp
     Map/TerrainAndGroundTests.cpp
     Map/SampleMapTests.cpp
+    Collision/CollisionTests.cpp
     Render/ImageTests.cpp
 )
 target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtest GTest::gtest_main)

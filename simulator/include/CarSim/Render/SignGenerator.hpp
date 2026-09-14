@@ -14,6 +14,7 @@ namespace CarSim::Render
     struct SignFace
     {
         Image image;            // RGBA, transparent outside the sign shape
+        Image back;             // same alpha mask, plain grey (the unprinted back of the plate)
         float widthM = 0.7f;    // physical size of the face
         float heightM = 0.7f;
         float bottomUrbanM = 2.2f;   // lower edge above ground inside built-up areas
@@ -29,8 +30,8 @@ namespace CarSim::Render
         /// Renders the face image. `font` may be the built-in fallback; `atlas` is its atlas image.
         [[nodiscard]] static SignFace Face(const Map::SignSpec& spec, const BitmapFont& font, const Image& atlas);
 
-        /// Appends the face quads (front textured, back grey) and the post.
-        static void AppendSign(const Map::PlacedSign& sign, const SignFace& face, MeshData& faces, MeshData& posts);
+        /// Appends the face quads (front and back use separate textures) and the post.
+        static void AppendSign(const Map::PlacedSign& sign, const SignFace& face, MeshData& faces, MeshData& backs, MeshData& posts);
 
         [[nodiscard]] static bool IsKnown(const std::string& code);
     };

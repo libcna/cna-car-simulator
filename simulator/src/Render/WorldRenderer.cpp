@@ -405,6 +405,7 @@ namespace CarSim::Render
         std::map<std::string, std::size_t> faceIndex;
         std::vector<SignFace> faces;
         std::vector<MeshData> faceMeshes;
+        std::vector<MeshData> backMeshes;
         MeshData posts;
         for (const auto& sign : signs) {
             const std::string key = SignGenerator::FaceKey(*sign.spec);
@@ -413,8 +414,9 @@ namespace CarSim::Render
                 it = faceIndex.emplace(key, faces.size()).first;
                 faces.push_back(SignGenerator::Face(*sign.spec, *font, atlas));
                 faceMeshes.emplace_back();
+                backMeshes.emplace_back();
             }
-            SignGenerator::AppendSign(sign, faces[it->second], faceMeshes[it->second], posts);
+            SignGenerator::AppendSign(sign, faces[it->second], faceMeshes[it->second], backMeshes[it->second], posts);
         }
         for (std::size_t i = 0; i < faces.size(); ++i) {
             Image img = faces[i].image;
@@ -424,6 +426,13 @@ namespace CarSim::Render
             b.mesh = GpuMesh::Create(device, faceMeshes[i], VertexLayout::PositionColorTexture);
             b.texture = signTextures_.back().get();
             signBatches_.push_back(std::move(b));
+            Image backImg = faces[i].back;
+            DilateColour(backImg, 4);
+            signTextures_.push_back(UploadTexture(device, backImg, true));
+            TreeBatch bb;
+            bb.mesh = GpuMesh::Create(device, backMeshes[i], VertexLayout::PositionColorTexture);
+            bb.texture = signTextures_.back().get();
+            signBatches_.push_back(std::move(bb));
         }
         if (posts.TriangleCount() > 0) {
             ObjectBatch b;

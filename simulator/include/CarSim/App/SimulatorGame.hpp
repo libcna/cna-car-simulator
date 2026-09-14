@@ -1,6 +1,7 @@
 // The XNA Game subclass that owns the simulator's frame loop.
 #pragma once
 
+#include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Core/CommandLine.hpp"
 #include "CarSim/Input/InputMapper.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
@@ -24,6 +25,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace CarSim::App
 {
@@ -62,6 +64,10 @@ namespace CarSim::App
         std::unique_ptr<Sim::Vehicle> vehicle_;
         Sim::FlatGround ground_{0.0f};              // fallback when no map is loaded
         std::unique_ptr<Map::MapWorld> map_;
+        Collision::CollisionWorld collision_;
+        std::vector<Collision::ContactEvent> contactEvents_;
+        int collisionCount_ = 0;
+        float lastImpactSpeed_ = 0.0f;
         Input::InputMapper input_;
 
         // Rendering

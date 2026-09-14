@@ -265,10 +265,20 @@ namespace CarSim::Render
                 Text(face.image, font, atlas, code, c, c, kFace * 0.7f, 2.0f, kBlack);
             }
         }
+        // Back of the plate: the same silhouette in galvanised grey.
+        face.back = Image(face.image.Width(), face.image.Height(), kNone);
+        for (int y = 0; y < face.image.Height(); ++y) {
+            for (int x = 0; x < face.image.Width(); ++x) {
+                const int a = static_cast<int>(face.image.At(x, y).getAProperty());
+                if (a > 0) {
+                    face.back.At(x, y) = Color(122, 124, 126, a);
+                }
+            }
+        }
         return face;
     }
 
-    void SignGenerator::AppendSign(const Map::PlacedSign& sign, const SignFace& face, MeshData& faces, MeshData& posts)
+    void SignGenerator::AppendSign(const Map::PlacedSign& sign, const SignFace& face, MeshData& faces, MeshData& backs, MeshData& posts)
     {
         // Local frame: face normal +z (towards the approaching driver); +x is the driver's right.
         const float bottom = sign.urban ? face.bottomUrbanM : face.bottomRuralM;
@@ -276,18 +286,20 @@ namespace CarSim::Render
         const float hw = face.widthM * 0.5f;
         MeshData local;
         const Color front(255, 255, 255, 255);
-        const Color back(120, 120, 122, 255);
+        const Color back(255, 255, 255, 255);
         const Vector3 n(0.0f, 0.0f, 1.0f);
         const float zf = 0.045f;
         // Front face (textured), back face (grey, same alpha mask so the shape matches).
         local.AddQuad(Vector3(-hw, bottom, zf), Vector3(hw, bottom, zf), Vector3(hw, top, zf), Vector3(-hw, top, zf), n,
                       Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0), front);
-        local.AddQuad(Vector3(hw, bottom, zf - 0.004f), Vector3(-hw, bottom, zf - 0.004f), Vector3(-hw, top, zf - 0.004f), Vector3(hw, top, zf - 0.004f), n * -1.0f,
-                      Vector2(1, 1), Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), back);
+        MeshData localBack;
+        localBack.AddQuad(Vector3(hw, bottom, zf - 0.004f), Vector3(-hw, bottom, zf - 0.004f), Vector3(-hw, top, zf - 0.004f), Vector3(hw, top, zf - 0.004f), n * -1.0f,
+                          Vector2(1, 1), Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), back);
         MeshData post;
         post.AddCylinder(Vector3(0.0f, -0.25f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), 0.032f, top + 0.3f, 8, true);
         const Matrix world = Matrix::CreateRotationY(-sign.headingRad + 3.14159265f) * Matrix::CreateTranslation(sign.position);
         faces.Append(local, world);
+        backs.Append(localBack, world);
         posts.Append(post, world);
     }
 }
