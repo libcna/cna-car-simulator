@@ -115,13 +115,13 @@ except items noted in the ledger). Last commits:
 
 Open:
 
-- **RQ-140 polish (optional)**: the intersection tile is a fixed-camera view of the square
-  junction if the chase-camera approach capture (`--spawn square --frames 840 --auto-drive 14`)
-  or a `--spawn kostel --frames 480 --auto-drive 8 --traffic-warmup 40` capture was not ready;
-  either would make a better picture. A forest picture deeper in the forest (chase camera,
-  `--spawn forest --frames 720 --auto-drive 12`) was also in flight. The "lights" capture was
-  dropped from the README: lit headlamps are only subtly brighter in daylight (a possible
-  material tweak: stronger emissive on `LampHead` when on).
+- **RQ-140 polish (optional)**: the intersection tile is the chase-camera approach to the
+  square junction (`--spawn square --frames 840 --auto-drive 14 --traffic-warmup 40`); the
+  church junction (`--spawn kostel --frames 480 --auto-drive 8 --traffic-warmup 40`) has not
+  been captured yet. The forest tile is the forest edge; a picture deeper in the forest
+  (`--spawn forest --frames 720 --auto-drive 12`) would show the canopy better. A "lights"
+  capture was dropped from the README: lit headlamps are only subtly brighter in daylight
+  (possible material tweak: stronger emissive on the headlamp material when on).
 - **RQ-150 final audit** (not done): fresh clone of the branch, configure with the dependency
   paths above, build all targets, `ctest --preset opengles3`, both static checks, confirm
   README and plan.md agree, then record the verified SHA and the ctest summary in plan.md
