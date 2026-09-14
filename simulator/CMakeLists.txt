@@ -5,8 +5,17 @@
 # -----------------------------------------------------------------------------
 add_library(carsim_core STATIC
     src/Core/CommandLine.cpp
+    src/Core/JsonReader.cpp
+    src/Core/Noise.cpp
     src/Core/PiecewiseLinear.cpp
     src/Core/Version.cpp
+    src/Map/LaneGraph.cpp
+    src/Map/MapData.cpp
+    src/Map/MapDocument.cpp
+    src/Map/MapWorld.cpp
+    src/Map/RoadNetwork.cpp
+    src/Map/SpatialGrid.cpp
+    src/Map/TerrainField.cpp
     src/Sim/Clutch.cpp
     src/Sim/Electrics.cpp
     src/Sim/Engine.cpp

@@ -357,16 +357,16 @@ that logs frame statistics for a scripted camera path.
 - [x] `RND-011` Screenshot verification workflow under Xvfb (`scripts/run_headless.sh`, `--frames/--screenshot/--auto-drive/--cockpit`); screenshots inspected for every rendering change.
 
 ### M3 Map and roads (`Map`)
-- [ ] `MAP-001` Map JSON schema v1 documents + loader (`MapDocument`) with version checks.
-- [ ] `MAP-002` `RoadNetwork`: centreline splines (Catmull-Rom/clothoid-free arcs), widths, surfaces, classes, speed limits.
-- [ ] `MAP-003` `LaneGraph` derivation (lanes per direction, links, intersection connectors, priorities) with connectivity tests.
-- [ ] `MAP-004` `TerrainField` heightfield + material regions; height/normal queries; tests.
+- [x] `MAP-001` Map JSON schema v1 (`docs/map-format.md`) + loader (`MapDocument`) with version checks, dotted-path error reporting and structural validation; shared `Core::JsonReader`.
+- [x] `MAP-002` `RoadNetwork`: straight-and-arc centrelines with corner fillets, cross-sections, urban speed limits, terrain-following heights pinned to nodes, intersections with setbacks, kerb fillets and sloped junction planes, road pieces, spatial grid queries, surface height with crown.
+- [x] `MAP-003` `LaneGraph`: lanes per direction and piece, Hermite connectors with turn types, conflicts, yield lists (priority, right-hand rule, left turn yields to oncoming), dead-end U-turns, nearest lane, Dijkstra routes, reachability; tests.
+- [x] `MAP-004` `TerrainField`: procedural base (signed fBm + hills/ridges/plateaus), region classification, road conformance with blend zone, bilinear height/normal; `MapGround` composite raycast used by the vehicle; tests.
 - [ ] `MAP-005` Road geometry generator (surface, crown, kerbs, sidewalks, shoulders, markings as decals, intersections patches) matching collision surface.
 - [ ] `MAP-006` Terrain mesh generator with road blending (terrain conforms to road edges).
 - [ ] `MAP-007` Static objects: buildings (procedural Czech house/block generator), props, signs, street lights, vegetation placement, forests, fields.
-- [ ] `MAP-008` Spatial grid for objects/colliders/lanes.
-- [ ] `MAP-009` `map-validate` tool + CTest over `content/maps`.
-- [ ] `MAP-010` Sample map "Lipová" v1: road network, terrain, spawn points driveable end to end.
+- [x] `MAP-008` `SpatialGrid` (uniform cells) used for road segments, intersection patches and lane points; objects/colliders follow in M5/M8.
+- [x] `MAP-009` `carsim-mapvalidate` tool (+ `map_validate_lipova` CTest): structural checks, dead ends, reachability, grades, spawn placement, statistics.
+- [ ] `MAP-010` Sample map "Lipová" v1: road network (17 km, 13 intersections), terrain, regions, 356 buildings, signs, forests, avenues and spawns authored by `tools/maps/generate_lipova.py` and validated; "driveable end to end" is confirmed with the world renderer (MAP-005/006).
 
 ### M4 Cockpit and controls (`Render`, `Input`)
 - [ ] `UI-001` Input mapper with action bindings (JSON), defaults documented; gamepad-ready abstraction.

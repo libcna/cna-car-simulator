@@ -27,6 +27,11 @@ add_executable(carsim_tests
     Sim/VehicleDefinitionTests.cpp
     Sim/VehicleDriveTests.cpp
     Render/MeshDataTests.cpp
+    Map/MapDocumentTests.cpp
+    Map/RoadNetworkTests.cpp
+    Map/LaneGraphTests.cpp
+    Map/TerrainAndGroundTests.cpp
+    Map/SampleMapTests.cpp
     Render/ImageTests.cpp
 )
 target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtest GTest::gtest_main)
@@ -56,3 +61,8 @@ else()
         COMMAND cna-car-simulator --frames 3 --width 320 --height 200)
 endif()
 set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;display")
+
+# Map validation over the shipped content (referential integrity, connectivity, grades).
+add_test(NAME map_validate_lipova
+    COMMAND carsim-mapvalidate --content "${CMAKE_SOURCE_DIR}/content" --map lipova --quiet)
+set_tests_properties(map_validate_lipova PROPERTIES TIMEOUT 120 LABELS "content")

@@ -1,6 +1,8 @@
 // CPU RGBA8 image with procedural noise helpers and GPU upload with a mip chain.
 #pragma once
 
+#include "CarSim/Core/Noise.hpp"
+
 #include "Microsoft/Xna/Framework/Color.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
@@ -70,15 +72,12 @@ namespace CarSim::Render
     UploadCubeMap(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const std::vector<Image>& faces);
 
     // ---------------------------------------------------------------- noise
+    /// Noise helpers live in Core::Noise (shared with terrain generation); kept reachable here.
     namespace Noise
     {
-        /// Deterministic hash in [0, 1).
-        [[nodiscard]] float Hash(int x, int y, std::uint32_t seed);
-        /// Tileable value noise over a `period` x `period` lattice, output [0, 1].
-        [[nodiscard]] float Value(float x, float y, int period, std::uint32_t seed);
-        /// Fractal Brownian motion of tileable value noise, output roughly [0, 1].
-        [[nodiscard]] float Fbm(float x, float y, int period, int octaves, float persistence, std::uint32_t seed);
-        /// Tileable cellular (Worley) distance to the nearest feature point, output [0, 1].
-        [[nodiscard]] float Cellular(float x, float y, int period, std::uint32_t seed);
+        using Core::Noise::Hash;
+        using Core::Noise::Value;
+        using Core::Noise::Fbm;
+        using Core::Noise::Cellular;
     }
 }

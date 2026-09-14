@@ -149,8 +149,10 @@ def check_file(path: pathlib.Path, xna_types: set[str], violations: list[str]) -
                 violations.append(f"{rel}:{line_no}: unexpected Microsoft header '{inc}'")
             elif opener == '"' and not (inc.startswith("CarSim/") or inc.startswith("System/")
                                         or inc.startswith("SharpRuntime/")
-                                        or inc.startswith("gtest/")):
-                # Local includes must be project headers, Sharp Runtime or test framework.
+                                        or inc.startswith("gtest/")
+                                        or ("/" not in inc and (path.parent / inc).is_file())):
+                # Local includes must be project headers, Sharp Runtime, the test framework or a
+                # sibling header of the including file (test helpers).
                 violations.append(f"{rel}:{line_no}: unexpected local include '{inc}'")
 
     for line_no, line in enumerate(code.splitlines(), start=1):

@@ -1,0 +1,502 @@
+{
+ "schemaVersion": 1,
+ "nodes": [
+  {
+   "id": "W3",
+   "position": [
+    -1500,
+    300
+   ]
+  },
+  {
+   "id": "W2",
+   "position": [
+    -760,
+    90
+   ],
+   "urban": true,
+   "mainRoads": [
+    "main"
+   ]
+  },
+  {
+   "id": "W1",
+   "position": [
+    -330,
+    10
+   ],
+   "urban": true,
+   "mainRoads": [
+    "main"
+   ]
+  },
+  {
+   "id": "SQ",
+   "position": [
+    0,
+    0
+   ],
+   "urban": true,
+   "name": "náměstí",
+   "mainRoads": [
+    "main"
+   ]
+  },
+  {
+   "id": "E1",
+   "position": [
+    330,
+    -25
+   ],
+   "urban": true,
+   "name": "U kostela",
+   "mainRoads": [
+    "main"
+   ]
+  },
+  {
+   "id": "E2",
+   "position": [
+    720,
+    -95
+   ],
+   "urban": true
+  },
+  {
+   "id": "E3",
+   "position": [
+    1300,
+    -330
+   ]
+  },
+  {
+   "id": "E4",
+   "position": [
+    1720,
+    -820
+   ]
+  },
+  {
+   "id": "E5",
+   "position": [
+    1820,
+    -1400
+   ]
+  },
+  {
+   "id": "N1",
+   "position": [
+    10,
+    -290
+   ],
+   "urban": true,
+   "mainRoads": [
+    "north"
+   ]
+  },
+  {
+   "id": "N2",
+   "position": [
+    -15,
+    -610
+   ],
+   "urban": true,
+   "name": "sídliště",
+   "mainRoads": [
+    "north"
+   ]
+  },
+  {
+   "id": "N3",
+   "position": [
+    -40,
+    -930
+   ],
+   "urban": true
+  },
+  {
+   "id": "F4",
+   "position": [
+    -420,
+    -1520
+   ],
+   "mainRoads": [
+    "north"
+   ]
+  },
+  {
+   "id": "F3",
+   "position": [
+    -20,
+    -2050
+   ],
+   "mainRoads": [
+    "north"
+   ],
+   "control": [
+    {
+     "road": "forest_track",
+     "control": "stop"
+    }
+   ]
+  },
+  {
+   "id": "F2",
+   "position": [
+    620,
+    -2150
+   ]
+  },
+  {
+   "id": "F1",
+   "position": [
+    1320,
+    -1920
+   ]
+  },
+  {
+   "id": "SW1",
+   "position": [
+    -1250,
+    950
+   ]
+  },
+  {
+   "id": "S3",
+   "position": [
+    -520,
+    1150
+   ]
+  },
+  {
+   "id": "S2",
+   "position": [
+    80,
+    560
+   ],
+   "urban": true
+  },
+  {
+   "id": "S1",
+   "position": [
+    30,
+    270
+   ],
+   "urban": true,
+   "mainRoads": [
+    "south"
+   ]
+  },
+  {
+   "id": "RW1",
+   "position": [
+    -340,
+    -300
+   ],
+   "urban": true
+  },
+  {
+   "id": "RE1",
+   "position": [
+    320,
+    280
+   ],
+   "urban": true
+  },
+  {
+   "id": "RN1",
+   "position": [
+    -330,
+    -620
+   ],
+   "urban": true
+  },
+  {
+   "id": "RC1",
+   "position": [
+    300,
+    -600
+   ],
+   "urban": true
+  },
+  {
+   "id": "V1",
+   "position": [
+    -700,
+    -1480
+   ]
+  },
+  {
+   "id": "V2",
+   "position": [
+    -1050,
+    -1200
+   ]
+  },
+  {
+   "id": "V3",
+   "position": [
+    -1100,
+    -700
+   ]
+  },
+  {
+   "id": "FT1",
+   "position": [
+    -120,
+    -2400
+   ]
+  },
+  {
+   "id": "FT2",
+   "position": [
+    -60,
+    -2650
+   ]
+  },
+  {
+   "id": "FT3",
+   "position": [
+    -20,
+    -2720
+   ]
+  },
+  {
+   "id": "FT4",
+   "position": [
+    -100,
+    -2740
+   ]
+  }
+ ],
+ "roads": [
+  {
+   "id": "main",
+   "name": "Hlavní",
+   "number": "II/156",
+   "class": "II",
+   "nodes": [
+    "W3",
+    "W2",
+    "W1",
+    "SQ",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5"
+   ],
+   "laneWidth": 3.0,
+   "edgeStripWidth": 0.25,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 90,
+   "centreLine": "dashed",
+   "edgeLines": true,
+   "sidewalk": {
+    "width": 1.8,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 90
+  },
+  {
+   "id": "north",
+   "name": "Lesní",
+   "number": "III/15612",
+   "class": "III",
+   "nodes": [
+    "SQ",
+    "N1",
+    "N2",
+    "N3",
+    "F4",
+    "F3",
+    "F2",
+    "F1",
+    "E5"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.25,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 90,
+   "centreLine": "dashed",
+   "edgeLines": true,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 60
+  },
+  {
+   "id": "south",
+   "name": "Polní",
+   "number": "III/15613",
+   "class": "III",
+   "nodes": [
+    "W3",
+    "SW1",
+    "S3",
+    "S2",
+    "S1",
+    "SQ"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.25,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 90,
+   "centreLine": "dashed",
+   "edgeLines": true,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 60
+  },
+  {
+   "id": "r_west",
+   "name": "Krátká",
+   "class": "residential",
+   "nodes": [
+    "W1",
+    "RW1",
+    "N1"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "r_east",
+   "name": "Zahradní",
+   "class": "residential",
+   "nodes": [
+    "E1",
+    "RE1",
+    "S1"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "r_estate",
+   "name": "Sídlištní",
+   "class": "residential",
+   "nodes": [
+    "N2",
+    "RN1",
+    "RW1"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "r_church",
+   "name": "Kostelní",
+   "class": "residential",
+   "nodes": [
+    "N2",
+    "RC1",
+    "E1"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "village",
+   "name": "K Boru",
+   "class": "III",
+   "nodes": [
+    "F4",
+    "V1",
+    "V2",
+    "V3",
+    "W2"
+   ],
+   "laneWidth": 2.5,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 70,
+   "centreLine": "none",
+   "edgeLines": false,
+   "cornerRadius": 45
+  },
+  {
+   "id": "forest_track",
+   "name": "lesní cesta",
+   "class": "track",
+   "nodes": [
+    "F3",
+    "FT1",
+    "FT2"
+   ],
+   "laneWidth": 1.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.3,
+   "surface": "gravel",
+   "speedLimitKmh": 30,
+   "centreLine": "none",
+   "edgeLines": false,
+   "cornerRadius": 30
+  },
+  {
+   "id": "forest_loop",
+   "name": "točna",
+   "class": "track",
+   "nodes": [
+    "FT2",
+    "FT3",
+    "FT4",
+    "FT2"
+   ],
+   "laneWidth": 1.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.3,
+   "surface": "gravel",
+   "speedLimitKmh": 20,
+   "centreLine": "none",
+   "edgeLines": false,
+   "cornerRadius": 15
+  }
+ ]
+}

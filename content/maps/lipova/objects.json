@@ -1,0 +1,5819 @@
+{
+ "schemaVersion": 1,
+ "buildings": [
+  {
+   "type": "cottage",
+   "position": [
+    -725.9,
+    67.9
+   ],
+   "rotationDeg": 169.5,
+   "width": 10.9,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 3658
+  },
+  {
+   "type": "house",
+   "position": [
+    -703.6,
+    63.7
+   ],
+   "rotationDeg": 169.5,
+   "width": 13.1,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9675
+  },
+  {
+   "type": "house",
+   "position": [
+    -681.4,
+    59.6
+   ],
+   "rotationDeg": 169.5,
+   "width": 10.6,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8280
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -659.1,
+    55.5
+   ],
+   "rotationDeg": 169.5,
+   "width": 10.6,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3612
+  },
+  {
+   "type": "house",
+   "position": [
+    -636.9,
+    51.3
+   ],
+   "rotationDeg": 169.5,
+   "width": 12.6,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2616
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -614.6,
+    47.2
+   ],
+   "rotationDeg": 169.5,
+   "width": 12.0,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 5515
+  },
+  {
+   "type": "house",
+   "position": [
+    -592.4,
+    43.0
+   ],
+   "rotationDeg": 169.5,
+   "width": 10.8,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9892
+  },
+  {
+   "type": "house",
+   "position": [
+    -570.1,
+    38.9
+   ],
+   "rotationDeg": 169.5,
+   "width": 13.3,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6202
+  },
+  {
+   "type": "house",
+   "position": [
+    -547.8,
+    34.8
+   ],
+   "rotationDeg": 169.5,
+   "width": 12.4,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9460
+  },
+  {
+   "type": "house",
+   "position": [
+    -525.6,
+    30.6
+   ],
+   "rotationDeg": 169.5,
+   "width": 13.0,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4742
+  },
+  {
+   "type": "house",
+   "position": [
+    -503.3,
+    26.5
+   ],
+   "rotationDeg": 169.5,
+   "width": 13.5,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4555
+  },
+  {
+   "type": "house",
+   "position": [
+    -481.1,
+    22.3
+   ],
+   "rotationDeg": 169.5,
+   "width": 12.7,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5821
+  },
+  {
+   "type": "house",
+   "position": [
+    -458.8,
+    18.2
+   ],
+   "rotationDeg": 169.5,
+   "width": 12.8,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9981
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -436.5,
+    14.1
+   ],
+   "rotationDeg": 169.5,
+   "width": 11.1,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7574
+  },
+  {
+   "type": "house",
+   "position": [
+    -414.3,
+    9.9
+   ],
+   "rotationDeg": 169.5,
+   "width": 11.4,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5314
+  },
+  {
+   "type": "house",
+   "position": [
+    -392.0,
+    5.8
+   ],
+   "rotationDeg": 169.5,
+   "width": 11.3,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6573
+  },
+  {
+   "type": "house",
+   "position": [
+    -369.8,
+    1.6
+   ],
+   "rotationDeg": 169.5,
+   "width": 10.7,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 3484
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -720.2,
+    98.4
+   ],
+   "rotationDeg": 349.5,
+   "width": 11.9,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 2341
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -698.0,
+    94.2
+   ],
+   "rotationDeg": 349.5,
+   "width": 11.0,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9578
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -675.7,
+    90.1
+   ],
+   "rotationDeg": 349.5,
+   "width": 13.6,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2267
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -653.5,
+    85.9
+   ],
+   "rotationDeg": 349.5,
+   "width": 10.8,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2505
+  },
+  {
+   "type": "house",
+   "position": [
+    -631.2,
+    81.8
+   ],
+   "rotationDeg": 349.5,
+   "width": 13.3,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6305
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -608.9,
+    77.7
+   ],
+   "rotationDeg": 349.5,
+   "width": 12.6,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9065
+  },
+  {
+   "type": "house",
+   "position": [
+    -586.7,
+    73.5
+   ],
+   "rotationDeg": 349.5,
+   "width": 12.9,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5574
+  },
+  {
+   "type": "house",
+   "position": [
+    -564.4,
+    69.4
+   ],
+   "rotationDeg": 349.5,
+   "width": 11.5,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4316
+  },
+  {
+   "type": "house",
+   "position": [
+    -542.2,
+    65.2
+   ],
+   "rotationDeg": 349.5,
+   "width": 12.3,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8318
+  },
+  {
+   "type": "house",
+   "position": [
+    -519.9,
+    61.1
+   ],
+   "rotationDeg": 349.5,
+   "width": 11.0,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9814
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -497.6,
+    57.0
+   ],
+   "rotationDeg": 349.5,
+   "width": 12.2,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5039
+  },
+  {
+   "type": "house",
+   "position": [
+    -475.4,
+    52.8
+   ],
+   "rotationDeg": 349.5,
+   "width": 10.7,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1404
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -453.1,
+    48.7
+   ],
+   "rotationDeg": 349.5,
+   "width": 13.4,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2104
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -430.9,
+    44.5
+   ],
+   "rotationDeg": 349.5,
+   "width": 13.8,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3471
+  },
+  {
+   "type": "house",
+   "position": [
+    -408.6,
+    40.4
+   ],
+   "rotationDeg": 349.5,
+   "width": 13.0,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7178
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -386.4,
+    36.3
+   ],
+   "rotationDeg": 349.5,
+   "width": 10.9,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 345
+  },
+  {
+   "type": "house",
+   "position": [
+    -364.1,
+    32.1
+   ],
+   "rotationDeg": 349.5,
+   "width": 12.6,
+   "depth": 8.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3751
+  },
+  {
+   "type": "house",
+   "position": [
+    -299.8,
+    -6.4
+   ],
+   "rotationDeg": 178.3,
+   "width": 13.7,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8424
+  },
+  {
+   "type": "house",
+   "position": [
+    -278.0,
+    -7.1
+   ],
+   "rotationDeg": 178.3,
+   "width": 11.5,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 9356
+  },
+  {
+   "type": "house",
+   "position": [
+    -256.2,
+    -7.7
+   ],
+   "rotationDeg": 178.3,
+   "width": 11.4,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3120
+  },
+  {
+   "type": "house",
+   "position": [
+    -234.4,
+    -8.4
+   ],
+   "rotationDeg": 178.3,
+   "width": 10.8,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6736
+  },
+  {
+   "type": "house",
+   "position": [
+    -212.7,
+    -9.1
+   ],
+   "rotationDeg": 178.3,
+   "width": 13.5,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 994
+  },
+  {
+   "type": "house",
+   "position": [
+    -190.9,
+    -9.7
+   ],
+   "rotationDeg": 178.3,
+   "width": 13.0,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4074
+  },
+  {
+   "type": "house",
+   "position": [
+    -169.1,
+    -10.4
+   ],
+   "rotationDeg": 178.3,
+   "width": 11.2,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3007
+  },
+  {
+   "type": "house",
+   "position": [
+    -147.3,
+    -11.0
+   ],
+   "rotationDeg": 178.3,
+   "width": 12.1,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7261
+  },
+  {
+   "type": "house",
+   "position": [
+    -125.5,
+    -11.7
+   ],
+   "rotationDeg": 178.3,
+   "width": 10.7,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1529
+  },
+  {
+   "type": "house",
+   "position": [
+    -103.8,
+    -12.4
+   ],
+   "rotationDeg": 178.3,
+   "width": 11.1,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6571
+  },
+  {
+   "type": "house",
+   "position": [
+    -298.8,
+    24.6
+   ],
+   "rotationDeg": 358.3,
+   "width": 11.1,
+   "depth": 8.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4346
+  },
+  {
+   "type": "house",
+   "position": [
+    -277.1,
+    23.9
+   ],
+   "rotationDeg": 358.3,
+   "width": 11.5,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2537
+  },
+  {
+   "type": "house",
+   "position": [
+    -255.3,
+    23.2
+   ],
+   "rotationDeg": 358.3,
+   "width": 11.5,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 5139
+  },
+  {
+   "type": "house",
+   "position": [
+    -233.5,
+    22.6
+   ],
+   "rotationDeg": 358.3,
+   "width": 10.7,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 932
+  },
+  {
+   "type": "house",
+   "position": [
+    -211.7,
+    21.9
+   ],
+   "rotationDeg": 358.3,
+   "width": 13.5,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3854
+  },
+  {
+   "type": "house",
+   "position": [
+    -189.9,
+    21.3
+   ],
+   "rotationDeg": 358.3,
+   "width": 10.9,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 9486
+  },
+  {
+   "type": "house",
+   "position": [
+    -168.2,
+    20.6
+   ],
+   "rotationDeg": 358.3,
+   "width": 12.7,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 4273
+  },
+  {
+   "type": "house",
+   "position": [
+    -146.4,
+    19.9
+   ],
+   "rotationDeg": 358.3,
+   "width": 12.8,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6485
+  },
+  {
+   "type": "house",
+   "position": [
+    -124.6,
+    19.3
+   ],
+   "rotationDeg": 358.3,
+   "width": 12.9,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1189
+  },
+  {
+   "type": "house",
+   "position": [
+    -102.8,
+    18.6
+   ],
+   "rotationDeg": 358.3,
+   "width": 12.1,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1201
+  },
+  {
+   "type": "house",
+   "position": [
+    108.4,
+    -23.8
+   ],
+   "rotationDeg": 175.7,
+   "width": 12.3,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1128
+  },
+  {
+   "type": "house",
+   "position": [
+    129.5,
+    -25.4
+   ],
+   "rotationDeg": 175.7,
+   "width": 11.8,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8667
+  },
+  {
+   "type": "house",
+   "position": [
+    150.6,
+    -27.0
+   ],
+   "rotationDeg": 175.7,
+   "width": 12.8,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2201
+  },
+  {
+   "type": "house",
+   "position": [
+    171.7,
+    -28.6
+   ],
+   "rotationDeg": 175.7,
+   "width": 10.9,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4463
+  },
+  {
+   "type": "house",
+   "position": [
+    192.9,
+    -30.2
+   ],
+   "rotationDeg": 175.7,
+   "width": 12.6,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4326
+  },
+  {
+   "type": "house",
+   "position": [
+    214.0,
+    -31.8
+   ],
+   "rotationDeg": 175.7,
+   "width": 11.4,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1513
+  },
+  {
+   "type": "house",
+   "position": [
+    235.1,
+    -33.4
+   ],
+   "rotationDeg": 175.7,
+   "width": 13.4,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2144
+  },
+  {
+   "type": "house",
+   "position": [
+    256.2,
+    -35.0
+   ],
+   "rotationDeg": 175.7,
+   "width": 11.1,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9190
+  },
+  {
+   "type": "house",
+   "position": [
+    277.3,
+    -36.6
+   ],
+   "rotationDeg": 175.7,
+   "width": 10.9,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8939
+  },
+  {
+   "type": "house",
+   "position": [
+    298.5,
+    -38.2
+   ],
+   "rotationDeg": 175.7,
+   "width": 13.4,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 7042
+  },
+  {
+   "type": "house",
+   "position": [
+    110.7,
+    7.2
+   ],
+   "rotationDeg": 355.7,
+   "width": 10.6,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 5863
+  },
+  {
+   "type": "house",
+   "position": [
+    131.9,
+    5.6
+   ],
+   "rotationDeg": 355.7,
+   "width": 12.9,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9174
+  },
+  {
+   "type": "shop",
+   "position": [
+    153.0,
+    4.0
+   ],
+   "rotationDeg": 355.7,
+   "width": 13.9,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2663
+  },
+  {
+   "type": "house",
+   "position": [
+    174.1,
+    2.4
+   ],
+   "rotationDeg": 355.7,
+   "width": 13.6,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6746
+  },
+  {
+   "type": "house",
+   "position": [
+    195.2,
+    0.8
+   ],
+   "rotationDeg": 355.7,
+   "width": 11.4,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6268
+  },
+  {
+   "type": "house",
+   "position": [
+    216.3,
+    -0.8
+   ],
+   "rotationDeg": 355.7,
+   "width": 13.5,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5729
+  },
+  {
+   "type": "shop",
+   "position": [
+    237.5,
+    -2.4
+   ],
+   "rotationDeg": 355.7,
+   "width": 13.4,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 388
+  },
+  {
+   "type": "house",
+   "position": [
+    258.6,
+    -4.0
+   ],
+   "rotationDeg": 355.7,
+   "width": 11.9,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4574
+  },
+  {
+   "type": "shop",
+   "position": [
+    279.7,
+    -5.6
+   ],
+   "rotationDeg": 355.7,
+   "width": 12.7,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 453
+  },
+  {
+   "type": "house",
+   "position": [
+    300.8,
+    -7.2
+   ],
+   "rotationDeg": 355.7,
+   "width": 13.6,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 627
+  },
+  {
+   "type": "house",
+   "position": [
+    369.9,
+    -47.9
+   ],
+   "rotationDeg": 169.8,
+   "width": 12.6,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7150
+  },
+  {
+   "type": "house",
+   "position": [
+    392.7,
+    -52.0
+   ],
+   "rotationDeg": 169.8,
+   "width": 11.8,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 728
+  },
+  {
+   "type": "cottage",
+   "position": [
+    415.6,
+    -56.1
+   ],
+   "rotationDeg": 169.8,
+   "width": 10.5,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 5968
+  },
+  {
+   "type": "cottage",
+   "position": [
+    438.4,
+    -60.2
+   ],
+   "rotationDeg": 169.8,
+   "width": 10.7,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5144
+  },
+  {
+   "type": "house",
+   "position": [
+    461.3,
+    -64.3
+   ],
+   "rotationDeg": 169.8,
+   "width": 13.0,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6692
+  },
+  {
+   "type": "cottage",
+   "position": [
+    484.1,
+    -68.4
+   ],
+   "rotationDeg": 169.8,
+   "width": 11.9,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 3144
+  },
+  {
+   "type": "cottage",
+   "position": [
+    506.9,
+    -72.5
+   ],
+   "rotationDeg": 169.8,
+   "width": 12.8,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 9325
+  },
+  {
+   "type": "cottage",
+   "position": [
+    529.8,
+    -76.6
+   ],
+   "rotationDeg": 169.8,
+   "width": 11.9,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4701
+  },
+  {
+   "type": "house",
+   "position": [
+    552.6,
+    -80.7
+   ],
+   "rotationDeg": 169.8,
+   "width": 12.0,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7619
+  },
+  {
+   "type": "cottage",
+   "position": [
+    575.5,
+    -84.8
+   ],
+   "rotationDeg": 169.8,
+   "width": 12.0,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 2781
+  },
+  {
+   "type": "house",
+   "position": [
+    598.3,
+    -88.9
+   ],
+   "rotationDeg": 169.8,
+   "width": 11.5,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1531
+  },
+  {
+   "type": "house",
+   "position": [
+    621.2,
+    -93.0
+   ],
+   "rotationDeg": 169.8,
+   "width": 12.9,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2415
+  },
+  {
+   "type": "house",
+   "position": [
+    644.0,
+    -97.1
+   ],
+   "rotationDeg": 169.8,
+   "width": 10.7,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7462
+  },
+  {
+   "type": "cottage",
+   "position": [
+    666.8,
+    -101.2
+   ],
+   "rotationDeg": 169.8,
+   "width": 13.6,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8100
+  },
+  {
+   "type": "house",
+   "position": [
+    375.4,
+    -17.4
+   ],
+   "rotationDeg": 349.8,
+   "width": 11.4,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1747
+  },
+  {
+   "type": "house",
+   "position": [
+    398.2,
+    -21.5
+   ],
+   "rotationDeg": 349.8,
+   "width": 11.3,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 823
+  },
+  {
+   "type": "cottage",
+   "position": [
+    421.0,
+    -25.6
+   ],
+   "rotationDeg": 349.8,
+   "width": 13.7,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7613
+  },
+  {
+   "type": "house",
+   "position": [
+    443.9,
+    -29.7
+   ],
+   "rotationDeg": 349.8,
+   "width": 13.8,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 8977
+  },
+  {
+   "type": "house",
+   "position": [
+    466.7,
+    -33.8
+   ],
+   "rotationDeg": 349.8,
+   "width": 13.6,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7374
+  },
+  {
+   "type": "house",
+   "position": [
+    489.6,
+    -37.9
+   ],
+   "rotationDeg": 349.8,
+   "width": 13.1,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8541
+  },
+  {
+   "type": "house",
+   "position": [
+    512.4,
+    -42.0
+   ],
+   "rotationDeg": 349.8,
+   "width": 12.7,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4682
+  },
+  {
+   "type": "cottage",
+   "position": [
+    535.3,
+    -46.1
+   ],
+   "rotationDeg": 349.8,
+   "width": 11.5,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2268
+  },
+  {
+   "type": "cottage",
+   "position": [
+    558.1,
+    -50.2
+   ],
+   "rotationDeg": 349.8,
+   "width": 11.3,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 1053
+  },
+  {
+   "type": "house",
+   "position": [
+    580.9,
+    -54.3
+   ],
+   "rotationDeg": 349.8,
+   "width": 11.9,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 1021
+  },
+  {
+   "type": "cottage",
+   "position": [
+    603.8,
+    -58.4
+   ],
+   "rotationDeg": 349.8,
+   "width": 13.4,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9433
+  },
+  {
+   "type": "house",
+   "position": [
+    626.6,
+    -62.5
+   ],
+   "rotationDeg": 349.8,
+   "width": 12.2,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6390
+  },
+  {
+   "type": "house",
+   "position": [
+    649.5,
+    -66.6
+   ],
+   "rotationDeg": 349.8,
+   "width": 12.4,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8000
+  },
+  {
+   "type": "cottage",
+   "position": [
+    672.3,
+    -70.7
+   ],
+   "rotationDeg": 349.8,
+   "width": 11.5,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 5508
+  },
+  {
+   "type": "church",
+   "position": [
+    -70,
+    -62
+   ],
+   "rotationDeg": 180.0,
+   "width": 14,
+   "depth": 32,
+   "eavesHeight": 9,
+   "floors": 1,
+   "roofPitchDeg": 50,
+   "seed": 5
+  },
+  {
+   "type": "hall",
+   "position": [
+    70,
+    -48
+   ],
+   "rotationDeg": 180.0,
+   "width": 26,
+   "depth": 14,
+   "eavesHeight": 9.5,
+   "floors": 3,
+   "roofPitchDeg": 40,
+   "seed": 6
+  },
+  {
+   "type": "shop",
+   "position": [
+    -20,
+    46
+   ],
+   "rotationDeg": 0.0,
+   "width": 18,
+   "depth": 12,
+   "eavesHeight": 7.2,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7
+  },
+  {
+   "type": "house",
+   "position": [
+    60,
+    48
+   ],
+   "rotationDeg": 0.0,
+   "width": 14,
+   "depth": 11,
+   "eavesHeight": 6.8,
+   "floors": 2,
+   "roofPitchDeg": 40,
+   "seed": 8
+  },
+  {
+   "type": "house",
+   "position": [
+    -100,
+    50
+   ],
+   "rotationDeg": 0.0,
+   "width": 13,
+   "depth": 10,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -344.0,
+    -36.3
+   ],
+   "rotationDeg": 88.2,
+   "width": 13.0,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 8752
+  },
+  {
+   "type": "house",
+   "position": [
+    -344.6,
+    -55.4
+   ],
+   "rotationDeg": 88.2,
+   "width": 13.7,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1376
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -345.2,
+    -74.5
+   ],
+   "rotationDeg": 88.2,
+   "width": 11.0,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 4263
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -345.8,
+    -93.6
+   ],
+   "rotationDeg": 88.2,
+   "width": 11.6,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 6212
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -346.5,
+    -112.6
+   ],
+   "rotationDeg": 88.2,
+   "width": 13.1,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1342
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -347.1,
+    -131.7
+   ],
+   "rotationDeg": 88.2,
+   "width": 10.6,
+   "depth": 9.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3674
+  },
+  {
+   "type": "house",
+   "position": [
+    -347.7,
+    -150.8
+   ],
+   "rotationDeg": 88.2,
+   "width": 13.2,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4052
+  },
+  {
+   "type": "house",
+   "position": [
+    -348.3,
+    -169.9
+   ],
+   "rotationDeg": 88.2,
+   "width": 13.4,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2069
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -348.9,
+    -189.0
+   ],
+   "rotationDeg": 88.2,
+   "width": 12.8,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7620
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -349.5,
+    -208.0
+   ],
+   "rotationDeg": 88.2,
+   "width": 13.2,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2684
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -350.2,
+    -227.1
+   ],
+   "rotationDeg": 88.2,
+   "width": 10.9,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9434
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -350.8,
+    -246.2
+   ],
+   "rotationDeg": 88.2,
+   "width": 11.9,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9701
+  },
+  {
+   "type": "house",
+   "position": [
+    -351.4,
+    -265.3
+   ],
+   "rotationDeg": 88.2,
+   "width": 10.9,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9273
+  },
+  {
+   "type": "house",
+   "position": [
+    -319.0,
+    -37.1
+   ],
+   "rotationDeg": 268.2,
+   "width": 11.7,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1130
+  },
+  {
+   "type": "house",
+   "position": [
+    -319.6,
+    -56.2
+   ],
+   "rotationDeg": 268.2,
+   "width": 10.5,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 1730
+  },
+  {
+   "type": "house",
+   "position": [
+    -320.2,
+    -75.3
+   ],
+   "rotationDeg": 268.2,
+   "width": 13.9,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2507
+  },
+  {
+   "type": "house",
+   "position": [
+    -320.9,
+    -94.4
+   ],
+   "rotationDeg": 268.2,
+   "width": 11.1,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8818
+  },
+  {
+   "type": "house",
+   "position": [
+    -321.5,
+    -113.4
+   ],
+   "rotationDeg": 268.2,
+   "width": 12.1,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5281
+  },
+  {
+   "type": "house",
+   "position": [
+    -322.1,
+    -132.5
+   ],
+   "rotationDeg": 268.2,
+   "width": 13.4,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3996
+  },
+  {
+   "type": "house",
+   "position": [
+    -322.7,
+    -151.6
+   ],
+   "rotationDeg": 268.2,
+   "width": 12.5,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 471
+  },
+  {
+   "type": "house",
+   "position": [
+    -323.3,
+    -170.7
+   ],
+   "rotationDeg": 268.2,
+   "width": 13.5,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5814
+  },
+  {
+   "type": "house",
+   "position": [
+    -323.9,
+    -189.8
+   ],
+   "rotationDeg": 268.2,
+   "width": 11.7,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9107
+  },
+  {
+   "type": "house",
+   "position": [
+    -324.6,
+    -208.8
+   ],
+   "rotationDeg": 268.2,
+   "width": 12.3,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6659
+  },
+  {
+   "type": "house",
+   "position": [
+    -325.2,
+    -227.9
+   ],
+   "rotationDeg": 268.2,
+   "width": 12.4,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 8042
+  },
+  {
+   "type": "house",
+   "position": [
+    -325.8,
+    -247.0
+   ],
+   "rotationDeg": 268.2,
+   "width": 13.3,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6626
+  },
+  {
+   "type": "house",
+   "position": [
+    -326.4,
+    -266.1
+   ],
+   "rotationDeg": 268.2,
+   "width": 11.6,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9069
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -294.6,
+    -311.2
+   ],
+   "rotationDeg": 181.6,
+   "width": 12.0,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5765
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -274.6,
+    -310.6
+   ],
+   "rotationDeg": 181.6,
+   "width": 11.4,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 3156
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -254.6,
+    -310.1
+   ],
+   "rotationDeg": 181.6,
+   "width": 10.9,
+   "depth": 9.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 3139
+  },
+  {
+   "type": "house",
+   "position": [
+    -234.6,
+    -309.5
+   ],
+   "rotationDeg": 181.6,
+   "width": 13.1,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1648
+  },
+  {
+   "type": "house",
+   "position": [
+    -214.6,
+    -308.9
+   ],
+   "rotationDeg": 181.6,
+   "width": 11.5,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 232
+  },
+  {
+   "type": "house",
+   "position": [
+    -194.6,
+    -308.4
+   ],
+   "rotationDeg": 181.6,
+   "width": 11.5,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2069
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -174.6,
+    -307.8
+   ],
+   "rotationDeg": 181.6,
+   "width": 10.9,
+   "depth": 8.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7691
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -154.6,
+    -307.2
+   ],
+   "rotationDeg": 181.6,
+   "width": 12.0,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 4137
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -134.6,
+    -306.6
+   ],
+   "rotationDeg": 181.6,
+   "width": 10.9,
+   "depth": 8.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1214
+  },
+  {
+   "type": "house",
+   "position": [
+    -114.6,
+    -306.1
+   ],
+   "rotationDeg": 181.6,
+   "width": 11.0,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1396
+  },
+  {
+   "type": "house",
+   "position": [
+    -94.6,
+    -305.5
+   ],
+   "rotationDeg": 181.6,
+   "width": 10.9,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8562
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -74.6,
+    -304.9
+   ],
+   "rotationDeg": 181.6,
+   "width": 12.1,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 5004
+  },
+  {
+   "type": "house",
+   "position": [
+    -54.6,
+    -304.4
+   ],
+   "rotationDeg": 181.6,
+   "width": 12.6,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3458
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -34.6,
+    -303.8
+   ],
+   "rotationDeg": 181.6,
+   "width": 12.8,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 9044
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -295.4,
+    -286.2
+   ],
+   "rotationDeg": 1.6,
+   "width": 11.0,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 4772
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -275.4,
+    -285.6
+   ],
+   "rotationDeg": 1.6,
+   "width": 11.3,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1167
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -255.4,
+    -285.1
+   ],
+   "rotationDeg": 1.6,
+   "width": 13.7,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6966
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -235.4,
+    -284.5
+   ],
+   "rotationDeg": 1.6,
+   "width": 12.4,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2331
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -215.4,
+    -283.9
+   ],
+   "rotationDeg": 1.6,
+   "width": 10.7,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7196
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -195.4,
+    -283.4
+   ],
+   "rotationDeg": 1.6,
+   "width": 12.1,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 4461
+  },
+  {
+   "type": "house",
+   "position": [
+    -175.4,
+    -282.8
+   ],
+   "rotationDeg": 1.6,
+   "width": 12.0,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5281
+  },
+  {
+   "type": "house",
+   "position": [
+    -155.4,
+    -282.2
+   ],
+   "rotationDeg": 1.6,
+   "width": 10.6,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4416
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -135.4,
+    -281.6
+   ],
+   "rotationDeg": 1.6,
+   "width": 13.2,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 4558
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -115.4,
+    -281.1
+   ],
+   "rotationDeg": 1.6,
+   "width": 14.0,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1495
+  },
+  {
+   "type": "house",
+   "position": [
+    -95.4,
+    -280.5
+   ],
+   "rotationDeg": 1.6,
+   "width": 11.7,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2635
+  },
+  {
+   "type": "house",
+   "position": [
+    -75.4,
+    -279.9
+   ],
+   "rotationDeg": 1.6,
+   "width": 11.9,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9013
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -55.4,
+    -279.4
+   ],
+   "rotationDeg": 1.6,
+   "width": 12.1,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1900
+  },
+  {
+   "type": "house",
+   "position": [
+    -35.4,
+    -278.8
+   ],
+   "rotationDeg": 1.6,
+   "width": 13.5,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8890
+  },
+  {
+   "type": "house",
+   "position": [
+    341.0,
+    22.2
+   ],
+   "rotationDeg": 271.9,
+   "width": 11.9,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8168
+  },
+  {
+   "type": "house",
+   "position": [
+    340.3,
+    42.5
+   ],
+   "rotationDeg": 271.9,
+   "width": 13.2,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4720
+  },
+  {
+   "type": "house",
+   "position": [
+    339.6,
+    62.8
+   ],
+   "rotationDeg": 271.9,
+   "width": 13.6,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9976
+  },
+  {
+   "type": "house",
+   "position": [
+    339.0,
+    83.2
+   ],
+   "rotationDeg": 271.9,
+   "width": 13.0,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9049
+  },
+  {
+   "type": "house",
+   "position": [
+    338.3,
+    103.5
+   ],
+   "rotationDeg": 271.9,
+   "width": 10.8,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7561
+  },
+  {
+   "type": "house",
+   "position": [
+    337.6,
+    123.8
+   ],
+   "rotationDeg": 271.9,
+   "width": 12.8,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8338
+  },
+  {
+   "type": "house",
+   "position": [
+    337.0,
+    144.2
+   ],
+   "rotationDeg": 271.9,
+   "width": 12.0,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3994
+  },
+  {
+   "type": "house",
+   "position": [
+    336.3,
+    164.5
+   ],
+   "rotationDeg": 271.9,
+   "width": 12.4,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1144
+  },
+  {
+   "type": "house",
+   "position": [
+    335.6,
+    184.8
+   ],
+   "rotationDeg": 271.9,
+   "width": 13.2,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8319
+  },
+  {
+   "type": "house",
+   "position": [
+    335.0,
+    205.2
+   ],
+   "rotationDeg": 271.9,
+   "width": 13.4,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9617
+  },
+  {
+   "type": "house",
+   "position": [
+    334.3,
+    225.5
+   ],
+   "rotationDeg": 271.9,
+   "width": 13.5,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5655
+  },
+  {
+   "type": "house",
+   "position": [
+    333.6,
+    245.8
+   ],
+   "rotationDeg": 271.9,
+   "width": 12.4,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5273
+  },
+  {
+   "type": "house",
+   "position": [
+    316.0,
+    21.4
+   ],
+   "rotationDeg": 91.9,
+   "width": 13.9,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3827
+  },
+  {
+   "type": "cottage",
+   "position": [
+    315.3,
+    41.7
+   ],
+   "rotationDeg": 91.9,
+   "width": 10.7,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 6326
+  },
+  {
+   "type": "house",
+   "position": [
+    314.6,
+    62.0
+   ],
+   "rotationDeg": 91.9,
+   "width": 12.2,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1645
+  },
+  {
+   "type": "cottage",
+   "position": [
+    314.0,
+    82.4
+   ],
+   "rotationDeg": 91.9,
+   "width": 10.8,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2362
+  },
+  {
+   "type": "cottage",
+   "position": [
+    313.3,
+    102.7
+   ],
+   "rotationDeg": 91.9,
+   "width": 13.5,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 7693
+  },
+  {
+   "type": "cottage",
+   "position": [
+    312.6,
+    123.0
+   ],
+   "rotationDeg": 91.9,
+   "width": 11.7,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 5384
+  },
+  {
+   "type": "cottage",
+   "position": [
+    312.0,
+    143.4
+   ],
+   "rotationDeg": 91.9,
+   "width": 13.8,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8865
+  },
+  {
+   "type": "house",
+   "position": [
+    311.3,
+    163.7
+   ],
+   "rotationDeg": 91.9,
+   "width": 12.7,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 3728
+  },
+  {
+   "type": "house",
+   "position": [
+    310.6,
+    184.0
+   ],
+   "rotationDeg": 91.9,
+   "width": 12.0,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7270
+  },
+  {
+   "type": "house",
+   "position": [
+    310.0,
+    204.4
+   ],
+   "rotationDeg": 91.9,
+   "width": 12.9,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 5315
+  },
+  {
+   "type": "house",
+   "position": [
+    309.3,
+    224.7
+   ],
+   "rotationDeg": 91.9,
+   "width": 11.5,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4001
+  },
+  {
+   "type": "cottage",
+   "position": [
+    308.6,
+    245.0
+   ],
+   "rotationDeg": 91.9,
+   "width": 12.5,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2869
+  },
+  {
+   "type": "cottage",
+   "position": [
+    280.9,
+    291.2
+   ],
+   "rotationDeg": 2.0,
+   "width": 12.6,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 8154
+  },
+  {
+   "type": "cottage",
+   "position": [
+    261.6,
+    290.5
+   ],
+   "rotationDeg": 2.0,
+   "width": 11.3,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 4184
+  },
+  {
+   "type": "cottage",
+   "position": [
+    242.2,
+    289.8
+   ],
+   "rotationDeg": 2.0,
+   "width": 13.6,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8956
+  },
+  {
+   "type": "cottage",
+   "position": [
+    222.9,
+    289.2
+   ],
+   "rotationDeg": 2.0,
+   "width": 10.8,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 6952
+  },
+  {
+   "type": "house",
+   "position": [
+    203.6,
+    288.5
+   ],
+   "rotationDeg": 2.0,
+   "width": 12.1,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7917
+  },
+  {
+   "type": "cottage",
+   "position": [
+    184.2,
+    287.8
+   ],
+   "rotationDeg": 2.0,
+   "width": 11.3,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4838
+  },
+  {
+   "type": "cottage",
+   "position": [
+    164.9,
+    287.2
+   ],
+   "rotationDeg": 2.0,
+   "width": 13.9,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 133
+  },
+  {
+   "type": "cottage",
+   "position": [
+    145.6,
+    286.5
+   ],
+   "rotationDeg": 2.0,
+   "width": 13.7,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3771
+  },
+  {
+   "type": "house",
+   "position": [
+    126.2,
+    285.8
+   ],
+   "rotationDeg": 2.0,
+   "width": 11.3,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2241
+  },
+  {
+   "type": "cottage",
+   "position": [
+    106.9,
+    285.2
+   ],
+   "rotationDeg": 2.0,
+   "width": 13.7,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7223
+  },
+  {
+   "type": "cottage",
+   "position": [
+    87.6,
+    284.5
+   ],
+   "rotationDeg": 2.0,
+   "width": 12.5,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 4836
+  },
+  {
+   "type": "house",
+   "position": [
+    68.2,
+    283.8
+   ],
+   "rotationDeg": 2.0,
+   "width": 13.1,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8838
+  },
+  {
+   "type": "house",
+   "position": [
+    281.8,
+    266.2
+   ],
+   "rotationDeg": 182.0,
+   "width": 12.4,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4211
+  },
+  {
+   "type": "house",
+   "position": [
+    262.4,
+    265.5
+   ],
+   "rotationDeg": 182.0,
+   "width": 13.9,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1887
+  },
+  {
+   "type": "house",
+   "position": [
+    243.1,
+    264.8
+   ],
+   "rotationDeg": 182.0,
+   "width": 13.9,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6512
+  },
+  {
+   "type": "house",
+   "position": [
+    223.8,
+    264.2
+   ],
+   "rotationDeg": 182.0,
+   "width": 10.8,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8792
+  },
+  {
+   "type": "house",
+   "position": [
+    204.4,
+    263.5
+   ],
+   "rotationDeg": 182.0,
+   "width": 12.1,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9578
+  },
+  {
+   "type": "house",
+   "position": [
+    185.1,
+    262.8
+   ],
+   "rotationDeg": 182.0,
+   "width": 13.4,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3831
+  },
+  {
+   "type": "house",
+   "position": [
+    165.8,
+    262.2
+   ],
+   "rotationDeg": 182.0,
+   "width": 10.6,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9996
+  },
+  {
+   "type": "house",
+   "position": [
+    146.4,
+    261.5
+   ],
+   "rotationDeg": 182.0,
+   "width": 12.8,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4952
+  },
+  {
+   "type": "house",
+   "position": [
+    127.1,
+    260.8
+   ],
+   "rotationDeg": 182.0,
+   "width": 10.9,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4987
+  },
+  {
+   "type": "house",
+   "position": [
+    107.8,
+    260.2
+   ],
+   "rotationDeg": 182.0,
+   "width": 10.9,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6368
+  },
+  {
+   "type": "house",
+   "position": [
+    88.4,
+    259.5
+   ],
+   "rotationDeg": 182.0,
+   "width": 11.8,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9623
+  },
+  {
+   "type": "house",
+   "position": [
+    69.1,
+    258.8
+   ],
+   "rotationDeg": 182.0,
+   "width": 13.6,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6687
+  },
+  {
+   "type": "house",
+   "position": [
+    23.7,
+    90.7
+   ],
+   "rotationDeg": 263.7,
+   "width": 10.6,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7286
+  },
+  {
+   "type": "house",
+   "position": [
+    26.1,
+    113.1
+   ],
+   "rotationDeg": 263.7,
+   "width": 13.5,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8921
+  },
+  {
+   "type": "house",
+   "position": [
+    28.6,
+    135.4
+   ],
+   "rotationDeg": 263.7,
+   "width": 10.7,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7451
+  },
+  {
+   "type": "house",
+   "position": [
+    31.1,
+    157.8
+   ],
+   "rotationDeg": 263.7,
+   "width": 12.8,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 829
+  },
+  {
+   "type": "house",
+   "position": [
+    33.6,
+    180.2
+   ],
+   "rotationDeg": 263.7,
+   "width": 11.4,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1125
+  },
+  {
+   "type": "house",
+   "position": [
+    36.1,
+    202.6
+   ],
+   "rotationDeg": 263.7,
+   "width": 12.6,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5384
+  },
+  {
+   "type": "house",
+   "position": [
+    38.6,
+    224.9
+   ],
+   "rotationDeg": 263.7,
+   "width": 13.3,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2371
+  },
+  {
+   "type": "house",
+   "position": [
+    -3.2,
+    93.7
+   ],
+   "rotationDeg": 83.7,
+   "width": 12.4,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 423
+  },
+  {
+   "type": "house",
+   "position": [
+    -0.7,
+    116.0
+   ],
+   "rotationDeg": 83.7,
+   "width": 10.6,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 9648
+  },
+  {
+   "type": "shop",
+   "position": [
+    1.8,
+    138.4
+   ],
+   "rotationDeg": 83.7,
+   "width": 10.6,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6898
+  },
+  {
+   "type": "house",
+   "position": [
+    4.3,
+    160.8
+   ],
+   "rotationDeg": 83.7,
+   "width": 13.1,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8409
+  },
+  {
+   "type": "house",
+   "position": [
+    6.8,
+    183.2
+   ],
+   "rotationDeg": 83.7,
+   "width": 12.1,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8544
+  },
+  {
+   "type": "shop",
+   "position": [
+    9.3,
+    205.5
+   ],
+   "rotationDeg": 83.7,
+   "width": 12.1,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 7848
+  },
+  {
+   "type": "shop",
+   "position": [
+    11.7,
+    227.9
+   ],
+   "rotationDeg": 83.7,
+   "width": 12.0,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1205
+  },
+  {
+   "type": "house",
+   "position": [
+    50.2,
+    307.7
+   ],
+   "rotationDeg": 260.2,
+   "width": 11.6,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4506
+  },
+  {
+   "type": "cottage",
+   "position": [
+    54.0,
+    329.8
+   ],
+   "rotationDeg": 260.2,
+   "width": 11.8,
+   "depth": 10.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7434
+  },
+  {
+   "type": "cottage",
+   "position": [
+    57.8,
+    351.8
+   ],
+   "rotationDeg": 260.2,
+   "width": 10.8,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7047
+  },
+  {
+   "type": "cottage",
+   "position": [
+    61.6,
+    373.8
+   ],
+   "rotationDeg": 260.2,
+   "width": 13.6,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 6533
+  },
+  {
+   "type": "cottage",
+   "position": [
+    65.4,
+    395.9
+   ],
+   "rotationDeg": 260.2,
+   "width": 13.1,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4177
+  },
+  {
+   "type": "cottage",
+   "position": [
+    69.2,
+    417.9
+   ],
+   "rotationDeg": 260.2,
+   "width": 13.8,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1100
+  },
+  {
+   "type": "house",
+   "position": [
+    73.0,
+    440.0
+   ],
+   "rotationDeg": 260.2,
+   "width": 13.4,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6106
+  },
+  {
+   "type": "house",
+   "position": [
+    76.8,
+    462.0
+   ],
+   "rotationDeg": 260.2,
+   "width": 12.4,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2003
+  },
+  {
+   "type": "cottage",
+   "position": [
+    80.6,
+    484.0
+   ],
+   "rotationDeg": 260.2,
+   "width": 11.7,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 843
+  },
+  {
+   "type": "cottage",
+   "position": [
+    84.4,
+    506.1
+   ],
+   "rotationDeg": 260.2,
+   "width": 12.6,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2536
+  },
+  {
+   "type": "cottage",
+   "position": [
+    23.6,
+    312.3
+   ],
+   "rotationDeg": 80.2,
+   "width": 11.3,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1883
+  },
+  {
+   "type": "cottage",
+   "position": [
+    27.4,
+    334.4
+   ],
+   "rotationDeg": 80.2,
+   "width": 12.5,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9978
+  },
+  {
+   "type": "cottage",
+   "position": [
+    31.2,
+    356.4
+   ],
+   "rotationDeg": 80.2,
+   "width": 10.6,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5568
+  },
+  {
+   "type": "cottage",
+   "position": [
+    35.0,
+    378.4
+   ],
+   "rotationDeg": 80.2,
+   "width": 10.5,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1141
+  },
+  {
+   "type": "cottage",
+   "position": [
+    38.8,
+    400.5
+   ],
+   "rotationDeg": 80.2,
+   "width": 13.1,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 8692
+  },
+  {
+   "type": "cottage",
+   "position": [
+    42.6,
+    422.5
+   ],
+   "rotationDeg": 80.2,
+   "width": 11.8,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6063
+  },
+  {
+   "type": "cottage",
+   "position": [
+    46.4,
+    444.6
+   ],
+   "rotationDeg": 80.2,
+   "width": 13.0,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 862
+  },
+  {
+   "type": "cottage",
+   "position": [
+    50.2,
+    466.6
+   ],
+   "rotationDeg": 80.2,
+   "width": 11.1,
+   "depth": 10.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 4459
+  },
+  {
+   "type": "cottage",
+   "position": [
+    54.0,
+    488.6
+   ],
+   "rotationDeg": 80.2,
+   "width": 12.8,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 6786
+  },
+  {
+   "type": "cottage",
+   "position": [
+    57.8,
+    510.7
+   ],
+   "rotationDeg": 80.2,
+   "width": 11.3,
+   "depth": 9.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7044
+  },
+  {
+   "type": "house",
+   "position": [
+    -10.1,
+    -98.0
+   ],
+   "rotationDeg": 92.0,
+   "width": 11.5,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 8634
+  },
+  {
+   "type": "house",
+   "position": [
+    -9.4,
+    -119.0
+   ],
+   "rotationDeg": 92.0,
+   "width": 10.7,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 126
+  },
+  {
+   "type": "house",
+   "position": [
+    -8.7,
+    -140.0
+   ],
+   "rotationDeg": 92.0,
+   "width": 11.6,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4187
+  },
+  {
+   "type": "house",
+   "position": [
+    -8.0,
+    -161.1
+   ],
+   "rotationDeg": 92.0,
+   "width": 11.6,
+   "depth": 8.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2879
+  },
+  {
+   "type": "house",
+   "position": [
+    -7.2,
+    -182.1
+   ],
+   "rotationDeg": 92.0,
+   "width": 11.8,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1181
+  },
+  {
+   "type": "house",
+   "position": [
+    -6.5,
+    -203.1
+   ],
+   "rotationDeg": 92.0,
+   "width": 13.5,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7533
+  },
+  {
+   "type": "house",
+   "position": [
+    -5.8,
+    -224.1
+   ],
+   "rotationDeg": 92.0,
+   "width": 13.5,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6844
+  },
+  {
+   "type": "house",
+   "position": [
+    -5.1,
+    -245.2
+   ],
+   "rotationDeg": 92.0,
+   "width": 10.9,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2816
+  },
+  {
+   "type": "house",
+   "position": [
+    16.9,
+    -97.0
+   ],
+   "rotationDeg": 272.0,
+   "width": 13.4,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7156
+  },
+  {
+   "type": "house",
+   "position": [
+    17.6,
+    -118.1
+   ],
+   "rotationDeg": 272.0,
+   "width": 11.4,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6485
+  },
+  {
+   "type": "house",
+   "position": [
+    18.3,
+    -139.1
+   ],
+   "rotationDeg": 272.0,
+   "width": 13.1,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1252
+  },
+  {
+   "type": "house",
+   "position": [
+    19.0,
+    -160.1
+   ],
+   "rotationDeg": 272.0,
+   "width": 12.4,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5753
+  },
+  {
+   "type": "house",
+   "position": [
+    19.8,
+    -181.1
+   ],
+   "rotationDeg": 272.0,
+   "width": 11.3,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2843
+  },
+  {
+   "type": "house",
+   "position": [
+    20.5,
+    -202.2
+   ],
+   "rotationDeg": 272.0,
+   "width": 13.2,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8096
+  },
+  {
+   "type": "house",
+   "position": [
+    21.2,
+    -223.2
+   ],
+   "rotationDeg": 272.0,
+   "width": 13.1,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9249
+  },
+  {
+   "type": "house",
+   "position": [
+    21.9,
+    -244.2
+   ],
+   "rotationDeg": 272.0,
+   "width": 13.5,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 7206
+  },
+  {
+   "type": "house",
+   "position": [
+    43.4,
+    -620.7
+   ],
+   "rotationDeg": 181.8,
+   "width": 12.1,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9690
+  },
+  {
+   "type": "house",
+   "position": [
+    64.9,
+    -620.0
+   ],
+   "rotationDeg": 181.8,
+   "width": 11.7,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7405
+  },
+  {
+   "type": "house",
+   "position": [
+    86.3,
+    -619.3
+   ],
+   "rotationDeg": 181.8,
+   "width": 10.7,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1480
+  },
+  {
+   "type": "cottage",
+   "position": [
+    107.8,
+    -618.6
+   ],
+   "rotationDeg": 181.8,
+   "width": 12.1,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 7369
+  },
+  {
+   "type": "house",
+   "position": [
+    129.3,
+    -617.9
+   ],
+   "rotationDeg": 181.8,
+   "width": 11.6,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1014
+  },
+  {
+   "type": "cottage",
+   "position": [
+    150.8,
+    -617.2
+   ],
+   "rotationDeg": 181.8,
+   "width": 10.9,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1382
+  },
+  {
+   "type": "house",
+   "position": [
+    172.2,
+    -616.6
+   ],
+   "rotationDeg": 181.8,
+   "width": 10.6,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 8587
+  },
+  {
+   "type": "house",
+   "position": [
+    193.7,
+    -615.9
+   ],
+   "rotationDeg": 181.8,
+   "width": 11.8,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6698
+  },
+  {
+   "type": "cottage",
+   "position": [
+    215.2,
+    -615.2
+   ],
+   "rotationDeg": 181.8,
+   "width": 12.9,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1080
+  },
+  {
+   "type": "cottage",
+   "position": [
+    236.7,
+    -614.5
+   ],
+   "rotationDeg": 181.8,
+   "width": 10.8,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4129
+  },
+  {
+   "type": "house",
+   "position": [
+    258.2,
+    -613.8
+   ],
+   "rotationDeg": 181.8,
+   "width": 11.7,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5732
+  },
+  {
+   "type": "house",
+   "position": [
+    42.6,
+    -595.7
+   ],
+   "rotationDeg": 1.8,
+   "width": 13.9,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2113
+  },
+  {
+   "type": "house",
+   "position": [
+    64.1,
+    -595.0
+   ],
+   "rotationDeg": 1.8,
+   "width": 11.6,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2094
+  },
+  {
+   "type": "house",
+   "position": [
+    85.5,
+    -594.3
+   ],
+   "rotationDeg": 1.8,
+   "width": 12.8,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 299
+  },
+  {
+   "type": "house",
+   "position": [
+    107.0,
+    -593.6
+   ],
+   "rotationDeg": 1.8,
+   "width": 11.6,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7968
+  },
+  {
+   "type": "house",
+   "position": [
+    128.5,
+    -592.9
+   ],
+   "rotationDeg": 1.8,
+   "width": 11.3,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4847
+  },
+  {
+   "type": "house",
+   "position": [
+    150.0,
+    -592.3
+   ],
+   "rotationDeg": 1.8,
+   "width": 12.3,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 5518
+  },
+  {
+   "type": "house",
+   "position": [
+    171.5,
+    -591.6
+   ],
+   "rotationDeg": 1.8,
+   "width": 12.6,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2713
+  },
+  {
+   "type": "house",
+   "position": [
+    192.9,
+    -590.9
+   ],
+   "rotationDeg": 1.8,
+   "width": 10.7,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 7278
+  },
+  {
+   "type": "house",
+   "position": [
+    214.4,
+    -590.2
+   ],
+   "rotationDeg": 1.8,
+   "width": 13.1,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8750
+  },
+  {
+   "type": "house",
+   "position": [
+    235.9,
+    -589.5
+   ],
+   "rotationDeg": 1.8,
+   "width": 11.6,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3179
+  },
+  {
+   "type": "house",
+   "position": [
+    257.4,
+    -588.8
+   ],
+   "rotationDeg": 1.8,
+   "width": 12.9,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7565
+  },
+  {
+   "type": "cottage",
+   "position": [
+    291.1,
+    -530.9
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.2,
+   "depth": 9.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 2656
+  },
+  {
+   "type": "house",
+   "position": [
+    292.2,
+    -509.0
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.3,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 855
+  },
+  {
+   "type": "cottage",
+   "position": [
+    293.4,
+    -487.1
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.6,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 8453
+  },
+  {
+   "type": "house",
+   "position": [
+    294.5,
+    -465.2
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.5,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7362
+  },
+  {
+   "type": "house",
+   "position": [
+    295.7,
+    -443.3
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.4,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 7392
+  },
+  {
+   "type": "cottage",
+   "position": [
+    296.8,
+    -421.4
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.8,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8225
+  },
+  {
+   "type": "cottage",
+   "position": [
+    297.9,
+    -399.5
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.3,
+   "depth": 11.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3679
+  },
+  {
+   "type": "house",
+   "position": [
+    299.1,
+    -377.6
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.6,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2393
+  },
+  {
+   "type": "house",
+   "position": [
+    300.2,
+    -355.7
+   ],
+   "rotationDeg": 87.0,
+   "width": 10.6,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2274
+  },
+  {
+   "type": "cottage",
+   "position": [
+    301.4,
+    -333.8
+   ],
+   "rotationDeg": 87.0,
+   "width": 12.1,
+   "depth": 8.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 312
+  },
+  {
+   "type": "cottage",
+   "position": [
+    302.5,
+    -311.8
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.3,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1822
+  },
+  {
+   "type": "cottage",
+   "position": [
+    303.7,
+    -289.9
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.3,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6879
+  },
+  {
+   "type": "cottage",
+   "position": [
+    304.8,
+    -268.0
+   ],
+   "rotationDeg": 87.0,
+   "width": 10.7,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 9777
+  },
+  {
+   "type": "house",
+   "position": [
+    305.9,
+    -246.1
+   ],
+   "rotationDeg": 87.0,
+   "width": 12.7,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 4773
+  },
+  {
+   "type": "cottage",
+   "position": [
+    307.1,
+    -224.2
+   ],
+   "rotationDeg": 87.0,
+   "width": 10.5,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3069
+  },
+  {
+   "type": "house",
+   "position": [
+    308.2,
+    -202.3
+   ],
+   "rotationDeg": 87.0,
+   "width": 12.3,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6398
+  },
+  {
+   "type": "cottage",
+   "position": [
+    309.4,
+    -180.4
+   ],
+   "rotationDeg": 87.0,
+   "width": 10.7,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4156
+  },
+  {
+   "type": "house",
+   "position": [
+    310.5,
+    -158.5
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.7,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1699
+  },
+  {
+   "type": "cottage",
+   "position": [
+    311.7,
+    -136.6
+   ],
+   "rotationDeg": 87.0,
+   "width": 11.0,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2869
+  },
+  {
+   "type": "cottage",
+   "position": [
+    312.8,
+    -114.7
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.9,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2210
+  },
+  {
+   "type": "house",
+   "position": [
+    313.9,
+    -92.8
+   ],
+   "rotationDeg": 87.0,
+   "width": 13.0,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4808
+  },
+  {
+   "type": "cottage",
+   "position": [
+    316.1,
+    -532.2
+   ],
+   "rotationDeg": 267.0,
+   "width": 10.7,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 5171
+  },
+  {
+   "type": "house",
+   "position": [
+    317.2,
+    -510.3
+   ],
+   "rotationDeg": 267.0,
+   "width": 12.3,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4151
+  },
+  {
+   "type": "cottage",
+   "position": [
+    318.3,
+    -488.4
+   ],
+   "rotationDeg": 267.0,
+   "width": 13.1,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 784
+  },
+  {
+   "type": "house",
+   "position": [
+    319.5,
+    -466.5
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.5,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6554
+  },
+  {
+   "type": "house",
+   "position": [
+    320.6,
+    -444.6
+   ],
+   "rotationDeg": 267.0,
+   "width": 13.6,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8130
+  },
+  {
+   "type": "house",
+   "position": [
+    321.8,
+    -422.7
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.8,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1354
+  },
+  {
+   "type": "house",
+   "position": [
+    322.9,
+    -400.8
+   ],
+   "rotationDeg": 267.0,
+   "width": 10.8,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8938
+  },
+  {
+   "type": "house",
+   "position": [
+    324.1,
+    -378.9
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.6,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5022
+  },
+  {
+   "type": "house",
+   "position": [
+    325.2,
+    -357.0
+   ],
+   "rotationDeg": 267.0,
+   "width": 12.6,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5760
+  },
+  {
+   "type": "house",
+   "position": [
+    326.3,
+    -335.1
+   ],
+   "rotationDeg": 267.0,
+   "width": 10.6,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7127
+  },
+  {
+   "type": "house",
+   "position": [
+    327.5,
+    -313.2
+   ],
+   "rotationDeg": 267.0,
+   "width": 12.7,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1230
+  },
+  {
+   "type": "house",
+   "position": [
+    328.6,
+    -291.2
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.8,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 511
+  },
+  {
+   "type": "cottage",
+   "position": [
+    329.8,
+    -269.3
+   ],
+   "rotationDeg": 267.0,
+   "width": 13.5,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 571
+  },
+  {
+   "type": "cottage",
+   "position": [
+    330.9,
+    -247.4
+   ],
+   "rotationDeg": 267.0,
+   "width": 10.7,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5934
+  },
+  {
+   "type": "house",
+   "position": [
+    332.1,
+    -225.5
+   ],
+   "rotationDeg": 267.0,
+   "width": 13.8,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 7372
+  },
+  {
+   "type": "house",
+   "position": [
+    333.2,
+    -203.6
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.8,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8675
+  },
+  {
+   "type": "house",
+   "position": [
+    334.3,
+    -181.7
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.9,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1859
+  },
+  {
+   "type": "cottage",
+   "position": [
+    335.5,
+    -159.8
+   ],
+   "rotationDeg": 267.0,
+   "width": 13.1,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 9203
+  },
+  {
+   "type": "cottage",
+   "position": [
+    336.6,
+    -137.9
+   ],
+   "rotationDeg": 267.0,
+   "width": 11.4,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3516
+  },
+  {
+   "type": "house",
+   "position": [
+    337.8,
+    -116.0
+   ],
+   "rotationDeg": 267.0,
+   "width": 12.9,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2010
+  },
+  {
+   "type": "cottage",
+   "position": [
+    338.9,
+    -94.1
+   ],
+   "rotationDeg": 267.0,
+   "width": 13.5,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1439
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -33.6,
+    -668.1
+   ],
+   "rotationDeg": 85.5,
+   "width": 12.8,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4915
+  },
+  {
+   "type": "house",
+   "position": [
+    -35.3,
+    -690.5
+   ],
+   "rotationDeg": 85.5,
+   "width": 13.0,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5923
+  },
+  {
+   "type": "house",
+   "position": [
+    -37.1,
+    -712.9
+   ],
+   "rotationDeg": 85.5,
+   "width": 10.9,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3879
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -38.8,
+    -735.3
+   ],
+   "rotationDeg": 85.5,
+   "width": 10.6,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7658
+  },
+  {
+   "type": "house",
+   "position": [
+    -40.6,
+    -757.7
+   ],
+   "rotationDeg": 85.5,
+   "width": 12.6,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6524
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -42.3,
+    -780.1
+   ],
+   "rotationDeg": 85.5,
+   "width": 12.3,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2054
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -44.1,
+    -802.5
+   ],
+   "rotationDeg": 85.5,
+   "width": 12.7,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2103
+  },
+  {
+   "type": "house",
+   "position": [
+    -45.8,
+    -824.9
+   ],
+   "rotationDeg": 85.5,
+   "width": 13.2,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2035
+  },
+  {
+   "type": "house",
+   "position": [
+    -47.6,
+    -847.3
+   ],
+   "rotationDeg": 85.5,
+   "width": 11.6,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5670
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -49.3,
+    -869.7
+   ],
+   "rotationDeg": 85.5,
+   "width": 13.5,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2051
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -5.7,
+    -670.3
+   ],
+   "rotationDeg": 265.5,
+   "width": 12.7,
+   "depth": 8.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 9697
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -7.4,
+    -692.7
+   ],
+   "rotationDeg": 265.5,
+   "width": 11.1,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9235
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -9.2,
+    -715.1
+   ],
+   "rotationDeg": 265.5,
+   "width": 13.4,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9450
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -10.9,
+    -737.5
+   ],
+   "rotationDeg": 265.5,
+   "width": 12.8,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 497
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -12.7,
+    -759.9
+   ],
+   "rotationDeg": 265.5,
+   "width": 13.6,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7913
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -14.4,
+    -782.3
+   ],
+   "rotationDeg": 265.5,
+   "width": 13.3,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7431
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -16.2,
+    -804.7
+   ],
+   "rotationDeg": 265.5,
+   "width": 12.9,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 7934
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -17.9,
+    -827.1
+   ],
+   "rotationDeg": 265.5,
+   "width": 11.2,
+   "depth": 10.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5232
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -19.7,
+    -849.5
+   ],
+   "rotationDeg": 265.5,
+   "width": 13.9,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8438
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -21.4,
+    -871.9
+   ],
+   "rotationDeg": 265.5,
+   "width": 11.6,
+   "depth": 9.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7367
+  },
+  {
+   "type": "block",
+   "position": [
+    -170,
+    -400
+   ],
+   "rotationDeg": 0.0,
+   "width": 42,
+   "depth": 12,
+   "eavesHeight": 23.5,
+   "floors": 8,
+   "roofPitchDeg": 8,
+   "seed": -400
+  },
+  {
+   "type": "block",
+   "position": [
+    -170,
+    -470
+   ],
+   "rotationDeg": 0.0,
+   "width": 42,
+   "depth": 12,
+   "eavesHeight": 23.5,
+   "floors": 8,
+   "roofPitchDeg": 8,
+   "seed": -470
+  },
+  {
+   "type": "block",
+   "position": [
+    -170,
+    -540
+   ],
+   "rotationDeg": 0.0,
+   "width": 42,
+   "depth": 12,
+   "eavesHeight": 23.5,
+   "floors": 8,
+   "roofPitchDeg": 8,
+   "seed": -540
+  },
+  {
+   "type": "block",
+   "position": [
+    -260,
+    -480
+   ],
+   "rotationDeg": 90.0,
+   "width": 42,
+   "depth": 12,
+   "eavesHeight": 23.5,
+   "floors": 8,
+   "roofPitchDeg": 8,
+   "seed": -390
+  },
+  {
+   "type": "block",
+   "position": [
+    -80,
+    -480
+   ],
+   "rotationDeg": 90.0,
+   "width": 42,
+   "depth": 12,
+   "eavesHeight": 23.5,
+   "floors": 8,
+   "roofPitchDeg": 8,
+   "seed": -390
+  },
+  {
+   "type": "shop",
+   "position": [
+    -70,
+    -360
+   ],
+   "rotationDeg": 180.0,
+   "width": 22,
+   "depth": 14,
+   "eavesHeight": 4.2,
+   "floors": 1,
+   "roofPitchDeg": 12,
+   "seed": 77
+  },
+  {
+   "type": "barn",
+   "position": [
+    -720,
+    -1440
+   ],
+   "rotationDeg": 200.0,
+   "width": 24,
+   "depth": 12,
+   "eavesHeight": 5.5,
+   "floors": 1,
+   "roofPitchDeg": 40,
+   "seed": 21
+  },
+  {
+   "type": "house",
+   "position": [
+    -680,
+    -1520
+   ],
+   "rotationDeg": 20.0,
+   "width": 13,
+   "depth": 10,
+   "eavesHeight": 6.0,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 22
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -1045,
+    -1235
+   ],
+   "rotationDeg": 130.0,
+   "width": 11,
+   "depth": 9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 23
+  },
+  {
+   "type": "barn",
+   "position": [
+    -1470,
+    340
+   ],
+   "rotationDeg": 315.0,
+   "width": 22,
+   "depth": 11,
+   "eavesHeight": 5.2,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 24
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -1530,
+    265
+   ],
+   "rotationDeg": 135.0,
+   "width": 10,
+   "depth": 8,
+   "eavesHeight": 3.4,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 25
+  },
+  {
+   "type": "chapel",
+   "position": [
+    -455,
+    -1560
+   ],
+   "rotationDeg": 60.0,
+   "width": 5,
+   "depth": 7,
+   "eavesHeight": 4.5,
+   "floors": 1,
+   "roofPitchDeg": 50,
+   "seed": 26
+  },
+  {
+   "type": "cottage",
+   "position": [
+    -40,
+    -2700
+   ],
+   "rotationDeg": 120.0,
+   "width": 9,
+   "depth": 7,
+   "eavesHeight": 3.2,
+   "floors": 1,
+   "roofPitchDeg": 48,
+   "seed": 27
+  }
+ ],
+ "props": [
+  {
+   "type": "bus_stop",
+   "position": [
+    60.0,
+    3.0
+   ],
+   "rotationDeg": 355.7
+  },
+  {
+   "type": "bus_stop",
+   "position": [
+    -59.6,
+    -5.7
+   ],
+   "rotationDeg": 178.3
+  },
+  {
+   "type": "bench",
+   "position": [
+    -16.3,
+    8.5
+   ],
+   "rotationDeg": 358.3
+  },
+  {
+   "type": "bench",
+   "position": [
+    19.2,
+    -9.5
+   ],
+   "rotationDeg": 175.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -263.8,
+    14.2
+   ],
+   "rotationDeg": 358.3
+  },
+  {
+   "type": "lamp",
+   "position": [
+    65.5,
+    -11.2
+   ],
+   "rotationDeg": 175.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    8.0,
+    -57.8
+   ],
+   "rotationDeg": 272.0
+  },
+  {
+   "type": "lamp",
+   "position": [
+    12.0,
+    53.3
+   ],
+   "rotationDeg": 263.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -197.8,
+    12.2
+   ],
+   "rotationDeg": 358.3
+  },
+  {
+   "type": "lamp",
+   "position": [
+    131.5,
+    -16.2
+   ],
+   "rotationDeg": 175.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    10.0,
+    -115.8
+   ],
+   "rotationDeg": 272.0
+  },
+  {
+   "type": "lamp",
+   "position": [
+    18.0,
+    107.3
+   ],
+   "rotationDeg": 263.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -131.8,
+    10.2
+   ],
+   "rotationDeg": 358.3
+  },
+  {
+   "type": "lamp",
+   "position": [
+    197.5,
+    -21.2
+   ],
+   "rotationDeg": 175.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    12.0,
+    -173.8
+   ],
+   "rotationDeg": 272.0
+  },
+  {
+   "type": "lamp",
+   "position": [
+    24.0,
+    161.3
+   ],
+   "rotationDeg": 263.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -65.8,
+    8.2
+   ],
+   "rotationDeg": 358.3
+  },
+  {
+   "type": "lamp",
+   "position": [
+    263.5,
+    -26.2
+   ],
+   "rotationDeg": 175.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    14.0,
+    -231.8
+   ],
+   "rotationDeg": 272.0
+  },
+  {
+   "type": "lamp",
+   "position": [
+    30.0,
+    215.3
+   ],
+   "rotationDeg": 263.7
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -694.4,
+    84.1
+   ],
+   "rotationDeg": 349.5
+  },
+  {
+   "type": "lamp",
+   "position": [
+    387.4,
+    -41.6
+   ],
+   "rotationDeg": 169.8
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -608.4,
+    68.1
+   ],
+   "rotationDeg": 349.5
+  },
+  {
+   "type": "lamp",
+   "position": [
+    465.4,
+    -55.6
+   ],
+   "rotationDeg": 169.8
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -522.4,
+    52.1
+   ],
+   "rotationDeg": 349.5
+  },
+  {
+   "type": "lamp",
+   "position": [
+    543.4,
+    -69.6
+   ],
+   "rotationDeg": 169.8
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -436.4,
+    36.1
+   ],
+   "rotationDeg": 349.5
+  },
+  {
+   "type": "lamp",
+   "position": [
+    621.4,
+    -83.6
+   ],
+   "rotationDeg": 169.8
+  },
+  {
+   "type": "lamp",
+   "position": [
+    -350.4,
+    20.1
+   ],
+   "rotationDeg": 349.5
+  },
+  {
+   "type": "lamp",
+   "position": [
+    699.4,
+    -97.6
+   ],
+   "rotationDeg": 169.8
+  },
+  {
+   "type": "gate",
+   "position": [
+    -26.0,
+    -2071.0
+   ],
+   "rotationDeg": 344.1
+  },
+  {
+   "type": "timber_stack",
+   "position": [
+    -93.2,
+    -2486.1
+   ],
+   "rotationDeg": 283.5,
+   "length": 12
+  },
+  {
+   "type": "timber_stack",
+   "position": [
+    -89.8,
+    -2551.4
+   ],
+   "rotationDeg": 103.5,
+   "length": 9
+  },
+  {
+   "type": "fence",
+   "position": [
+    -732.4,
+    -1463.1
+   ],
+   "rotationDeg": 141.3,
+   "length": 60
+  },
+  {
+   "type": "wall",
+   "position": [
+    -198.3,
+    -4.0
+   ],
+   "rotationDeg": 178.3,
+   "length": 40
+  }
+ ],
+ "signs": [
+  {
+   "code": "IZ4a",
+   "position": [
+    -784.3,
+    103.1
+   ],
+   "headingDeg": 254.2,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4b",
+   "position": [
+    -787.5,
+    91.6
+   ],
+   "headingDeg": 74.2,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4a",
+   "position": [
+    743.8,
+    -111.1
+   ],
+   "headingDeg": 67.9,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4b",
+   "position": [
+    748.4,
+    -100.0
+   ],
+   "headingDeg": 247.9,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4a",
+   "position": [
+    -62.1,
+    -953.3
+   ],
+   "headingDeg": 327.2,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4b",
+   "position": [
+    -52.1,
+    -959.8
+   ],
+   "headingDeg": 147.2,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4a",
+   "position": [
+    60.2,
+    587.9
+   ],
+   "headingDeg": 225.5,
+   "text": "Lipová"
+  },
+  {
+   "code": "IZ4b",
+   "position": [
+    51.8,
+    579.3
+   ],
+   "headingDeg": 45.5,
+   "text": "Lipová"
+  },
+  {
+   "code": "P2",
+   "position": [
+    -46.0,
+    7.4
+   ],
+   "headingDeg": 268.3
+  },
+  {
+   "code": "P2",
+   "position": [
+    45.7,
+    -9.5
+   ],
+   "headingDeg": 85.7
+  },
+  {
+   "code": "P4",
+   "position": [
+    -4.6,
+    -40.8
+   ],
+   "headingDeg": 2.0
+  },
+  {
+   "code": "P4",
+   "position": [
+    10.2,
+    37.1
+   ],
+   "headingDeg": 173.7
+  },
+  {
+   "code": "P2",
+   "position": [
+    284.3,
+    -15.5
+   ],
+   "headingDeg": 265.7
+  },
+  {
+   "code": "P2",
+   "position": [
+    383.5,
+    -40.7
+   ],
+   "headingDeg": 79.8
+  },
+  {
+   "code": "P4",
+   "position": [
+    334.8,
+    11.8
+   ],
+   "headingDeg": 181.9
+  },
+  {
+   "code": "P4",
+   "position": [
+    320.4,
+    -93.7
+   ],
+   "headingDeg": 357.0
+  },
+  {
+   "code": "P4",
+   "position": [
+    -337.2,
+    -27.0
+   ],
+   "headingDeg": 358.2
+  },
+  {
+   "code": "P4",
+   "position": [
+    -774.0,
+    72.6
+   ],
+   "headingDeg": 336.7
+  },
+  {
+   "code": "P4",
+   "position": [
+    -32.2,
+    -285.2
+   ],
+   "headingDeg": 271.6
+  },
+  {
+   "code": "P4",
+   "position": [
+    -53.0,
+    -605.2
+   ],
+   "headingDeg": 271.8
+  },
+  {
+   "code": "P4",
+   "position": [
+    23.0,
+    -614.8
+   ],
+   "headingDeg": 91.8
+  },
+  {
+   "code": "P4",
+   "position": [
+    65.0,
+    265.2
+   ],
+   "headingDeg": 92.0
+  },
+  {
+   "code": "P4",
+   "position": [
+    -433.2,
+    -1512.1
+   ],
+   "headingDeg": 261.9
+  },
+  {
+   "code": "P6",
+   "position": [
+    -29.8,
+    -2062.4
+   ],
+   "headingDeg": 344.1
+  },
+  {
+   "code": "P1",
+   "position": [
+    9.5,
+    -101.3
+   ],
+   "headingDeg": 182.0
+  },
+  {
+   "code": "IS3c",
+   "position": [
+    -65.8,
+    8.0
+   ],
+   "headingDeg": 268.3,
+   "text": "Bor 6 / Kamenice 14"
+  },
+  {
+   "code": "IS3c",
+   "position": [
+    65.5,
+    -11.0
+   ],
+   "headingDeg": 85.7,
+   "text": "Bor 12 / Lipová-nádraží 3"
+  },
+  {
+   "code": "B20a",
+   "position": [
+    1012.3,
+    -206.9
+   ],
+   "headingDeg": 247.9,
+   "value": 70
+  },
+  {
+   "code": "B20b",
+   "position": [
+    1346.6,
+    -375.1
+   ],
+   "headingDeg": 220.6,
+   "value": 70
+  },
+  {
+   "code": "A14",
+   "position": [
+    -168.0,
+    -1139.7
+   ],
+   "headingDeg": 147.2
+  },
+  {
+   "code": "A14",
+   "position": [
+    1111.9,
+    -1994.7
+   ],
+   "headingDeg": 108.2
+  },
+  {
+   "code": "A22",
+   "position": [
+    12.9,
+    -2049.1
+   ],
+   "headingDeg": 261.1
+  },
+  {
+   "code": "A7a",
+   "position": [
+    -26.2,
+    -2093.6
+   ],
+   "headingDeg": 164.1
+  },
+  {
+   "code": "B20a",
+   "position": [
+    -715.9,
+    87.9
+   ],
+   "headingDeg": 259.5,
+   "value": 30
+  },
+  {
+   "code": "IP6",
+   "position": [
+    -22.9,
+    6.7
+   ],
+   "headingDeg": 268.3
+  },
+  {
+   "code": "IP6",
+   "position": [
+    23.6,
+    4.2
+   ],
+   "headingDeg": 265.7
+  },
+  {
+   "code": "IJ4c",
+   "position": [
+    59.9,
+    1.5
+   ],
+   "headingDeg": 265.7
+  },
+  {
+   "code": "IJ4c",
+   "position": [
+    -59.6,
+    -4.2
+   ],
+   "headingDeg": 88.3
+  }
+ ],
+ "trees": [
+  {
+   "species": "linden",
+   "position": [
+    -30,
+    30
+   ],
+   "scale": 1.3,
+   "seed": 1
+  },
+  {
+   "species": "linden",
+   "position": [
+    30,
+    30
+   ],
+   "scale": 1.25,
+   "seed": 2
+  },
+  {
+   "species": "linden",
+   "position": [
+    -30,
+    -30
+   ],
+   "scale": 1.2,
+   "seed": 3
+  },
+  {
+   "species": "oak",
+   "position": [
+    -120,
+    -95
+   ],
+   "scale": 1.4,
+   "seed": 4
+  },
+  {
+   "species": "birch",
+   "position": [
+    140,
+    40
+   ],
+   "scale": 1.0,
+   "seed": 5
+  },
+  {
+   "species": "linden",
+   "position": [
+    -1490,
+    300
+   ],
+   "scale": 1.5,
+   "seed": 6
+  },
+  {
+   "species": "oak",
+   "position": [
+    -660,
+    -1450
+   ],
+   "scale": 1.3,
+   "seed": 7
+  }
+ ],
+ "forests": [
+  {
+   "polygon": [
+    [
+     -620,
+     -1380
+    ],
+    [
+     150,
+     -1280
+    ],
+    [
+     900,
+     -1480
+    ],
+    [
+     1520,
+     -1720
+    ],
+    [
+     1650,
+     -2350
+    ],
+    [
+     700,
+     -2500
+    ],
+    [
+     -250,
+     -2560
+    ],
+    [
+     -720,
+     -2050
+    ]
+   ],
+   "density": 0.022,
+   "margin": 7,
+   "species": [
+    {
+     "species": "spruce",
+     "weight": 0.62
+    },
+    {
+     "species": "pine",
+     "weight": 0.2
+    },
+    {
+     "species": "beech",
+     "weight": 0.18
+    }
+   ],
+   "seed": 3
+  },
+  {
+   "polygon": [
+    [
+     600,
+     900
+    ],
+    [
+     1350,
+     700
+    ],
+    [
+     1450,
+     1350
+    ],
+    [
+     750,
+     1450
+    ]
+   ],
+   "density": 0.014,
+   "margin": 8,
+   "species": [
+    {
+     "species": "oak",
+     "weight": 0.5
+    },
+    {
+     "species": "birch",
+     "weight": 0.3
+    },
+    {
+     "species": "pine",
+     "weight": 0.2
+    }
+   ],
+   "seed": 4
+  },
+  {
+   "polygon": [
+    [
+     -1700,
+     -1400
+    ],
+    [
+     -1300,
+     -1450
+    ],
+    [
+     -1250,
+     -1050
+    ],
+    [
+     -1650,
+     -1000
+    ]
+   ],
+   "density": 0.018,
+   "margin": 6,
+   "species": [
+    {
+     "species": "spruce",
+     "weight": 0.5
+    },
+    {
+     "species": "beech",
+     "weight": 0.5
+    }
+   ],
+   "seed": 5
+  }
+ ],
+ "avenues": [
+  {
+   "road": "main",
+   "fromNode": "E2",
+   "toNode": "E4",
+   "species": "linden",
+   "spacing": 20,
+   "offset": 3.0,
+   "left": true,
+   "right": true,
+   "seed": 1
+  },
+  {
+   "road": "south",
+   "fromNode": "SW1",
+   "toNode": "S3",
+   "species": "maple",
+   "spacing": 18,
+   "offset": 2.8,
+   "left": true,
+   "right": true,
+   "seed": 2
+  },
+  {
+   "road": "village",
+   "fromNode": "V2",
+   "toNode": "V3",
+   "species": "birch",
+   "spacing": 16,
+   "offset": 2.5,
+   "left": true,
+   "right": false,
+   "seed": 3
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "schemaVersion": 1,
+ "playerSpawns": [
+  {
+   "name": "square",
+   "position": [
+    -125.4,
+    5.3
+   ],
+   "headingDeg": 88.3
+  },
+  {
+   "name": "forest",
+   "position": [
+    -228.8,
+    -1225.8
+   ],
+   "headingDeg": 327.2
+  },
+  {
+   "name": "fields",
+   "position": [
+    -885.4,
+    1051.4
+   ],
+   "headingDeg": 105.3
+  },
+  {
+   "name": "east",
+   "position": [
+    1009.4,
+    -213.9
+   ],
+   "headingDeg": 247.9
+  }
+ ],
+ "densityPerKm": 1.2,
+ "maxVehicles": 20,
+ "vehicles": [
+  "lipan_12"
+ ],
+ "spawnMinDistance": 70,
+ "despawnDistance": 650
+}

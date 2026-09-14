@@ -1,5 +1,7 @@
 #include "CarSim/Sim/VehicleDefinition.hpp"
 
+#include "CarSim/Core/JsonReader.hpp"
+
 #include "CarSim/Sim/Units.hpp"
 
 #include "System/Text/Json/JsonDocument.hpp"
@@ -254,168 +256,9 @@ namespace CarSim::Sim
 
     namespace
     {
-        class Reader
-        {
-        public:
-            explicit Reader(std::vector<std::string>& errors) : errors_(errors) {}
-
-            [[nodiscard]] bool HasObject(const JsonElement& parent, const char* key, JsonElement& out) const
-            {
-                JsonElement e;
-                if (!parent.TryGetProperty(key, e) || e.getValueKindProperty() != JsonValueKind::Object) {
-                    return false;
-                }
-                out = e;
-                return true;
-            }
-
-            JsonElement RequireObject(const JsonElement& parent, const char* key, const std::string& path)
-            {
-                JsonElement e;
-                if (!HasObject(parent, key, e)) {
-                    errors_.push_back(path + "." + key + ": object is required");
-                }
-                return e;
-            }
-
-            void Float(const JsonElement& obj, const char* key, float& target, const std::string& path, bool required = false)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    if (required) {
-                        errors_.push_back(path + "." + key + ": number is required");
-                    }
-                    return;
-                }
-                if (e.getValueKindProperty() != JsonValueKind::Number) {
-                    errors_.push_back(path + "." + key + ": must be a number");
-                    return;
-                }
-                target = static_cast<float>(e.GetDouble());
-            }
-
-            void Int(const JsonElement& obj, const char* key, int& target, const std::string& path)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    return;
-                }
-                if (e.getValueKindProperty() != JsonValueKind::Number) {
-                    errors_.push_back(path + "." + key + ": must be a number");
-                    return;
-                }
-                target = static_cast<int>(std::lround(e.GetDouble()));
-            }
-
-            void Bool(const JsonElement& obj, const char* key, bool& target, const std::string& path)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    return;
-                }
-                const auto kind = e.getValueKindProperty();
-                if (kind == JsonValueKind::True) {
-                    target = true;
-                } else if (kind == JsonValueKind::False) {
-                    target = false;
-                } else {
-                    errors_.push_back(path + "." + key + ": must be a boolean");
-                }
-            }
-
-            void String(const JsonElement& obj, const char* key, std::string& target, const std::string& path, bool required = false)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    if (required) {
-                        errors_.push_back(path + "." + key + ": string is required");
-                    }
-                    return;
-                }
-                if (e.getValueKindProperty() != JsonValueKind::String) {
-                    errors_.push_back(path + "." + key + ": must be a string");
-                    return;
-                }
-                target = e.GetString();
-            }
-
-            void Vec3(const JsonElement& obj, const char* key, Vector3& target, const std::string& path)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    return;
-                }
-                if (e.getValueKindProperty() != JsonValueKind::Array || e.GetArrayLength() != 3) {
-                    errors_.push_back(path + "." + key + ": must be an array of three numbers");
-                    return;
-                }
-                const auto items = e.EnumerateArray();
-                float v[3];
-                for (int i = 0; i < 3; ++i) {
-                    if (items[static_cast<std::size_t>(i)].getValueKindProperty() != JsonValueKind::Number) {
-                        errors_.push_back(path + "." + key + ": must be an array of three numbers");
-                        return;
-                    }
-                    v[i] = static_cast<float>(items[static_cast<std::size_t>(i)].GetDouble());
-                }
-                target = Vector3(v[0], v[1], v[2]);
-            }
-
-            void Curve(const JsonElement& obj, const char* key, Core::PiecewiseLinear& target, const std::string& path)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    return;
-                }
-                if (e.getValueKindProperty() != JsonValueKind::Array) {
-                    errors_.push_back(path + "." + key + ": must be an array of [x, y] pairs");
-                    return;
-                }
-                std::vector<std::pair<float, float>> points;
-                for (const auto& item : e.EnumerateArray()) {
-                    if (item.getValueKindProperty() != JsonValueKind::Array || item.GetArrayLength() != 2) {
-                        errors_.push_back(path + "." + key + ": each point must be [x, y]");
-                        return;
-                    }
-                    const auto pair = item.EnumerateArray();
-                    if (pair[0].getValueKindProperty() != JsonValueKind::Number ||
-                        pair[1].getValueKindProperty() != JsonValueKind::Number) {
-                        errors_.push_back(path + "." + key + ": each point must be numeric");
-                        return;
-                    }
-                    points.emplace_back(static_cast<float>(pair[0].GetDouble()), static_cast<float>(pair[1].GetDouble()));
-                }
-                target = Core::PiecewiseLinear(std::move(points));
-            }
-
-            void FloatArray(const JsonElement& obj, const char* key, std::vector<float>& target, const std::string& path)
-            {
-                JsonElement e;
-                if (!obj.TryGetProperty(key, e)) {
-                    return;
-                }
-                if (e.getValueKindProperty() != JsonValueKind::Array) {
-                    errors_.push_back(path + "." + key + ": must be an array of numbers");
-                    return;
-                }
-                std::vector<float> values;
-                for (const auto& item : e.EnumerateArray()) {
-                    if (item.getValueKindProperty() != JsonValueKind::Number) {
-                        errors_.push_back(path + "." + key + ": must be an array of numbers");
-                        return;
-                    }
-                    values.push_back(static_cast<float>(item.GetDouble()));
-                }
-                target = std::move(values);
-            }
-
-        private:
-            std::vector<std::string>& errors_;
-        };
-
         void ParseInto(const JsonElement& root, VehicleDefinition& def, std::vector<std::string>& errors)
         {
-            Reader r(errors);
+            Core::JsonReader r(errors);
             if (root.getValueKindProperty() != JsonValueKind::Object) {
                 errors.push_back("root must be an object");
                 return;

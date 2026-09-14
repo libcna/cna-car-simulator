@@ -1,6 +1,6 @@
 # Map format decision
 
-Status: decided 2026-09-14 (plan task MAP-001). Implemented by `simulator/src/Map`.
+Status: decided 2026-09-14 (plan task MAP-001). Implemented by `simulator/src/Map` (schema v1 below).
 
 ## Requirements
 
@@ -69,3 +69,66 @@ widths, curvature vs speed, overlaps) and reports warnings for questionable data
   mesh with material blending, building/prop/vegetation instances, sign meshes, lightmaps.
 
 The visual generators consume simulation data, never the other way round.
+
+## Schema v1 reference
+
+All files are UTF-8 JSON objects with an integer `schemaVersion` (currently `1`). Unknown keys
+are ignored; the loader reports every structural problem it finds in one pass (dotted paths).
+Lengths are metres, angles degrees, positions `[x, z]` in the map plane (x east, z south,
+north = -z). Headings: 0 = north, 90 = east (clockwise).
+
+### map.json
+| key | type | notes |
+| --- | --- | --- |
+| `id`, `displayName`, `description`, `author`, `license` | string | `id` is required |
+| `files` | object | optional renames of `terrain`, `roads`, `objects`, `traffic` |
+
+### terrain.json
+| key | type | notes |
+| --- | --- | --- |
+| `size` | `[x, z]` | extent, centred on the origin (>= 200 m) |
+| `cellSize` | number | height-field spacing, 1..10 m |
+| `baseHeight` | number | |
+| `noise` | object | `amplitude`, `wavelength`, `octaves`, `seed` (signed fBm) |
+| `roadBlendWidth` | number | distance over which terrain blends into the road edge |
+| `features[]` | object | `type` `hill`/`ridge`/`plateau`, `center`, `end` (ridge), `radius`, `height` (negative = basin) |
+| `regions[]` | object | `type` `meadow`/`field`/`forest`/`town`/`orchard`, `polygon`, `crop`, `seed`; later regions win |
+
+### roads.json
+`nodes[]`: `id`, `position`, optional `elevation`, `urban` (built-up area: urban speed limit,
+sidewalks), `name`, `mainRoads[]` (roads with priority through this node), `control[]`
+(`{road, control}` with `priority|right_hand|yield|stop`), `cornerRadius`.
+
+`roads[]`: `id`, `name`, `number`, `class` (`I|II|III|local|residential|forest|track`),
+`nodes[]` (>= 2, consecutive nodes >= 4 m apart), `lanesPerDirection`, `laneWidth`,
+`edgeStripWidth`, `shoulderWidth`, `surface` (`asphalt|concrete|cobbles|gravel|dirt`),
+`speedLimitKmh`, `urbanSpeedLimitKmh`, `centreLine` (`none|solid|dashed`), `edgeLines`,
+`sidewalk` (`width`, `left`, `right`, `kerbHeight`; applied on urban stretches only),
+`cornerRadius` (fillet at interior non-junction nodes), `oneWay`.
+
+Derived at load time (`RoadNetwork`): straight-and-arc centrelines through the nodes, heights
+from the terrain (80 m low-pass, pinned to node heights, flattened across intersections),
+intersection patches with setbacks and kerb fillets, road pieces between intersections,
+approach controls. `LaneGraph` derives lanes per direction, connectors with turn types,
+conflicts and yield lists (priority, right-hand rule, left turn yields to oncoming), routes.
+
+### objects.json
+`buildings[]` (`type` house/cottage/block/church/barn/shop/hall/chapel, `position`,
+`rotationDeg` = facade heading, `width`, `depth`, `eavesHeight`, `roofPitchDeg`, `floors`,
+`wallColor`, `roofColor`, `seed`), `props[]` (`type`, `position`, `rotationDeg`, `length`,
+`scale`), `signs[]` (`code` from the Czech catalogue subset, `position`, `headingDeg` = the
+direction the face points, `text`, `value`), `trees[]` (`species`, `position`, `scale`, `seed`),
+`forests[]` (`polygon`, `density` trees/m^2, `species[]` `{species, weight}`, `margin`, `seed`),
+`avenues[]` (`road`, `fromNode`, `toNode`, `species`, `spacing`, `offset`, `left`, `right`, `seed`).
+
+### traffic.json
+`playerSpawns[]` (`name`, `position`, `headingDeg`), `densityPerKm`, `maxVehicles`,
+`vehicles[]` (vehicle definition ids), `spawnMinDistance`, `despawnDistance`.
+
+## Tools
+
+- `carsim-mapvalidate --content content --map lipova` loads and builds a map, prints
+  intersections with their controls and setbacks, lane counts, dead ends, grades and build
+  times, and fails on structural problems. It runs as the `map_validate_lipova` CTest.
+- `tools/maps/generate_lipova.py` is the authoring script of the sample map; the generated
+  JSON is the source the simulator loads.
