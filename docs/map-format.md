@@ -115,7 +115,7 @@ conflicts and yield lists (priority, right-hand rule, left turn yields to oncomi
 ### objects.json
 `buildings[]` (`type` house/cottage/block/church/barn/shop/hall/chapel, `position`,
 `rotationDeg` = facade heading, `width`, `depth`, `eavesHeight`, `roofPitchDeg`, `floors`,
-`wallColor`, `roofColor`, `seed`), `props[]` (`type`, `position`, `rotationDeg`, `length`,
+`wallColor`, `roofColor`, `seed`), `props[]` (`type` incl. `memorial`, `position`, `rotationDeg`, `length`,
 `scale`), `signs[]` (`code` from the Czech catalogue subset, `position`, `headingDeg` = the
 direction the face points, `text`, `value`), `vehicles[]` (parked cars: `body`
 hatchback/sedan/estate/suv/van, `position`, `rotationDeg` of the nose, `seed` for the style

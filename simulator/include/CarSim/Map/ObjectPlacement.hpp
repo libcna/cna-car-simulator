@@ -91,6 +91,7 @@ namespace CarSim::Map
         Hedge,          // clipped hedge (generated around plots)
         Shed,           // garden shed behind a house (generated)
         UtilityPole,    // wooden pole with a crossarm along village roads (generated)
+        Memorial,       // stone column on a stepped plinth with a cross (town squares)
         Unknown
     };
 

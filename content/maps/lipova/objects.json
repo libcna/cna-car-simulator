@@ -5526,6 +5526,14 @@
     -26.0
    ],
    "rotationDeg": 0.0
+  },
+  {
+   "type": "memorial",
+   "position": [
+    -57.0,
+    -40.0
+   ],
+   "rotationDeg": 0.0
   }
  ],
  "signs": [

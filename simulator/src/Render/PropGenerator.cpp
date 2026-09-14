@@ -142,6 +142,19 @@ namespace CarSim::Render
                 red.AddCylinder(Vector3(0, 0.75f, 0), Vector3(0, 1, 0), 0.11f, 0.12f, 10, true);
                 break;
             }
+            case PropType::Memorial: {
+                // Marian column: two stone steps, a pedestal, a tapered shaft with a capital and
+                // a cross. Plain stone, no figure (nothing to license, nothing to misread).
+                concrete.AddBox(Vector3(-1.30f, -0.10f, -1.30f), Vector3(1.30f, 0.22f, 1.30f), 1.0f);
+                concrete.AddBox(Vector3(-1.00f, 0.22f, -1.00f), Vector3(1.00f, 0.50f, 1.00f), 1.0f);
+                concrete.AddBox(Vector3(-0.62f, 0.50f, -0.62f), Vector3(0.62f, 1.55f, 0.62f), 1.0f);
+                concrete.AddBox(Vector3(-0.70f, 1.55f, -0.70f), Vector3(0.70f, 1.70f, 0.70f), 1.0f);
+                concrete.AddCylinder(Vector3(0.0f, 1.70f, 0.0f), Vector3(0, 1, 0), 0.26f, 2.60f, 12, true);
+                concrete.AddBox(Vector3(-0.34f, 4.30f, -0.34f), Vector3(0.34f, 4.48f, 0.34f), 1.0f);
+                metal.AddBox(Vector3(-0.05f, 4.48f, -0.05f), Vector3(0.05f, 5.28f, 0.05f), 1.0f);
+                metal.AddBox(Vector3(-0.30f, 4.92f, -0.05f), Vector3(0.30f, 5.02f, 0.05f), 1.0f);
+                break;
+            }
             case PropType::Bin: {
                 metal.AddCylinder(Vector3(0, -0.1f, 0), Vector3(0, 1, 0), 0.03f, 1.1f, 8, false);
                 white.AddCylinder(Vector3(0, 0.55f, 0), Vector3(0, 1, 0), 0.2f, 0.5f, 12, true);

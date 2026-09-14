@@ -176,6 +176,15 @@ TEST(SampleMap, TheSquareIsPavedAndLinedWithTownHouses)
         if (z < minZ + 2.0f && x > minX - 6.0f && x < maxX + 6.0f) ++north;
         if (b.spec && b.spec->type == "church" && x > minX && x < maxX && z > minZ && z < maxZ) ++church;
     }
+    // A stone memorial stands on the square and is solid.
+    int memorials = 0;
+    for (const auto& prop : world->Objects().Props()) {
+        if (prop.type != Map::PropType::Memorial) continue;
+        ++memorials;
+        EXPECT_EQ(world->Terrain().RegionAt(prop.position.X, prop.position.Z), Map::RegionType::Square);
+    }
+    EXPECT_EQ(memorials, 1);
+
     EXPECT_GE(west, 3) << "town houses along the west side";
     EXPECT_GE(east, 3) << "town houses along the east side";
     EXPECT_GE(north, 2) << "town houses along the north side";

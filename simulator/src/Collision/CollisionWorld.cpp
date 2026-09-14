@@ -123,6 +123,9 @@ namespace CarSim::Collision
                 case PropType::BusStop:
                     AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 1.3f, 0.0f), Vector3(2.1f, 1.4f, 1.2f), p.headingRad));
                     break;
+                case PropType::Memorial:
+                    AddStatic(BoxCollider(ColliderKind::Wall, p.position + Vector3(0.0f, 1.3f, 0.0f), Vector3(1.3f, 1.4f, 1.3f), p.headingRad));
+                    break;
                 case PropType::Bench:
                     AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 0.5f, 0.0f), Vector3(0.9f, 0.55f, 0.25f), p.headingRad));
                     break;

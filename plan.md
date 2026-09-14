@@ -802,3 +802,6 @@ committed with its own regression test and screenshot check.
   Tests: `ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads` (on the paving, off the
   carriageway, clear of every footprint, one collider each); `carsim-mapvalidate` reports the
   parked cars; `docs/map-format.md` documents the array.
+- [x] `RQ-162` Memorial column on the square: a new `memorial` prop (two stone steps, a
+  pedestal, a tapered shaft with a capital and an iron cross, no figure) stands between the
+  church and the middle of the namesti and is solid. Covered by the square test.
