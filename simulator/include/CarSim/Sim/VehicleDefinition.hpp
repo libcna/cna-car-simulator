@@ -182,7 +182,7 @@ namespace CarSim::Sim
         Microsoft::Xna::Framework::Vector3 steeringWheelCenter{-0.37f, 0.80f, -0.18f};
         float steeringWheelTiltDeg = 24.0f;                        // rim tilted back from vertical
         float steeringWheelDiameterM = 0.37f;
-        Microsoft::Xna::Framework::Vector3 mirrorCenter{0.0f, 1.17f, -0.17f};   // interior rear-view mirror (hangs from the glass)
+        Microsoft::Xna::Framework::Vector3 mirrorCenter{0.0f, 1.28f, -0.12f};   // interior rear-view mirror (hangs from the glass, above the sight line)
         Microsoft::Xna::Framework::Vector3 clusterCenter{-0.37f, 0.96f, -0.56f};
         std::string plate;   // registration plate text ("1A2 3456"); generated when empty
     };

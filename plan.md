@@ -754,3 +754,9 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   headlamp and tail lamp lenses as black notches while paint quads intruded under the lens edge
   as red slivers; a quad is now cut only when all four of its corners are inside the polygon and
   the lens decals sit 6 mm proud instead of 3 mm.
+- Interior mirror height: `mirrorCenter` sat at 1.17 m, three centimetres above the driver's
+  eye, so in the cockpit view the mirror housing hung at the horizon and covered the right-hand
+  third of the windscreen. It now hangs at 1.28 m, 0.12 m ahead of the origin, under the
+  windscreen header; the cockpit placement test gained an assertion that the housing's lower
+  edge stays at least 5 cm above the eye. The curated screenshots were re-captured with the
+  final build (fog lamps, lens housings, mirror).

@@ -38,7 +38,9 @@ cue. `--eye dx dy dz yaw pitch` offsets and turns the eye for inspection capture
 
 ## Rear-view mirror
 
-The interior mirror renders a 768 x 200 target from `mirrorCenter` looking back along the body
+The interior mirror renders a 768 x 200 target from `mirrorCenter` (Lipan: on the centre line,
+1.28 m up, 0.12 m ahead of the origin, so its housing hangs in the upper right of the
+windscreen and not across the driver's view of the road) looking back along the body
 (11 degree vertical field, about 40 degrees horizontal), mirrored in x. The setting
 `mirrorUpdateEvery` in the save file (or `--mirror-every <n>`) redraws it every n frames and
 keeps the previous image in between; see `docs/performance.md` for the measured cost.

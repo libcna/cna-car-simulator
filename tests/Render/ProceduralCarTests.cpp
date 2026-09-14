@@ -165,9 +165,12 @@ TEST(ProceduralCar, CockpitPlacementMatchesTheSeatingReference)
     EXPECT_LT(headerZ, vis.driverEye.Z - 0.25f) << "the header must be well ahead of the eye";
     EXPECT_GT(topAt(vis.driverEye.Z), vis.driverEye.Y + 0.15f) << "head clearance under the roof";
 
-    // The interior mirror hangs below the glass with room for its housing.
+    // The interior mirror hangs below the glass with room for its housing, and high enough that
+    // its housing stays out of the driver's view of the road (it used to hang at eye level, where
+    // it covered the right-hand third of the windscreen).
     EXPECT_GT(topAt(vis.mirrorCenter.Z) - 0.05f, vis.mirrorCenter.Y + 0.04f);
     EXPECT_GT(vis.driverEye.Z - vis.mirrorCenter.Z, 0.45f);
+    EXPECT_GT(vis.mirrorCenter.Y - 0.04f, vis.driverEye.Y + 0.05f) << "the mirror sits in the driver's sight line";
 
     // Steering wheel and cluster: reach and sight lines.
     EXPECT_GE(vis.driverEye.Z - vis.steeringWheelCenter.Z, 0.45f);
