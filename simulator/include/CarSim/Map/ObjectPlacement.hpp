@@ -133,6 +133,7 @@ namespace CarSim::Map
         void PlaceProps(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceVehicles(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceStreetParking(const MapWorld& world);
+        void PlaceGardenTrees(const MapWorld& world);
         void PlaceDelineators(const MapWorld& world);
         /// Front fences (picket, wire or hedge) with a gate gap along the street side of houses
         /// and cottages, side fences on cottages, and a shed behind every second one.

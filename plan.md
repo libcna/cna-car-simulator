@@ -828,3 +828,7 @@ committed with its own regression test and screenshot check.
 - [x] `RQ-166` Eastern junction: the node was named "U kostela" (at the church) although the
   church stands on the square 400 m away. A wayside chapel with its bell tower now stands at
   the junction and the node is named "U kaple".
+- [x] `RQ-167` Garden trees: the fenced plots behind village and town houses were empty lawns.
+  `ObjectPlacement::PlaceGardenTrees` scatters one to three trees per house and cottage on the
+  far side of the building from its street, clear of buildings, roads, the square and other
+  trees (662 trees on the sample map). Benchmarks unchanged within noise.

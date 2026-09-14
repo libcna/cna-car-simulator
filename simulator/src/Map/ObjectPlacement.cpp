@@ -134,7 +134,57 @@ namespace CarSim::Map
         PlacePlots(world);
         PlaceUtilityPoles(world);
         PlaceBushes(world);
+        PlaceGardenTrees(world);
         BuildGrids(world);
+    }
+
+    void ObjectPlacement::PlaceGardenTrees(const MapWorld& world)
+    {
+        // Fruit and shade trees in the gardens behind village and town houses: the plots were
+        // fenced but empty lawns, which is the one thing a Czech village never is.
+        const MapGround& ground = world.Ground();
+        const RoadNetwork& network = world.Roads();
+        const std::size_t existing = trees_.size();
+        const auto nearTree = [&](const Vector2& p, const float radius) {
+            for (std::size_t i = 0; i < existing; ++i) {
+                const PlacedTree& t = trees_[i];
+                if (std::fabs(t.position.X - p.X) > radius || std::fabs(t.position.Z - p.Y) > radius) continue;
+                if (Vector2::DistanceSquared(Vector2(t.position.X, t.position.Z), p) < radius * radius) return true;
+            }
+            return false;
+        };
+        const TreeSpecies orchard[] = {TreeSpecies::Maple, TreeSpecies::Birch, TreeSpecies::Linden, TreeSpecies::Maple};
+        const std::size_t buildingCount = buildings_.size();
+        for (std::size_t bi = 0; bi < buildingCount; ++bi) {
+            const PlacedBuilding& b = buildings_[bi];
+            const std::string& type = b.spec->type;
+            if (type != "house" && type != "cottage") continue;
+            const Vector2 centre(b.position.X, b.position.Z);
+            RoadHit hit;
+            if (!network.NearestRoad(centre, 60.0f, hit)) continue;
+            Vector2 tangent(hit.sample.tangent.X, hit.sample.tangent.Z);
+            if (tangent.LengthSquared() < 1e-6f) continue;
+            tangent.Normalize();
+            const Vector2 right(-tangent.Y, tangent.X);
+            const float side = hit.lateral > 0.0f ? 1.0f : -1.0f;
+            const Vector2 away = right * side;                        // from the road into the garden
+            const unsigned seed = b.spec->seed;
+            const int count = 1 + static_cast<int>(Hash01(static_cast<int>(seed), 21, 409u) * 2.99f);   // 1..3
+            for (int i = 0; i < count; ++i) {
+                const float along = (Hash01(static_cast<int>(seed) + i, 31, 613u) - 0.5f) * 2.0f * (b.halfWidth + 3.0f);
+                const float back = std::max(b.halfDepth, b.halfWidth) + 3.5f + Hash01(static_cast<int>(seed) + i, 41, 821u) * 7.0f;
+                const Vector2 p = centre + away * back + tangent * along;
+                if (!world.Terrain().Contains(p.X, p.Y) || InsideBuilding(p, 3.0f) || !ClearOfRoads(world, p, 3.0f) || nearTree(p, 6.0f)) continue;
+                if (world.Terrain().RegionAt(p.X, p.Y) == RegionType::Square) continue;
+                PlacedTree t;
+                t.species = orchard[(seed + static_cast<unsigned>(i)) % 4u];
+                t.scale = 0.7f + 0.25f * Hash01(static_cast<int>(seed) + i, 51, 937u);
+                t.seed = seed * 31u + static_cast<unsigned>(i);
+                t.rotationRad = Hash01(static_cast<int>(t.seed), 3, 77u) * 2.0f * kPi;
+                t.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
+                trees_.push_back(t);
+            }
+        }
     }
 
     void ObjectPlacement::PlaceBushes(const MapWorld& world)
