@@ -29,7 +29,7 @@ average includes llvmpipe's rasterisation and the swap.
 | Town chase (`--spawn square`, 20 traffic cars) | 114.6 ms | 1024 | 868k | 0.5 | 0 | 1.0 | 65.4 | 42.5 | 4.9 | 0.2 |
 | Town cockpit, mirror every frame | 174.2 ms | 1020 | 872k | 0.5 | 61.6 | 0.3 | 66.6 | 40.9 | 4.1 | 0.2 |
 | Town cockpit, `--mirror-every 2` | 145.4 ms | 1020 | 872k | 0.5 | 30.7 | 1.0 | 67.5 | 41.3 | 4.2 | 0.2 |
-| Forest road (`--spawn forest`) | 55.4 ms | 442 | 589k | 0.5 | 0 | 2.0 | 42.7 | 3.7 | 6.3 | 0.2 |
+| Forest road (`--spawn forest`) | 55.0 ms | 441 | 611k | 0.5 | 0 | 1.6 | 42.9 | 3.6 | 6.1 | 0.2 |
 | Fields (`--spawn fields`) | 26.2 ms | 421 | 360k | 0.5 | 0 | 1.6 | 19.0 | 0 | 4.9 | 0.2 |
 
 Pass columns are milliseconds per frame. Visible batches on the town chase run: 296 terrain

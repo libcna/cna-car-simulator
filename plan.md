@@ -821,3 +821,7 @@ committed with its own regression test and screenshot check.
   target builds, `ctest` passes all five registrations in 29 s (156 unit and scenario tests,
   the headless smoke run, both static checks, the content check), `check_xna_only.py` and
   `check_assets.py` are clean and `carsim-mapvalidate` reports no warnings.
+- [x] `RQ-165` Forest track: the end loop of the forest track ran 100-180 m beyond the north
+  edge of the wood, so the "forest" road finished in open meadow. The big forest polygon now
+  reaches z = -2840 and wraps the loop (52.3k trees instead of 46.5k, forest benchmark
+  unchanged at 55 ms).
