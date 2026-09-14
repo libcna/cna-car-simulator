@@ -37,6 +37,8 @@ namespace CarSim::Render
     {
     public:
         static constexpr int kVariantsPerBody = 2;
+        /// Number of paint colours in the traffic palette.
+        static constexpr int kPaletteSize = 16;
 
         TrafficRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, VehicleMaterials& materials, const BitmapFont* plateFont);
 

@@ -606,11 +606,14 @@ namespace CarSim::Traffic
         v.s = std::clamp(s, 0.0f, lanes_.LaneAt(lane).length);
         v.speed = std::max(0.0f, speed);
         std::uniform_real_distribution<float> factor(0.9f, 1.08f);
-        std::uniform_int_distribution<int> palette(0, 9);
+        // One draw, weighted towards the first four colours (white, silver, grey, black): they
+        // take about two thirds of the cars, as they do on a real road.
+        static constexpr int kPaletteDraw[24] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 15};
+        std::uniform_int_distribution<int> palette(0, 23);
         std::uniform_real_distribution<float> roll(0.0f, 1.0f);
         std::uniform_int_distribution<unsigned> seed(0u, 6u);
         v.driverFactor = factor(rng_);
-        v.paletteIndex = palette(rng_);
+        v.paletteIndex = kPaletteDraw[palette(rng_)];
         v.body = PickBody(roll(rng_));
         v.styleSeed = seed(rng_);
         const Sim::CarStyle style = Sim::CarStyle::Preset(v.body, v.styleSeed);

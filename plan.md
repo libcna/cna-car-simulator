@@ -853,3 +853,7 @@ committed with its own regression test and screenshot check.
   fresh from `origin` and built against the dependency checkouts (Release, Ninja, OPENGLES3):
   every target builds, `ctest` passes all five registrations in 32 s (159 unit and scenario
   tests), both static checks are clean and `carsim-mapvalidate` reports no warnings.
+- [x] `RQ-174` Paint palette: ten colours became sixteen (graphite, champagne, petrol, orange,
+  midnight grey, burgundy on top of the common ones) and the traffic draws from a weighted table
+  so white, silver, grey and black still take about two thirds of the cars. Parked cars use the
+  whole palette. The draw stays a single RNG step, so the traffic scenarios remain deterministic.

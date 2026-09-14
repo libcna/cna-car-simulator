@@ -27,13 +27,27 @@ namespace CarSim::Render
 
     Vector3 TrafficRenderer::PaintColour(const int paletteIndex, const Sim::CarStyle::Body body)
     {
-        // Common Czech car colours: white, silver, grey, black, dark blue, red, dark green, beige, light blue, brown.
-        static const Vector3 palette[10] = {
-            Vector3(0.90f, 0.90f, 0.88f), Vector3(0.66f, 0.68f, 0.70f), Vector3(0.36f, 0.37f, 0.39f), Vector3(0.05f, 0.05f, 0.06f),
-            Vector3(0.08f, 0.14f, 0.36f), Vector3(0.62f, 0.10f, 0.10f), Vector3(0.10f, 0.28f, 0.16f), Vector3(0.72f, 0.64f, 0.50f),
-            Vector3(0.40f, 0.55f, 0.72f), Vector3(0.32f, 0.20f, 0.12f),
+        // Common Czech car colours. The first four (white, silver, grey, black) carry most of the
+        // traffic, as they do on a real road; the rest add the occasional colour.
+        static const Vector3 palette[kPaletteSize] = {
+            Vector3(0.90f, 0.90f, 0.88f),   // white
+            Vector3(0.66f, 0.68f, 0.70f),   // silver
+            Vector3(0.36f, 0.37f, 0.39f),   // grey
+            Vector3(0.05f, 0.05f, 0.06f),   // black
+            Vector3(0.08f, 0.14f, 0.36f),   // dark blue
+            Vector3(0.62f, 0.10f, 0.10f),   // red
+            Vector3(0.10f, 0.28f, 0.16f),   // dark green
+            Vector3(0.72f, 0.64f, 0.50f),   // beige
+            Vector3(0.40f, 0.55f, 0.72f),   // light blue
+            Vector3(0.32f, 0.20f, 0.12f),   // brown
+            Vector3(0.52f, 0.54f, 0.58f),   // graphite metallic
+            Vector3(0.78f, 0.76f, 0.70f),   // champagne
+            Vector3(0.18f, 0.32f, 0.30f),   // petrol
+            Vector3(0.74f, 0.42f, 0.10f),   // orange
+            Vector3(0.24f, 0.24f, 0.30f),   // midnight grey
+            Vector3(0.58f, 0.14f, 0.28f),   // burgundy
         };
-        int index = paletteIndex % 10;
+        int index = paletteIndex % kPaletteSize;
         if (body == Sim::CarStyle::Body::Van && index >= 4) {
             index = index % 2;   // vans: mostly white or silver
         }
@@ -126,7 +140,7 @@ namespace CarSim::Render
                 pose.grounded = true;
                 state.wheels[w] = pose;
             }
-            renderer.SetPaintOverride(PaintColour(static_cast<int>(car.seed % 10u), car.body));
+            renderer.SetPaintOverride(PaintColour(static_cast<int>(car.seed % static_cast<unsigned>(kPaletteSize)), car.body));
             renderer.SetPlateTexture(lod < 2 && i < plates.size() && !plates[i].empty() ? PlateTexture(device, plates[i]) : nullptr);
             renderer.DrawOpaque(device, state, view, projection, false, none, mirrored, lod);
             stats_.drawCalls += renderer.DrawCallsLastFrame();
