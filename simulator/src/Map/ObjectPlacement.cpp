@@ -100,6 +100,10 @@ namespace CarSim::Map
         else if (text == "hydrant") out = PropType::Hydrant;
         else if (text == "bin") out = PropType::Bin;
         else if (text == "delineator") out = PropType::Delineator;
+        else if (text == "wire_fence") out = PropType::WireFence;
+        else if (text == "hedge") out = PropType::Hedge;
+        else if (text == "shed") out = PropType::Shed;
+        else if (text == "utility_pole") out = PropType::UtilityPole;
         else return false;
         return true;
     }
@@ -118,7 +122,109 @@ namespace CarSim::Map
         PlaceSigns(world);
         PlaceProps(world, warnings);
         PlaceDelineators(world);
+        PlacePlots(world);
+        PlaceUtilityPoles(world);
         BuildGrids(world);
+    }
+
+    void ObjectPlacement::PlacePlots(const MapWorld& world)
+    {
+        const MapGround& ground = world.Ground();
+        const RoadNetwork& network = world.Roads();
+        const auto clear = [&](const Vector2& p, const float margin) {
+            return world.Terrain().Contains(p.X, p.Y) && !InsideBuilding(p, margin) && ClearOfRoads(world, p, margin);
+        };
+        const auto addLine = [&](const PropType type, const Vector2& a, const Vector2& b, const Vector2& facing) {
+            const float length = Vector2::Distance(a, b);
+            if (length < 1.6f) return;
+            const Vector2 mid = (a + b) * 0.5f;
+            for (const Vector2& q : {a, mid, b}) {
+                if (!clear(q, 0.3f)) return;
+            }
+            PlacedProp f;
+            f.type = type;
+            f.length = length;
+            f.position = Vector3(mid.X, ground.HeightAt(mid.X, mid.Y), mid.Y);
+            f.headingRad = HeadingFromDirection(facing.X, facing.Y);
+            props_.push_back(f);
+        };
+        for (const PlacedBuilding& b : buildings_) {
+            const std::string& type = b.spec->type;
+            if (type != "house" && type != "cottage") continue;
+            const unsigned seed = b.spec->seed;
+            const Vector2 centre(b.position.X, b.position.Z);
+            RoadHit hit;
+            if (!network.NearestRoad(centre, 45.0f, hit)) continue;
+            const Road& road = network.Roads()[static_cast<std::size_t>(hit.road)];
+            const float edge = road.profile.HalfTotalWidth();
+            const float gap = std::fabs(hit.lateral) - edge;        // road edge to the building centre
+            const float reach = std::max(b.halfWidth, b.halfDepth);
+            if (gap < reach + 1.5f) continue;                      // no front garden to fence
+            Vector2 tangent(hit.sample.tangent.X, hit.sample.tangent.Z);
+            if (tangent.LengthSquared() < 1e-6f) continue;
+            tangent.Normalize();
+            const Vector2 right(-tangent.Y, tangent.X);
+            const float side = hit.lateral > 0.0f ? 1.0f : -1.0f;
+            const Vector2 away = right * side;                       // from the road towards the plot
+            const Vector2 roadPoint(hit.sample.position.X, hit.sample.position.Z);
+            const Vector2 lineCentre = roadPoint + away * (edge + 0.6f);
+            const float halfExtent = reach + 2.5f;
+            const float gateAt = 1.2f, gateHalf = 0.8f;            // gate opening a little right of centre
+            const PropType kind = seed % 3u == 0u ? PropType::Fence : (seed % 3u == 1u ? PropType::WireFence : PropType::Hedge);
+            addLine(kind, lineCentre + tangent * -halfExtent, lineCentre + tangent * (gateAt - gateHalf), away * -1.0f);
+            addLine(kind, lineCentre + tangent * (gateAt + gateHalf), lineCentre + tangent * halfExtent, away * -1.0f);
+            if (type == "cottage") {
+                // Side fences from the street line back past the house.
+                const float depth = gap + reach + 2.0f;
+                for (const float sx : {-1.0f, 1.0f}) {
+                    const Vector2 a = lineCentre + tangent * (sx * halfExtent);
+                    addLine(kind, a, a + away * depth, tangent * -sx);
+                }
+            }
+            if (seed % 2u == 0u) {
+                const Vector2 shedAt = centre + away * (reach + 3.2f) + tangent * (reach - 1.2f);
+                if (clear(shedAt, 1.6f)) {
+                    PlacedProp shed;
+                    shed.type = PropType::Shed;
+                    shed.position = Vector3(shedAt.X, ground.HeightAt(shedAt.X, shedAt.Y), shedAt.Y);
+                    shed.headingRad = HeadingFromDirection(-away.X, -away.Y);   // door towards the house
+                    props_.push_back(shed);
+                }
+            }
+        }
+    }
+
+    void ObjectPlacement::PlaceUtilityPoles(const MapWorld& world)
+    {
+        const MapGround& ground = world.Ground();
+        const RoadNetwork& network = world.Roads();
+        for (const Road& road : network.Roads()) {
+            const RoadClass cls = road.spec->roadClass;
+            if (cls != RoadClass::ClassIII && cls != RoadClass::Local && cls != RoadClass::Residential) continue;
+            for (float s = 21.0f; s < road.curve.Length() - 8.0f; s += 42.0f) {
+                const RoadSample sample = road.curve.Evaluate(s);
+                bool nearJunction = false;
+                for (const Intersection& inter : network.Intersections()) {
+                    for (const Approach& a : inter.approaches) {
+                        if (a.road == road.index && std::fabs(a.nodeS - s) < a.setback + 6.0f) nearJunction = true;
+                    }
+                }
+                if (nearJunction) continue;
+                const Vector2 centre(sample.position.X, sample.position.Z);
+                Vector2 tangent(sample.tangent.X, sample.tangent.Z);
+                if (tangent.LengthSquared() < 1e-6f) continue;
+                tangent.Normalize();
+                const Vector2 right(-tangent.Y, tangent.X);
+                const float lateral = road.profile.HalfTotalWidth() + (sample.urban ? 0.5f : 2.0f);
+                const Vector2 p = centre - right * lateral;   // left side, opposite the delineator rhythm
+                if (!world.Terrain().Contains(p.X, p.Y) || InsideBuilding(p, 1.2f)) continue;
+                PlacedProp pole;
+                pole.type = PropType::UtilityPole;
+                pole.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
+                pole.headingRad = HeadingFromDirection(tangent.X, tangent.Y);   // crossarm across the line direction
+                props_.push_back(pole);
+            }
+        }
     }
 
     bool ObjectPlacement::ClearOfRoads(const MapWorld& world, const Vector2& p, const float margin) const

@@ -27,8 +27,12 @@ namespace CarSim::Render
         std::array<MeshData, BuildingPalette::kWallColours> walls;
         std::array<MeshData, BuildingPalette::kRoofColours> roofs;
         MeshData windows;
-        MeshData trim;      // doors, plinths, chimneys, gutters
+        MeshData trim;      // doors, plinths, chimneys (dark brown)
         MeshData glassDark; // shop fronts and block windows (darker, no frame)
+        MeshData frames;    // window frames, fascia boards, cornices, canopies, chimney caps (off-white)
+        MeshData metal;     // gutters, downpipes, railings (galvanised grey)
+        MeshData dark;      // reveal shadow lines, chimney pots (near black)
+        MeshData concrete;  // doorsteps, block canopies
     };
 
     class BuildingGenerator

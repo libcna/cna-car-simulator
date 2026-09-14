@@ -76,6 +76,10 @@ namespace CarSim::Map
         Hydrant,
         Bin,
         Delineator,     // Z 11a/b roadside post (generated)
+        WireFence,      // wire mesh fence on steel posts (generated around plots)
+        Hedge,          // clipped hedge (generated around plots)
+        Shed,           // garden shed behind a house (generated)
+        UtilityPole,    // wooden pole with a crossarm along village roads (generated)
         Unknown
     };
 
@@ -115,6 +119,11 @@ namespace CarSim::Map
         void PlaceSigns(const MapWorld& world);
         void PlaceProps(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceDelineators(const MapWorld& world);
+        /// Front fences (picket, wire or hedge) with a gate gap along the street side of houses
+        /// and cottages, side fences on cottages, and a shed behind every second one.
+        void PlacePlots(const MapWorld& world);
+        /// Wooden utility poles on the left side of class III, local and residential roads.
+        void PlaceUtilityPoles(const MapWorld& world);
         void BuildGrids(const MapWorld& world);
         [[nodiscard]] bool ClearOfRoads(const MapWorld& world, const Microsoft::Xna::Framework::Vector2& p, float margin) const;
 

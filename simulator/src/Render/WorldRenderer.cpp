@@ -404,7 +404,7 @@ namespace CarSim::Render
             VegetationGenerator::AppendTrunk(t, trunkChunks[ChunkKey(t.position.X, t.position.Z)]);
         }
         const auto push = [&](MeshData& m, Texture2D* texture, const Vector3& diffuse, const Vector3& specular, const float power,
-                              const Vector3& emissive = Vector3(0.0f, 0.0f, 0.0f)) {
+                              const Vector3& emissive = Vector3(0.0f, 0.0f, 0.0f), const float cullDistance = 0.0f) {
             if (m.TriangleCount() == 0) return;
             ObjectBatch b;
             b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionNormalTexture);
@@ -413,8 +413,11 @@ namespace CarSim::Render
             b.specular = specular;
             b.specularPower = power;
             b.emissive = emissive;
+            b.cullDistance = cullDistance;
             objectBatches_.push_back(std::move(b));
         };
+        const Vector3 noGlow(0.0f, 0.0f, 0.0f);
+        constexpr float kDetailRangeM = 420.0f;   // frames, gutters, reveal lines: invisible beyond this
         const Vector3 one(1.0f, 1.0f, 1.0f);
         const Vector3 matte(0.04f, 0.04f, 0.04f);
         for (auto& [key, bm] : buildingChunks) {
@@ -427,6 +430,10 @@ namespace CarSim::Render
             push(bm.windows, windowTexture_.get(), one, Vector3(0.6f, 0.6f, 0.6f), 40.0f);
             push(bm.glassDark, white_.get(), Vector3(0.20f, 0.25f, 0.30f), Vector3(0.8f, 0.8f, 0.8f), 60.0f);
             push(bm.trim, white_.get(), Vector3(0.28f, 0.22f, 0.18f), matte, 6.0f);
+            push(bm.frames, white_.get(), Vector3(0.90f, 0.89f, 0.84f), Vector3(0.2f, 0.2f, 0.2f), 12.0f, noGlow, kDetailRangeM);
+            push(bm.metal, white_.get(), Vector3(0.52f, 0.54f, 0.57f), Vector3(0.5f, 0.5f, 0.5f), 30.0f, noGlow, kDetailRangeM);
+            push(bm.dark, white_.get(), Vector3(0.05f, 0.05f, 0.05f), matte, 6.0f, noGlow, kDetailRangeM);
+            push(bm.concrete, concrete_.get(), one, matte, 6.0f);
         }
         for (auto& [key, pm] : propChunks) {
             push(pm.metal, white_.get(), Vector3(0.50f, 0.52f, 0.54f), Vector3(0.5f, 0.5f, 0.5f), 30.0f);
@@ -438,9 +445,10 @@ namespace CarSim::Render
             push(pm.reflectorWhite, white_.get(), Vector3(0.95f, 0.95f, 0.95f), Vector3(0.6f, 0.6f, 0.6f), 40.0f, Vector3(0.35f, 0.35f, 0.35f));
             push(pm.glass, white_.get(), Vector3(0.22f, 0.27f, 0.32f), Vector3(0.9f, 0.9f, 0.9f), 70.0f);
             push(pm.red, white_.get(), Vector3(0.75f, 0.08f, 0.06f), Vector3(0.3f, 0.3f, 0.3f), 20.0f);
+            push(pm.hedge, grass_.get(), Vector3(0.26f, 0.38f, 0.17f), matte, 6.0f);
         }
         for (auto& [key, m] : trunkChunks) {
-            push(m, barkTexture_.get(), one, matte, 6.0f);
+            push(m, barkTexture_.get(), one, matte, 6.0f, noGlow, 700.0f);
         }
         stats_.objectBatchesTotal = static_cast<int>(objectBatches_.size());
     }
@@ -601,6 +609,9 @@ namespace CarSim::Render
         stats_.objectBatchesDrawn = 0;
         for (const auto& b : objectBatches_) {
             if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
+                continue;
+            }
+            if (b.cullDistance > 0.0f && Vector3::Distance(eye, b.mesh->Sphere().Center) - b.mesh->Sphere().Radius > b.cullDistance) {
                 continue;
             }
             roadEffect_->setTextureProperty(b.texture);

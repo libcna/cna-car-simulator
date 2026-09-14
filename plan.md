@@ -567,8 +567,8 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [x] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked). Done: vehicle sun shadow (stencil-free convex hull with penumbra rim, draped on the ground) and contact shadow; `GroundShadowBaker` bakes building sweeps and tree crown discs into the macro and the road vertex colours.
 - [x] `RQ-050` Roads: reworked asphalt (wear tracks, patches, edge weathering), quieter sidewalk paving, kerb profile with gutter, grass verge strip blending road and terrain outside town, gravel shoulder texture, intersection surface continuity, marking wear. Acceptance: road no longer reads as a clean strip on a plane; lane widths unchanged (map tests).
 - [ ] `RQ-051` Czech road details review: sign plate sizes and post heights, delineator spacing, crossing bars, stop line position; corrections applied where wrong.
-- [ ] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
-- [ ] `RQ-061` Plots and street furniture: fences (wood, wire, wall) and hedges around house plots with gates and driveways generated from the placed buildings, garden sheds, utility poles along village roads, bus shelter and bench polish. Acceptance: houses no longer stand loose on the meadow.
+- [x] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
+- [x] `RQ-061` Plots and street furniture: fences (wood, wire, wall) and hedges around house plots with gates and driveways generated from the placed buildings, garden sheds, utility poles along village roads, bus shelter and bench polish. Acceptance: houses no longer stand loose on the meadow. Done: street-side picket/wire/hedge lines with a gate gap, side fences on cottages, sheds behind every second house, utility poles on class III/local/residential roads; open: driveways, shelter/bench polish.
 - [ ] `RQ-070` Vegetation: new species card textures (lit crowns, several variants per species), near-tree trunk with branches, bushes along roads and forest edges, roadside grass tufts within 60 m, forest understory darkening and edge blending, jittered placement with clumping. Acceptance: forest screenshot without visible rows; town avenue reads as trees.
 - [x] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
 
@@ -670,3 +670,14 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   light (sunlit meadow ~0.33, asphalt ~0.29) and the grass texture, tints and tile size
   (7 m) were retuned. Tests: `RoadMeshBuilderTests` (wear band, verge drape), `GroundShadowTests`
   (offset, sample map statistics, per-building shade side), `LightingRig::Irradiance`.
+- Building kit and plots (`BuildingGenerator.cpp`, `PropGenerator.cpp`, `ObjectPlacement.cpp`):
+  windows get geometric frames standing proud of the wall with a dark reveal line, every
+  eave a fascia board, gutter and downpipes, ridges get ridge tiles, chimneys caps and pots,
+  doors a step and canopy, town houses a cornice and string course, some two-storey gabled
+  houses a dormer, every fifth house a hipped roof; prefab blocks get concrete balcony slabs
+  with handrails and an entrance canopy. `ObjectPlacement::PlacePlots` generates street-side
+  picket, wire or hedge lines with a gate gap for houses and cottages (side fences on
+  cottages), a shed behind every second one, and `PlaceUtilityPoles` puts wooden poles with
+  crossarms along class III, local and residential roads; all placements are checked against
+  buildings and roads. Detail batches (frames, gutters, reveals) cull beyond 420 m. Test:
+  `PlotsAndUtilityPolesAreGeneratedClearOfBuildingsAndRoads`.

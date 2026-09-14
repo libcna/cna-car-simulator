@@ -38,9 +38,54 @@ namespace CarSim::Render
             m.AddQuad(a, b, c, d, n, Vector2(0, v1), Vector2(u1, v1), Vector2(u1, 0), Vector2(0, 0), kWhite);
         }
 
-        /// Gable or hipped roof over a rectangle x in [-hw, hw], z in [-hd, hd] at eaves height `y0`.
-        void Roof(MeshData& roof, MeshData& walls, const float hw, const float hd, const float y0, const float ridge,
-                  const bool hipped, const float overhang, const float thickness)
+        /// Local frame on a wall: x along the wall (right), y up, z out along the normal.
+        Matrix FaceBasis(const Vector3& n, const Vector3& origin)
+        {
+            const Vector3 up(0.0f, 1.0f, 0.0f);
+            const Vector3 right = Vector3::Cross(up, n);
+            return Matrix(right.X, right.Y, right.Z, 0, 0, 1, 0, 0, n.X, n.Y, n.Z, 0, origin.X, origin.Y, origin.Z, 1);
+        }
+
+        /// Window frame as geometry: four members 8 cm wide standing 5 cm proud of the wall, and
+        /// a dark reveal line under the head so the opening reads recessed.
+        void Frame(MeshData& frames, MeshData& dark, const Vector3& centre, const float w, const float h, const Vector3& n)
+        {
+            const float fw = 0.08f, depth = 0.05f;
+            MeshData f;
+            f.AddBox(Vector3(-w * 0.5f - fw, -h * 0.5f - fw, 0.0f), Vector3(-w * 0.5f, h * 0.5f + fw, depth), 1.0f);
+            f.AddBox(Vector3(w * 0.5f, -h * 0.5f - fw, 0.0f), Vector3(w * 0.5f + fw, h * 0.5f + fw, depth), 1.0f);
+            f.AddBox(Vector3(-w * 0.5f, h * 0.5f, 0.0f), Vector3(w * 0.5f, h * 0.5f + fw, depth), 1.0f);
+            f.AddBox(Vector3(-w * 0.5f, -h * 0.5f - fw, 0.0f), Vector3(w * 0.5f, -h * 0.5f, depth), 1.0f);
+            frames.Append(f, FaceBasis(n, centre + n * 0.004f));
+            MeshData d;
+            d.AddQuad(Vector3(-w * 0.5f, h * 0.5f - 0.11f, 0.0f), Vector3(w * 0.5f, h * 0.5f - 0.11f, 0.0f), Vector3(w * 0.5f, h * 0.5f, 0.0f),
+                      Vector3(-w * 0.5f, h * 0.5f, 0.0f), Vector3(0, 0, 1), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0), kWhite);
+            dark.Append(d, FaceBasis(n, centre + n * 0.022f));
+        }
+
+        /// Fascia board and gutter along one eave from `a` to `b` (both at eaves height), the
+        /// gutter hanging just below the board; a downpipe drops to the ground at `a`.
+        void Eave(MeshData& frames, MeshData& metal, const Vector3& a, const Vector3& b, const Vector3& outward, const float groundY, const bool downpipe)
+        {
+            const Vector3 along = b - a;
+            const float length = along.Length();
+            if (length < 0.5f) return;
+            const Vector3 dir = along * (1.0f / length);
+            MeshData f;
+            f.AddBox(Vector3(0.0f, -0.16f, 0.0f), Vector3(length, 0.02f, 0.035f), 1.0f);
+            const Matrix basis(dir.X, dir.Y, dir.Z, 0, 0, 1, 0, 0, outward.X, outward.Y, outward.Z, 0, a.X + outward.X * 0.01f, a.Y, a.Z + outward.Z * 0.01f, 1);
+            frames.Append(f, basis);
+            metal.AddCylinder(a + outward * 0.09f + Vector3(0.0f, -0.20f, 0.0f), dir, 0.055f, length, 8, true);
+            if (downpipe) {
+                const Vector3 foot = a + dir * 0.35f + outward * 0.10f;
+                metal.AddCylinder(Vector3(foot.X, groundY, foot.Z), Vector3(0, 1, 0), 0.04f, a.Y - 0.22f - groundY, 6, false);
+            }
+        }
+
+        /// Gable or hipped roof over a rectangle x in [-hw, hw], z in [-hd, hd] at eaves height `y0`,
+        /// with ridge tiles, fascia boards, gutters and downpipes.
+        void Roof(MeshData& roof, MeshData& walls, MeshData& frames, MeshData& metal, const float hw, const float hd, const float y0,
+                  const float ridge, const bool hipped, const float overhang, const float thickness, const float groundY)
         {
             const float ox = hw + overhang;
             const float oz = hd + overhang;
@@ -73,6 +118,14 @@ namespace CarSim::Render
                     roof.AddQuad(eL + down, eR + down, ridgeR + down, ridgeL + down, n * -1.0f, Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0), kWhite);
                     roof.AddQuad(eR + down, eL + down, eL, eR, Vector3(0, 0, -1), Vector2(0, 0.1f), Vector2(uvAlong, 0.1f), Vector2(uvAlong, 0), Vector2(0, 0), kWhite);
                 }
+            }
+            // Ridge tiles and the eaves kit.
+            roof.AddBox(Vector3(ridgeL.X, y0 + ridge - 0.03f, -0.12f), Vector3(ridgeR.X, y0 + ridge + 0.07f, 0.12f), 0.5f);
+            Eave(frames, metal, Vector3(-ox, yEave, oz), Vector3(ox, yEave, oz), Vector3(0, 0, 1), groundY, true);
+            Eave(frames, metal, Vector3(ox, yEave, -oz), Vector3(-ox, yEave, -oz), Vector3(0, 0, -1), groundY, true);
+            if (hipped) {
+                Eave(frames, metal, Vector3(ox, yEave, oz), Vector3(ox, yEave, -oz), Vector3(1, 0, 0), groundY, false);
+                Eave(frames, metal, Vector3(-ox, yEave, -oz), Vector3(-ox, yEave, oz), Vector3(-1, 0, 0), groundY, false);
             }
             if (hipped) {
                 // End slopes.
@@ -116,8 +169,8 @@ namespace CarSim::Render
             Quad(m, a, b, c, d, n);
         }
 
-        void WindowRow(MeshData& windows, MeshData& trim, const float hw, const float hd, const float yBottom, const float h, const float w,
-                       const float spacing, const Vector3& n, const bool sill, const int skipCentre = -1)
+        void WindowRow(MeshData& windows, MeshData& trim, MeshData* frames, MeshData* dark, const float hw, const float hd, const float yBottom,
+                       const float h, const float w, const float spacing, const Vector3& n, const bool sill, const int skipCentre = -1)
         {
             const bool frontBack = std::fabs(n.Z) > 0.5f;
             const float span = frontBack ? hw : hd;
@@ -128,6 +181,7 @@ namespace CarSim::Render
                 const float along = t * (span * 2.0f - 0.8f);
                 Vector3 centre = frontBack ? Vector3(along, yBottom + h * 0.5f, n.Z * hd) : Vector3(n.X * hw, yBottom + h * 0.5f, along);
                 Window(windows, centre, w, h, n);
+                if (frames && dark) Frame(*frames, *dark, centre, w, h, n);
                 if (sill) {
                     const Vector3 up(0.0f, 1.0f, 0.0f);
                     const Vector3 right = Vector3::Cross(up, n);
@@ -149,9 +203,34 @@ namespace CarSim::Render
             Quad(trim, o - right * (w * 0.5f), o + right * (w * 0.5f), o + right * (w * 0.5f) + up * h, o - right * (w * 0.5f) + up * h, n, 1.0f, 2.0f);
         }
 
-        void Chimney(MeshData& trim, const Vector3& base, const float size, const float height)
+        void Chimney(MeshData& trim, MeshData& frames, MeshData& dark, const Vector3& base, const float size, const float height)
         {
             trim.AddBox(base - Vector3(size * 0.5f, 0.0f, size * 0.5f), base + Vector3(size * 0.5f, height, size * 0.5f), 1.0f);
+            frames.AddBox(base + Vector3(-size * 0.5f - 0.08f, height, -size * 0.5f - 0.08f), base + Vector3(size * 0.5f + 0.08f, height + 0.08f, size * 0.5f + 0.08f), 1.0f);
+            dark.AddCylinder(base + Vector3(0.0f, height + 0.08f, 0.0f), Vector3(0, 1, 0), 0.09f, 0.24f, 8, true);
+        }
+
+        /// Gabled dormer on the front slope: a wall box breaking the slope, a small roof of two
+        /// tilted slabs, a framed window.
+        void Dormer(MeshData& walls, MeshData& roof, MeshData& frames, MeshData& dark, MeshData& windows, const float x, const float y0,
+                    const float ridge, const float hd)
+        {
+            const float zFront = hd * 0.50f + 0.12f;
+            const float ySlope = y0 + ridge * (1.0f - 0.50f);
+            const float half = 0.75f, height = 1.25f, back = 1.5f;
+            walls.AddBox(Vector3(x - half, ySlope - 0.5f, zFront - back), Vector3(x + half, ySlope + height, zFront), 0.35f);
+            const float yTop = ySlope + height + 0.55f;
+            const float slopeLen = std::hypot(half + 0.15f, 0.55f);
+            const float theta = std::atan2(0.55f, half + 0.15f);
+            for (const float side : {1.0f, -1.0f}) {
+                MeshData slab;
+                slab.AddBox(Vector3(0.0f, -0.07f, zFront - back - 0.05f), Vector3(slopeLen, 0.0f, zFront + 0.25f), 0.5f);
+                slab.Transform(Matrix::CreateRotationZ(side > 0.0f ? -theta : 3.14159265f + theta) * Matrix::CreateTranslation(x, yTop, 0.0f));
+                roof.Append(slab, Matrix::getIdentityProperty());
+            }
+            const Vector3 centre(x, ySlope + 0.60f, zFront);
+            Window(windows, centre, 0.9f, 0.9f, Vector3(0, 0, 1));
+            Frame(frames, dark, centre, 0.9f, 0.9f, Vector3(0, 0, 1));
         }
     }
 
@@ -225,7 +304,7 @@ namespace CarSim::Render
     void BuildingGenerator::Generate(const Map::PlacedBuilding& b, BuildingMeshes& out)
     {
         const std::string& type = b.spec->type;
-        MeshData walls, roof, windows, trim, glass;
+        MeshData walls, roof, windows, trim, glass, frames, metal, dark, concrete;
         const float hw = b.halfWidth;
         const float hd = b.halfDepth;
         const float h = b.height;
@@ -248,24 +327,27 @@ namespace CarSim::Render
             Box(trim, Vector3(-hw + 0.5f, h + 0.25f, -hd + 0.5f), Vector3(-hw + 2.0f, h + 1.4f, -hd + 2.0f), 0.5f);   // lift housing
             for (int f = 0; f < floors; ++f) {
                 const float y = static_cast<float>(f) * floorH + 0.9f;
-                WindowRow(glass, trim, hw, hd, y, 1.5f, 1.6f, 3.0f, front, false);
-                WindowRow(glass, trim, hw, hd, y, 1.5f, 1.6f, 3.0f, back, false);
+                WindowRow(glass, trim, &frames, &dark, hw, hd, y, 1.5f, 1.6f, 3.0f, front, false);
+                WindowRow(glass, trim, &frames, &dark, hw, hd, y, 1.5f, 1.6f, 3.0f, back, false);
                 if (f > 0) {
-                    // Balconies every second bay on the front.
+                    // Balconies every second bay on the front: slab, solid parapet, steel handrail.
                     const int bays = std::max(1, static_cast<int>((hw * 2.0f - 0.8f) / 3.0f));
                     for (int i = 0; i < bays; i += 2) {
                         const float t = (static_cast<float>(i) + 0.5f) / static_cast<float>(bays) - 0.5f;
                         const float x = t * (hw * 2.0f - 0.8f);
-                        Box(trim, Vector3(x - 1.4f, y - 0.9f, hd), Vector3(x + 1.4f, y - 0.75f, hd + 1.2f), 0.5f);
-                        Box(trim, Vector3(x - 1.4f, y - 0.75f, hd + 1.1f), Vector3(x + 1.4f, y + 0.25f, hd + 1.2f), 0.5f);
+                        Box(concrete, Vector3(x - 1.4f, y - 0.9f, hd), Vector3(x + 1.4f, y - 0.75f, hd + 1.2f), 0.5f);
+                        Box(trim, Vector3(x - 1.4f, y - 0.75f, hd + 1.1f), Vector3(x + 1.4f, y + 0.20f, hd + 1.2f), 0.5f);
+                        metal.AddBox(Vector3(x - 1.42f, y + 0.20f, hd + 1.08f), Vector3(x + 1.42f, y + 0.25f, hd + 1.22f), 1.0f);
                     }
                 }
             }
             Door(trim, Vector3(0.0f, -0.0f, hd), 1.6f, 2.3f, front);
+            Box(concrete, Vector3(-1.3f, 2.35f, hd), Vector3(1.3f, 2.5f, hd + 1.5f), 0.5f);   // entrance canopy
+            Box(concrete, Vector3(-1.3f, -drop, hd), Vector3(1.3f, 0.02f, hd + 1.2f), 0.5f);  // entrance slab
         } else if (type == "church" || type == "chapel") {
             const bool chapel = type == "chapel";
             const float ridge = b.roofHeight * (chapel ? 1.0f : 1.15f);
-            Roof(roof, walls, hw, hd, h, ridge, false, 0.4f, 0.12f);
+            Roof(roof, walls, frames, metal, hw, hd, h, ridge, false, 0.4f, 0.12f, -drop + 0.3f);
             // Tower at the facade end.
             const float tw = chapel ? hw * 0.9f : std::min(hw * 0.7f, 4.0f);
             const float towerH = h + ridge + (chapel ? 2.0f : 8.0f);
@@ -295,39 +377,52 @@ namespace CarSim::Render
             }
             // Tall arched-look windows on the nave sides, belfry openings on the tower.
             for (const Vector3& n : {left, right}) {
-                WindowRow(windows, trim, hw, hd - tw, h * 0.35f, h * 0.5f, 1.1f, 4.0f, n, false);
+                WindowRow(windows, trim, &frames, &dark, hw, hd - tw, h * 0.35f, h * 0.5f, 1.1f, 4.0f, n, false);
             }
             Window(glass, Vector3(0.0f, towerH - 2.0f, hd + tw * 1.5f), 1.0f, 2.2f, front);
             Door(trim, Vector3(0.0f, 0.0f, hd + tw * 1.5f), chapel ? 1.2f : 2.2f, chapel ? 2.2f : 3.6f, front);
         } else {
-            const bool hipped = type == "hall" || type == "shop";
+            const unsigned seed = b.spec->seed;
+            const bool hipped = type == "hall" || type == "shop" || (type == "house" && seed % 5u == 0u);
             const float ridge = b.roofHeight;
-            Roof(roof, walls, hw, hd, h, ridge, hipped, 0.45f, 0.12f);
-            Chimney(trim, Vector3(hw * 0.4f, h + ridge * 0.55f, -hd * 0.3f), 0.5f, ridge * 0.6f + 0.8f);
+            Roof(roof, walls, frames, metal, hw, hd, h, ridge, hipped, 0.45f, 0.12f, -drop + 0.3f);
+            Chimney(trim, frames, dark, Vector3(hw * 0.4f, h + ridge * 0.55f, -hd * 0.3f), 0.5f, ridge * 0.6f + 0.8f);
             if (type == "barn") {
                 Door(trim, Vector3(0.0f, 0.0f, hd), 3.6f, 3.4f, front);
-                WindowRow(windows, trim, hw, hd, h * 0.55f, 0.7f, 0.9f, 4.0f, back, false);
-                WindowRow(windows, trim, hw, hd, h * 0.55f, 0.7f, 0.9f, 4.0f, left, false);
+                WindowRow(windows, trim, nullptr, nullptr, hw, hd, h * 0.55f, 0.7f, 0.9f, 4.0f, back, false);
+                WindowRow(windows, trim, nullptr, nullptr, hw, hd, h * 0.55f, 0.7f, 0.9f, 4.0f, left, false);
             } else {
                 for (int f = 0; f < floors; ++f) {
                     const float y = static_cast<float>(f) * floorH + (f == 0 ? 1.0f : 0.95f);
                     const bool shopFront = type == "shop" && f == 0;
                     const int doorSlot = f == 0 ? 0 : -1;
                     if (shopFront) {
-                        WindowRow(glass, trim, hw, hd, 0.5f, 2.2f, 2.4f, 3.0f, front, false, 0);
+                        WindowRow(glass, trim, &frames, &dark, hw, hd, 0.5f, 2.2f, 2.4f, 3.0f, front, false, 0);
                     } else {
-                        WindowRow(windows, trim, hw, hd, y, 1.35f, 1.05f, 2.4f, front, true, doorSlot);
+                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, front, true, doorSlot);
                     }
-                    WindowRow(windows, trim, hw, hd, y, 1.35f, 1.05f, 2.4f, back, true);
+                    WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, back, true);
                     if (hw * 2.0f > 6.0f) {
-                        WindowRow(windows, trim, hw, hd, y, 1.35f, 1.05f, 3.2f, left, true);
-                        WindowRow(windows, trim, hw, hd, y, 1.35f, 1.05f, 3.2f, right, true);
+                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 3.2f, left, true);
+                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 3.2f, right, true);
                     }
                 }
-                // Door in the first bay of the facade.
+                // Door in the first bay of the facade, with a doorstep and a small canopy.
                 const int count = std::max(1, static_cast<int>((hw * 2.0f - 0.8f) / 2.4f));
                 const float t = 0.5f / static_cast<float>(count) - 0.5f;
-                Door(trim, Vector3(t * (hw * 2.0f - 0.8f), 0.0f, hd), 1.0f, 2.15f, front);
+                const float doorX = t * (hw * 2.0f - 0.8f);
+                Door(trim, Vector3(doorX, 0.0f, hd), 1.0f, 2.15f, front);
+                Box(concrete, Vector3(doorX - 0.8f, -drop, hd), Vector3(doorX + 0.8f, 0.03f, hd + 0.9f), 0.5f);
+                Box(frames, Vector3(doorX - 0.85f, 2.27f, hd), Vector3(doorX + 0.85f, 2.35f, hd + 0.75f), 1.0f);
+                // Cornice under the eaves and a string course between floors on town houses.
+                if (floors >= 2) {
+                    Box(frames, Vector3(-hw - 0.05f, h - 0.24f, -hd - 0.05f), Vector3(hw + 0.05f, h - 0.08f, hd + 0.05f), 1.0f);
+                    Box(frames, Vector3(-hw - 0.03f, floorH - 0.04f, -hd - 0.03f), Vector3(hw + 0.03f, floorH + 0.04f, hd + 0.03f), 1.0f);
+                }
+                // A dormer on some two-storey gabled houses.
+                if (type == "house" && floors >= 2 && !hipped && seed % 3u == 1u && hw > 4.5f) {
+                    Dormer(walls, roof, frames, dark, windows, hw * 0.25f, h, ridge, hd);
+                }
             }
         }
 
@@ -340,5 +435,9 @@ namespace CarSim::Render
         out.windows.Append(windows, world);
         out.trim.Append(trim, world);
         out.glassDark.Append(glass, world);
+        out.frames.Append(frames, world);
+        out.metal.Append(metal, world);
+        out.dark.Append(dark, world);
+        out.concrete.Append(concrete, world);
     }
 }

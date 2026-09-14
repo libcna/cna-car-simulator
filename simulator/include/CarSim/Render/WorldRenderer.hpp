@@ -76,6 +76,7 @@ namespace CarSim::Render
             Microsoft::Xna::Framework::Vector3 emissive{0.0f, 0.0f, 0.0f};
             Microsoft::Xna::Framework::Vector3 specular{0.05f, 0.05f, 0.05f};
             float specularPower = 8.0f;
+            float cullDistance = 0.0f;   // > 0: skipped when the batch sphere is farther than this
         };
         struct TreeBatch
         {

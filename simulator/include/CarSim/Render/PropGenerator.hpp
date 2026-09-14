@@ -18,6 +18,7 @@ namespace CarSim::Render
         MeshData reflectorWhite;
         MeshData glass;      // shelter panels (dark tinted)
         MeshData red;        // hydrant
+        MeshData hedge;      // clipped hedges (leafy green)
     };
 
     class PropGenerator

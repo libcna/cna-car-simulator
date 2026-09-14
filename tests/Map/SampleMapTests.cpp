@@ -87,3 +87,35 @@ TEST(SampleMap, RightOfWayIsAntisymmetric)
     }
     EXPECT_GT(yields, 20);
 }
+
+TEST(SampleMap, PlotsAndUtilityPolesAreGeneratedClearOfBuildingsAndRoads)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    int fences = 0, hedges = 0, wire = 0, sheds = 0, poles = 0;
+    for (const auto& p : world->Objects().Props()) {
+        switch (p.type) {
+            case Map::PropType::Fence: ++fences; break;
+            case Map::PropType::Hedge: ++hedges; break;
+            case Map::PropType::WireFence: ++wire; break;
+            case Map::PropType::Shed: ++sheds; break;
+            case Map::PropType::UtilityPole: ++poles; break;
+            default: break;
+        }
+        if (p.type == Map::PropType::Shed || p.type == Map::PropType::UtilityPole) {
+            const Microsoft::Xna::Framework::Vector2 at(p.position.X, p.position.Z);
+            EXPECT_FALSE(world->Objects().InsideBuilding(at, 0.5f));
+            float height = 0.0f;
+            Sim::SurfaceType surface = Sim::SurfaceType::Asphalt;
+            float edge = 0.0f;
+            const bool onRoad = world->Roads().RoadSurfaceAt(at, height, surface, edge) && edge < 0.0f;
+            EXPECT_FALSE(onRoad) << "prop on the paved road at " << at.X << ", " << at.Y;
+        }
+    }
+    EXPECT_GT(fences + hedges + wire, 60) << "houses should have street-side fences";
+    EXPECT_GT(hedges, 5);
+    EXPECT_GT(wire, 5);
+    EXPECT_GT(sheds, 10);
+    EXPECT_GT(poles, 40);
+}

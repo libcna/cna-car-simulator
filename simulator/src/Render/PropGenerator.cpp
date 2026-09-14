@@ -31,7 +31,7 @@ namespace CarSim::Render
 
     void PropGenerator::Generate(const Map::PlacedProp& p, PropMeshes& out)
     {
-        MeshData metal, wood, concrete, white, black, orange, refWhite, glass, red;
+        MeshData metal, wood, concrete, white, black, orange, refWhite, glass, red, hedge;
         const float s = p.scale;
         switch (p.type) {
             case PropType::Delineator: {
@@ -148,6 +148,48 @@ namespace CarSim::Render
                 black.AddCylinder(Vector3(0, 1.05f, 0), Vector3(0, 1, 0), 0.21f, 0.04f, 12, true);
                 break;
             }
+            case PropType::WireFence: {
+                // Steel posts every 2.5 m, three strained wires; reads as open mesh from the road.
+                const float length = std::max(2.0f, p.length);
+                const int posts = static_cast<int>(length / 2.5f) + 1;
+                for (int i = 0; i < posts; ++i) {
+                    const float x = -length * 0.5f + static_cast<float>(i) * length / static_cast<float>(std::max(1, posts - 1));
+                    metal.AddCylinder(Vector3(x, -0.15f, 0.0f), Vector3(0, 1, 0), 0.03f, 1.65f, 6, true);
+                }
+                for (const float y : {0.35f, 0.85f, 1.42f}) {
+                    black.AddBox(Vector3(-length * 0.5f, y - 0.008f, -0.008f), Vector3(length * 0.5f, y + 0.008f, 0.008f), 1.0f);
+                }
+                break;
+            }
+            case PropType::Hedge: {
+                const float length = std::max(1.5f, p.length);
+                MeshData h;
+                h.AddBox(Vector3(-length * 0.5f, -0.1f, -0.38f), Vector3(length * 0.5f, 1.35f, 0.38f), 0.6f);
+                // Slightly bulging sides: a second, narrower box on top rounds the silhouette.
+                h.AddBox(Vector3(-length * 0.5f + 0.1f, 1.3f, -0.28f), Vector3(length * 0.5f - 0.1f, 1.5f, 0.28f), 0.6f);
+                hedge.Append(h, Matrix::getIdentityProperty());
+                break;
+            }
+            case PropType::Shed: {
+                // Timber garden shed, 2.6 x 2.1 m, felt roof with a slight pitch, door facing +z.
+                wood.AddBox(Vector3(-1.3f, -0.1f, -1.05f), Vector3(1.3f, 2.05f, 1.05f), 0.8f);
+                MeshData roof;
+                roof.AddBox(Vector3(-1.45f, -0.06f, -1.2f), Vector3(1.45f, 0.0f, 1.2f), 1.0f);
+                roof.Transform(Matrix::CreateRotationX(0.16f) * Matrix::CreateTranslation(0.0f, 2.2f, 0.0f));
+                black.Append(roof, Matrix::getIdentityProperty());
+                Quad(black, Vector3(-0.45f, 0.0f, 1.06f), Vector3(0.45f, 0.0f, 1.06f), Vector3(0.45f, 1.85f, 1.06f), Vector3(-0.45f, 1.85f, 1.06f), Vector3(0, 0, 1));
+                Quad(glass, Vector3(0.7f, 1.0f, 1.06f), Vector3(1.15f, 1.0f, 1.06f), Vector3(1.15f, 1.5f, 1.06f), Vector3(0.7f, 1.5f, 1.06f), Vector3(0, 0, 1));
+                break;
+            }
+            case PropType::UtilityPole: {
+                // 8 m wooden pole, crossarm across the line, three insulators.
+                wood.AddCylinder(Vector3(0, -0.3f, 0), Vector3(0, 1, 0), 0.13f, 8.3f, 8, true, kWhite, 0.5f);
+                wood.AddBox(Vector3(-0.75f, 7.35f, -0.06f), Vector3(0.75f, 7.47f, 0.06f), 1.0f);
+                for (const float x : {-0.6f, 0.0f, 0.6f}) {
+                    white.AddCylinder(Vector3(x, 7.47f, 0.0f), Vector3(0, 1, 0), 0.05f, 0.16f, 6, true);
+                }
+                break;
+            }
             case PropType::Unknown:
                 break;
         }
@@ -161,5 +203,6 @@ namespace CarSim::Render
         out.reflectorWhite.Append(refWhite, world);
         out.glass.Append(glass, world);
         out.red.Append(red, world);
+        out.hedge.Append(hedge, world);
     }
 }
