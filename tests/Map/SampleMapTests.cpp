@@ -311,3 +311,34 @@ TEST(SampleMap, GardenTreesStandBehindHousesClearOfBuildingsAndRoads)
     }
     EXPECT_GT(gardenTrees, 200) << "the plots are planted";
 }
+
+TEST(SampleMap, TheFillingStationHasAPavedForecourtWithSolidCanopyColumns)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    const Map::PlacedProp* canopy = nullptr;
+    int pumps = 0;
+    for (const auto& prop : world->Objects().Props()) {
+        if (prop.type == Map::PropType::FuelCanopy) canopy = &prop;
+        if (prop.type == Map::PropType::FuelPump) ++pumps;
+    }
+    ASSERT_NE(canopy, nullptr) << "the map has a filling station";
+    EXPECT_EQ(pumps, 2);
+    // The forecourt under the canopy is a paved yard, and the pumps stand on it.
+    EXPECT_EQ(world->Terrain().RegionAt(canopy->position.X, canopy->position.Z), Map::RegionType::Yard);
+    EXPECT_EQ(world->Ground().Sample(canopy->position.X, canopy->position.Z).surface, Sim::SurfaceType::Concrete);
+    for (const auto& prop : world->Objects().Props()) {
+        if (prop.type != Map::PropType::FuelPump) continue;
+        EXPECT_EQ(world->Terrain().RegionAt(prop.position.X, prop.position.Z), Map::RegionType::Yard);
+    }
+    // Four columns are solid; the deck itself is not.
+    Collision::CollisionWorld collision;
+    collision.Build(*world);
+    int posts = 0;
+    for (const auto& c : collision.Statics()) {
+        if (c.kind != Collision::ColliderKind::Post) continue;
+        if (Microsoft::Xna::Framework::Vector3::DistanceSquared(c.centre, canopy->position) < 100.0f) ++posts;
+    }
+    EXPECT_EQ(posts, 4);
+}
