@@ -805,3 +805,10 @@ committed with its own regression test and screenshot check.
 - [x] `RQ-162` Memorial column on the square: a new `memorial` prop (two stone steps, a
   pedestal, a tapered shaft with a capital and an iron cross, no figure) stands between the
   church and the middle of the namesti and is solid. Covered by the square test.
+- [x] `RQ-163` Street parking: `ObjectPlacement::PlaceStreetParking` parks a car at the kerb of
+  urban local and residential streets every 18 m with a 55 % chance (about one car per 33 m,
+  alternating sides, nose with the traffic), skipping junction approaches, building footprints
+  and anything whose centre is less than 0.3 m outside the paved carriageway, so the traffic
+  never meets them. The Lipova map gains 76 street cars on top of the 15 on the square; the
+  town benchmark rises by 3.5 ms (llvmpipe). Test: the parked-car test now checks the authored
+  cars on the square and every generated car for clearance of the carriageway and junctions.

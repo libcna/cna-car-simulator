@@ -129,6 +129,7 @@ namespace CarSim::Map
         PlaceSigns(world);
         PlaceProps(world, warnings);
         PlaceVehicles(world, warnings);
+        PlaceStreetParking(world);
         PlaceDelineators(world);
         PlacePlots(world);
         PlaceUtilityPoles(world);
@@ -568,6 +569,58 @@ namespace CarSim::Map
             v.seed = spec.seed;
             v.position = Vector3(spec.position.X, ground.HeightAt(spec.position.X, spec.position.Y), spec.position.Y);
             vehicles_.push_back(v);
+        }
+    }
+
+    void ObjectPlacement::PlaceStreetParking(const MapWorld& world)
+    {
+        // Cars parked along the kerb of town streets, clear of the carriageway so the traffic
+        // never meets them: the inner flank sits just outside the paved edge, on the sidewalk
+        // strip, which is how cars stand in Czech towns.
+        const MapGround& ground = world.Ground();
+        const RoadNetwork& network = world.Roads();
+        const Sim::CarStyle::Body bodies[] = {Sim::CarStyle::Body::Hatchback, Sim::CarStyle::Body::Estate, Sim::CarStyle::Body::Hatchback,
+                                              Sim::CarStyle::Body::Sedan, Sim::CarStyle::Body::Suv, Sim::CarStyle::Body::Van};
+        for (const Road& road : network.Roads()) {
+            const RoadClass cls = road.spec->roadClass;
+            if (cls != RoadClass::Local && cls != RoadClass::Residential) continue;
+            int slot = 0;
+            for (float s = 18.0f; s < road.curve.Length() - 12.0f; s += 18.0f, ++slot) {
+                const RoadSample sample = road.curve.Evaluate(s);
+                if (!sample.urban) continue;
+                const unsigned key = static_cast<unsigned>(road.index) * 131u + static_cast<unsigned>(slot);
+                if (Hash01(static_cast<int>(key), 11, 613u) > 0.55f) continue;
+                bool nearJunction = false;
+                for (const Intersection& inter : network.Intersections()) {
+                    for (const Approach& a : inter.approaches) {
+                        if (a.road == road.index && std::fabs(a.nodeS - s) < a.setback + 12.0f) nearJunction = true;
+                    }
+                }
+                if (nearJunction) continue;
+                Vector2 tangent(sample.tangent.X, sample.tangent.Z);
+                if (tangent.LengthSquared() < 1e-6f) continue;
+                tangent.Normalize();
+                const Vector2 right(-tangent.Y, tangent.X);
+                const float side = Hash01(static_cast<int>(key), 5, 811u) < 0.5f ? -1.0f : 1.0f;
+                const Sim::CarStyle::Body body = bodies[key % 6u];
+                const Sim::CarStyle style = Sim::CarStyle::Preset(body, key);
+                const float lateral = road.profile.HalfPavedWidth() + 0.35f + 0.5f * style.width;
+                const Vector2 centre(sample.position.X, sample.position.Z);
+                const Vector2 p = centre + right * (side * lateral);
+                if (!world.Terrain().Contains(p.X, p.Y) || InsideBuilding(p, 0.6f)) continue;
+                // The kerb strip is part of the road corridor, so `onRoad` is true there; what
+                // matters is that the whole car stands outside the paved carriageway.
+                if (ground.Sample(p.X, p.Y).distanceToPavedEdge < 0.3f) continue;
+                if (world.Roads().IntersectionContaining(p) >= 0) continue;
+                PlacedVehicle v;
+                v.body = body;
+                v.seed = 9000u + key;
+                // Parked with the traffic: the nose points along +s on the right, against it on the left.
+                const Vector2 nose = side > 0.0f ? tangent : Vector2(-tangent.X, -tangent.Y);
+                v.headingRad = HeadingFromDirection(nose.X, nose.Y);
+                v.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
+                vehicles_.push_back(v);
+            }
         }
     }
 

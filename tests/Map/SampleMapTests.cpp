@@ -198,8 +198,11 @@ TEST(SampleMap, ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads)
     auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
     ASSERT_TRUE(world);
     const auto& parked = world->Objects().Vehicles();
-    ASSERT_GE(parked.size(), 10u) << "the square has a few cars parked on it";
-    for (const auto& car : parked) {
+    const std::size_t authored = world->Data().objects.vehicles.size();
+    ASSERT_GE(authored, 10u) << "the square has a few cars parked on it";
+    ASSERT_GE(parked.size(), authored) << "authored cars come first, generated street parking after";
+    for (std::size_t i = 0; i < authored; ++i) {
+        const auto& car = parked[i];
         const float x = car.position.X;
         const float z = car.position.Z;
         EXPECT_EQ(world->Terrain().RegionAt(x, z), Map::RegionType::Square) << "parked cars stand on the paved square";
@@ -218,6 +221,14 @@ TEST(SampleMap, ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads)
             EXPECT_FALSE(insideFootprint) << "parked car inside a building footprint";
         }
     }
+    // Cars generated along the town streets stand clear of the carriageway and of buildings.
+    for (std::size_t i = authored; i < parked.size(); ++i) {
+        const auto& car = parked[i];
+        const auto sample = world->Ground().Sample(car.position.X, car.position.Z);
+        EXPECT_GE(sample.distanceToPavedEdge, 0.3f) << "a parked car reaches into the carriageway";
+        EXPECT_LT(world->Roads().IntersectionContaining(Microsoft::Xna::Framework::Vector2(car.position.X, car.position.Z)), 0) << "parked inside a junction";
+    }
+
     // Every parked car is solid.
     Collision::CollisionWorld collision;
     collision.Build(*world);
