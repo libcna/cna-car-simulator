@@ -241,6 +241,10 @@ namespace CarSim::App
 
     void SimulatorGame::ApplyAutoDrive(Sim::DriverControls& controls)
     {
+        if (options_.lights && !lightsApplied_ && elapsedSeconds_ > 0.3) {
+            lightsApplied_ = true;
+            controls.toggleHeadlights = true;
+        }
         if (!options_.autoDriveSeconds) {
             return;
         }
@@ -558,6 +562,9 @@ namespace CarSim::App
             vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundPoint, groundNormal);
         }
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
+        if (!cockpit) {
+            vehicleRenderer_->DrawLampGlows(device, state, view, projection);
+        }
 
         if (hudVisible_ || showHelp_ || showDebug_) {
             DrawHud();

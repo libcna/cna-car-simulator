@@ -19,6 +19,7 @@
 #include "Microsoft/Xna/Framework/Quaternion.hpp"
 
 #include <cmath>
+#include <optional>
 
 namespace CarSim::Render
 {
@@ -241,6 +242,20 @@ namespace CarSim::Render
         shadowStencil_->setStencilDepthBufferFailProperty(StencilOperation::Keep);
 
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
+        // Lamp glow: unlit additive sprite with a soft radial falloff.
+        glow_ = std::make_unique<BasicEffect>(device);
+        glow_->setLightingEnabledProperty(false);
+        glow_->setTextureEnabledProperty(true);
+        glow_->setVertexColorEnabledProperty(false);
+        glow_->setFogEnabledProperty(false);
+        Image glowImage(64, 64, Color(0, 0, 0, 255));
+        glowImage.Generate([](int, int, float u, float v) {
+            const float d = std::sqrt((u - 0.5f) * (u - 0.5f) + (v - 0.5f) * (v - 0.5f)) * 2.0f;
+            const float a = std::clamp(1.0f - d, 0.0f, 1.0f);
+            const int c = static_cast<int>(a * a * 255.0f);
+            return Color(c, c, c, 255);
+        });
+        glowTexture_ = UploadTexture(device, glowImage, true);
         tyre_ = UploadTexture(device, CarTextures::TyreTread(256), true);
         rim_ = UploadTexture(device, CarTextures::RimFinish(128), true);
         headlamp_ = UploadTexture(device, CarTextures::HeadlampLens(128), true);
@@ -320,6 +335,10 @@ namespace CarSim::Render
             parts_.push_back(std::move(gpu));
         }
         paintDetail_ = UploadTexture(device, CarTextures::PaintDetail(model_.uv, 1024), true);
+        MeshData quad;
+        quad.AddQuad(Vector3(-0.5f, -0.5f, 0), Vector3(0.5f, -0.5f, 0), Vector3(0.5f, 0.5f, 0), Vector3(-0.5f, 0.5f, 0), Vector3(0, 0, 1),
+                     Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
+        glowQuad_ = GpuMesh::Create(device, quad, VertexLayout::PositionTexture);
         glassOutside_ = UploadTexture(device, CarTextures::GlassTint(model_.uv, 512, 0.62f), true);
         glassInside_ = UploadTexture(device, CarTextures::GlassTint(model_.uv, 512, 0.20f), true);
     }
@@ -520,6 +539,63 @@ namespace CarSim::Render
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+    }
+
+    void VehicleRenderer::DrawLampGlows(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection)
+    {
+        if (!glowQuad_ || model_.lamps.empty()) {
+            return;
+        }
+        const Vector3 camera = Matrix::Invert(view).getTranslationProperty();
+        auto& e = materials_.Glow();
+        e.setViewProperty(view);
+        e.setProjectionProperty(projection);
+        e.setTextureProperty(&materials_.GlowTexture());
+        device.setBlendStateProperty(BlendState::Additive);
+        device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+        device.setRasterizerStateProperty(RasterizerState::CullNone);
+        device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        for (const auto& lamp : model_.lamps) {
+            Vector3 colour(0, 0, 0);
+            float size = 0.0f;
+            switch (lamp.kind) {
+                case CarMaterial::LampHead:
+                    if (state.lowBeam) { colour = state.highBeam ? Vector3(0.55f, 0.55f, 0.50f) : Vector3(0.30f, 0.30f, 0.27f); size = 0.55f; }
+                    break;
+                case CarMaterial::LampTail:
+                    if (state.brakeLights) { colour = Vector3(0.55f, 0.04f, 0.02f); size = 0.45f; }
+                    else if (state.lowBeam) { colour = Vector3(0.18f, 0.01f, 0.01f); size = 0.32f; }
+                    break;
+                case CarMaterial::LampIndicator:
+                    if (lamp.left ? state.leftIndicatorLit : state.rightIndicatorLit) { colour = Vector3(0.55f, 0.28f, 0.03f); size = 0.30f; }
+                    break;
+                case CarMaterial::LampReverse:
+                    if (state.reverseLights) { colour = Vector3(0.40f, 0.40f, 0.36f); size = 0.30f; }
+                    break;
+                default:
+                    break;
+            }
+            if (size <= 0.0f) continue;
+            const Vector3 worldPos = Vector3::Transform(lamp.position, state.worldMatrix);
+            const Vector3 worldNormal = Vector3::TransformNormal(lamp.normal, state.worldMatrix);
+            Vector3 toCamera = camera - worldPos;
+            const float distance = toCamera.Length();
+            if (distance < 1e-3f) continue;
+            toCamera = toCamera * (1.0f / distance);
+            const float facing = Vector3::Dot(worldNormal, toCamera);
+            if (facing < -0.15f) continue;
+            const float fade = std::clamp((facing + 0.15f) / 0.5f, 0.0f, 1.0f) * std::clamp(distance / 2.0f, 0.3f, 1.0f);
+            const Matrix billboard = Matrix::CreateBillboard(worldPos + worldNormal * 0.04f, camera, Vector3(0, 1, 0), std::nullopt);
+            e.setWorldProperty(Matrix::CreateScale(size) * billboard);
+            e.setDiffuseColorProperty(colour * fade);
+            e.setAlphaProperty(1.0f);
+            ApplyAll(e, device, *glowQuad_);
+            ++drawCalls_;
+        }
+        device.setBlendStateProperty(BlendState::Opaque);
+        device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
     }
 
     void VehicleRenderer::DrawTransparent(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,

@@ -108,6 +108,8 @@ namespace CarSim::Core
                 options.cockpit = true;
             } else if (arg == "--lockstep") {
                 options.lockstep = true;
+            } else if (arg == "--lights") {
+                options.lights = true;
             } else if (arg == "--traffic-warmup") {
                 int seconds = 0;
                 takeInt(arg, seconds, 0);
@@ -188,6 +190,7 @@ namespace CarSim::Core
             "  --no-save             Do not load or write the save file\n"            "  --benchmark           Print frame-time statistics at exit (combine with --frames)\n"
             "  --lockstep            One simulation step per drawn frame (deterministic captures on slow renderers)\n"
             "  --traffic-warmup <s>  Simulate the traffic for s seconds before the first frame (captures)\n"
+            "  --lights              Switch the headlights on at start (captures)\n"
             "  --help-overlay        Start with the help overlay open\n"
             "  --debug-overlay       Start with the debug overlay open\n"
             "  --content <dir>       Content root directory\n"

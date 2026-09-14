@@ -119,6 +119,7 @@ namespace CarSim::Render
             }
             if (lod < 2) {
                 renderer.DrawTransparent(device, state, view, projection, mirrored);
+                renderer.DrawLampGlows(device, state, view, projection);
             }
             renderer.SetPaintOverride(std::nullopt);
             renderer.SetPlateTexture(nullptr);

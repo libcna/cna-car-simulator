@@ -117,24 +117,24 @@ namespace CarSim::Render
                 const float wx = terrain.MinX() + (static_cast<float>(x) + 0.5f) / static_cast<float>(width) * sizeX;
                 const Vector3 n = terrain.Normal(wx, z);
                 const float lambert = std::max(0.0f, Vector3::Dot(n, toSun));
-                float light = 0.42f + 0.62f * lambert;
+                float light = 0.40f + 0.66f * lambert;
                 // Region tint.
                 Rgb tint{0.56f, 0.60f, 0.40f};
                 const Map::RegionType region = terrain.RegionAt(wx, z);
                 const float variation = Core::Noise::FbmSigned(wx * 0.012f, z * 0.012f, 3, 0.5f, 91u);
                 switch (region) {
                     case Map::RegionType::Meadow:
-                        tint = Rgb{0.55f + 0.06f * variation, 0.62f + 0.05f * variation, 0.36f};
+                        tint = Rgb{0.60f + 0.07f * variation, 0.62f + 0.04f * variation, 0.40f + 0.03f * variation};
                         break;
                     case Map::RegionType::Town:
-                        tint = Rgb{0.56f, 0.60f, 0.40f};
+                        tint = Rgb{0.60f + 0.04f * variation, 0.61f, 0.42f};
                         break;
                     case Map::RegionType::Forest:
-                        tint = Rgb{0.36f, 0.34f, 0.24f};
-                        light *= 0.78f;   // canopy shade
+                        tint = Rgb{0.38f, 0.35f, 0.25f};
+                        light *= 0.72f;   // canopy shade
                         break;
                     case Map::RegionType::Orchard:
-                        tint = Rgb{0.52f, 0.60f, 0.36f};
+                        tint = Rgb{0.56f, 0.60f, 0.38f};
                         break;
                     case Map::RegionType::Field: {
                         const Map::RegionSpec* spec = terrain.RegionSpecAt(wx, z);

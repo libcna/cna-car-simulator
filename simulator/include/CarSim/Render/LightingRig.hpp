@@ -14,15 +14,17 @@ namespace CarSim::Render
         using Vector3 = Microsoft::Xna::Framework::Vector3;
 
         Vector3 sunDirection;            // unit vector pointing FROM the sun towards the scene
-        Vector3 sunColor{1.00f, 0.95f, 0.86f};
-        Vector3 skyAmbient{0.34f, 0.38f, 0.44f};
-        Vector3 skyFillColor{0.30f, 0.36f, 0.46f};    // soft light from the sky dome (fill from above)
-        Vector3 groundBounceColor{0.20f, 0.18f, 0.14f}; // light bounced from the ground (fill from below)
-        Vector3 fogColor{0.70f, 0.78f, 0.88f};
-        float fogStart = 350.0f;
-        float fogEnd = 2400.0f;
-        Vector3 zenithColor{0.24f, 0.44f, 0.80f};
-        Vector3 horizonColor{0.74f, 0.82f, 0.90f};
+        // Exposure: a sunlit horizontal surface receives about ambient + sky + sun * cos(42 deg)
+        // = 1.0, so textures keep their contrast instead of clipping to white.
+        Vector3 sunColor{0.98f, 0.93f, 0.84f};
+        Vector3 skyAmbient{0.21f, 0.23f, 0.28f};
+        Vector3 skyFillColor{0.15f, 0.18f, 0.24f};    // soft light from the sky dome (fill from above)
+        Vector3 groundBounceColor{0.10f, 0.09f, 0.07f}; // light bounced from the ground (fill from below)
+        Vector3 fogColor{0.76f, 0.82f, 0.90f};
+        float fogStart = 300.0f;
+        float fogEnd = 2600.0f;
+        Vector3 zenithColor{0.18f, 0.38f, 0.76f};
+        Vector3 horizonColor{0.80f, 0.86f, 0.93f};
 
         LightingRig();
 

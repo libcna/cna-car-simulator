@@ -32,6 +32,8 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Graphics::BasicEffect& LitTextured() { return *litTextured_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& InteriorLit() { return *interiorLit_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& Shadow() { return *shadow_; }
+        Microsoft::Xna::Framework::Graphics::BasicEffect& Glow() { return *glow_; }
+        Microsoft::Xna::Framework::Graphics::Texture2D& GlowTexture() { return *glowTexture_; }
         Microsoft::Xna::Framework::Graphics::DepthStencilState& ShadowStencil() { return *shadowStencil_; }
         Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect& Paint() { return *paint_; }
         Microsoft::Xna::Framework::Graphics::TextureCube& Environment() { return *environment_; }
@@ -46,6 +48,8 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> litTextured_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> interiorLit_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> shadow_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> glow_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glowTexture_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::DepthStencilState> shadowStencil_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect> paint_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::TextureCube> environment_;
@@ -106,6 +110,10 @@ namespace CarSim::Render
                              const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection, bool mirrored = false,
                              bool fromInside = false);
 
+        /// Additive glow sprites for the lamps that are lit (after the transparent pass).
+        void DrawLampGlows(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
+                           const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection);
+
         [[nodiscard]] const CarModel& Model() const { return model_; }
         [[nodiscard]] int DrawCallsLastFrame() const { return drawCalls_; }
         [[nodiscard]] int TriangleCount() const { return triangles_; }
@@ -133,6 +141,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paintDetail_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glassOutside_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glassInside_;
+        std::unique_ptr<GpuMesh> glowQuad_;
         bool glassFromInside_ = false;
         Microsoft::Xna::Framework::Graphics::Texture2D* plateTexture_ = nullptr;
         std::optional<Microsoft::Xna::Framework::Vector3> paintOverride_;

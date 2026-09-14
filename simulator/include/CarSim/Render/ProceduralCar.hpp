@@ -105,9 +105,19 @@ namespace CarSim::Render
         float fuelFlapV = 0.86f;
     };
 
+    /// A lit lamp position for the glow sprites (world-space offset from the body origin).
+    struct LampGlow
+    {
+        Microsoft::Xna::Framework::Vector3 position{};
+        Microsoft::Xna::Framework::Vector3 normal{};
+        CarMaterial kind = CarMaterial::LampHead;
+        bool left = false;
+    };
+
     struct CarModel
     {
         std::vector<CarPart> parts;
+        std::vector<LampGlow> lamps;
         Microsoft::Xna::Framework::Vector3 frontPlateCenter{};
         Microsoft::Xna::Framework::Vector3 rearPlateCenter{};
         float wheelRadius = 0.3f;

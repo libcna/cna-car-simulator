@@ -1063,7 +1063,7 @@ namespace CarSim::Render
                 }
             }
         }
-        // Lens decals.
+        // Lens decals and their glow anchors.
         for (const auto& d : decals) {
             CarPart* target = nullptr;
             if (d.lens == CarMaterial::LampHead) target = &lampHead;
@@ -1072,6 +1072,14 @@ namespace CarSim::Render
             else if (d.name.find("left") != std::string::npos) target = &indLR;
             else target = &indRR;
             BuildDecal(target->mesh, skin, d.polygon, d.lift, uMetres, vMetres);
+            Vector2 centre(0.0f, 0.0f);
+            for (const auto& q : d.polygon) centre = centre + q;
+            centre = centre * (1.0f / static_cast<float>(d.polygon.size()));
+            LampGlow glow;
+            skin.Sample(centre.X, centre.Y, glow.position, glow.normal);
+            glow.kind = d.lens;
+            glow.left = d.name.find("left") != std::string::npos;
+            model.lamps.push_back(glow);
         }
 
         // ---- Front and rear faces --------------------------------------------------------
@@ -1214,6 +1222,11 @@ namespace CarSim::Render
                 poly = {{uA, skin.V(sh.zF + 0.03f)}, {uA, skin.V(sh.zF + 0.20f)}, {uB, skin.V(sh.zF + 0.20f)}, {uB, skin.V(sh.zF + 0.03f)}};
                 if (side < 0.0f) std::reverse(poly.begin(), poly.end());
                 BuildDecal(ind.mesh, skin, poly, 0.004f, uMetres, vMetres);
+                LampGlow glow;
+                skin.Sample(0.5f * (uA + uB), skin.V(sh.zF + 0.11f), glow.position, glow.normal);
+                glow.kind = CarMaterial::LampIndicator;
+                glow.left = side < 0.0f;
+                model.lamps.push_back(glow);
                 (void)iy;
             }
         }

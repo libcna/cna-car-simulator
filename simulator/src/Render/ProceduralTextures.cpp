@@ -67,11 +67,12 @@ namespace CarSim::Render::Textures
             const float clumps = Noise::Fbm(u * 12.0f, v * 12.0f, 12, 4, 0.55f, seed);
             const float blades = Noise::Value(u * 300.0f, v * 90.0f, 300, seed + 3);
             const float dry = Noise::Fbm(u * 3.0f, v * 3.0f, 3, 2, 0.5f, seed + 17);
-            const Rgb green{0.24f, 0.38f, 0.12f};
-            const Rgb light{0.42f, 0.52f, 0.18f};
-            const Rgb hay{0.52f, 0.48f, 0.22f};
-            Rgb c = Lerp(green, light, Clamp01(clumps * 0.8f + (blades - 0.5f) * 0.6f));
-            c = Lerp(c, hay, Clamp01((dry - 0.55f) * 2.0f));
+            const Rgb green{0.27f, 0.36f, 0.15f};
+            const Rgb light{0.46f, 0.52f, 0.24f};
+            const Rgb hay{0.55f, 0.50f, 0.28f};
+            const float blades2 = Noise::Value(u * 90.0f, v * 300.0f, 300, seed + 7);
+            Rgb c = Lerp(green, light, Clamp01(clumps * 0.7f + (blades - 0.5f) * 0.5f + (blades2 - 0.5f) * 0.4f));
+            c = Lerp(c, hay, Clamp01((dry - 0.5f) * 2.2f));
             return ToColor(c);
         });
         return img;
@@ -236,10 +237,11 @@ namespace CarSim::Render::Textures
     {
         Image img(size, size, Color(255, 255, 255, 0));
         img.Generate([&](int, int, float u, float v) {
-            const float n = Noise::Fbm(u * 6.0f, v * 6.0f, 6, 5, 0.55f, seed);
-            const float coverage = Clamp01((n - 0.52f) * 3.2f);
-            const float shade = 0.82f + 0.18f * Clamp01((n - 0.5f) * 4.0f);
-            return ToColor({shade, shade, shade * 1.02f}, coverage * 0.9f);
+            const float n = Noise::Fbm(u * 5.0f, v * 5.0f, 5, 6, 0.55f, seed);
+            const float detail = Noise::Fbm(u * 24.0f, v * 24.0f, 24, 3, 0.5f, seed + 3);
+            const float coverage = Clamp01((n - 0.50f) * 3.6f + (detail - 0.5f) * 0.5f);
+            const float shade = 0.78f + 0.24f * Clamp01((n - 0.48f) * 3.0f);
+            return ToColor({shade, shade, shade * 1.03f}, coverage * 0.95f);
         });
         return img;
     }
