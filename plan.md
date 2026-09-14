@@ -583,7 +583,7 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [x] `RQ-121` LOD and culling: distance culling for props and buildings with far LOD, tree far LOD, vehicle LOD (RQ-031); measured before/after in `docs/performance.md`.
 - [x] `RQ-130` Renderer conformance: build and run the same code on the renderers available in the environment (OPENGLES3, OPENGL33, SOFTWARE where it links); results, screenshots and differences recorded in `docs/renderer-conformance.md`. No renderer-specific project code.
 - [x] `RQ-131` `docs/real-hardware-validation.md`: reproducible procedure for a real PC (build, launch, views, controls, overlay, capture, metrics to report, checklist).
-- [ ] `RQ-140` Screenshot loop: curated final set in `docs/screenshots/` (hero exterior, cockpit, dashboard, traffic, town, countryside, forest, intersection), README updated.
+- [x] `RQ-140` Screenshot loop: curated final set in `docs/screenshots/` (hero exterior, cockpit, dashboard, traffic, town, countryside, forest, intersection), README updated. Set: `hero.jpg`, `cockpit.jpg`, `cluster.png`, `town.jpg`, `traffic.jpg`, `countryside.jpg`, `forest.jpg`, `intersection.jpg` (JPEG quality 88 for the scene captures, PNG for the cluster texture); the M10 set stays in `m10-baseline/`, renderer grids in `renderers/`. The loop found and fixed the chase camera orbit defect (RQ-080).
 - [ ] `RQ-150` Final audit: fresh clone build, all tests, static and asset checks, plan/README synchronised, final SHA recorded in section 24.4.
 
 ### 24.3 Principles for this phase
@@ -724,3 +724,10 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   (square spawn, east-bound) or from the left-rear quarter (forest spawn); the look-ahead
   side was mirrored the same way. Fixed in `Camera.cpp` (behind = (sin, 0, cos), right =
   (cos, 0, -sin)); test `SitsBehindTheCarAndAimsAheadForEveryHeading` checks seven headings.
+- Curated screenshots (RQ-140): eight captures from the OPENGLES3 build with the corrected
+  chase camera (hero three-quarter rear at the square, cockpit and cluster at 35 km/h with a
+  car ahead and traffic in the mirror, town street drive, oncoming traffic, avenue through
+  the fields, forest edge, the square junction with its crossing and a traffic car), README
+  tables and status text updated, superseded `town-street/cockpit/forest-road` removed.
+  A `kostel` player spawn (90 m before the church junction, east-bound) was added to
+  `traffic.json` for junction captures; `map-validate` reports 0 warnings.

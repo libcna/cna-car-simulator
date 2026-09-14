@@ -32,6 +32,14 @@
     -213.9
    ],
    "headingDeg": 247.9
+  },
+  {
+   "name": "kostel",
+   "position": [
+    237.7,
+    -16.5
+   ],
+   "headingDeg": 85.7
   }
  ],
  "densityPerKm": 1.2,

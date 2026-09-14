@@ -8,13 +8,29 @@ framework (branch `next`) and [Sharp Runtime](https://github.com/libcna/sharp-ru
 There are no jobs, missions, deliveries or economy. You start a car, drive through a Czech
 town, its outskirts, the countryside and a forest, meet traffic, and enjoy driving.
 
-| Town street | Cockpit | Forest road |
+| Hero | Cockpit | Instrument cluster |
 | --- | --- | --- |
-| ![Town street](docs/screenshots/town-street.png) | ![Cockpit](docs/screenshots/cockpit.png) | ![Forest road](docs/screenshots/forest-road.png) |
+| ![Lipan 1.2 on the square](docs/screenshots/hero.jpg) | ![Cockpit at 35 km/h](docs/screenshots/cockpit.jpg) | ![Instrument cluster](docs/screenshots/cluster.png) |
+
+| Town | Traffic | Countryside |
+| --- | --- | --- |
+| ![Town street](docs/screenshots/town.jpg) | ![Traffic](docs/screenshots/traffic.jpg) | ![Main road through the fields](docs/screenshots/countryside.jpg) |
+
+| Forest | Intersection |
+| --- | --- |
+| ![Forest road](docs/screenshots/forest.jpg) | ![Square junction](docs/screenshots/intersection.jpg) |
+
+All pictures are headless captures from the development container (Xvfb, Mesa llvmpipe
+software OpenGL ES 3, no multisampling); a GPU renders the same frames with sharper texture
+filtering. Older sets are kept in `docs/screenshots/m10-baseline/` (before Phase 11) and
+`docs/screenshots/renderers/` (the same frame on three renderers).
 
 ## Status
 
-The initial product milestone is complete: every feature listed below exists, runs from a
+The initial product milestone is complete and the realism and production-quality phase
+(Phase 11 in `plan.md`: hero car, cockpit and cluster, materials, lighting and shadows, roads,
+buildings and plots, vegetation, traffic diversity, cameras, audio layers, instrumentation,
+renderer conformance) has been delivered: every feature listed below exists, runs from a
 clean checkout, is covered by automated tests where a test is meaningful, and was verified in
 screenshots. [`plan.md`](plan.md) is the authoritative task ledger; nothing in this README
 claims a feature that `plan.md` does not mark as done.
@@ -89,11 +105,16 @@ cna-car-simulator [options]
   --spawn <name>                            player spawn point (see the map's traffic.json)
   --cockpit                                 start in the cockpit camera
   --help-overlay --debug-overlay            start with an overlay open
-  --benchmark                               print frame-time statistics at exit
+  --benchmark [--benchmark-json <file>]     print frame-time statistics at exit (and write JSON)
+  --mirror-every <n>                        redraw the rear-view mirror every n frames
   --frames <n> --screenshot <file>          run n frames, save the last one, exit
   --screenshot-cluster <file>               also save the instrument cluster texture
+  --lockstep --traffic-warmup <s> --lights  deterministic captures: one sim step per frame,
+                                            traffic simulated s seconds before the first frame,
+                                            headlights on
   --auto-drive <s>                          scripted start and acceleration for s seconds
   --chase-yaw <deg> --chase-distance <m>    exterior camera framing
+  --eye dx dy dz yaw pitch                  cockpit eye offset for inspection captures
   --view x y z hdg pitch                    fixed inspection camera
 ```
 
@@ -191,7 +212,8 @@ tools/          map generator, map validator, font atlas generator, simulation t
 scripts/        headless runner, XNA-only static check, asset manifest check
 tests/          GoogleTest suites (unit, scenario, soak) and CTest registrations
 docs/           framework findings, API boundary, map format, vehicle physics, audio
-                design, vehicle materials, performance notes, research (Czech roads,
+                design, vehicle materials, cameras, performance notes, renderer
+                conformance, real-hardware validation procedure, research (Czech roads,
                 plates, assets)
 ```
 
@@ -273,11 +295,17 @@ Screenshots were reviewed for every rendering change; the headless workflow is
 
 ## Performance
 
-`--benchmark --frames 400 --auto-drive 8` on the development container (Mesa llvmpipe software
-rendering, four threads, 1280 x 720): update 0.43 ms, draw submission 47 ms, about 540 draw
-calls and 231k triangles per frame after the terrain LOD pass; a GPU renders the same frame in
-a few milliseconds. Details and the remaining levers are in
-[`docs/performance.md`](docs/performance.md).
+`--benchmark --lockstep --frames 150 --auto-drive 6` on the development container (Mesa
+llvmpipe software rendering, four threads, 1280 x 720): update below 0.5 ms; draw submission
+85 ms in town with 20 traffic cars (705 draw calls, 575k triangles), 66 ms on the forest road,
+19 ms in the fields; the cockpit view with the mirror adds 63 ms (32 ms with the mirror
+redrawn every second frame). A GPU renders the same frames in a few milliseconds. Per-pass
+timings, visible counts and the LOD/culling levers are in
+[`docs/performance.md`](docs/performance.md); `--benchmark-json` writes them as JSON. The
+same scenes were built and compared on the OPENGLES3, OPENGL33 and SOFTWARE renderers
+([`docs/renderer-conformance.md`](docs/renderer-conformance.md)), and
+[`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) is the procedure for a
+first run on a real PC with a GPU.
 
 ## Licensing and provenance
 
