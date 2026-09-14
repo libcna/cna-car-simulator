@@ -128,7 +128,7 @@ namespace CarSim::App
             double wallSum = 0.0;
             long long drawCalls = 0, triangles = 0;
             long long terrainChunks = 0, roadBatches = 0, objectBatches = 0, treeBatches = 0;
-            long long trafficCount = 0, trafficDrawn = 0, trafficLod0 = 0, trafficLod1 = 0, trafficLod2 = 0;
+            long long trafficCount = 0, trafficDrawn = 0, trafficLod0 = 0, trafficLod1 = 0, trafficLod2 = 0, parkedDrawn = 0;
             double passSum[kPassCount] = {};
             int warmupFrames = 30;
         } bench_;

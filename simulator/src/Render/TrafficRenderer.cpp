@@ -130,7 +130,7 @@ namespace CarSim::Render
             renderer.SetPlateTexture(lod < 2 && i < plates.size() && !plates[i].empty() ? PlateTexture(device, plates[i]) : nullptr);
             renderer.DrawOpaque(device, state, view, projection, false, none, mirrored, lod);
             stats_.drawCalls += renderer.DrawCallsLastFrame();
-            stats_.drawn += 1;
+            stats_.parkedDrawn += 1;
             if (distance < parkedShadowDistanceM && !mirrored) {
                 renderer.DrawShadow(device, state, view, projection, rig.sunDirection, ground);
             }

@@ -26,7 +26,8 @@ namespace CarSim::Render
 {
     struct TrafficRenderStats
     {
-        int drawn = 0;
+        int drawn = 0;          // moving traffic cars drawn this frame
+        int parkedDrawn = 0;    // parked cars of the map drawn this frame
         int lod0 = 0, lod1 = 0, lod2 = 0;
         int drawCalls = 0;
         int triangles = 0;

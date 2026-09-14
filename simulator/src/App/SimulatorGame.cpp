@@ -642,6 +642,7 @@ namespace CarSim::App
                     const auto& ts = trafficRenderer_->Stats();
                     bench_.drawCalls += ts.drawCalls;
                     bench_.trafficDrawn += ts.drawn;
+                    bench_.parkedDrawn += ts.parkedDrawn;
                     bench_.trafficLod0 += ts.lod0;
                     bench_.trafficLod1 += ts.lod1;
                     bench_.trafficLod2 += ts.lod2;
@@ -713,7 +714,7 @@ namespace CarSim::App
                 << passMs_[kPassWorld] << " traffic " << passMs_[kPassTraffic] << " vehicle " << passMs_[kPassVehicle] << " hud " << passMs_[kPassHud];
             if (trafficRenderer_) {
                 const auto& ts = trafficRenderer_->Stats();
-                dbg << "\ntraffic drawn " << ts.drawn << " (lod0 " << ts.lod0 << ", lod1 " << ts.lod1 << ", lod2 " << ts.lod2 << "), " << ts.drawCalls
+                dbg << "\ntraffic drawn " << ts.drawn << " (lod0 " << ts.lod0 << ", lod1 " << ts.lod1 << ", lod2 " << ts.lod2 << "), parked " << ts.parkedDrawn << ", " << ts.drawCalls
                     << " draws, mirror every " << std::max(1, save_.settings.mirrorUpdateEvery) << " frame(s)";
             }
             dbg << "\nwheels";
@@ -826,6 +827,7 @@ namespace CarSim::App
                       << static_cast<double>(bench_.roadBatches) / n << ", object batches " << static_cast<double>(bench_.objectBatches) / n
                       << ", tree batches " << static_cast<double>(bench_.treeBatches) / n << "\n"
                       << "  traffic avg: " << static_cast<double>(bench_.trafficCount) / n << " cars, drawn " << static_cast<double>(bench_.trafficDrawn) / n
+                      << " (parked drawn " << static_cast<double>(bench_.parkedDrawn) / n << ")"
                       << " (lod0 " << static_cast<double>(bench_.trafficLod0) / n << ", lod1 " << static_cast<double>(bench_.trafficLod1) / n << ", lod2 "
                       << static_cast<double>(bench_.trafficLod2) / n << ")\n";
             if (options_.benchmarkJsonPath) {
@@ -842,7 +844,8 @@ namespace CarSim::App
                     json << "},\n  \"visibleAvg\": {\"terrainChunks\": " << static_cast<double>(bench_.terrainChunks) / n << ", \"roadBatches\": "
                          << static_cast<double>(bench_.roadBatches) / n << ", \"objectBatches\": " << static_cast<double>(bench_.objectBatches) / n
                          << ", \"treeBatches\": " << static_cast<double>(bench_.treeBatches) / n << "},\n  \"trafficAvg\": {\"cars\": "
-                         << static_cast<double>(bench_.trafficCount) / n << ", \"drawn\": " << static_cast<double>(bench_.trafficDrawn) / n << ", \"lod0\": "
+                         << static_cast<double>(bench_.trafficCount) / n << ", \"drawn\": " << static_cast<double>(bench_.trafficDrawn) / n
+                         << ", \"parkedDrawn\": " << static_cast<double>(bench_.parkedDrawn) / n << ", \"lod0\": "
                          << static_cast<double>(bench_.trafficLod0) / n << ", \"lod1\": " << static_cast<double>(bench_.trafficLod1) / n << ", \"lod2\": "
                          << static_cast<double>(bench_.trafficLod2) / n << "},\n  \"mirrorUpdateEvery\": " << std::max(1, save_.settings.mirrorUpdateEvery)
                          << "\n}\n";

@@ -33,8 +33,9 @@ average includes llvmpipe's rasterisation and the swap.
 | Fields (`--spawn fields`) | 25.4 ms | 425 | 361k | 0.4 | 0 | 1.2 | 18.7 | 0 | 4.9 | 0.2 |
 
 Pass columns are milliseconds per frame. Visible batches on the town chase run: 296 terrain
-chunks, 35 road batches, 272 object batches, 33 tree batches; of the 20 traffic cars and 91
-parked cars, 17 are drawn per frame on average. The forest run draws 68 tree batches and 73
+chunks, 35 road batches, 272 object batches, 33 tree batches; of the 20 traffic cars 5 are
+drawn per frame on average and of the 91 parked cars 12 (the debug overlay and the benchmark
+JSON count them separately). The forest run draws 68 tree batches and 73
 object batches; the fields run 301 terrain chunks and 56 object batches.
 
 These numbers replace an earlier table measured before the chase camera fix (the camera used
