@@ -554,7 +554,7 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [~] `RQ-014` Material audit: distinct looks for paint, glass (tint + frit band texture), rubber, black plastic, chrome, interior fabric and plastics (grain textures), lamp lenses, plate; documented in `docs/materials.md`. All through stock effects.
 
 #### Cockpit and dashboard
-- [~] `RQ-020` Cockpit rebuild: shaped dashboard (curved top, binnacle cowl, centre stack with vents and controls, glovebox), steering column, gear lever that follows the transmission state, handbrake, shaped front seats with head restraints, door cards with armrests, slim A-pillars with trim, headliner, sun visors, mirror housing, windshield frit band. Acceptance: cockpit screenshot without grey wedges, steering wheel still synchronised (test), no geometry closer than the near plane.
+- [x] `RQ-020` Cockpit rebuild: shaped dashboard (curved top, binnacle cowl, centre stack with vents and controls, glovebox), steering column, gear lever that follows the transmission state, handbrake, shaped front seats with head restraints, door cards with armrests, slim A-pillars with trim, headliner, sun visors, mirror housing, windshield frit band. Acceptance: cockpit screenshot without grey wedges, steering wheel still synchronised (test), no geometry closer than the near plane.
 - [ ] `RQ-021` Instrument cluster presentation: redesigned faces (typography, tick hierarchy, red zone), needle with hub and shadow, lamp icons redrawn, backlit look with ignition, digital display area (odometer, trip, gear, consumption, clock-free). Simulation values remain authoritative (`LampLit` test kept). Acceptance: `--screenshot-cluster` review.
 
 #### Traffic and vehicle variety
@@ -638,3 +638,15 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   vertex/index buffer (the user-primitive path was unreliable after the town world pass).
   Tests: `ShadowGeometryTests` (hull, support points, projection, rim normals, Lipan silhouette
   area/containment/offset under the fixed sun).
+- Cockpit seating reference fixed (`VehicleDefinition` visual defaults, `lipan_12.json`,
+  `ProceduralCockpit.cpp`): the driver's eye sat level with the windshield header (z 0.12 with
+  the header at -0.02), so the A-pillar top and sun visors were at the camera and the interior
+  mirror hung above the glass. The eye now sits at the B-pillar (z 0.38, 0.40 m behind the
+  header), the wheel 0.56 m ahead, the mirror hangs from the glass on an angled stem, the dash
+  is 5 cm deeper with a longer column shroud, seats and armrests follow the eye. Two defects
+  this exposed: the seat backrests (front, rear bench and the traffic cabin block) leaned
+  forward because of a rotation sign, and the dashboard loft was wound inside out (its
+  orientation check passed for both windings), which lit the occupant-facing panel from the
+  sun as a sawtooth of bright triangles. `MeshData::SignedVolume/OrientOutward` now orient
+  closed lofts. Seat fabric darkened. Tests: `CockpitPlacementMatchesTheSeatingReference`,
+  `SeatBackrestsLeanRearwardBehindTheEye`, `OrientOutwardFixesAnInsideOutLoft`.

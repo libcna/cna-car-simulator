@@ -6,8 +6,10 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <set>
+#include <string>
 
 using namespace CarSim;
 using namespace CarSim::Render;
@@ -130,4 +132,81 @@ TEST(ProceduralCar, UvLayoutIsOrderedAndPaintDetailDrawsShutLines)
     const int yLine = static_cast<int>(uv.vBPillar * 256.0f);
     const int yPanel = static_cast<int>((uv.vDoorFront + uv.vBPillar) * 0.5f * 256.0f);
     EXPECT_LT(detail.At(x, yLine).getRProperty(), detail.At(x, yPanel).getRProperty() - 40);
+}
+
+TEST(ProceduralCar, CockpitPlacementMatchesTheSeatingReference)
+{
+    // Regression for the cockpit whose eye point sat level with the windshield header: the
+    // A-pillar filled a quarter of the view and the mirror hung outside the glass.
+    const Sim::VehicleDefinition def = Sim::MakeReferenceVehicle();
+    const CarModel model = GenerateCar(def);
+    const CarPart* paint = Find(model, "body_paint");
+    const CarPart* glass = Find(model, "body_glass");
+    ASSERT_NE(paint, nullptr);
+    ASSERT_NE(glass, nullptr);
+    const auto& vis = def.visual;
+
+    // Body top (roof or glass) height on the centre line at a given z.
+    const auto topAt = [&](const float z) {
+        float best = -1.0f;
+        for (const CarPart* part : {paint, glass}) {
+            for (const auto& v : part->mesh.vertices) {
+                if (std::fabs(v.position.X) < 0.06f && std::fabs(v.position.Z - z) < 0.03f) best = std::max(best, v.position.Y);
+            }
+        }
+        return best;
+    };
+    // Windshield header: the rearmost windshield glass vertex on the centre line.
+    float headerZ = -10.0f;
+    for (const auto& v : glass->mesh.vertices) {
+        if (std::fabs(v.position.X) < 0.10f && v.position.Z < 0.3f) headerZ = std::max(headerZ, v.position.Z);
+    }
+    EXPECT_LT(headerZ, vis.driverEye.Z - 0.25f) << "the header must be well ahead of the eye";
+    EXPECT_GT(topAt(vis.driverEye.Z), vis.driverEye.Y + 0.15f) << "head clearance under the roof";
+
+    // The interior mirror hangs below the glass with room for its housing.
+    EXPECT_GT(topAt(vis.mirrorCenter.Z) - 0.05f, vis.mirrorCenter.Y + 0.04f);
+    EXPECT_GT(vis.driverEye.Z - vis.mirrorCenter.Z, 0.45f);
+
+    // Steering wheel and cluster: reach and sight lines.
+    EXPECT_GE(vis.driverEye.Z - vis.steeringWheelCenter.Z, 0.45f);
+    EXPECT_LE(vis.driverEye.Z - vis.steeringWheelCenter.Z, 0.70f);
+    EXPECT_GE(vis.driverEye.Y - vis.steeringWheelCenter.Y, 0.25f);
+    EXPECT_LT(vis.clusterCenter.Z, vis.steeringWheelCenter.Z - 0.25f);
+
+    // Nothing in the cabin comes closer to the eye than the cockpit camera's near plane.
+    float nearest = 1e9f;
+    std::string nearestPart;
+    for (const auto& part : model.parts) {
+        if (part.role != CarPart::Role::Interior && part.role != CarPart::Role::SteeringWheel && part.role != CarPart::Role::GearLever) continue;
+        for (const auto& v : part.mesh.vertices) {
+            const float d = Vector3::Distance(v.position, vis.driverEye);
+            if (d < nearest) { nearest = d; nearestPart = part.name; }
+        }
+    }
+    EXPECT_GT(nearest, 0.14f) << nearestPart;
+}
+
+TEST(ProceduralCar, SeatBackrestsLeanRearwardBehindTheEye)
+{
+    // The head restraints must sit behind (larger z than) and above the seat cushions, i.e. the
+    // backrests lean towards the rear of the car, never into the driver's view.
+    const Sim::VehicleDefinition def = Sim::MakeReferenceVehicle();
+    const CarModel model = GenerateCar(def);
+    const CarPart* fabric = Find(model, "interior_fabric");
+    ASSERT_NE(fabric, nullptr);
+    // Highest fabric vertices on the driver's side are the head restraint.
+    float topY = -1.0f;
+    for (const auto& v : fabric->mesh.vertices) {
+        if (v.position.X < -0.2f && v.position.Z < 0.9f) topY = std::max(topY, v.position.Y);
+    }
+    float headZ = 0.0f;
+    int count = 0;
+    for (const auto& v : fabric->mesh.vertices) {
+        if (v.position.X < -0.2f && v.position.Z < 0.9f && v.position.Y > topY - 0.10f) { headZ += v.position.Z; ++count; }
+    }
+    ASSERT_GT(count, 0);
+    headZ /= static_cast<float>(count);
+    EXPECT_GT(headZ, def.visual.driverEye.Z + 0.08f) << "head restraint behind the eye";
+    EXPECT_GT(topY, def.visual.driverEye.Y - 0.05f) << "head restraint reaches eye height";
 }

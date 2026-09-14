@@ -273,6 +273,27 @@ namespace CarSim::Render
         }
     }
 
+    float MeshData::SignedVolume() const
+    {
+        float six = 0.0f;
+        for (std::size_t t = 0; t < TriangleCount(); ++t) {
+            const Vector3& a = vertices[indices[t * 3]].position;
+            const Vector3& b = vertices[indices[t * 3 + 1]].position;
+            const Vector3& c = vertices[indices[t * 3 + 2]].position;
+            six += Vector3::Dot(a, Vector3::Cross(b, c));
+        }
+        return six / 6.0f;
+    }
+
+    bool MeshData::OrientOutward()
+    {
+        if (SignedVolume() <= 0.0f) {
+            return false;
+        }
+        FlipWinding();
+        return true;
+    }
+
     BoundingBox MeshData::Bounds() const
     {
         if (vertices.empty()) {

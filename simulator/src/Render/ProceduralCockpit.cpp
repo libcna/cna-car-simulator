@@ -20,11 +20,12 @@ namespace CarSim::Render::CarBody
                     AddRoundedBox(fabric.mesh, Vector3(0.10f, 0.15f, depth - 0.04f), 0.03f, Matrix::CreateTranslation(x + side * (width * 0.5f - 0.05f), cushionTop - 0.02f, zCushion + 0.02f));
                 }
             }
-            // Backrest tilted back, with bolsters and a head restraint on two posts.
+            // Backrest tilted back (+z is rearward, so a positive rotation about x leans the
+            // frame's up axis towards the rear), with bolsters and a head restraint on two posts.
             const float tilt = 0.34f;   // radians back from vertical
             const float backH = 0.62f;
             const Vector3 backBase(x, cushionTop - 0.02f, zCushion + depth * 0.5f - 0.05f);
-            const Matrix backFrame = Matrix::CreateRotationX(-tilt) * Matrix::CreateTranslation(backBase);
+            const Matrix backFrame = Matrix::CreateRotationX(tilt) * Matrix::CreateTranslation(backBase);
             AddRoundedBox(fabric.mesh, Vector3(width - 0.02f, backH, 0.11f), 0.035f, Matrix::CreateTranslation(0.0f, backH * 0.5f, 0.0f) * backFrame);
             if (!rear) {
                 for (const float side : {-1.0f, 1.0f}) {
@@ -87,13 +88,10 @@ namespace CarSim::Render::CarBody
         {
             MeshData slab;
             slab.AddLoft(rings, true);
+            // The profile may run either way round; orient by the enclosed volume so the pad
+            // faces up and the occupant-facing panels face the cabin.
+            slab.OrientOutward();
             slab.ComputeSmoothNormals();
-            bool up = false;
-            for (std::size_t t = 0; t < slab.TriangleCount(); ++t) {
-                const Vector3 nn = -slab.EmittedTriangleNormal(t);
-                if (nn.Y > 0.5f) { up = true; break; }
-            }
-            if (!up) slab.FlipWinding();
             for (const int end : {0, columns}) {
                 const auto& ring = rings[static_cast<std::size_t>(end)];
                 Vector3 centre(0, 0, 0);
@@ -179,7 +177,7 @@ namespace CarSim::Render::CarBody
         const float zFront = zCowl + 0.01f;
         const float yTopFront = wsBase - 0.006f;
         const float yTopRear = wsBase + 0.03f;
-        const float zEdge = zCowl + 0.31f;
+        const float zEdge = zCowl + 0.36f;
         const float yFace = yTopRear - 0.15f;
         const float zFace = zEdge + 0.01f;
         const float yKnee = floorY + 0.28f;
@@ -276,6 +274,7 @@ namespace CarSim::Render::CarBody
                 }
                 MeshData shell;
                 shell.AddLoft(visor, true);
+                shell.OrientOutward();
                 shell.ComputeSmoothNormals();
                 interior.mesh.Append(shell, Matrix::getIdentityProperty());
             }
@@ -307,7 +306,7 @@ namespace CarSim::Render::CarBody
             badge.Transform(Matrix::CreateRotationX(-tilt));
             steeringBadge.mesh = badge;
             // Column shroud (tapered) and two stalks.
-            std::vector<Vector2> shroud = {{0.030f, -0.03f}, {0.042f, -0.10f}, {0.055f, -0.24f}, {0.0f, -0.24f}};
+            std::vector<Vector2> shroud = {{0.030f, -0.03f}, {0.042f, -0.10f}, {0.056f, -0.28f}, {0.060f, -0.44f}, {0.0f, -0.44f}};
             MeshData column;
             AddRevolve(column, shroud, Vector3(0, 0, 0), Vector3(0, 0, 1), 16, 1.0f, true);
             column.Transform(Matrix::CreateRotationX(-tilt) * Matrix::CreateTranslation(vis.steeringWheelCenter));
@@ -336,19 +335,21 @@ namespace CarSim::Render::CarBody
             MeshData brake;
             brake.AddBox(Vector3(-0.018f, -0.012f, -0.02f), Vector3(0.018f, 0.012f, 0.22f), 1.0f);
             brake.AddCylinder(Vector3(0.0f, 0.0f, 0.18f), Vector3(0, 0, 1), 0.015f, 0.06f, 10, true);
-            brake.Transform(Matrix::CreateRotationX(0.28f) * Matrix::CreateTranslation(0.0f, consoleTop + 0.03f, 0.10f));
+            brake.Transform(Matrix::CreateRotationX(0.28f) * Matrix::CreateTranslation(0.0f, consoleTop + 0.03f, 0.18f));
             interior.mesh.Append(brake, Matrix::getIdentityProperty());
-            AddBoxTo(gloss, Vector3(0.0f, consoleTop + 0.015f, 0.12f), Vector3(0.06f, 0.03f, 0.08f));
-            AddBoxTo(mid, Vector3(0.0f, consoleTop + 0.02f, 0.42f), Vector3(0.26f, 0.05f, 0.30f));   // rear of the console / armrest
+            AddBoxTo(gloss, Vector3(0.0f, consoleTop + 0.015f, 0.20f), Vector3(0.06f, 0.03f, 0.08f));
+            AddBoxTo(mid, Vector3(0.0f, consoleTop + 0.02f, 0.50f), Vector3(0.26f, 0.05f, 0.30f));   // rear of the console / armrest
         }
 
         // ---- Seats -------------------------------------------------------------------------
-        AddSeat(fabric, interior, -0.37f, floorY, 0.30f, 0.50f, false);
-        AddSeat(fabric, interior, 0.37f, floorY, 0.30f, 0.50f, false);
+        // Front cushions centred 0.22 m behind the eye's z so the backrest sits ~0.15 m behind the head.
+        const float zCushion = vis.driverEye.Z - 0.22f;
+        AddSeat(fabric, interior, -0.37f, floorY, zCushion, 0.50f, false);
+        AddSeat(fabric, interior, 0.37f, floorY, zCushion, 0.50f, false);
         {
             const float benchZ = 1.05f;
             AddRoundedBox(fabric.mesh, Vector3(2.0f * cabinHalf - 0.16f, 0.14f, 0.50f), 0.04f, Matrix::CreateTranslation(0.0f, floorY + 0.24f, benchZ));
-            const Matrix backFrame = Matrix::CreateRotationX(-0.30f) * Matrix::CreateTranslation(0.0f, floorY + 0.28f, benchZ + 0.22f);
+            const Matrix backFrame = Matrix::CreateRotationX(0.30f) * Matrix::CreateTranslation(0.0f, floorY + 0.28f, benchZ + 0.22f);
             AddRoundedBox(fabric.mesh, Vector3(2.0f * cabinHalf - 0.18f, 0.60f, 0.10f), 0.035f, Matrix::CreateTranslation(0.0f, 0.30f, 0.0f) * backFrame);
             for (const float x : {-0.36f, 0.36f}) {
                 AddRoundedBox(fabric.mesh, Vector3(0.24f, 0.14f, 0.08f), 0.03f, Matrix::CreateTranslation(x, 0.69f, 0.0f) * backFrame);
@@ -365,7 +366,7 @@ namespace CarSim::Render::CarBody
 
         // ---- Door armrests, pulls, window switches ---------------------------------------------
         for (const float side : {-1.0f, 1.0f}) {
-            const float zArm = -0.05f;
+            const float zArm = vis.driverEye.Z - 0.26f;   // elbow level, just ahead of the hip
             const float xDoor = cabinHalf + 0.03f;
             AddRoundedBox(mid.mesh, Vector3(0.09f, 0.05f, 0.34f), 0.02f, Matrix::CreateTranslation(side * (xDoor - 0.04f), belt - 0.24f, zArm));
             AddBoxTo(gloss, Vector3(side * (xDoor - 0.06f), belt - 0.21f, zArm - 0.06f), Vector3(0.05f, 0.006f, 0.10f));
@@ -376,7 +377,23 @@ namespace CarSim::Render::CarBody
         {
             const Vector3 c = vis.mirrorCenter;
             AddRoundedBox(interior.mesh, Vector3(0.25f, 0.075f, 0.028f), 0.012f, Matrix::CreateTranslation(c + Vector3(0.0f, 0.0f, -0.016f)));
-            AddBoxTo(interior, c + Vector3(0.0f, 0.06f, -0.05f), Vector3(0.022f, 0.09f, 0.022f));
+            // Stem from the housing top to the inside of the windshield just ahead of it.
+            {
+                const float zMount = c.Z - 0.06f;
+                float yGlass = c.Y + 0.12f;
+                float best = 1e9f;
+                for (std::size_t r = 0; r < skin.stations.size(); ++r) {
+                    const float d = std::fabs(skin.stations[r] - zMount);
+                    if (d < best) { best = d; yGlass = skin.rings[r][Ring::kTop].Y; }
+                }
+                const Vector3 top(0.0f, yGlass - 0.012f, zMount);
+                const Vector3 base = c + Vector3(0.0f, 0.03f, -0.01f);
+                const Vector3 d = top - base;
+                const float len = d.Length();
+                if (len > 0.02f) {
+                    AddOrientedBox(interior, (top + base) * 0.5f, Vector3(0.022f, len, 0.022f), 0.0f, std::atan2(d.Z, d.Y));
+                }
+            }
             const Vector3 right(0.115f, 0, 0);
             const Vector3 upv(0, 0.032f, 0);
             const Vector3 n(0, 0, 1);
@@ -420,13 +437,13 @@ namespace CarSim::Render::CarBody
         AddBoxTo(cabin, Vector3(0.0f, 0.5f * (dashTop + floorY + 0.25f), zCowl + 0.16f), Vector3(2.0f * cabinHalf + 0.1f, dashTop - floorY - 0.25f, 0.32f));
         for (const float x : {-0.37f, 0.37f}) {
             AddRoundedBox(cabin.mesh, Vector3(0.50f, 0.14f, 0.50f), 0.04f, Matrix::CreateTranslation(x, floorY + 0.24f, 0.30f));
-            AddRoundedBox(cabin.mesh, Vector3(0.48f, 0.66f, 0.12f), 0.04f, Matrix::CreateRotationX(-0.34f) * Matrix::CreateTranslation(x, floorY + 0.58f, 0.62f));
+            AddRoundedBox(cabin.mesh, Vector3(0.48f, 0.66f, 0.12f), 0.04f, Matrix::CreateRotationX(0.34f) * Matrix::CreateTranslation(x, floorY + 0.58f, 0.62f));
             AddRoundedBox(cabin.mesh, Vector3(0.26f, 0.15f, 0.09f), 0.03f, Matrix::CreateTranslation(x, floorY + 0.98f, 0.72f));
         }
         const float benchZ = std::min(1.05f, zR - 0.9f);
         AddRoundedBox(cabin.mesh, Vector3(2.0f * cabinHalf - 0.16f, 0.14f, 0.50f), 0.04f, Matrix::CreateTranslation(0.0f, floorY + 0.24f, benchZ));
         AddRoundedBox(cabin.mesh, Vector3(2.0f * cabinHalf - 0.18f, 0.60f, 0.10f), 0.035f,
-                      Matrix::CreateRotationX(-0.30f) * Matrix::CreateTranslation(0.0f, floorY + 0.58f, benchZ + 0.25f));
+                      Matrix::CreateRotationX(0.30f) * Matrix::CreateTranslation(0.0f, floorY + 0.58f, benchZ + 0.25f));
         // Steering wheel silhouette on the left.
         MeshData wheel;
         wheel.AddTorus(Vector3(0, 0, 0), Vector3(0, 0.45f, 0.89f), 0.18f, 0.018f, 24, 8);

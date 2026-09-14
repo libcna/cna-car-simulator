@@ -86,6 +86,13 @@ namespace CarSim::Render
         void MakeFlatShaded();
         /// Flips the facing of every triangle.
         void FlipWinding();
+        /// Signed volume enclosed by a closed mesh under the right-hand rule of the emitted
+        /// index order: negative when the mesh is wound front-facing from outside (XNA clockwise
+        /// front faces), positive when it is inside out.
+        [[nodiscard]] float SignedVolume() const;
+        /// Flips a closed mesh that is inside out (positive signed volume) so its front faces
+        /// and smooth normals point outward. Returns true when it flipped.
+        bool OrientOutward();
 
         [[nodiscard]] BoundingBox Bounds() const;
         [[nodiscard]] BoundingSphere BoundingSphereOf() const;

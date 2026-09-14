@@ -125,7 +125,7 @@ namespace CarSim::Render
                     look.specularPower = 4.0f;
                     break;
                 case CarMaterial::Fabric:
-                    look.diffuse = Vector3(0.30f, 0.30f, 0.32f);
+                    look.diffuse = Vector3(0.21f, 0.21f, 0.23f);   // dark grey cloth
                     look.specular = Vector3(0.03f, 0.03f, 0.03f);
                     look.specularPower = 4.0f;
                     break;
