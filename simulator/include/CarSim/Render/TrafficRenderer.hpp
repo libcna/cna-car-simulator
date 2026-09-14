@@ -41,8 +41,7 @@ namespace CarSim::Render
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Traffic::TrafficSystem& traffic,
                   const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
                   const Microsoft::Xna::Framework::BoundingFrustum& frustum, const Microsoft::Xna::Framework::Vector3& cameraPosition,
-                  const LightingRig& rig, const std::function<Microsoft::Xna::Framework::Vector3(const Microsoft::Xna::Framework::Vector3&)>& groundNormal,
-                  bool mirrored = false);
+                  const LightingRig& rig, const GroundQuery& ground, bool mirrored = false);
 
         /// Plate texture for a text (cached); also used for the player's plate.
         [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* PlateTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,

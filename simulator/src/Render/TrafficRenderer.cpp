@@ -94,7 +94,7 @@ namespace CarSim::Render
 
     void TrafficRenderer::Draw(GraphicsDevice& device, const Traffic::TrafficSystem& traffic, const Matrix& view, const Matrix& projection,
                                const BoundingFrustum& frustum, const Vector3& cameraPosition, const LightingRig& rig,
-                               const std::function<Vector3(const Vector3&)>& groundNormal, const bool mirrored)
+                               const GroundQuery& ground, const bool mirrored)
     {
         stats_ = TrafficRenderStats{};
         GaugePose none;
@@ -115,7 +115,7 @@ namespace CarSim::Render
             renderer.DrawOpaque(device, state, view, projection, false, none, mirrored, lod);
             stats_.drawCalls += renderer.DrawCallsLastFrame();
             if (distance < shadowDistanceM && !mirrored) {
-                renderer.DrawShadow(device, state, view, projection, rig.sunDirection, v.position, groundNormal(v.position));
+                renderer.DrawShadow(device, state, view, projection, rig.sunDirection, ground);
             }
             if (lod < 2) {
                 renderer.DrawTransparent(device, state, view, projection, mirrored);

@@ -563,8 +563,8 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [ ] `RQ-032` Traffic presentation polish: lane centring and steering smoothness checked while driving, spawning outside the view, wheel spin matches speed, brake lights and indicators verified.
 
 #### Environment
-- [ ] `RQ-040` Fixed daytime lighting rebalance: stronger sun, cooler and weaker ambient, sky and ground fill tuned, fog haze colour matched to the sky, sky dome with proper horizon glow and readable clouds. Acceptance: before/after pair for town and countryside; cockpit not crushed; paint reads.
-- [ ] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked).
+- [x] `RQ-040` Fixed daytime lighting rebalance: stronger sun, cooler and weaker ambient, sky and ground fill tuned, fog haze colour matched to the sky, sky dome with proper horizon glow and readable clouds. Acceptance: before/after pair for town and countryside; cockpit not crushed; paint reads.
+- [~] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked). Done: vehicle sun shadow (stencil-free convex hull with penumbra rim, draped on the ground) and contact shadow; open: baked building/tree shadows.
 - [ ] `RQ-050` Roads: reworked asphalt (wear tracks, patches, edge weathering), quieter sidewalk paving, kerb profile with gutter, grass verge strip blending road and terrain outside town, gravel shoulder texture, intersection surface continuity, marking wear. Acceptance: road no longer reads as a clean strip on a plane; lane widths unchanged (map tests).
 - [ ] `RQ-051` Czech road details review: sign plate sizes and post heights, delineator spacing, crossing bars, stop line position; corrections applied where wrong.
 - [ ] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
@@ -622,3 +622,19 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   (full / no small parts / reduced without cabin, glass and plate) and a one-part cabin block
   for traffic models. `--lockstep` gives one simulation step per drawn frame so captures on
   slow renderers are deterministic; `--traffic-warmup <s>` pre-runs the traffic for captures.
+- `563ad0d` Lighting rebalance (`LightingRig.hpp`): sun 0.98/0.93/0.84, ambient 0.21/0.23/0.28,
+  sky fill 0.15/0.18/0.24, ground bounce 0.10/0.09/0.07, so a sunlit horizontal surface sits
+  near 1.0 instead of clipping; haze 300-2600 m; terrain macro tints desaturated; grass and
+  cloud textures reworked; lamp glow sprites (`LampGlow` anchors, additive billboards) for the
+  player and near traffic; `--lights` capture option.
+- Vehicle shadows rebuilt without the stencil (`ShadowGeometry.cpp`, `VehicleRenderer::DrawShadow`):
+  the old per-part planar shadow relied on `Equal 0` stencil tests against a per-frame stencil
+  clear, which stopped taking effect after the second frame on the EasyGL path, so cars had no
+  shadow at all in practice (found by frame-1/2/3 captures). Now each model keeps the extreme
+  vertices of its body and wheels (Fibonacci-sphere support points); every frame they are
+  projected along the sun onto the ground, their convex hull is drawn once as a fan with a
+  12 cm penumbra rim, plus a soft contact shadow under the footprint. Vertices are draped on
+  the sampled ground (roads, kerbs, terrain) through `GroundQuery`; drawn through a refilled
+  vertex/index buffer (the user-primitive path was unreliable after the town world pass).
+  Tests: `ShadowGeometryTests` (hull, support points, projection, rim normals, Lipan silhouette
+  area/containment/offset under the fixed sun).

@@ -497,6 +497,11 @@ namespace CarSim::App
         const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
         const bool mirrorPass = cockpit && mirrorEnabled_;
 
+        // Ground queries for draping car shadows on roads, kerbs and terrain.
+        Render::GroundQuery groundQuery;
+        groundQuery.height = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
+        groundQuery.normal = [this](const float x, const float z) { return map_ ? map_->Ground().NormalAt(x, z) : Vector3(0.0f, 1.0f, 0.0f); };
+
         // Off-screen passes first: the instrument cluster and, in the cockpit, the rear-view mirror.
         cluster_->Render(device, *spriteBatch_, state, elapsedSeconds_);
         vehicleRenderer_->SetClusterTexture(cluster_->Texture());
@@ -512,7 +517,7 @@ namespace CarSim::App
             vehicleRenderer_->DrawTransparent(device, state, mirror_->View(), mirror_->Projection(), true);
             if (traffic_ && trafficRenderer_) {
                 trafficRenderer_->Draw(device, *traffic_, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), mirror_->Pose().position, rig_,
-                                       [this](const Vector3& p) { return map_ ? map_->Ground().NormalAt(p.X, p.Z) : Vector3(0.0f, 1.0f, 0.0f); }, true);
+                                       groundQuery, true);
             }
             mirror_->End(device);
             vehicleRenderer_->SetMirrorTexture(mirror_->Texture());
@@ -544,23 +549,11 @@ namespace CarSim::App
         }
 
         if (traffic_ && trafficRenderer_) {
-            trafficRenderer_->Draw(device, *traffic_, view, projection, camera.Frustum(aspect), camera.position, rig_,
-                                   [this](const Vector3& p) { return map_ ? map_->Ground().NormalAt(p.X, p.Z) : Vector3(0.0f, 1.0f, 0.0f); }, false);
+            trafficRenderer_->Draw(device, *traffic_, view, projection, camera.Frustum(aspect), camera.position, rig_, groundQuery, false);
         }
         vehicleRenderer_->SetPlateTexture(playerPlate_);
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
-        {
-            // Ground plane for the projected shadow: lowest grounded wheel contact, terrain normal there.
-            Vector3 groundPoint = state.originPosition;
-            Vector3 groundNormal(0.0f, 1.0f, 0.0f);
-            if (map_) {
-                groundPoint.Y = map_->Ground().HeightAt(state.originPosition.X, state.originPosition.Z);
-                groundNormal = map_->Ground().NormalAt(state.originPosition.X, state.originPosition.Z);
-            } else {
-                groundPoint.Y = 0.0f;
-            }
-            vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundPoint, groundNormal);
-        }
+        vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundQuery);
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);

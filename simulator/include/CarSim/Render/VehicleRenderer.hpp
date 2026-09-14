@@ -12,10 +12,13 @@
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EnvironmentMapEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
+#include "Microsoft/Xna/Framework/Graphics/IndexBuffer.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
+#include "Microsoft/Xna/Framework/Graphics/VertexBuffer.hpp"
 #include "Microsoft/Xna/Framework/Graphics/TextureCube.hpp"
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -34,7 +37,8 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Graphics::BasicEffect& Shadow() { return *shadow_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& Glow() { return *glow_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& GlowTexture() { return *glowTexture_; }
-        Microsoft::Xna::Framework::Graphics::DepthStencilState& ShadowStencil() { return *shadowStencil_; }
+        /// Soft box falloff (alpha) for the contact shadow under a car.
+        Microsoft::Xna::Framework::Graphics::Texture2D& ContactTexture() { return *contactTexture_; }
         Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect& Paint() { return *paint_; }
         Microsoft::Xna::Framework::Graphics::TextureCube& Environment() { return *environment_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& White() { return *white_; }
@@ -50,7 +54,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> shadow_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> glow_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glowTexture_;
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::DepthStencilState> shadowStencil_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> contactTexture_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect> paint_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::TextureCube> environment_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
@@ -65,6 +69,13 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> fabric_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> headliner_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> vent_;
+    };
+
+    /// Ground surface queries (world x, z) used to drape shadows over roads, kerbs and terrain.
+    struct GroundQuery
+    {
+        std::function<float(float, float)> height;
+        std::function<Microsoft::Xna::Framework::Vector3(float, float)> normal;
     };
 
     /// Gauge values used to pose the needles (fractions 0..1 of the dial sweep).
@@ -98,12 +109,13 @@ namespace CarSim::Render
         void DrawOpaque(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
                         const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
                         bool drawInterior, const GaugePose& gauges, bool mirrored = false, int lod = 0);
-        /// Planar projected shadow of the exterior onto the ground plane under the car (sun light),
-        /// stencil-masked so overlapping parts darken once. Call after the opaque world and vehicle.
+        /// Sun shadow on the ground: the convex hull of the exterior projected along the sun,
+        /// drawn once as a fan with a soft rim (no stencil, no overlaps), plus a contact shadow
+        /// under the footprint. Vertices are draped on the ground surface. Call after the
+        /// opaque world and vehicle.
         void DrawShadow(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
                         const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
-                        const Microsoft::Xna::Framework::Vector3& sunDirection, const Microsoft::Xna::Framework::Vector3& groundPoint,
-                        const Microsoft::Xna::Framework::Vector3& groundNormal);
+                        const Microsoft::Xna::Framework::Vector3& sunDirection, const GroundQuery& ground);
         /// Transparent parts (glass), drawn after all opaque geometry. `fromInside` (cockpit camera)
         /// uses the light tint without reflections; from outside the glass reflects the sky.
         void DrawTransparent(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
@@ -124,6 +136,12 @@ namespace CarSim::Render
             const CarPart* part = nullptr;
             std::unique_ptr<GpuMesh> mesh;
         };
+        /// Extreme vertices of a rigid group (null part: the body) in that group's frame.
+        struct ShadowCaster
+        {
+            const CarPart* part = nullptr;
+            std::vector<Microsoft::Xna::Framework::Vector3> points;
+        };
 
         void Upload(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         [[nodiscard]] Microsoft::Xna::Framework::Matrix PartWorld(const CarPart& part, const Sim::VehicleState& state,
@@ -137,7 +155,12 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Vector3 paintColor_;
         Microsoft::Xna::Framework::Vector3 interiorColor_;
         CarModel model_;
+        static constexpr int kShadowVertexCapacity = 1536;   // 48 contact + up to 165 hull vertices x 9
+
         std::vector<GpuPart> parts_;
+        std::vector<ShadowCaster> casters_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> shadowVertices_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> shadowIndices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paintDetail_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glassOutside_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glassInside_;

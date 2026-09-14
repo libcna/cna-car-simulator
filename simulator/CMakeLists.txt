@@ -68,6 +68,7 @@ add_library(carsim_render STATIC
     src/Render/PropGenerator.cpp
     src/Render/RoadMeshBuilder.cpp
     src/Render/Screenshot.cpp
+    src/Render/ShadowGeometry.cpp
     src/Render/SignGenerator.cpp
     src/Render/SkyRenderer.cpp
     src/Render/TestGround.cpp

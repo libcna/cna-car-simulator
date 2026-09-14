@@ -3,13 +3,15 @@
 #include "CarSim/Render/CarTextures.hpp"
 #include "CarSim/Render/Image.hpp"
 #include "CarSim/Render/ProceduralTextures.hpp"
+#include "CarSim/Render/ShadowGeometry.hpp"
 #include "CarSim/Sim/Units.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
-#include "Microsoft/Xna/Framework/Graphics/CompareFunction.hpp"
-#include "Microsoft/Xna/Framework/Graphics/StencilOperation.hpp"
-#include "Microsoft/Xna/Framework/Plane.hpp"
+#include "Microsoft/Xna/Framework/Graphics/BufferUsage.hpp"
+#include "Microsoft/Xna/Framework/Graphics/IndexElementSize.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
+#include "Microsoft/Xna/Framework/Graphics/PrimitiveType.hpp"
+#include "Microsoft/Xna/Framework/Graphics/VertexPositionColorTexture.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPass.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectPassCollection.hpp"
 #include "Microsoft/Xna/Framework/Graphics/EffectTechnique.hpp"
@@ -19,6 +21,7 @@
 #include "Microsoft/Xna/Framework/Quaternion.hpp"
 
 #include <cmath>
+#include <cstdint>
 #include <optional>
 
 namespace CarSim::Render
@@ -221,25 +224,27 @@ namespace CarSim::Render
         interiorLit_->setTextureEnabledProperty(true);
         interiorLit_->setVertexColorEnabledProperty(false);
 
-        // Shadow: flat dark translucent colour, no lighting; stencil so the projected parts
-        // darken each pixel only once.
+        // Shadow: unlit, vertex alpha times a texture alpha (white for the hull, the box falloff
+        // for the contact shadow), drawn with premultiplied alpha so it only darkens.
         shadow_ = std::make_unique<BasicEffect>(device);
         shadow_->setLightingEnabledProperty(false);
         shadow_->setTextureEnabledProperty(true);
-        shadow_->setVertexColorEnabledProperty(false);
+        shadow_->setVertexColorEnabledProperty(true);
         shadow_->setDiffuseColorProperty(Vector3(0.0f, 0.0f, 0.0f));
-        shadow_->setAlphaProperty(0.42f);
+        shadow_->setAlphaProperty(1.0f);
         shadow_->setFogEnabledProperty(false);
-        shadowStencil_ = std::make_unique<DepthStencilState>();
-        shadowStencil_->setDepthBufferEnableProperty(true);
-        shadowStencil_->setDepthBufferWriteEnableProperty(false);
-        shadowStencil_->setDepthBufferFunctionProperty(CompareFunction::LessEqual);
-        shadowStencil_->setStencilEnableProperty(true);
-        shadowStencil_->setStencilFunctionProperty(CompareFunction::Equal);
-        shadowStencil_->setReferenceStencilProperty(0);
-        shadowStencil_->setStencilPassProperty(StencilOperation::Increment);
-        shadowStencil_->setStencilFailProperty(StencilOperation::Keep);
-        shadowStencil_->setStencilDepthBufferFailProperty(StencilOperation::Keep);
+        shadow_->setWorldProperty(Matrix::getIdentityProperty());
+        Image contact(64, 64, Color(255, 255, 255, 0));
+        contact.Generate([](int, int, float u, float v) {
+            // Flat core, smooth falloff to the edge of the footprint quad.
+            const float inner = 0.42f;
+            const float dx = std::max(0.0f, std::fabs(u * 2.0f - 1.0f) - inner) / (1.0f - inner);
+            const float dy = std::max(0.0f, std::fabs(v * 2.0f - 1.0f) - inner) / (1.0f - inner);
+            const float d = std::clamp(std::sqrt(dx * dx + dy * dy), 0.0f, 1.0f);
+            const float a = 1.0f - d * d * (3.0f - 2.0f * d);
+            return Color(255, 255, 255, static_cast<int>(a * 255.0f));
+        });
+        contactTexture_ = UploadTexture(device, contact, false);
 
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
         // Lamp glow: unlit additive sprite with a soft radial falloff.
@@ -341,6 +346,39 @@ namespace CarSim::Render
         glowQuad_ = GpuMesh::Create(device, quad, VertexLayout::PositionTexture);
         glassOutside_ = UploadTexture(device, CarTextures::GlassTint(model_.uv, 512, 0.62f), true);
         glassInside_ = UploadTexture(device, CarTextures::GlassTint(model_.uv, 512, 0.20f), true);
+
+        // Shadow casters: the rigid exterior (body, glass, lamps, mirrors) and each wheel reduced
+        // to their extreme vertices; small detail parts add nothing to the silhouette.
+        casters_.clear();
+        std::vector<Vector3> body;
+        std::vector<Vector3> wheels[4];
+        const CarPart* wheelPart[4] = {nullptr, nullptr, nullptr, nullptr};
+        for (const auto& part : model_.parts) {
+            if (IsInteriorPart(part) || part.detail) continue;
+            int wheel = -1;
+            switch (part.role) {
+                case CarPart::Role::WheelFL: wheel = 0; break;
+                case CarPart::Role::WheelFR: wheel = 1; break;
+                case CarPart::Role::WheelRL: wheel = 2; break;
+                case CarPart::Role::WheelRR: wheel = 3; break;
+                case CarPart::Role::Static: break;
+                default: continue;
+            }
+            std::vector<Vector3>& target = wheel < 0 ? body : wheels[wheel];
+            for (const auto& v : part.mesh.vertices) target.push_back(v.position);
+            if (wheel >= 0 && !wheelPart[wheel]) wheelPart[wheel] = &part;
+        }
+        if (!body.empty()) casters_.push_back({nullptr, ShadowGeometry::ExtremePoints(body, 160)});
+        for (int i = 0; i < 4; ++i) {
+            if (!wheels[i].empty()) casters_.push_back({wheelPart[i], ShadowGeometry::ExtremePoints(wheels[i], 40)});
+        }
+        // Shadow batch buffers: refilled every frame, drawn through the same indexed path as the meshes.
+        shadowVertices_ = std::make_unique<VertexBuffer>(device, VertexPositionColorTexture::getVertexDeclarationStatic(), kShadowVertexCapacity,
+                                                         BufferUsage::WriteOnly);
+        std::vector<std::uint32_t> identity(static_cast<std::size_t>(kShadowVertexCapacity));
+        for (std::size_t i = 0; i < identity.size(); ++i) identity[i] = static_cast<std::uint32_t>(i);
+        shadowIndices_ = std::make_unique<IndexBuffer>(device, IndexElementSize::ThirtyTwoBits, kShadowVertexCapacity, BufferUsage::WriteOnly);
+        shadowIndices_->SetData(identity.data(), kShadowVertexCapacity);
     }
 
     Matrix VehicleRenderer::PartWorld(const CarPart& part, const Sim::VehicleState& state, const GaugePose& gauges) const
@@ -508,37 +546,152 @@ namespace CarSim::Render
     }
 
     void VehicleRenderer::DrawShadow(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection,
-                                     const Vector3& sunDirection, const Vector3& groundPoint, const Vector3& groundNormal)
+                                     const Vector3& sunDirection, const GroundQuery& ground)
     {
-        // Plane slightly above the ground so the shadow wins the depth test against the road.
-        Vector3 n = groundNormal;
+        using namespace ShadowGeometry;
+        if (casters_.empty()) {
+            return;
+        }
+        constexpr float kLift = 0.03f;          // above the road markings, below the wheels' contact patches
+        constexpr float kPenumbraM = 0.12f;     // soft rim width
+        constexpr int kSunAlpha = 140;          // 0.55: the sun is ~2/3 of the light on a horizontal surface
+        constexpr int kContactAlpha = 115;      // 0.45 under the footprint (sky occluded by the car)
+
+        const Vector3 origin = state.originPosition;
+        Vector3 n = ground.normal ? ground.normal(origin.X, origin.Z) : Vector3(0.0f, 1.0f, 0.0f);
         if (n.LengthSquared() < 1e-6f) n = Vector3(0.0f, 1.0f, 0.0f);
         n.Normalize();
-        const Vector3 p = groundPoint + n * 0.02f;
-        const Plane plane(n, -Vector3::Dot(n, p));
-        Vector3 toSun = sunDirection * -1.0f;
-        toSun.Normalize();
-        const Matrix shadow = Matrix::CreateShadow(toSun, plane);
+        const float baseHeight = ground.height ? ground.height(origin.X, origin.Z) : origin.Y;
+        const Vector3 p0(origin.X, baseHeight, origin.Z);
+        const auto drape = [&](Vector3 p, const float lift) {
+            p.Y = (ground.height ? ground.height(p.X, p.Z) : baseHeight) + lift;
+            return p;
+        };
+        Vector3 light = sunDirection;
+        light.Normalize();
+        Vector3 e1, e2;
+        PlaneBasis(n, e1, e2);
+
+        // Sun shadow: project every caster and take the hull in the plane's tangent basis.
+        std::vector<Vector2> flat;
+        flat.reserve(320);
+        GaugePose none;
+        for (const auto& caster : casters_) {
+            const Matrix world = caster.part ? PartWorld(*caster.part, state, none) : state.worldMatrix;
+            for (const Vector3& p : caster.points) {
+                Vector3 q;
+                if (!ProjectToPlane(Vector3::Transform(p, world), light, p0, n, q)) continue;
+                const Vector3 d = q - p0;
+                flat.emplace_back(Vector3::Dot(d, e1), Vector3::Dot(d, e2));
+            }
+        }
+        const std::vector<Vector2> hull = ConvexHull(std::move(flat));
+        std::vector<VertexPositionColorTexture> verts;
+        const Color dark(0, 0, 0, kSunAlpha);
+        const Color clear(0, 0, 0, 0);
+        const Vector2 uvMid(0.5f, 0.5f);
+        if (hull.size() >= 3) {
+            const std::vector<Vector2> normals = OutwardNormals(hull);
+            std::vector<Vector3> inner(hull.size()), outer(hull.size());
+            Vector2 centre2(0.0f, 0.0f);
+            for (const Vector2& h : hull) centre2 = centre2 + h;
+            centre2 = centre2 * (1.0f / static_cast<float>(hull.size()));
+            const Vector3 centre = drape(p0 + e1 * centre2.X + e2 * centre2.Y, kLift);
+            for (std::size_t i = 0; i < hull.size(); ++i) {
+                inner[i] = drape(p0 + e1 * hull[i].X + e2 * hull[i].Y, kLift);
+                const Vector2 o = hull[i] + normals[i] * kPenumbraM;
+                outer[i] = p0 + e1 * o.X + e2 * o.Y;
+                outer[i].Y = inner[i].Y;
+            }
+            verts.reserve(hull.size() * 9);
+            for (std::size_t i = 0; i < hull.size(); ++i) {
+                const std::size_t j = (i + 1) % hull.size();
+                verts.emplace_back(centre, dark, uvMid);
+                verts.emplace_back(inner[i], dark, uvMid);
+                verts.emplace_back(inner[j], dark, uvMid);
+                verts.emplace_back(inner[i], dark, uvMid);
+                verts.emplace_back(outer[i], clear, uvMid);
+                verts.emplace_back(outer[j], clear, uvMid);
+                verts.emplace_back(inner[i], dark, uvMid);
+                verts.emplace_back(outer[j], clear, uvMid);
+                verts.emplace_back(inner[j], dark, uvMid);
+            }
+        }
+
+        // Contact shadow: the footprint as a 4 x 2 grid draped on the ground, alpha from the
+        // box-falloff texture.
+        std::vector<VertexPositionColorTexture> contact;
+        {
+            const CarStyle& st = model_.style;
+            const float halfW = st.width * 0.5f + 0.10f;
+            const float z0 = st.FrontZ() - 0.05f, z1 = st.RearZ() + 0.05f;
+            constexpr int nx = 2, nz = 4;
+            Vector3 grid[nz + 1][nx + 1];
+            for (int iz = 0; iz <= nz; ++iz) {
+                for (int ix = 0; ix <= nx; ++ix) {
+                    const float x = -halfW + 2.0f * halfW * static_cast<float>(ix) / static_cast<float>(nx);
+                    const float z = z0 + (z1 - z0) * static_cast<float>(iz) / static_cast<float>(nz);
+                    grid[iz][ix] = drape(Vector3::Transform(Vector3(x, 0.0f, z), state.worldMatrix), kLift * 0.6f);
+                }
+            }
+            const Color shade(0, 0, 0, kContactAlpha);
+            contact.reserve(nz * nx * 6);
+            for (int iz = 0; iz < nz; ++iz) {
+                for (int ix = 0; ix < nx; ++ix) {
+                    const auto uv = [&](int jz, int jx) {
+                        return Vector2(static_cast<float>(jx) / static_cast<float>(nx), static_cast<float>(jz) / static_cast<float>(nz));
+                    };
+                    contact.emplace_back(grid[iz][ix], shade, uv(iz, ix));
+                    contact.emplace_back(grid[iz][ix + 1], shade, uv(iz, ix + 1));
+                    contact.emplace_back(grid[iz + 1][ix + 1], shade, uv(iz + 1, ix + 1));
+                    contact.emplace_back(grid[iz][ix], shade, uv(iz, ix));
+                    contact.emplace_back(grid[iz + 1][ix + 1], shade, uv(iz + 1, ix + 1));
+                    contact.emplace_back(grid[iz + 1][ix], shade, uv(iz + 1, ix));
+                }
+            }
+        }
+
+        // One upload per car: the contact grid first, then the hull fan and rim; two indexed draws
+        // with different textures (a stock vertex/index buffer pair, refilled every frame).
+        if (!shadowVertices_ || !shadowIndices_) {
+            return;
+        }
+        const int contactCount = static_cast<int>(contact.size());
+        int hullCount = static_cast<int>(verts.size());
+        if (contactCount + hullCount > kShadowVertexCapacity) {
+            hullCount = std::max(0, (kShadowVertexCapacity - contactCount) / 3 * 3);
+        }
+        if (contactCount + hullCount == 0) {
+            return;
+        }
+        contact.insert(contact.end(), verts.begin(), verts.begin() + hullCount);
+        shadowVertices_->SetData(contact.data(), contactCount + hullCount);
 
         device.setBlendStateProperty(BlendState::AlphaBlend);
-        device.setDepthStencilStateProperty(materials_.ShadowStencil());
+        device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
         device.setRasterizerStateProperty(RasterizerState::CullNone);
+        device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        device.SetVertexBuffer(shadowVertices_.get());
+        device.setIndicesProperty(shadowIndices_.get());
         auto& e = materials_.Shadow();
         e.setViewProperty(view);
         e.setProjectionProperty(projection);
-        e.setTextureProperty(&materials_.White());
-        GaugePose none;
-        for (const auto& gpu : parts_) {
-            const CarPart& part = *gpu.part;
-            if (!gpu.mesh || part.material == CarMaterial::Glass || IsInteriorPart(part) || part.detail) {
-                continue;
+        const auto draw = [&](const int first, const int count, Texture2D& texture) {
+            if (count < 3) return;
+            e.setTextureProperty(&texture);
+            auto& passes = e.getCurrentTechniqueProperty()->getPassesProperty();
+            for (int i = 0; i < passes.getCountProperty(); ++i) {
+                passes[i]->Apply();
+                device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, contactCount + hullCount, first, count / 3);
             }
-            e.setWorldProperty(PartWorld(part, state, none) * shadow);
-            ApplyAll(e, device, *gpu.mesh);
-        }
+            ++drawCalls_;
+        };
+        draw(0, contactCount, materials_.ContactTexture());
+        draw(contactCount, hullCount, materials_.White());
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
     }
 
     void VehicleRenderer::DrawLampGlows(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection)
