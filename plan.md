@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M0-M10 complete; deferred items are marked `[-]` with their reason; audit record in section 21).
+Last synchronised with the repository: 2026-09-14 (M0-M10 complete, audit record in section 21; Phase 11 "Realism & Production Quality" opened in section 24).
 
 ---
 
@@ -500,3 +500,103 @@ gamepad/steering-wheel hardware; multiple licensed real-car models; car body pol
 additional maps; batch merging and instanced trees (PERF-002 levers); renderer conformance probe
 (RND-009); normal mapping (needs custom shaders); indicator self-cancel (only with reliable
 steering heuristic); weather/day-night (explicitly excluded).
+
+---
+
+## 24. Phase 11 -- Realism & Production Quality (`RQ`)
+
+Started 2026-09-14 on top of the M10 milestone (`c337c89`). Purpose: keep the simulator's
+technical foundation and make it look and feel like a small finished driving simulator instead
+of a procedural technical demonstration. No new gameplay systems (section 2 and the M10 deferred
+list stay as they are); every task below must make the existing driving experience visibly more
+believable, more polished or faster. The API boundary (section 3) is unchanged and the XNA-only
+static check remains mandatory.
+
+### 24.1 Audit of the M10 state (2026-09-14)
+
+Fresh captures from the M10 build are kept in `docs/screenshots/m10-baseline/` (Xvfb + Mesa
+llvmpipe, OPENGLES3 renderer; software rendering, so frame times there are not GPU numbers).
+Build and tests re-run before the audit: 119 GoogleTest cases and 5 CTests pass. Findings, in
+priority order:
+
+| Area | Finding |
+| --- | --- |
+| Player car | The lofted hatchback reads as a box: flat vertical nose and tail caps, no plan-view rounding, sharp roof and sill edges, a continuous black band along the whole lower body, lamp units are floating rotated boxes, the grille is a box, mirrors and handles are boxes, no panel gaps, glass is recoloured loft quads without a recess. |
+| Wheels | Tyre = torus + cylinder, rim = flat disc with five thin box spokes (reads as a white disc with lines from the side); no brake disc, no rim lip, no tread. Contact with the road is correct (radius and pivot come from the simulation). |
+| Cockpit | Dashboard is a slab, the binnacle a box; the A-pillars appear as huge grey wedges because the interior shell copies the loft's painted band from the belt line to the roof corner; the left mirror housing is a floating black box; no vents, no console details, no gear lever, seats are boxes. Steering wheel and cluster work. |
+| Dashboard | Functional and readable; typography, needle shape, lamp icons and the digital area are plain. |
+| Materials | Every part shares one textured lit `BasicEffect` look; paint has an environment map; glass is a flat tint; no texture on any car surface except plate and cluster. |
+| Traffic | Same body for every car; only paint differs. |
+| Buildings | Boxes with window quads glued on flat plaster; no reveals, gutters, eaves fascia, plots, fences or gardens; houses stand loose on a green plane. |
+| Roads | Widths and markings are right; sidewalks are a high-contrast checkerboard; the road edge meets the terrain with a hard line; the asphalt is uniform. |
+| Vegetation | Card trees with cartoon blob crowns; forests show regular rows of identical trunks; no bushes, no roadside grass detail; forest edge abrupt. |
+| Lighting | Flat: strong ambient, weak sun, saturated greens; sky is a plain gradient with barely visible clouds; no ground shadows from buildings or trees. |
+| Cameras | Chase camera framing is fine; no look-ahead in turns; reversing keeps the camera in front of the direction of travel. Cockpit eye position and FOV are plausible. |
+| Audio | Engine synthesis is continuous and load-driven but uses a single harmonic bank; no surface-dependent rolling noise; no brake or wind detail. |
+| Performance | `--benchmark` on llvmpipe: update 0.27 ms, draw submission 17 ms, 238 draw calls, 140k triangles (east spawn, traffic). No per-pass timings. |
+
+Asset approach decision for the hero car: option A (dramatically improve the project-owned
+procedural vehicle). Blender is not available in the development environment, no legally clean
+real-car model is reachable (see `docs/research/assets.md`), and a procedural body keeps the
+traffic variants and the licence audit trivial. The Lipan identity is kept and developed.
+
+### 24.2 Task ledger
+
+Statuses as in section 19. Acceptance criteria are what a reviewer checks; "screenshot" means a
+capture under `docs/screenshots/` reviewed against the baseline.
+
+#### Hero car exterior
+- [x] `RQ-001` Baseline captures and audit table (this section); `docs/screenshots/m10-baseline/`.
+- [ ] `RQ-010` New Lipan body surface: dense station loft (<= 4 cm) with plan-view rounding of nose and tail, sculpted hood/cowl/roof/tailgate profile, fender flares over the arches, tucked sills, smooth tumblehome, slim A/B/C pillars (glass classified against pillar bands, not ring segments), recessed glass, separate bumper skins with air dam and fog-lamp recesses, grille recess, headlamp and tail-lamp housings, shaped mirrors on stalks, door handles, wipers, exhaust, antenna. Acceptance: front 3/4, rear 3/4 and side close-ups show no flat caps or box lamps; the cabin from inside has slim pillars; wheel transform tests unchanged; body under 60k triangles.
+- [ ] `RQ-011` Body detail texture: UV-mapped loft with a generated paint texture (door and hood shut lines, tailgate seam, fuel flap, sill and arch ambient darkening) through `EnvironmentMapEffect`'s texture. Acceptance: shut lines visible in side close-up; paint colour still authoritative from the definition.
+- [ ] `RQ-012` Wheels and tyres: revolved tyre profile (tread, shoulder, sidewall bulge, bead) with a tread/sidewall texture, revolved rim (lip, dish, well) with five twin spokes that have depth, hub cap, brake disc and caliper behind the spokes. Spin/steer/suspension unchanged (existing tests); a new test checks the tyre mesh touches y = 0 within 1 cm at the definition radius.
+- [ ] `RQ-013` Vehicle lights: headlamp units (reflector texture + clear lens), tail-lamp clusters (red/amber/white segments in one housing), side repeaters; emissive states from `VehicleState` only; daytime lens look when off. Acceptance: lights screenshot with lights off/on/brake/indicator.
+- [ ] `RQ-014` Material audit: distinct looks for paint, glass (tint + frit band texture), rubber, black plastic, chrome, interior fabric and plastics (grain textures), lamp lenses, plate; documented in `docs/materials.md`. All through stock effects.
+
+#### Cockpit and dashboard
+- [ ] `RQ-020` Cockpit rebuild: shaped dashboard (curved top, binnacle cowl, centre stack with vents and controls, glovebox), steering column, gear lever that follows the transmission state, handbrake, shaped front seats with head restraints, door cards with armrests, slim A-pillars with trim, headliner, sun visors, mirror housing, windshield frit band. Acceptance: cockpit screenshot without grey wedges, steering wheel still synchronised (test), no geometry closer than the near plane.
+- [ ] `RQ-021` Instrument cluster presentation: redesigned faces (typography, tick hierarchy, red zone), needle with hub and shadow, lamp icons redrawn, backlit look with ignition, digital display area (odometer, trip, gear, consumption, clock-free). Simulation values remain authoritative (`LampLit` test kept). Acceptance: `--screenshot-cluster` review.
+
+#### Traffic and vehicle variety
+- [ ] `RQ-030` Traffic body variants: generator presets for hatchback, sedan, estate, small SUV and van (dimensions, greenhouse, overhangs, roof line, ride height) selected per traffic car with paint, wheel style and plate; traffic cars share materials. Acceptance: traffic screenshot with at least three distinct silhouettes; soak test unchanged.
+- [ ] `RQ-031` Vehicle LOD: traffic beyond a near radius drops interior, glass, shadow and small parts; beyond a far radius uses a reduced body. Draw calls per traffic car reported in the debug overlay.
+- [ ] `RQ-032` Traffic presentation polish: lane centring and steering smoothness checked while driving, spawning outside the view, wheel spin matches speed, brake lights and indicators verified.
+
+#### Environment
+- [ ] `RQ-040` Fixed daytime lighting rebalance: stronger sun, cooler and weaker ambient, sky and ground fill tuned, fog haze colour matched to the sky, sky dome with proper horizon glow and readable clouds. Acceptance: before/after pair for town and countryside; cockpit not crushed; paint reads.
+- [ ] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked).
+- [ ] `RQ-050` Roads: reworked asphalt (wear tracks, patches, edge weathering), quieter sidewalk paving, kerb profile with gutter, grass verge strip blending road and terrain outside town, gravel shoulder texture, intersection surface continuity, marking wear. Acceptance: road no longer reads as a clean strip on a plane; lane widths unchanged (map tests).
+- [ ] `RQ-051` Czech road details review: sign plate sizes and post heights, delineator spacing, crossing bars, stop line position; corrections applied where wrong.
+- [ ] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
+- [ ] `RQ-061` Plots and street furniture: fences (wood, wire, wall) and hedges around house plots with gates and driveways generated from the placed buildings, garden sheds, utility poles along village roads, bus shelter and bench polish. Acceptance: houses no longer stand loose on the meadow.
+- [ ] `RQ-070` Vegetation: new species card textures (lit crowns, several variants per species), near-tree trunk with branches, bushes along roads and forest edges, roadside grass tufts within 60 m, forest understory darkening and edge blending, jittered placement with clumping. Acceptance: forest screenshot without visible rows; town avenue reads as trees.
+- [ ] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
+
+#### Cameras, mirror, audio, driving
+- [ ] `RQ-080` Chase camera: spring-damped follow with speed-dependent distance, look-ahead in turns, correct reversing behaviour, low-speed stability, terrain clipping avoidance. Cockpit camera: eye position and FOV verified, tiny motion cues, no jitter. Acceptance: description in `docs/cameras.md` and a scripted drive without visible jumps.
+- [ ] `RQ-081` Mirror: framing and FOV checked, traffic visible, optional half-rate update setting, cost measured and recorded.
+- [ ] `RQ-090` Audio polish: layered engine (intake/exhaust/mechanical crossfades by load and rpm, overrun burble, gear-change dip), surface-dependent rolling noise, brake and wind layers; tests for continuity and level ordering; `docs/audio-design.md` updated.
+- [ ] `RQ-100` Driving feel audit: scripted drives at parking, 50 and 90 km/h, launches, braking, reversing, slopes; defects fixed with regression tests.
+
+#### Performance and validation
+- [ ] `RQ-120` Instrumentation: per-pass CPU timings (cluster, mirror, world, traffic, vehicle, HUD), visible/culled counts per class, traffic count, draw calls, triangles in the debug overlay and in the `--benchmark` summary (also written as JSON with `--benchmark-json`).
+- [ ] `RQ-121` LOD and culling: distance culling for props and buildings with far LOD, tree far LOD, vehicle LOD (RQ-031); measured before/after in `docs/performance.md`.
+- [ ] `RQ-130` Renderer conformance: build and run the same code on the renderers available in the environment (OPENGLES3, OPENGL33, SOFTWARE where it links); results, screenshots and differences recorded in `docs/renderer-conformance.md`. No renderer-specific project code.
+- [ ] `RQ-131` `docs/real-hardware-validation.md`: reproducible procedure for a real PC (build, launch, views, controls, overlay, capture, metrics to report, checklist).
+- [ ] `RQ-140` Screenshot loop: curated final set in `docs/screenshots/` (hero exterior, cockpit, dashboard, traffic, town, countryside, forest, intersection), README updated.
+- [ ] `RQ-150` Final audit: fresh clone build, all tests, static and asset checks, plan/README synchronised, final SHA recorded in section 24.4.
+
+### 24.3 Principles for this phase
+
+1. Preserve stable systems (physics, traffic, map, collision, save, plates); refactor only for a
+   concrete defect, performance problem or realism limit, and add regression coverage.
+2. Every visual task: capture before, implement, capture after, compare, iterate.
+3. Prefer fewer high-quality improvements to many mediocre ones; the hero car and cockpit come
+   first.
+4. Anything that needs CNAEXT, renderer internals or custom shaders is rejected and solved with
+   geometry, textures, baked lighting and stock effects.
+5. No new external assets unless their licence is verifiable and recorded; procedural first.
+
+### 24.4 Phase record
+
+Filled in as tasks complete (commit per logical unit; final SHA at the end of the phase).
