@@ -25,7 +25,8 @@ namespace CarSim::Map
         Maple,
         Beech,
         Spruce,
-        Pine
+        Pine,
+        Bush        // roadside and forest-edge shrub (no trunk)
     };
 
     [[nodiscard]] bool ParseTreeSpecies(const std::string& text, TreeSpecies& out);
@@ -124,6 +125,8 @@ namespace CarSim::Map
         void PlacePlots(const MapWorld& world);
         /// Wooden utility poles on the left side of class III, local and residential roads.
         void PlaceUtilityPoles(const MapWorld& world);
+        /// Shrubs scattered along rural road verges and just outside forest polygon edges.
+        void PlaceBushes(const MapWorld& world);
         void BuildGrids(const MapWorld& world);
         [[nodiscard]] bool ClearOfRoads(const MapWorld& world, const Microsoft::Xna::Framework::Vector2& p, float margin) const;
 

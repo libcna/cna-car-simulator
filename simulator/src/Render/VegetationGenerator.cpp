@@ -77,8 +77,8 @@ namespace CarSim::Render
                     const float yTop = H * (0.02f + 0.86f * t * 0.9f);
                     const float layerH = H * 0.16f;
                     const float halfW = W * (0.06f + 0.42f * std::pow(t, 0.85f));
-                    const Rgb dark = Rgb::FromBytes(26, 52, 30);
-                    const Rgb light = Rgb::FromBytes(74, 112, 58);
+                    const Rgb dark = Rgb::FromBytes(22, 46, 26);
+                    const Rgb light = Rgb::FromBytes(64, 98, 50);
                     for (int k = 0; k < 7; ++k) {
                         const float u = (static_cast<float>(k) + 0.5f) / 7.0f - 0.5f;
                         const float bx = cx + u * halfW * 1.9f;
@@ -90,10 +90,22 @@ namespace CarSim::Render
                 }
                 break;
             }
+            case TreeSpecies::Bush: {
+                // Shrub: a dense cluster of small crowns in the lower two thirds of the card, no trunk.
+                const Rgb dark = Rgb::FromBytes(24, 50, 22);
+                const Rgb light = Rgb::FromBytes(92, 134, 56);
+                for (int k = 0; k < 18; ++k) {
+                    const float bx = cx + (Core::Noise::Hash(k, 1, seed) - 0.5f) * W * 0.70f;
+                    const float by = H * (0.42f + 0.48f * Core::Noise::Hash(k, 2, seed));
+                    const float r = W * (0.11f + 0.09f * Core::Noise::Hash(k, 3, seed));
+                    Blob(img, bx, by, r, dark, light, seed + static_cast<unsigned>(k * 7));
+                }
+                break;
+            }
             case TreeSpecies::Pine: {
                 Trunk(img, cx, H * 0.30f, H, W * 0.03f, W * 0.07f, Rgb::FromBytes(150, 96, 62), Rgb::FromBytes(72, 44, 30), seed);
-                const Rgb dark = Rgb::FromBytes(30, 58, 34);
-                const Rgb light = Rgb::FromBytes(88, 128, 66);
+                const Rgb dark = Rgb::FromBytes(26, 50, 30);
+                const Rgb light = Rgb::FromBytes(78, 114, 58);
                 for (int k = 0; k < 9; ++k) {
                     const float a = Core::Noise::Hash(k, 1, seed);
                     const float bx = cx + (a - 0.5f) * W * 0.7f;
@@ -109,8 +121,8 @@ namespace CarSim::Render
                     const float y = H * (0.3f + 0.7f * Core::Noise::Hash(k, 5, seed));
                     img.FillRect(static_cast<int>(cx - W * 0.02f), static_cast<int>(y), static_cast<int>(cx + W * 0.015f), static_cast<int>(y) + 2, Color(40, 40, 40, 255));
                 }
-                const Rgb dark = Rgb::FromBytes(74, 118, 50);
-                const Rgb light = Rgb::FromBytes(160, 200, 96);
+                const Rgb dark = Rgb::FromBytes(62, 102, 44);
+                const Rgb light = Rgb::FromBytes(138, 176, 84);
                 for (int k = 0; k < 18; ++k) {
                     const float bx = cx + (Core::Noise::Hash(k, 1, seed) - 0.5f) * W * 0.75f;
                     const float by = H * (0.06f + 0.42f * Core::Noise::Hash(k, 2, seed));
@@ -124,11 +136,11 @@ namespace CarSim::Render
                 const bool broad = species == TreeSpecies::Oak;
                 const bool tall = species == TreeSpecies::Beech;
                 Trunk(img, cx, H * 0.55f, H, W * 0.05f, W * 0.10f, Rgb::FromBytes(110, 84, 60), Rgb::FromBytes(54, 40, 30), seed);
-                Rgb dark = Rgb::FromBytes(36, 78, 34);
-                Rgb light = Rgb::FromBytes(120, 172, 70);
-                if (species == TreeSpecies::Maple) { dark = Rgb::FromBytes(60, 96, 30); light = Rgb::FromBytes(170, 196, 74); }
-                if (species == TreeSpecies::Beech) { dark = Rgb::FromBytes(34, 70, 30); light = Rgb::FromBytes(104, 156, 62); }
-                const int blobs = 26;
+                Rgb dark = Rgb::FromBytes(30, 64, 28);
+                Rgb light = Rgb::FromBytes(104, 150, 62);
+                if (species == TreeSpecies::Maple) { dark = Rgb::FromBytes(50, 84, 28); light = Rgb::FromBytes(150, 178, 68); }
+                if (species == TreeSpecies::Beech) { dark = Rgb::FromBytes(30, 60, 26); light = Rgb::FromBytes(92, 140, 56); }
+                const int blobs = 40;
                 for (int k = 0; k < blobs; ++k) {
                     const float a = Core::Noise::Hash(k, 1, seed) * 2.0f * std::numbers::pi_v<float>;
                     const float rr = std::sqrt(Core::Noise::Hash(k, 2, seed));
@@ -136,13 +148,24 @@ namespace CarSim::Render
                     const float ey = tall ? 0.36f : (broad ? 0.26f : 0.30f);
                     const float bx = cx + std::cos(a) * rr * W * ex;
                     const float by = H * (tall ? 0.36f : 0.33f) + std::sin(a) * rr * H * ey;
-                    const float r = W * (0.12f + 0.10f * Core::Noise::Hash(k, 3, seed));
+                    const float r = W * (0.09f + 0.08f * Core::Noise::Hash(k, 3, seed));
                     Blob(img, bx, by, r, dark, light, seed + static_cast<unsigned>(k * 11));
                 }
                 break;
             }
         }
-        // Erode the alpha edge slightly so the alpha test keeps a soft silhouette.
+        // Crown underside in shade: darken towards the bottom of the card so the foliage reads lit
+        // from above rather than as a flat cut-out.
+        for (int y = 0; y < height; ++y) {
+            const float t = static_cast<float>(y) / std::max(1.0f, H - 1.0f);
+            const float k = 0.70f + 0.30f * std::pow(1.0f - t, 0.8f);
+            for (int x = 0; x < width; ++x) {
+                Color& c = img.At(x, y);
+                if (c.getAProperty() == 0) continue;
+                c = Color(static_cast<int>(c.getRProperty() * k), static_cast<int>(c.getGProperty() * k), static_cast<int>(c.getBProperty() * k),
+                          static_cast<int>(c.getAProperty()));
+            }
+        }
         return img;
     }
 
@@ -170,6 +193,7 @@ namespace CarSim::Render
 
     void VegetationGenerator::AppendTrunk(const Map::PlacedTree& tree, MeshData& mesh)
     {
+        if (tree.species == TreeSpecies::Bush) return;
         const float h = tree.Height();
         const float trunkH = Map::IsConifer(tree.species) ? h * 0.5f : h * 0.45f;
         mesh.AddCylinder(tree.position - Vector3(0.0f, 0.2f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), tree.TrunkRadius(), trunkH + 0.2f, 7, false,

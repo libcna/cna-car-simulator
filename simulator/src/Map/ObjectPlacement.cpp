@@ -39,6 +39,7 @@ namespace CarSim::Map
         else if (text == "beech") out = TreeSpecies::Beech;
         else if (text == "spruce") out = TreeSpecies::Spruce;
         else if (text == "pine") out = TreeSpecies::Pine;
+        else if (text == "bush" || text == "shrub") out = TreeSpecies::Bush;
         else return false;
         return true;
     }
@@ -53,6 +54,7 @@ namespace CarSim::Map
             case TreeSpecies::Beech: return "beech";
             case TreeSpecies::Spruce: return "spruce";
             case TreeSpecies::Pine: return "pine";
+            case TreeSpecies::Bush: return "bush";
         }
         return "?";
     }
@@ -69,6 +71,7 @@ namespace CarSim::Map
             case TreeSpecies::Beech: return 18.0f * scale;
             case TreeSpecies::Spruce: return 22.0f * scale;
             case TreeSpecies::Pine: return 19.0f * scale;
+            case TreeSpecies::Bush: return 2.2f * scale;
         }
         return 12.0f * scale;
     }
@@ -79,12 +82,14 @@ namespace CarSim::Map
             case TreeSpecies::Spruce: return 2.6f * scale;
             case TreeSpecies::Pine: return 3.2f * scale;
             case TreeSpecies::Birch: return 3.0f * scale;
+            case TreeSpecies::Bush: return 1.3f * scale;
             default: return 4.5f * scale;
         }
     }
 
     float PlacedTree::TrunkRadius() const
     {
+        if (species == TreeSpecies::Bush) return 0.05f * scale;
         return (IsConifer(species) ? 0.22f : 0.28f) * scale;
     }
 
@@ -124,7 +129,76 @@ namespace CarSim::Map
         PlaceDelineators(world);
         PlacePlots(world);
         PlaceUtilityPoles(world);
+        PlaceBushes(world);
         BuildGrids(world);
+    }
+
+    void ObjectPlacement::PlaceBushes(const MapWorld& world)
+    {
+        const MapGround& ground = world.Ground();
+        const RoadNetwork& network = world.Roads();
+        const std::size_t treeCount = trees_.size();   // trees placed so far (authored, forests, avenues)
+        const auto nearTree = [&](const Vector2& p, const float radius) {
+            for (std::size_t i = 0; i < treeCount; ++i) {
+                const PlacedTree& t = trees_[i];
+                if (std::fabs(t.position.X - p.X) > radius || std::fabs(t.position.Z - p.Y) > radius) continue;
+                if (Vector2::DistanceSquared(Vector2(t.position.X, t.position.Z), p) < radius * radius) return true;
+            }
+            return false;
+        };
+        const auto add = [&](const Vector2& p, const float scale, const unsigned seed) {
+            if (!world.Terrain().Contains(p.X, p.Y) || InsideBuilding(p, 2.0f) || !ClearOfRoads(world, p, 1.2f) || nearTree(p, 3.5f)) return;
+            PlacedTree b;
+            b.species = TreeSpecies::Bush;
+            b.scale = scale;
+            b.seed = seed;
+            b.rotationRad = Hash01(static_cast<int>(seed), 3, 77u) * 2.0f * kPi;
+            b.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
+            trees_.push_back(b);
+        };
+        // Rural verges: a shrub every ~9 m on either side with a 45 % chance, 3-5.5 m off the road.
+        int n = 0;
+        for (const Road& road : network.Roads()) {
+            for (float s = 6.0f; s < road.curve.Length() - 6.0f; s += 9.0f, ++n) {
+                const RoadSample sample = road.curve.Evaluate(s);
+                if (sample.urban) continue;
+                Vector2 tangent(sample.tangent.X, sample.tangent.Z);
+                if (tangent.LengthSquared() < 1e-6f) continue;
+                tangent.Normalize();
+                const Vector2 right(-tangent.Y, tangent.X);
+                const Vector2 centre(sample.position.X, sample.position.Z);
+                for (const int side : {-1, 1}) {
+                    if (Hash01(n, side + 2, 501u + static_cast<unsigned>(road.index)) > 0.45f) continue;
+                    const float lateral = road.profile.HalfTotalWidth() + 3.0f + 2.5f * Hash01(n, side + 5, 503u);
+                    const float along = (Hash01(n, side + 8, 505u) - 0.5f) * 4.0f;
+                    const Vector2 p = centre + right * (static_cast<float>(side) * lateral) + tangent * along;
+                    add(p, 0.7f + 0.8f * Hash01(n, side + 11, 507u), 900u + static_cast<unsigned>(n * 2 + (side > 0 ? 1 : 0)));
+                }
+            }
+        }
+        // Forest edges: shrubs just outside the polygon every ~7 m with a 60 % chance.
+        unsigned forestIndex = 0;
+        for (const ForestSpec& forest : world.Data().objects.forests) {
+            ++forestIndex;
+            const std::size_t count = forest.polygon.size();
+            if (count < 3) continue;
+            int k = 0;
+            for (std::size_t i = 0; i < count; ++i) {
+                const Vector2& a = forest.polygon[i];
+                const Vector2& b = forest.polygon[(i + 1) % count];
+                const float length = Vector2::Distance(a, b);
+                if (length < 1.0f) continue;
+                const Vector2 dir = (b - a) * (1.0f / length);
+                Vector2 normal(-dir.Y, dir.X);
+                if (PointInPolygon(a + dir * (length * 0.5f) + normal * 3.0f, forest.polygon)) normal = normal * -1.0f;   // point outward
+                for (float t = 3.5f; t < length - 3.5f; t += 7.0f, ++k) {
+                    if (Hash01(k, static_cast<int>(i), 600u + forest.seed + forestIndex) > 0.6f) continue;
+                    const float out = 2.0f + 2.5f * Hash01(k, static_cast<int>(i) + 3, 602u + forest.seed);
+                    const Vector2 p = a + dir * (t + (Hash01(k, static_cast<int>(i) + 6, 604u) - 0.5f) * 3.0f) + normal * out;
+                    add(p, 0.8f + 0.9f * Hash01(k, static_cast<int>(i) + 9, 606u), 40000u + forestIndex * 1000u + static_cast<unsigned>(k));
+                }
+            }
+        }
     }
 
     void ObjectPlacement::PlacePlots(const MapWorld& world)

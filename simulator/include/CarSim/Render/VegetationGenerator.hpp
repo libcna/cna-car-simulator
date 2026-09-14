@@ -12,7 +12,7 @@ namespace CarSim::Render
     class VegetationGenerator
     {
     public:
-        static constexpr int kSpeciesCount = 7;
+        static constexpr int kSpeciesCount = 8;
 
         /// Silhouette texture (RGBA, premultiplied not required: alpha test) for a species.
         [[nodiscard]] static Image CardTexture(Map::TreeSpecies species, int width, int height, unsigned seed);

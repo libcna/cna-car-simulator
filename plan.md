@@ -569,7 +569,7 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [ ] `RQ-051` Czech road details review: sign plate sizes and post heights, delineator spacing, crossing bars, stop line position; corrections applied where wrong.
 - [x] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
 - [x] `RQ-061` Plots and street furniture: fences (wood, wire, wall) and hedges around house plots with gates and driveways generated from the placed buildings, garden sheds, utility poles along village roads, bus shelter and bench polish. Acceptance: houses no longer stand loose on the meadow. Done: street-side picket/wire/hedge lines with a gate gap, side fences on cottages, sheds behind every second house, utility poles on class III/local/residential roads; open: driveways, shelter/bench polish.
-- [ ] `RQ-070` Vegetation: new species card textures (lit crowns, several variants per species), near-tree trunk with branches, bushes along roads and forest edges, roadside grass tufts within 60 m, forest understory darkening and edge blending, jittered placement with clumping. Acceptance: forest screenshot without visible rows; town avenue reads as trees.
+- [x] `RQ-070` Vegetation: new species card textures (lit crowns, several variants per species), near-tree trunk with branches, bushes along roads and forest edges, roadside grass tufts within 60 m, forest understory darkening and edge blending, jittered placement with clumping. Acceptance: forest screenshot without visible rows; town avenue reads as trees. Done: darker, finer-grained crowns with an underside shade gradient, a bush species along rural verges and forest edges; open: grass tufts, branch geometry.
 - [x] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
 
 #### Cameras, mirror, audio, driving
@@ -681,3 +681,9 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   crossarms along class III, local and residential roads; all placements are checked against
   buildings and roads. Detail batches (frames, gutters, reveals) cull beyond 420 m. Test:
   `PlotsAndUtilityPolesAreGeneratedClearOfBuildingsAndRoads`.
+- Vegetation (`VegetationGenerator.cpp`, `ObjectPlacement::PlaceBushes`): crown cards use
+  darker, less saturated leaf palettes with more and smaller blobs and a vertical shade
+  gradient (lit from above, dark underside); a `Bush` species (2.2 m, no trunk) is scattered
+  along rural road verges (45 % of 9 m steps, 3-5.5 m off the road) and just outside forest
+  polygon edges, clear of buildings, roads and existing trees; bushes cast baked shadow discs
+  like trees. Test: `BushesLineRuralVergesAndForestEdges`.

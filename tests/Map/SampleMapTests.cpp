@@ -119,3 +119,24 @@ TEST(SampleMap, PlotsAndUtilityPolesAreGeneratedClearOfBuildingsAndRoads)
     EXPECT_GT(sheds, 10);
     EXPECT_GT(poles, 40);
 }
+
+TEST(SampleMap, BushesLineRuralVergesAndForestEdges)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    int bushes = 0;
+    for (const auto& t : world->Objects().Trees()) {
+        if (t.species != Map::TreeSpecies::Bush) continue;
+        ++bushes;
+        EXPECT_LT(t.Height(), 4.0f);
+        const Microsoft::Xna::Framework::Vector2 at(t.position.X, t.position.Z);
+        EXPECT_FALSE(world->Objects().InsideBuilding(at, 1.0f));
+        float height = 0.0f;
+        Sim::SurfaceType surface = Sim::SurfaceType::Asphalt;
+        float edge = 0.0f;
+        const bool onPaved = world->Roads().RoadSurfaceAt(at, height, surface, edge) && edge < 0.0f;
+        EXPECT_FALSE(onPaved);
+    }
+    EXPECT_GT(bushes, 300);
+}
