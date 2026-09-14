@@ -836,3 +836,6 @@ committed with its own regression test and screenshot check.
   edge read as the world ending in mid-air. `WorldRenderer::BuildTerrain` now also builds a flat
   skirt that carries each edge vertex height and the clamped macro colour 8 km outwards, so the
   ground runs into the fog (one extra draw call, about 700 triangles).
+- [x] `RQ-169` Help overlay wording: the gear row read "1 - 6 / 1st gear" and the shift rows were
+  cut off as "Left Shift / Right Sh...". The row now reads "Select a gear (manual)" and the
+  modifier names are shortened to "L Shift / R Shift" instead of being truncated.

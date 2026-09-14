@@ -774,14 +774,24 @@ namespace CarSim::App
             const float x = left + 20.0f + static_cast<float>(column) * columnWidth;
             const float y = top + 52.0f + static_cast<float>(row) * rowHeight;
             std::string keys = input_.KeysFor(a);
+            std::string label = Input::Describe(a);
             if (a == GameAction::Gear1) {
                 keys = "1 - 6";
+                label = "Select a gear (manual)";
+            }
+            // The key column fits about 22 characters; shorten the modifier names rather than
+            // cutting them off ("Left Shift / Right Sh...").
+            for (const auto& pair : {std::pair<const char*, const char*>{"Left Shift", "L Shift"},
+                                     {"Right Shift", "R Shift"}, {"Left Ctrl", "L Ctrl"}, {"Right Ctrl", "R Ctrl"}}) {
+                for (std::size_t at = keys.find(pair.first); at != std::string::npos; at = keys.find(pair.first, at)) {
+                    keys.replace(at, std::string(pair.first).size(), pair.second);
+                }
             }
             if (keys.size() > 22) {
                 keys = keys.substr(0, 21) + "…";
             }
             font_->Draw(*spriteBatch_, keys, Vector2(x, y), Color(255, 220, 120, 255), scale);
-            font_->Draw(*spriteBatch_, Input::Describe(a), Vector2(x + keyWidth, y), Color(240, 240, 240, 255), scale);
+            font_->Draw(*spriteBatch_, label, Vector2(x + keyWidth, y), Color(240, 240, 240, 255), scale);
         }
         spriteBatch_->End();
     }
