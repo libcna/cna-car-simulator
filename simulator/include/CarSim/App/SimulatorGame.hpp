@@ -138,5 +138,6 @@ namespace CarSim::App
         bool screenshotRequested_ = false;
         bool autoDriveStarted_ = false;
         bool lightsApplied_ = false;
+        bool lightsEngineRequested_ = false;
     };
 }

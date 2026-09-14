@@ -242,9 +242,20 @@ namespace CarSim::App
 
     void SimulatorGame::ApplyAutoDrive(Sim::DriverControls& controls)
     {
-        if (options_.lights && !lightsApplied_ && elapsedSeconds_ > 0.3) {
-            lightsApplied_ = true;
-            controls.toggleHeadlights = true;
+        if (options_.lights && !lightsApplied_) {
+            // The electrical system gates every lamp except the hazards on the ignition, so a
+            // capture that asks for lights starts the engine first when the scripted drive does
+            // not (otherwise --lights alone silently produced a dark car).
+            const Sim::VehicleState state = vehicle_->Snapshot();
+            if (state.ignitionOn) {
+                if (elapsedSeconds_ > 0.3) {
+                    lightsApplied_ = true;
+                    controls.toggleHeadlights = true;
+                }
+            } else if (!options_.autoDriveSeconds && !lightsEngineRequested_ && elapsedSeconds_ > 0.1) {
+                lightsEngineRequested_ = true;
+                controls.toggleEngine = true;
+            }
         }
         if (!options_.autoDriveSeconds) {
             return;

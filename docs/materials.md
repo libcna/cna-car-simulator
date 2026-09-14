@@ -19,7 +19,7 @@ are procedural CPU images (`CarTextures.cpp`, `ProceduralTextures.cpp`) uploaded
 | `Rim` | BasicEffect | rim finish (machined face, dark pockets) | 0.78 grey, specular 0.9 / 44 | alloy wheels |
 | `BrakeDisc` | BasicEffect | white | 0.30 grey, specular 0.5 / 30 | brake discs, hubs (LOD 0/1 only) |
 | `Grille` | BasicEffect | hexagonal mesh (bars light, openings dark) | white x texture, specular 0.25 / 20 | grille, intake, rear diffuser |
-| `LampHead` | BasicEffect | projector lens (two reflector bowls, ribs) | 0.85/0.88/0.92, specular 1.0 / 80; emissive 0.70 low beam, 1.0 high beam | headlamp decals |
+| `LampHead` | BasicEffect | projector lens (two reflector bowls, ribs) | off 0.52/0.54/0.58 (glass over a grey reflector); lit 0.92/0.93/0.95 with emissive 0.78 low beam, 1.0 high beam; specular 1.0 / 80 | headlamp decals |
 | `LampTail` | BasicEffect | ribbed lens | 0.55/0.03/0.03, specular 0.55 / 50; emissive 0.38 red with lights, 0.95 red braking | tail lamp decals |
 | `LampIndicator` | BasicEffect | ribbed lens | 0.90/0.50/0.10; emissive amber when blinking (per side) | front and rear indicators, side repeaters |
 | `LampReverse` | BasicEffect | ribbed lens | 0.82 grey; emissive when reversing | narrow inner segment of the tail cluster |

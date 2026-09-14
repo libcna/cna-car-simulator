@@ -137,11 +137,15 @@ namespace CarSim::Render
                     look.specularPower = 4.0f;
                     break;
                 case CarMaterial::LampHead:
-                    look.diffuse = Vector3(0.85f, 0.88f, 0.92f);
+                    // Switched off, the lens reads as glass over a grey reflector bowl, not as
+                    // white plastic: without that contrast a lit lamp is barely distinguishable
+                    // from an unlit one in daylight.
+                    look.diffuse = Vector3(0.52f, 0.54f, 0.58f);
                     look.specular = Vector3(1.0f, 1.0f, 1.0f);
                     look.specularPower = 80.0f;
                     if (state.lowBeam) {
-                        look.emissive = state.highBeam ? Vector3(1.0f, 0.98f, 0.90f) : Vector3(0.70f, 0.70f, 0.64f);
+                        look.diffuse = Vector3(0.92f, 0.93f, 0.95f);
+                        look.emissive = state.highBeam ? Vector3(1.0f, 0.98f, 0.90f) : Vector3(0.78f, 0.77f, 0.70f);
                     }
                     break;
                 case CarMaterial::LampTail:

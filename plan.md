@@ -731,3 +731,15 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   tables and status text updated, superseded `town-street/cockpit/forest-road` removed.
   A `kostel` player spawn (90 m before the church junction, east-bound) was added to
   `traffic.json` for junction captures; `map-validate` reports 0 warnings.
+- Headlamps and the `--lights` capture flag: the unlit headlamp lens was nearly white
+  (diffuse 0.85/0.88/0.92), so a lit lamp was indistinguishable from an unlit one in daylight;
+  the lens now reads as glass over a grey reflector when off (0.52/0.54/0.58) and brightens to
+  0.92/0.93/0.95 with emissive 0.78 when the low beam is on (`docs/materials.md` updated).
+  While checking this, `--lights` turned out to be a no-op on its own: the electrical system
+  gates every lamp except the hazards on the ignition, and without `--auto-drive` the engine
+  stayed off, so the two captures were byte-identical. `--lights` now starts the engine itself
+  when no scripted drive does and toggles the headlights once the ignition is live; the lit and
+  unlit captures differ clearly (lens, glow, plate lamp). The curated forest picture was
+  replaced by a view deeper in the spruce stands and a headlights picture was added to the
+  README. The yellow chevron visible in the sky of the forest captures was tracked down to the
+  HUD indicator telltale drawn at the top centre, not a world artifact.

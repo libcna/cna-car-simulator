@@ -16,9 +16,9 @@ town, its outskirts, the countryside and a forest, meet traffic, and enjoy drivi
 | --- | --- | --- |
 | ![Town street](docs/screenshots/town.jpg) | ![Traffic](docs/screenshots/traffic.jpg) | ![Main road through the fields](docs/screenshots/countryside.jpg) |
 
-| Forest | Intersection |
-| --- | --- |
-| ![Forest road](docs/screenshots/forest.jpg) | ![Square junction](docs/screenshots/intersection.jpg) |
+| Forest | Intersection | Headlights |
+| --- | --- | --- |
+| ![Forest road](docs/screenshots/forest.jpg) | ![Square junction](docs/screenshots/intersection.jpg) | ![Headlights on](docs/screenshots/lights.jpg) |
 
 All pictures are headless captures from the development container (Xvfb, Mesa llvmpipe
 software OpenGL ES 3, no multisampling); a GPU renders the same frames with sharper texture
