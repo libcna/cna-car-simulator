@@ -47,10 +47,12 @@ add_library(carsim_render STATIC
     src/Render/MeshData.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralTextures.cpp
+    src/Render/RoadMeshBuilder.cpp
     src/Render/Screenshot.cpp
     src/Render/SkyRenderer.cpp
     src/Render/TestGround.cpp
     src/Render/VehicleRenderer.cpp
+    src/Render/WorldRenderer.cpp
 )
 target_include_directories(carsim_render PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(carsim_render PUBLIC carsim_core CNA)

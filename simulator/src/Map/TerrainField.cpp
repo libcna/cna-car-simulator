@@ -15,6 +15,7 @@ namespace CarSim::Map
     namespace
     {
         float SmoothStep(const float t) { const float c = std::clamp(t, 0.0f, 1.0f); return c * c * (3.0f - 2.0f * c); }
+        constexpr float kRoadSink = 0.12f;   // terrain sits this far below the road surface (depth precision margin)
     }
 
     void TerrainField::Build(const TerrainSpec& spec)
@@ -94,7 +95,7 @@ namespace CarSim::Map
                     const float lat = std::fabs(hit.lateral);
                     RoadHit edge = hit;
                     edge.lateral = std::clamp(hit.lateral, -ht, ht);
-                    targetHeight = network.SurfaceHeight(edge) - 0.05f;
+                    targetHeight = network.SurfaceHeight(edge) - kRoadSink;
                     bestD = lat - ht;
                 }
                 // Intersection patches: flat at the node height.
@@ -109,7 +110,7 @@ namespace CarSim::Map
                     const float d = PointInPolygon(p, inter.patch) ? -edgeDist : edgeDist;
                     if (d < bestD) {
                         bestD = d;
-                        targetHeight = inter.PlaneHeight(p) - 0.05f;
+                        targetHeight = inter.PlaneHeight(p) - kRoadSink;
                     }
                 }
                 if (bestD == std::numeric_limits<float>::max()) {

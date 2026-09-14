@@ -7,7 +7,9 @@
 #include "CarSim/Render/Camera.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/SkyRenderer.hpp"
+#include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Render/TestGround.hpp"
+#include "CarSim/Render/WorldRenderer.hpp"
 #include "CarSim/Render/VehicleRenderer.hpp"
 #include "CarSim/Sim/Ground.hpp"
 #include "CarSim/Sim/Vehicle.hpp"
@@ -41,6 +43,7 @@ namespace CarSim::App
 
     private:
         void ResolveContentRoot();
+        void LoadMap();
         void LoadVehicle();
         void HandleAppActions();
         void ApplyAutoDrive(Sim::DriverControls& controls);
@@ -55,13 +58,15 @@ namespace CarSim::App
         // Simulation
         Sim::VehicleDefinition definition_;
         std::unique_ptr<Sim::Vehicle> vehicle_;
-        Sim::FlatGround ground_{0.0f};
+        Sim::FlatGround ground_{0.0f};              // fallback when no map is loaded
+        std::unique_ptr<Map::MapWorld> map_;
         Input::InputMapper input_;
 
         // Rendering
         Render::LightingRig rig_;
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::TestGround> testGround_;
+        std::unique_ptr<Render::WorldRenderer> worldRenderer_;
         std::unique_ptr<Render::VehicleMaterials> vehicleMaterials_;
         std::unique_ptr<Render::VehicleRenderer> vehicleRenderer_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::SpriteBatch> spriteBatch_;

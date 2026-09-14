@@ -30,8 +30,11 @@ namespace CarSim::Core
         /// Name of the vehicle definition to drive (overrides the saved setting).
         std::optional<std::string> vehicle;
 
-        /// Name of the map to load (overrides the default map).
+        /// Name of the map to load (overrides the default map); "none" selects the flat proving ground.
         std::optional<std::string> map;
+
+        /// Name of the player spawn point inside the map (default: the first one).
+        std::optional<std::string> spawn;
 
         /// Start in the cockpit camera instead of the exterior camera.
         bool cockpit = false;
@@ -42,6 +45,15 @@ namespace CarSim::Core
         /// Exterior camera framing overrides for screenshots (degrees around the car, metres).
         std::optional<float> chaseYawDeg;
         std::optional<float> chaseDistanceM;
+
+        /// Fixed free camera for inspection captures: position, heading (deg, 0 = north) and pitch (deg, up positive).
+        struct FreeView
+        {
+            float x = 0.0f, y = 0.0f, z = 0.0f;
+            float headingDeg = 0.0f;
+            float pitchDeg = 0.0f;
+        };
+        std::optional<FreeView> freeView;
     };
 
     /// Result of parsing: either options or an error message for the user.

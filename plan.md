@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M2 rendering base complete except RND-009; SIM-019 open).
+Last synchronised with the repository: 2026-09-14 (M3 map core and world renderer complete except MAP-007; RND-009 and SIM-019 open).
 
 ---
 
@@ -361,12 +361,12 @@ that logs frame statistics for a scripted camera path.
 - [x] `MAP-002` `RoadNetwork`: straight-and-arc centrelines with corner fillets, cross-sections, urban speed limits, terrain-following heights pinned to nodes, intersections with setbacks, kerb fillets and sloped junction planes, road pieces, spatial grid queries, surface height with crown.
 - [x] `MAP-003` `LaneGraph`: lanes per direction and piece, Hermite connectors with turn types, conflicts, yield lists (priority, right-hand rule, left turn yields to oncoming), dead-end U-turns, nearest lane, Dijkstra routes, reachability; tests.
 - [x] `MAP-004` `TerrainField`: procedural base (signed fBm + hills/ridges/plateaus), region classification, road conformance with blend zone, bilinear height/normal; `MapGround` composite raycast used by the vehicle; tests.
-- [ ] `MAP-005` Road geometry generator (surface, crown, kerbs, sidewalks, shoulders, markings as decals, intersections patches) matching collision surface.
-- [ ] `MAP-006` Terrain mesh generator with road blending (terrain conforms to road edges).
+- [x] `MAP-005` Road geometry generator (`RoadMeshBuilder`: crowned surface, shoulders, kerbs, sidewalks on urban stretches, centre/edge lines V 1a/V 2a/V 2b/V 4, stop bars V 5, give-way triangles V 6a, intersection fan patches) built from the same height functions the physics uses. Pedestrian crossings (V 7) and sidewalk corners at junctions remain in ENV-007.
+- [x] `MAP-006` Terrain chunks (32 x 32 cells, dual-UV) with a baked macro texture (region tint, sun lighting, verge darkening) drawn with `DualTextureEffect`; terrain sits 12 cm under the roads with a 16 m blend; frustum culling per chunk.
 - [ ] `MAP-007` Static objects: buildings (procedural Czech house/block generator), props, signs, street lights, vegetation placement, forests, fields.
 - [x] `MAP-008` `SpatialGrid` (uniform cells) used for road segments, intersection patches and lane points; objects/colliders follow in M5/M8.
 - [x] `MAP-009` `carsim-mapvalidate` tool (+ `map_validate_lipova` CTest): structural checks, dead ends, reachability, grades, spawn placement, statistics.
-- [ ] `MAP-010` Sample map "Lipová" v1: road network (17 km, 13 intersections), terrain, regions, 356 buildings, signs, forests, avenues and spawns authored by `tools/maps/generate_lipova.py` and validated; "driveable end to end" is confirmed with the world renderer (MAP-005/006).
+- [x] `MAP-010` Sample map "Lipová" v1: road network (17 km, 13 intersections), terrain, regions, 356 buildings, signs, forests, avenues and spawns authored by `tools/maps/generate_lipova.py`, validated, loaded by the simulator (`--map`, `--spawn`) and driven on; screenshots of the square, the church junction and the eastern approach reviewed. Buildings, vegetation, signs and props are drawn in M8.
 
 ### M4 Cockpit and controls (`Render`, `Input`)
 - [ ] `UI-001` Input mapper with action bindings (JSON), defaults documented; gamepad-ready abstraction.

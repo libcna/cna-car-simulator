@@ -83,7 +83,7 @@ namespace CarSim::Render
         pose_.target = state.originPosition + Vector3(0.0f, targetHeight, 0.0f) - behind * 1.0f;
         pose_.up = Vector3(0.0f, 1.0f, 0.0f);
         pose_.fieldOfViewDeg = 60.0f;
-        pose_.nearPlane = 0.2f;
+        pose_.nearPlane = 0.3f;   // depth precision: roads sit 12 cm above the terrain
     }
 
     void CockpitCamera::Update(const Sim::VehicleState& state, const Sim::VehicleDefinition& definition, const float dt)
@@ -106,6 +106,6 @@ namespace CarSim::Render
         pose_.target = lookWorld;
         pose_.up = state.worldMatrix.getUpProperty();
         pose_.fieldOfViewDeg = definition.visual.cockpitFovDeg;
-        pose_.nearPlane = 0.05f;
+        pose_.nearPlane = 0.12f;   // nothing in the cabin is closer than the A-pillar (~0.3 m)
     }
 }

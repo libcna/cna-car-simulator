@@ -1,5 +1,7 @@
 #include "CarSim/App/SimulatorGame.hpp"
 
+#include "CarSim/Map/MapDocument.hpp"
+
 #include "CarSim/Core/Version.hpp"
 #include "CarSim/Render/Screenshot.hpp"
 #include "CarSim/Sim/Units.hpp"
@@ -86,6 +88,32 @@ namespace CarSim::App
         std::cout << "content root: " << contentRoot_ << "\n";
     }
 
+    void SimulatorGame::LoadMap()
+    {
+        const std::string name = options_.map.value_or("lipova");
+        if (name == "none") {
+            std::cout << "map: none (flat proving ground)\n";
+            return;
+        }
+        std::vector<std::string> errors;
+        std::vector<std::string> warnings;
+        const auto start = std::chrono::steady_clock::now();
+        map_ = Map::MapWorld::Load(Map::MapDirectory(contentRoot_, name), errors, &warnings);
+        for (const auto& w : warnings) {
+            std::cerr << "map: warning: " << w << "\n";
+        }
+        if (!map_) {
+            for (const auto& e : errors) {
+                std::cerr << "map: " << e << "\n";
+            }
+            std::cerr << "map: '" << name << "' failed to load; using the flat proving ground\n";
+            return;
+        }
+        const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        std::cout << "map: " << map_->Data().info.displayName << " (" << name << "), " << map_->Roads().Roads().size() << " roads, "
+                  << map_->Lanes().Lanes().size() << " lanes, built in " << seconds << " s\n";
+    }
+
     void SimulatorGame::LoadVehicle()
     {
         const std::string id = options_.vehicle.value_or("lipan_12");
@@ -100,7 +128,14 @@ namespace CarSim::App
             definition_ = Sim::MakeReferenceVehicle();
         }
         vehicle_ = std::make_unique<Sim::Vehicle>(definition_, definition_.gearbox.defaultMode);
-        vehicle_->PlaceAt(Vector3(0.0f, 0.0f, 0.0f), 0.0f);
+        if (map_) {
+            const Map::SpawnSpec spawn = map_->PlayerSpawn(options_.spawn.value_or(std::string()));
+            // PlaceAt takes the rotation about +Y (counter-clockwise from above); map headings are clockwise from north.
+            vehicle_->PlaceAt(map_->SpawnPosition(spawn), -spawn.headingDeg * (std::numbers::pi_v<float> / 180.0f));
+            std::cout << "spawn: " << spawn.name << " at (" << spawn.position.X << ", " << spawn.position.Y << "), heading " << spawn.headingDeg << " deg\n";
+        } else {
+            vehicle_->PlaceAt(Vector3(0.0f, 0.0f, 0.0f), 0.0f);
+        }
         std::cout << "vehicle: " << definition_.displayName << " (" << definition_.id << ")\n";
     }
 
@@ -137,7 +172,7 @@ namespace CarSim::App
         }
         controls.throttle = t > 1.6f ? 0.55f : 0.0f;
         controls.brake = t <= 1.6f ? 1.0f : 0.0f;
-        controls.steering = t > 3.0f ? 0.18f * std::sin((t - 3.0f) * 0.9f) : 0.0f;
+        controls.steering = (!map_ && t > 3.0f) ? 0.18f * std::sin((t - 3.0f) * 0.9f) : 0.0f;
         if (t > 2.0f && t < 2.05f) {
             controls.indicator = Sim::IndicatorRequest::ToggleRight;
         }
@@ -146,10 +181,19 @@ namespace CarSim::App
     void SimulatorGame::LoadContent()
     {
         auto& device = getGraphicsDeviceProperty();
+        LoadMap();
         LoadVehicle();
 
         sky_ = std::make_unique<Render::SkyRenderer>(device, rig_);
-        testGround_ = std::make_unique<Render::TestGround>(device, rig_);
+        if (map_) {
+            const auto start = std::chrono::steady_clock::now();
+            worldRenderer_ = std::make_unique<Render::WorldRenderer>(device, rig_, *map_);
+            std::cout << "world: " << worldRenderer_->Stats().terrainChunksTotal << " terrain chunks, "
+                      << worldRenderer_->Stats().roadBatchesTotal << " road batches, built in "
+                      << std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count() << " s\n";
+        } else {
+            testGround_ = std::make_unique<Render::TestGround>(device, rig_);
+        }
         vehicleMaterials_ = std::make_unique<Render::VehicleMaterials>(device, rig_);
         vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
         spriteBatch_ = std::make_unique<SpriteBatch>(device);
@@ -170,6 +214,7 @@ namespace CarSim::App
     {
         vehicleRenderer_.reset();
         vehicleMaterials_.reset();
+        worldRenderer_.reset();
         testGround_.reset();
         sky_.reset();
         font_.reset();
@@ -198,7 +243,8 @@ namespace CarSim::App
         if (input_.Pressed(GameAction::ResetVehicle)) {
             const auto s = vehicle_->Snapshot();
             const Vector3 forward = s.worldMatrix.getForwardProperty();
-            vehicle_->PlaceAt(Vector3(s.originPosition.X, 0.0f, s.originPosition.Z), std::atan2(-forward.X, -forward.Z));
+            const float y = map_ ? map_->Ground().HeightAt(s.originPosition.X, s.originPosition.Z) : 0.0f;
+            vehicle_->PlaceAt(Vector3(s.originPosition.X, y, s.originPosition.Z), std::atan2(-forward.X, -forward.Z));
         }
     }
 
@@ -209,7 +255,7 @@ namespace CarSim::App
         }
         const auto frameStart = std::chrono::steady_clock::now();
         const float dt = static_cast<float>(gameTime.getElapsedGameTimeProperty().getTotalSecondsProperty());
-        elapsedSeconds_ += dt;
+        elapsedSeconds_ += static_cast<double>(dt);
 
         input_.Update();
         HandleAppActions();
@@ -219,7 +265,8 @@ namespace CarSim::App
 
         Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
         ApplyAutoDrive(controls);
-        vehicle_->Update(controls, dt, ground_);
+        const Sim::GroundSurface& ground = map_ ? static_cast<const Sim::GroundSurface&>(map_->Ground()) : ground_;
+        vehicle_->Update(controls, dt, ground);
 
         const auto state = vehicle_->Snapshot();
         chaseCamera_.Update(state, dt);
@@ -238,12 +285,26 @@ namespace CarSim::App
         device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, Color(120, 160, 210, 255), 1.0f, 0);
 
         const auto state = vehicle_->Snapshot();
-        const Render::CameraPose& camera = cameraMode_ == Render::CameraMode::Chase ? chaseCamera_.Pose() : cockpitCamera_.Pose();
+        Render::CameraPose camera = cameraMode_ == Render::CameraMode::Chase ? chaseCamera_.Pose() : cockpitCamera_.Pose();
+        if (options_.freeView) {
+            const auto& fv = *options_.freeView;
+            const float heading = fv.headingDeg * (std::numbers::pi_v<float> / 180.0f);
+            const float pitch = fv.pitchDeg * (std::numbers::pi_v<float> / 180.0f);
+            camera.position = Vector3(fv.x, fv.y, fv.z);
+            camera.target = camera.position + Vector3(std::sin(heading) * std::cos(pitch), std::sin(pitch), -std::cos(heading) * std::cos(pitch));
+            camera.up = Vector3(0.0f, 1.0f, 0.0f);
+            camera.fieldOfViewDeg = 60.0f;
+            camera.nearPlane = 0.3f;
+        }
         const Matrix view = camera.View();
         const Matrix projection = camera.Projection(aspect);
 
         sky_->Draw(device, camera, aspect);
-        testGround_->Draw(device, view, projection);
+        if (worldRenderer_) {
+            worldRenderer_->Draw(device, view, projection, camera.Frustum(aspect));
+        } else if (testGround_) {
+            testGround_->Draw(device, view, projection);
+        }
 
         Render::GaugePose gauges;
         gauges.speed = state.speedKmh / definition_.dashboard.speedometerMaxKmh;
@@ -276,9 +337,9 @@ namespace CarSim::App
                             &RasterizerState::CullNone);
 
         char buffer[128];
-        std::snprintf(buffer, sizeof(buffer), "%3.0f km/h", s.speedKmh);
+        std::snprintf(buffer, sizeof(buffer), "%3.0f km/h", static_cast<double>(s.speedKmh));
         fontBold_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 120.0f), Color(255, 255, 255, 235), 1.0f, Render::TextAlign::Right);
-        std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", s.engineRpm, s.gearLabel.c_str(),
+        std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
                       s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
         font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
         std::string status = std::string("Engine: ") + Sim::ToString(s.engineState);
