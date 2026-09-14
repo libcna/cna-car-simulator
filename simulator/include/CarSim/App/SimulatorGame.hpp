@@ -1,6 +1,7 @@
 // The XNA Game subclass that owns the simulator's frame loop.
 #pragma once
 
+#include "CarSim/Audio/VehicleAudio.hpp"
 #include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Core/CommandLine.hpp"
 #include "CarSim/Input/InputMapper.hpp"
@@ -70,6 +71,7 @@ namespace CarSim::App
         std::unique_ptr<Map::MapWorld> map_;
         Collision::CollisionWorld collision_;
         std::unique_ptr<Traffic::TrafficSystem> traffic_;
+        std::unique_ptr<Audio::VehicleAudio> audio_;
         std::vector<Collision::ContactEvent> contactEvents_;
         int collisionCount_ = 0;
         float lastImpactSpeed_ = 0.0f;

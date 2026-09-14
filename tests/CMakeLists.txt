@@ -35,6 +35,7 @@ add_executable(carsim_tests
     Collision/CollisionTests.cpp
     Traffic/PlateTests.cpp
     Traffic/TrafficTests.cpp
+    Audio/EngineSynthTests.cpp
     Render/ImageTests.cpp
 )
 target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtest GTest::gtest_main)

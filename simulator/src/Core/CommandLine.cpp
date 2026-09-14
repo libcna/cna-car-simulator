@@ -78,6 +78,8 @@ namespace CarSim::Core
                 takeInt(arg, options.height, 64);
             } else if (arg == "--fullscreen") {
                 options.fullscreen = true;
+            } else if (arg == "--no-audio") {
+                options.noAudio = true;
             } else if (arg == "--vehicle") {
                 if (const auto value = takeValue(arg)) {
                     options.vehicle = std::string(*value);
@@ -141,6 +143,7 @@ namespace CarSim::Core
             "  --width <px>          Back buffer width (default 1280)\n"
             "  --height <px>         Back buffer height (default 720)\n"
             "  --fullscreen          Start in full-screen mode\n"
+            "  --no-audio            Disable the audio stream\n"
             "  --content <dir>       Content root directory\n"
             "  --vehicle <name>      Vehicle definition to drive\n"
             "  --map <name>          Map to load\n"

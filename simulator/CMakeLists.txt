@@ -4,6 +4,8 @@
 # Sharp Runtime, so unit tests never need a graphics device.
 # -----------------------------------------------------------------------------
 add_library(carsim_core STATIC
+    src/Audio/EngineSynth.cpp
+    src/Audio/SoundSynth.cpp
     src/Collision/CollisionWorld.cpp
     src/Collision/Shapes.cpp
     src/Core/CommandLine.cpp
@@ -43,6 +45,7 @@ carsim_apply_warnings(carsim_core)
 # audio devices and input. Depends on the CNA umbrella (XNA 4.0 API surface).
 # -----------------------------------------------------------------------------
 add_library(carsim_render STATIC
+    src/Audio/VehicleAudio.cpp
     src/Input/InputMapper.cpp
     src/Render/BitmapFont.cpp
     src/Render/BuildingGenerator.cpp

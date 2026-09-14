@@ -29,6 +29,7 @@ namespace CarSim::Core
         int height = 720;
         bool fullscreen = false;
         bool showHelp = false;
+        bool noAudio = false;   // skip the audio stream (headless runs, tests)
 
         /// Name of the vehicle definition to drive (overrides the saved setting).
         std::optional<std::string> vehicle;

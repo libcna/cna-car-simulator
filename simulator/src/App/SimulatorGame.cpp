@@ -226,10 +226,13 @@ namespace CarSim::App
         cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
         mirror_ = std::make_unique<Render::MirrorView>(device);
         chaseCamera_.Snap(vehicle_->Snapshot());
+        audio_ = std::make_unique<Audio::VehicleAudio>(!options_.noAudio);
+        std::cout << "audio: " << (audio_->Enabled() ? "stereo stream at 44.1 kHz" : "disabled") << "\n";
     }
 
     void SimulatorGame::UnloadContent()
     {
+        audio_.reset();
         trafficRenderer_.reset();
         plateFont_.reset();
         playerPlate_ = nullptr;
@@ -342,6 +345,9 @@ namespace CarSim::App
         const auto state = vehicle_->Snapshot();
         chaseCamera_.Update(state, dt);
         cockpitCamera_.Update(state, definition_, dt);
+        if (audio_) {
+            audio_->Update(state, cameraMode_ == Render::CameraMode::Cockpit, contactEvents_, dt);
+        }
 
         Game::Update(gameTime);
         frameMs_ = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - frameStart).count();

@@ -395,11 +395,12 @@ that logs frame statistics for a scripted camera path.
 - [ ] `TRF-008` Soak test (30 simulated minutes headless): planned for the audit milestone as a tool run (`--auto-drive` plus traffic statistics).
 
 ### M7 Audio (`Audio`)
-- [ ] `AUD-001` `DynamicSoundEffectInstance` streaming harness; buffer cadence; underrun handling.
-- [ ] `AUD-002` Engine synthesiser (harmonics, load, transitions) + tests on continuity/frequency.
-- [ ] `AUD-003` Starter, catch, shutdown sequences.
-- [ ] `AUD-004` Tyre/road noise, wind, brake, indicator tick, horn, gear clunk, collision impacts.
-- [ ] `AUD-005` Mixer, volumes, settings; documented in `docs/audio-design.md`.
+- [x] `AUD-001` `DynamicSoundEffectInstance` stereo stream (44.1 kHz, three 1024-frame blocks kept pending, underrun counter, `--no-audio`, device failure tolerated) in `Audio::VehicleAudio`.
+- [x] `AUD-002` `EngineSynth`: phase-continuous harmonic bank with four-cylinder character, exhaust pulse train at the firing frequency, intake hiss, valve-train whine, per-block parameter ramps; tests for silence/fade, firing-frequency tracking, load loudness and block continuity.
+- [x] `AUD-003` Starter whine while cranking (engine state `Starting`), catch clip on the transition to running, fade-out on stop/stall.
+- [x] `AUD-004` Tyre noise (speed and surface), wind, two-tone horn, indicator tick/tock on lamp edges, gear clunk, collision impacts by closing speed. Brake squeal is not modelled.
+- [x] `AUD-005` Software mixer with master/engine/effects levels and cockpit attenuation/low-pass blend; documented in `docs/audio-design.md`. Persisted settings arrive with M9.
+- [ ] `AUD-006` Engine load from delivered torque (expose the engine load fraction in `VehicleState`) instead of the throttle proxy; surface roughness from the ground sample.
 
 ### M8 Environment (`Map`, `Render`)
 - [x] `ENV-001` Baked terrain lighting: the macro texture carries sun shading from the terrain normal, forest canopy shade and road-verge darkening (DualTextureEffect). Roads, buildings and props use the lit BasicEffect with the same rig; sun-visibility occlusion between objects remains a polish item (PERF/UX).
