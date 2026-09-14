@@ -5,21 +5,34 @@
 #include "CarSim/Map/RoadNetwork.hpp"
 #include "CarSim/Render/MeshData.hpp"
 
+#include <functional>
+
 namespace CarSim::Render
 {
+    /// Vertex colours carry surface wear (rgb, 1.0 = clean); the renderer multiplies the baked
+    /// lighting and ground shadows into them. Verge vertices use alpha as the terrain-tint blend
+    /// (0 at the road edge, 255 where the strip meets the terrain).
     struct RoadPieceMeshes
     {
-        MeshData paved;      // asphalt/gravel surface including edge strips
+        MeshData paved;      // asphalt/gravel surface including edge strips, lateral columns with wheel-track wear
         MeshData shoulder;   // unpaved shoulders (gravel texture)
         MeshData sidewalk;   // paving slabs (urban stretches with sidewalks)
         MeshData kerb;       // concrete kerb faces
         MeshData markings;   // white lines, slightly above the surface
+        MeshData verge;      // grass strip from the shoulder down to the terrain (rural stretches)
     };
 
     class RoadMeshBuilder
     {
     public:
         explicit RoadMeshBuilder(const Map::RoadNetwork& network) : network_(network) {}
+
+        /// Terrain height query (world x, z); when set, rural pieces get a verge strip that
+        /// drapes from the shoulder edge down to the terrain so the road no longer floats.
+        void SetTerrainHeight(std::function<float(float, float)> terrainHeight) { terrainHeight_ = std::move(terrainHeight); }
+
+        /// Width of the verge strip outside the shoulder (metres).
+        static constexpr float kVergeWidthM = 2.0f;
 
         /// Strip meshes for one road piece.
         [[nodiscard]] RoadPieceMeshes BuildPiece(const Map::RoadPiece& piece) const;
@@ -36,5 +49,6 @@ namespace CarSim::Render
 
     private:
         const Map::RoadNetwork& network_;
+        std::function<float(float, float)> terrainHeight_;
     };
 }

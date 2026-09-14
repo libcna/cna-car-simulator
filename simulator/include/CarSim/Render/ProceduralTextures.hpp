@@ -23,6 +23,8 @@ namespace CarSim::Render::Textures
     [[nodiscard]] Image Soil(int size, std::uint32_t seed);
     /// Concrete paving slabs (sidewalks). Tile ~ 2 m (4 x 4 slabs of 0.5 m).
     [[nodiscard]] Image PavingSlabs(int size, std::uint32_t seed);
+    /// Worn white road-marking paint (multiplied by the marking colour).
+    [[nodiscard]] Image MarkingPaint(int size, std::uint32_t seed);
     /// Rendered plaster facade in a base colour with weathering. Tile ~ 3 m.
     [[nodiscard]] Image Plaster(int size, const Rgb& base, std::uint32_t seed);
     /// Clay roof tiles. Tile ~ 2 m.

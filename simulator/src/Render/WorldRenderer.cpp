@@ -1,5 +1,7 @@
 #include "CarSim/Render/WorldRenderer.hpp"
 
+#include "CarSim/Render/GroundShadowBaker.hpp"
+
 #include "CarSim/Core/Noise.hpp"
 #include "CarSim/Render/Image.hpp"
 #include "CarSim/Render/ProceduralTextures.hpp"
@@ -30,7 +32,7 @@ namespace CarSim::Render
     namespace
     {
         constexpr int kChunkCells = 32;
-        constexpr float kGrassTileM = 5.0f;
+        constexpr float kGrassTileM = 7.0f;
 
         void ApplyAll(Effect& effect, GraphicsDevice& device, const GpuMesh& mesh)
         {
@@ -52,12 +54,20 @@ namespace CarSim::Render
         gravel_ = UploadTexture(device, Textures::Gravel(256, 4u), true);
         paving_ = UploadTexture(device, Textures::PavingSlabs(256, 5u), true);
         concrete_ = UploadTexture(device, Textures::Plaster(128, Rgb::FromBytes(176, 174, 168), 6u), true);
+        marking_ = UploadTexture(device, Textures::MarkingPaint(64, 7u), true);
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
 
-        BuildMacroTexture(device);
+        // Ground shadows of buildings and trees at two texels per terrain cell (capped), baked
+        // into the terrain macro and the road vertex colours.
+        const auto& terrain = world_.Terrain();
+        const int macroW = std::min(2048, std::max(1, 2 * terrain.Columns()));
+        const int macroH = std::min(2048, std::max(1, 2 * terrain.Rows()));
+        const Image shadow = GroundShadows::Bake(world_, rig.sunDirection, macroW, macroH);
+        Image tint(macroW, macroH);
+        BuildMacroTexture(device, shadow, tint);
         BuildTerrain(device);
-        BuildRoads(device);
-        BuildIntersections(device);
+        BuildRoads(device, shadow, tint);
+        BuildIntersections(device, shadow);
         BuildObjects(device);
         BuildTrees(device);
         BuildSigns(device, signFont);
@@ -89,6 +99,16 @@ namespace CarSim::Render
         roadEffect_->setSpecularColorProperty(Vector3(0.06f, 0.06f, 0.06f));
         roadEffect_->setSpecularPowerProperty(10.0f);
 
+        // Roads carry their lighting, wear and ground shadows in the vertex colours.
+        roadUnlitEffect_ = std::make_unique<BasicEffect>(device);
+        roadUnlitEffect_->setLightingEnabledProperty(false);
+        roadUnlitEffect_->setTextureEnabledProperty(true);
+        roadUnlitEffect_->setVertexColorEnabledProperty(true);
+        roadUnlitEffect_->setFogEnabledProperty(true);
+        roadUnlitEffect_->setFogColorProperty(rig.fogColor);
+        roadUnlitEffect_->setFogStartProperty(rig.fogStart);
+        roadUnlitEffect_->setFogEndProperty(rig.fogEnd);
+
         markingState_ = std::make_unique<RasterizerState>();
         markingState_->setCullModeProperty(CullMode::CullCounterClockwiseFace);
         markingState_->setDepthBiasProperty(-0.00002f);
@@ -99,14 +119,13 @@ namespace CarSim::Render
         markingStateMirrored_->setSlopeScaleDepthBiasProperty(-1.0f);
     }
 
-    void WorldRenderer::BuildMacroTexture(GraphicsDevice& device)
+    void WorldRenderer::BuildMacroTexture(GraphicsDevice& device, const Image& shadow, Image& tintOut)
     {
-        // One texel per terrain vertex (capped at 2048): region tint x baked sun lighting x
-        // occlusion near roads. DualTextureEffect multiplies detail x macro x 2, so the macro
-        // holds roughly half intensity for a neutral result.
+        // Two texels per terrain cell (capped at 2048): region tint x baked sun lighting x
+        // occlusion near roads x ground shadows.
         const auto& terrain = world_.Terrain();
-        const int width = std::min(2048, terrain.Columns());
-        const int height = std::min(2048, terrain.Rows());
+        const int width = shadow.Width();
+        const int height = shadow.Height();
         Image macro(width, height);
         const Vector3 toSun = -rig_.sunDirection;
         const float sizeX = terrain.MaxX() - terrain.MinX();
@@ -124,10 +143,10 @@ namespace CarSim::Render
                 const float variation = Core::Noise::FbmSigned(wx * 0.012f, z * 0.012f, 3, 0.5f, 91u);
                 switch (region) {
                     case Map::RegionType::Meadow:
-                        tint = Rgb{0.60f + 0.07f * variation, 0.62f + 0.04f * variation, 0.40f + 0.03f * variation};
+                        tint = Rgb{0.55f + 0.06f * variation, 0.60f + 0.04f * variation, 0.44f + 0.03f * variation};
                         break;
                     case Map::RegionType::Town:
-                        tint = Rgb{0.60f + 0.04f * variation, 0.61f, 0.42f};
+                        tint = Rgb{0.56f + 0.04f * variation, 0.60f, 0.45f};
                         break;
                     case Map::RegionType::Forest:
                         tint = Rgb{0.38f, 0.35f, 0.25f};
@@ -143,11 +162,11 @@ namespace CarSim::Render
                         const float angle = static_cast<float>(seed % 7) * 0.45f;
                         const float along = wx * std::cos(angle) + z * std::sin(angle);
                         const float furrow = 0.5f + 0.5f * std::sin(along * 2.0f * 3.14159265f / 3.0f);
-                        if (crop == "wheat") tint = Rgb{0.80f, 0.70f, 0.36f};
-                        else if (crop == "rapeseed") tint = Rgb{0.78f, 0.74f, 0.22f};
-                        else if (crop == "maize") tint = Rgb{0.44f, 0.56f, 0.28f};
-                        else if (crop == "ploughed") tint = Rgb{0.42f, 0.32f, 0.24f};
-                        else tint = Rgb{0.74f, 0.66f, 0.42f};
+                        if (crop == "wheat") tint = Rgb{0.68f, 0.60f, 0.34f};
+                        else if (crop == "rapeseed") tint = Rgb{0.68f, 0.64f, 0.24f};
+                        else if (crop == "maize") tint = Rgb{0.42f, 0.52f, 0.28f};
+                        else if (crop == "ploughed") tint = Rgb{0.40f, 0.31f, 0.24f};
+                        else tint = Rgb{0.64f, 0.58f, 0.40f};
                         const float f = 0.9f + 0.1f * furrow;
                         tint = Rgb{tint.r * f, tint.g * f, tint.b * f};
                         break;
@@ -161,8 +180,12 @@ namespace CarSim::Render
                     const float t = Clamp01((roadDistance + 1.0f) / 4.0f);
                     tint = Rgb{tint.r * (0.75f + 0.25f * t) + 0.10f * (1.0f - t), tint.g * (0.72f + 0.28f * t) + 0.06f * (1.0f - t), tint.b * (0.7f + 0.3f * t) + 0.03f * (1.0f - t)};
                 }
-                const float k = 0.5f * light;
-                macro.Set(x, y, Rgb{Clamp01(tint.r * k * 1.15f), Clamp01(tint.g * k * 1.15f), Clamp01(tint.b * k * 1.15f)});
+                // The effect multiplies detail x macro (no doubling on this renderer), so the
+                // macro carries the full lighting; sunlit meadow lands near 0.45 with the grass.
+                const float k = light * (static_cast<float>(shadow.At(x, y).getRProperty()) / 255.0f) * 1.12f;
+                const Rgb value{Clamp01(tint.r * k), Clamp01(tint.g * k), Clamp01(tint.b * k)};
+                macro.Set(x, y, value);
+                tintOut.Set(x, y, value);   // what the terrain shows here before the grass detail
             }
         }
         macro_ = UploadTexture(device, macro, true);
@@ -230,31 +253,61 @@ namespace CarSim::Render
         stats_.terrainChunksTotal = static_cast<int>(terrainChunks_.size());
     }
 
-    void WorldRenderer::BuildRoads(GraphicsDevice& device)
+    void WorldRenderer::BakeRoadColours(MeshData& mesh, const Image& shadow, const Image* tint) const
     {
-        const RoadMeshBuilder builder(world_.Roads());
+        const auto& terrain = world_.Terrain();
+        const float sizeX = std::max(1.0f, terrain.MaxX() - terrain.MinX());
+        const float sizeZ = std::max(1.0f, terrain.MaxZ() - terrain.MinZ());
+        for (auto& v : mesh.vertices) {
+            const Vector3 irradiance = rig_.Irradiance(v.normal);
+            const float sh = GroundShadows::Sample(shadow, world_, v.position.X, v.position.Z);
+            const Rgb base{static_cast<float>(v.color.getRProperty()) / 255.0f, static_cast<float>(v.color.getGProperty()) / 255.0f,
+                           static_cast<float>(v.color.getBProperty()) / 255.0f};
+            Rgb lit{base.r * irradiance.X * sh, base.g * irradiance.Y * sh, base.b * irradiance.Z * sh};
+            if (tint) {
+                // Verge: blend towards exactly what the terrain shows at this point (the macro
+                // colour with its light, canopy shade and ground shadows already applied) so
+                // the outer edge disappears into the ground.
+                const float a = static_cast<float>(v.color.getAProperty()) / 255.0f;
+                const int tx = std::clamp(static_cast<int>((v.position.X - terrain.MinX()) / sizeX * static_cast<float>(tint->Width())), 0, tint->Width() - 1);
+                const int tz = std::clamp(static_cast<int>((v.position.Z - terrain.MinZ()) / sizeZ * static_cast<float>(tint->Height())), 0, tint->Height() - 1);
+                const Color t = tint->At(tx, tz);
+                const Rgb ground{static_cast<float>(t.getRProperty()) / 255.0f, static_cast<float>(t.getGProperty()) / 255.0f,
+                                 static_cast<float>(t.getBProperty()) / 255.0f};
+                lit = Lerp(lit, ground, a);
+            }
+            v.color = Color(static_cast<int>(Clamp01(lit.r) * 255.0f), static_cast<int>(Clamp01(lit.g) * 255.0f), static_cast<int>(Clamp01(lit.b) * 255.0f), 255);
+        }
+    }
+
+    void WorldRenderer::BuildRoads(GraphicsDevice& device, const Image& shadow, const Image& tint)
+    {
+        RoadMeshBuilder builder(world_.Roads());
+        builder.SetTerrainHeight([this](const float x, const float z) { return world_.Terrain().Height(x, z); });
         for (const auto& piece : world_.Roads().Pieces()) {
             RoadPieceMeshes meshes = builder.BuildPiece(piece);
             const auto& road = world_.Roads().Roads()[static_cast<std::size_t>(piece.road)];
             const Surface pavedSurface = road.profile.surface == Sim::SurfaceType::Gravel || road.profile.surface == Sim::SurfaceType::Dirt
                                              ? Surface::Gravel : Surface::Asphalt;
-            const auto push = [&](MeshData& m, Surface s) {
+            const auto push = [&](MeshData& m, Surface s, const Image* vergeTint) {
                 if (m.TriangleCount() == 0) return;
+                BakeRoadColours(m, shadow, vergeTint);
                 Batch b;
-                b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionNormalTexture);
+                b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
                 b.surface = s;
                 roadBatches_.push_back(std::move(b));
             };
-            push(meshes.paved, pavedSurface);
-            push(meshes.shoulder, Surface::Gravel);
-            push(meshes.sidewalk, Surface::Paving);
-            push(meshes.kerb, Surface::Concrete);
-            push(meshes.markings, Surface::Marking);
+            push(meshes.verge, Surface::Grass, &tint);
+            push(meshes.paved, pavedSurface, nullptr);
+            push(meshes.shoulder, Surface::Gravel, nullptr);
+            push(meshes.sidewalk, Surface::Paving, nullptr);
+            push(meshes.kerb, Surface::Concrete, nullptr);
+            push(meshes.markings, Surface::Marking, nullptr);
         }
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
     }
 
-    void WorldRenderer::BuildIntersections(GraphicsDevice& device)
+    void WorldRenderer::BuildIntersections(GraphicsDevice& device, const Image& shadow)
     {
         const RoadMeshBuilder builder(world_.Roads());
         MeshData asphalt;
@@ -272,8 +325,9 @@ namespace CarSim::Render
         }
         const auto push = [&](MeshData& m, Surface s) {
             if (m.TriangleCount() == 0) return;
+            BakeRoadColours(m, shadow, nullptr);
             Batch b;
-            b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionNormalTexture);
+            b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
             b.surface = s;
             roadBatches_.push_back(std::move(b));
         };
@@ -478,7 +532,8 @@ namespace CarSim::Render
             case Surface::Gravel: return gravel_.get();
             case Surface::Paving: return paving_.get();
             case Surface::Concrete: return concrete_.get();
-            case Surface::Marking: return white_.get();
+            case Surface::Marking: return marking_.get();
+            case Surface::Grass: return grass_.get();
         }
         return white_.get();
     }
@@ -519,20 +574,20 @@ namespace CarSim::Render
         }
 
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
-        roadEffect_->setWorldProperty(Matrix::getIdentityProperty());
-        roadEffect_->setViewProperty(view);
-        roadEffect_->setProjectionProperty(projection);
+        roadUnlitEffect_->setWorldProperty(Matrix::getIdentityProperty());
+        roadUnlitEffect_->setViewProperty(view);
+        roadUnlitEffect_->setProjectionProperty(projection);
         for (int pass = 0; pass < 2; ++pass) {
             // Pass 0: surfaces; pass 1: markings with a depth bias.
             const bool markings = pass == 1;
             device.setRasterizerStateProperty(markings ? (mirrored ? *markingStateMirrored_ : *markingState_) : solid);
-            roadEffect_->setDiffuseColorProperty(markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f));
+            roadUnlitEffect_->setDiffuseColorProperty(markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f));
             for (const auto& b : roadBatches_) {
                 if ((b.surface == Surface::Marking) != markings || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
                     continue;
                 }
-                roadEffect_->setTextureProperty(TextureFor(b.surface));
-                ApplyAll(*roadEffect_, device, *b.mesh);
+                roadUnlitEffect_->setTextureProperty(TextureFor(b.surface));
+                ApplyAll(*roadUnlitEffect_, device, *b.mesh);
                 ++stats_.roadBatchesDrawn;
                 ++stats_.drawCalls;
                 stats_.triangles += b.mesh->PrimitiveCount();
@@ -540,6 +595,9 @@ namespace CarSim::Render
         }
         // Static objects: buildings, props, trunks (lit, textured).
         device.setRasterizerStateProperty(solid);
+        roadEffect_->setWorldProperty(Matrix::getIdentityProperty());
+        roadEffect_->setViewProperty(view);
+        roadEffect_->setProjectionProperty(projection);
         stats_.objectBatchesDrawn = 0;
         for (const auto& b : objectBatches_) {
             if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) {

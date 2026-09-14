@@ -74,6 +74,19 @@ namespace CarSim::Render
         effect.setFogEndProperty(fogEnd);
     }
 
+    Vector3 LightingRig::Irradiance(const Vector3& normal) const
+    {
+        Vector3 n = normal;
+        if (n.LengthSquared() < 1e-8f) n = Vector3(0.0f, 1.0f, 0.0f);
+        n.Normalize();
+        Vector3 groundFrom(-0.3f, -1.0f, -0.2f);   // ground bounce travels along (0.3, 1, 0.2)
+        groundFrom.Normalize();
+        const float sun = std::max(0.0f, Vector3::Dot(n, -sunDirection));
+        const float sky = std::max(0.0f, n.Y);
+        const float ground = std::max(0.0f, Vector3::Dot(n, groundFrom));
+        return skyAmbient + sunColor * sun + skyFillColor * sky + groundBounceColor * ground;
+    }
+
     float LightingRig::SunLambert(const Vector3& normal) const
     {
         return std::max(0.0f, Vector3::Dot(normal, -sunDirection));

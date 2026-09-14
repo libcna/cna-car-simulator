@@ -53,6 +53,7 @@ add_library(carsim_render STATIC
     src/Render/BuildingGenerator.cpp
     src/Render/Camera.cpp
     src/Render/GpuMesh.cpp
+    src/Render/GroundShadowBaker.cpp
     src/Render/Image.cpp
     src/Render/ImageText.cpp
     src/Render/InstrumentCluster.cpp

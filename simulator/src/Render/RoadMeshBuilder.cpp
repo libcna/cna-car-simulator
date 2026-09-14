@@ -1,5 +1,7 @@
 #include "CarSim/Render/RoadMeshBuilder.hpp"
 
+#include "CarSim/Core/Noise.hpp"
+
 #include <algorithm>
 #include <cmath>
 
@@ -14,6 +16,8 @@ namespace CarSim::Render
         constexpr float kAsphaltTileM = 4.0f;    // texture repeat along the road
         constexpr float kGravelTileM = 2.0f;
         constexpr float kPavingTileM = 0.9f;
+        constexpr float kGrassTileM = 7.0f;      // must match the terrain's grass tiling
+        constexpr float kRowSpacingM = 2.5f;     // maximum distance between strip rows
         constexpr float kLineWidth = 0.125f;
         const Color kWhite(255, 255, 255, 255);
 
@@ -27,10 +31,25 @@ namespace CarSim::Render
             float crownScale = 1.0f;
         };
 
-        /// Adds a quad strip between two lateral offsets over consecutive rows; heights come from `heightAt`.
+        using ColourFn = std::function<Color(const Row&, float)>;
+
+        Color Grey(const float g, const int alpha = 255)
+        {
+            const int v = static_cast<int>(std::clamp(g, 0.0f, 1.0f) * 255.0f + 0.5f);
+            return Color(v, v, v, alpha);
+        }
+
+        /// Slow along-road variation of the surface tone (-1..1), seeded per road.
+        float ToneNoise(const float s, const unsigned seed)
+        {
+            return Core::Noise::FbmSigned(s * 0.045f, static_cast<float>(seed % 97u) * 1.7f, 3, 0.5f, 300u + seed);
+        }
+
+        /// Adds a quad strip between two lateral offsets over consecutive rows; heights come from
+        /// `heightAt`, vertex colours (surface wear) from `colour` when given.
         template <typename HeightFn>
         void AddStrip(MeshData& mesh, const std::vector<Row>& rows, const float latA, const float latB, const HeightFn& heightAt,
-                      const float uA, const float uB, const float tileM, const float lift = 0.0f)
+                      const float uA, const float uB, const float tileM, const float lift = 0.0f, const ColourFn& colour = {})
         {
             if (rows.size() < 2) {
                 return;
@@ -41,8 +60,8 @@ namespace CarSim::Render
                 const float v = r.s / tileM;
                 const Vector3 pa = r.centre + r.right * latA + Vector3(0.0f, heightAt(r, latA) - r.centre.Y + lift, 0.0f);
                 const Vector3 pb = r.centre + r.right * latB + Vector3(0.0f, heightAt(r, latB) - r.centre.Y + lift, 0.0f);
-                const std::uint32_t ia = mesh.AddVertex(pa, r.up, Vector2(uA, v), kWhite);
-                const std::uint32_t ib = mesh.AddVertex(pb, r.up, Vector2(uB, v), kWhite);
+                const std::uint32_t ia = mesh.AddVertex(pa, r.up, Vector2(uA, v), colour ? colour(r, latA) : kWhite);
+                const std::uint32_t ib = mesh.AddVertex(pb, r.up, Vector2(uB, v), colour ? colour(r, latB) : kWhite);
                 if (i > 0) {
                     // Seen from above (+y) with x to the right, z points down the screen and +s runs
                     // up it: left-bottom, right-bottom, right-top, left-top is counter-clockwise, which
@@ -99,6 +118,18 @@ namespace CarSim::Render
             }
         }
         stations.push_back(piece.s1);
+        // Rows at most kRowSpacingM apart so baked ground shadows (tree crowns, house walls)
+        // survive the per-vertex colour interpolation along the road.
+        {
+            std::vector<float> dense;
+            dense.push_back(stations.front());
+            for (std::size_t i = 1; i < stations.size(); ++i) {
+                const float span = stations[i] - stations[i - 1];
+                const int n = std::max(1, static_cast<int>(std::ceil(span / kRowSpacingM)));
+                for (int k = 1; k <= n; ++k) dense.push_back(stations[i - 1] + span * static_cast<float>(k) / static_cast<float>(n));
+            }
+            stations.swap(dense);
+        }
 
         std::vector<Row> rows;
         rows.reserve(stations.size());
@@ -129,9 +160,43 @@ namespace CarSim::Render
             return r.centre.Y - hp * crown - (a - hp) * 0.04f;
         };
 
-        // Paved surface: u spans the width so the asphalt tiles are roughly square.
-        const float uPaved = (2.0f * hp) / kAsphaltTileM;
-        AddStrip(out.paved, rows, -hp, hp, surfaceHeight, 0.0f, uPaved, kAsphaltTileM);
+        // Paved surface in lateral columns so the vertex colours can carry wheel-track wear:
+        // polished tracks a little lighter, the lane centre a little darker (drips), the outer
+        // 0.5 m darker and crumbling, all with a slow tone variation along the road.
+        const unsigned roadSeed = static_cast<unsigned>(piece.road) * 7919u + 13u;
+        const bool paved = profile.surface == Sim::SurfaceType::Asphalt;
+        const int lanes = std::max(1, profile.lanesPerDirection);
+        const auto pavedColour = [&](const Row& r, const float lat) {
+            float w = 1.0f + 0.05f * ToneNoise(r.s, roadSeed);
+            if (paved) {
+                const float a = std::fabs(lat);
+                float track = 0.0f;
+                float centre = 0.0f;
+                for (int k = 0; k < lanes; ++k) {
+                    const float c = (static_cast<float>(k) + 0.5f) * profile.laneWidth;
+                    for (const float t : {c - 0.78f, c + 0.78f}) {
+                        const float d = (a - t) / 0.26f;
+                        track += std::exp(-d * d);
+                    }
+                    const float dc = (a - c) / 0.30f;
+                    centre += std::exp(-dc * dc);
+                }
+                w += 0.04f * std::min(1.0f, track) - 0.03f * std::min(1.0f, centre);
+                const float edge = std::clamp((a - (hp - 0.55f)) / 0.55f, 0.0f, 1.0f);
+                w *= 1.0f - 0.10f * edge * edge;
+            }
+            return Grey(w);
+        };
+        // Columns every 0.25 m so the wear gradients stay smooth (no corduroy from sparse
+        // interpolation), snapped to the edges.
+        std::vector<float> lats;
+        for (float lat = -hp; lat < hp - 0.05f; lat += 0.25f) lats.push_back(lat);
+        lats.push_back(hp);
+        for (std::size_t i = 0; i + 1 < lats.size(); ++i) {
+            const float uA = (lats[i] + hp) / kAsphaltTileM;
+            const float uB = (lats[i + 1] + hp) / kAsphaltTileM;
+            AddStrip(out.paved, rows, lats[i], lats[i + 1], surfaceHeight, uA, uB, kAsphaltTileM, 0.0f, pavedColour);
+        }
 
         // Shoulders or sidewalks per side. Sidewalks exist only on urban stretches; a piece is
         // treated as urban when most of its rows are.
@@ -149,23 +214,57 @@ namespace CarSim::Render
                 const float edgeY = -hp * crown;   // relative to the centre height
                 AddVerticalFace(out.kerb, rows, side * (inner + 0.01f), edgeY, edgeY + kerbH, right, 1.0f);
                 const auto walkHeight = [&](const Row& r, float) { return r.centre.Y + edgeY + kerbH; };
+                const auto walkColour = [&](const Row& r, float) { return Grey(0.97f + 0.04f * ToneNoise(r.s + 500.0f, roadSeed)); };
                 const float u0 = 0.0f;
                 const float u1 = profile.sidewalk.width / kPavingTileM;
                 if (right) {
-                    AddStrip(out.sidewalk, rows, side * inner, side * outer, walkHeight, u0, u1, kPavingTileM);
+                    AddStrip(out.sidewalk, rows, side * inner, side * outer, walkHeight, u0, u1, kPavingTileM, 0.0f, walkColour);
                 } else {
-                    AddStrip(out.sidewalk, rows, side * outer, side * inner, walkHeight, u1, u0, kPavingTileM);
+                    AddStrip(out.sidewalk, rows, side * outer, side * inner, walkHeight, u1, u0, kPavingTileM, 0.0f, walkColour);
                 }
                 // Back edge: a short face down towards the terrain.
                 AddVerticalFace(out.kerb, rows, side * outer, edgeY + kerbH - 0.25f, edgeY + kerbH, right, 1.0f);
-            } else if (profile.shoulderWidth > 0.0f) {
-                const float inner = hp;
-                const float outer = hp + profile.shoulderWidth;
-                const float u1 = profile.shoulderWidth / kGravelTileM;
-                if (right) {
-                    AddStrip(out.shoulder, rows, side * inner, side * outer, surfaceHeight, 0.0f, u1, kGravelTileM, 0.002f);
-                } else {
-                    AddStrip(out.shoulder, rows, side * outer, side * inner, surfaceHeight, u1, 0.0f, kGravelTileM, 0.002f);
+            } else {
+                float outer = hp;
+                if (profile.shoulderWidth > 0.0f) {
+                    const float inner = hp;
+                    outer = hp + profile.shoulderWidth;
+                    const float u1 = profile.shoulderWidth / kGravelTileM;
+                    // Gravel packed darker where it meets the asphalt, loose and lighter outward.
+                    const auto shoulderColour = [&](const Row& r, const float lat) {
+                        const float t = std::clamp((std::fabs(lat) - hp) / std::max(0.05f, profile.shoulderWidth), 0.0f, 1.0f);
+                        return Grey(0.86f + 0.14f * t + 0.04f * ToneNoise(r.s + 900.0f, roadSeed));
+                    };
+                    if (right) {
+                        AddStrip(out.shoulder, rows, side * inner, side * outer, surfaceHeight, 0.0f, u1, kGravelTileM, 0.002f, shoulderColour);
+                    } else {
+                        AddStrip(out.shoulder, rows, side * outer, side * inner, surfaceHeight, u1, 0.0f, kGravelTileM, 0.002f, shoulderColour);
+                    }
+                }
+                // Verge: a grass strip from the shoulder edge down to the sampled terrain, trodden
+                // and bare at the road (alpha 0 keeps the road tone) and blending into the
+                // terrain tint at its outer edge (alpha 255).
+                if (terrainHeight_) {
+                    const float vergeOuter = outer + kVergeWidthM;
+                    const auto vergeHeight = [&](const Row& r, const float lat) {
+                        if (std::fabs(lat) <= outer + 0.01f) return surfaceHeight(r, lat) - 0.006f;
+                        const Vector3 p = r.centre + r.right * lat;
+                        return terrainHeight_(p.X, p.Z) + 0.05f;
+                    };
+                    const auto vergeColour = [&](const Row& r, const float lat) {
+                        const float t = std::clamp((std::fabs(lat) - outer) / kVergeWidthM, 0.0f, 1.0f);
+                        const float n = 0.05f * ToneNoise(r.s + 1300.0f, roadSeed);
+                        // Bare earth tone at the road edge fading to neutral grass.
+                        const float rr = 0.78f + 0.22f * t + n, gg = 0.66f + 0.34f * t + n, bb = 0.50f + 0.50f * t + n;
+                        return Color(static_cast<int>(std::clamp(rr, 0.0f, 1.0f) * 255.0f), static_cast<int>(std::clamp(gg, 0.0f, 1.0f) * 255.0f),
+                                     static_cast<int>(std::clamp(bb, 0.0f, 1.0f) * 255.0f), static_cast<int>(t * 255.0f));
+                    };
+                    const float uOuter = kVergeWidthM / kGrassTileM;
+                    if (right) {
+                        AddStrip(out.verge, rows, side * outer, side * vergeOuter, vergeHeight, 0.0f, uOuter, kGrassTileM, 0.0f, vergeColour);
+                    } else {
+                        AddStrip(out.verge, rows, side * vergeOuter, side * outer, vergeHeight, uOuter, 0.0f, kGrassTileM, 0.0f, vergeColour);
+                    }
                 }
             }
         }
@@ -196,7 +295,8 @@ namespace CarSim::Render
                 if (t.LengthSquared() > 1e-8f) { t.Normalize(); r.right = Vector3(-t.Z, 0.0f, t.X); }
                 sub.push_back(r);
             }
-            AddStrip(out.markings, sub, lat - kLineWidth * 0.5f, lat + kLineWidth * 0.5f, surfaceHeight, 0.0f, 1.0f, 1.0f, kMarkingLift);
+            const auto markingColour = [&](const Row& r, float) { return Grey(0.90f + 0.10f * ToneNoise(r.s * 3.0f + 200.0f, roadSeed)); };
+            AddStrip(out.markings, sub, lat - kLineWidth * 0.5f, lat + kLineWidth * 0.5f, surfaceHeight, 0.0f, 1.0f, 1.0f, kMarkingLift, markingColour);
         };
         const bool paintable = profile.surface == Sim::SurfaceType::Asphalt || profile.surface == Sim::SurfaceType::Concrete;
         if (paintable && spec.centreLine != Map::CentreLineMarking::None && profile.lanesPerDirection >= 1 && !spec.oneWay) {

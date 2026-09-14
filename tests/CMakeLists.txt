@@ -31,6 +31,8 @@ add_executable(carsim_tests
     Render/MeshDataTests.cpp
     Render/ProceduralCarTests.cpp
     Render/ShadowGeometryTests.cpp
+    Render/RoadMeshBuilderTests.cpp
+    Render/GroundShadowTests.cpp
     Map/MapDocumentTests.cpp
     Map/RoadNetworkTests.cpp
     Map/LaneGraphTests.cpp

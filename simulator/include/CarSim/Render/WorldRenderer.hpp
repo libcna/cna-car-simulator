@@ -6,6 +6,7 @@
 #include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/GpuMesh.hpp"
+#include "CarSim/Render/Image.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 
 #include "Microsoft/Xna/Framework/BoundingFrustum.hpp"
@@ -57,7 +58,8 @@ namespace CarSim::Render
             Gravel,
             Paving,
             Concrete,
-            Marking
+            Marking,
+            Grass      // road verges (share the terrain's grass texture)
         };
 
         struct Batch
@@ -85,16 +87,22 @@ namespace CarSim::Render
         void BuildSigns(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const BitmapFont* font);
         void BuildTrees(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildTerrain(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
-        void BuildMacroTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
-        void BuildRoads(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
-        void BuildIntersections(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        /// Region tint x baked sun light x ground shadows; also returns the tint map used to
+        /// blend road verges into the terrain.
+        void BuildMacroTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow, Image& tintOut);
+        void BuildRoads(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow, const Image& tint);
+        void BuildIntersections(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow);
+        /// Multiplies the rig lighting and the ground shadow into the wear colours of a road
+        /// mesh; `tint` (verges) blends the outer vertices into the terrain's macro tint.
+        void BakeRoadColours(MeshData& mesh, const Image& shadow, const Image* tint) const;
         Microsoft::Xna::Framework::Graphics::Texture2D* TextureFor(Surface s) const;
 
         const Map::MapWorld& world_;
         const LightingRig& rig_;
 
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::DualTextureEffect> terrainEffect_;
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadEffect_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadEffect_;        // lit: buildings, props, trunks
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadUnlitEffect_;   // baked vertex colours: roads, verges, markings
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::RasterizerState> markingState_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::RasterizerState> markingStateMirrored_;
 
@@ -104,6 +112,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> gravel_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paving_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> concrete_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> marking_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
 
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::AlphaTestEffect> treeEffect_;

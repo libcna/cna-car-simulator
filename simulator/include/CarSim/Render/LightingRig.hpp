@@ -34,5 +34,8 @@ namespace CarSim::Render
 
         /// Direct lighting term (N.L, no shadow) for baking and dashboards.
         [[nodiscard]] float SunLambert(const Vector3& normal) const;
+        /// Diffuse irradiance (RGB) of a surface with this normal under the three rig lights
+        /// plus ambient, matching what BasicEffect computes; used to bake road vertex colours.
+        [[nodiscard]] Vector3 Irradiance(const Vector3& normal) const;
     };
 }

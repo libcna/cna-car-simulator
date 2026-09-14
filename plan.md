@@ -564,13 +564,13 @@ capture under `docs/screenshots/` reviewed against the baseline.
 
 #### Environment
 - [x] `RQ-040` Fixed daytime lighting rebalance: stronger sun, cooler and weaker ambient, sky and ground fill tuned, fog haze colour matched to the sky, sky dome with proper horizon glow and readable clouds. Acceptance: before/after pair for town and countryside; cockpit not crushed; paint reads.
-- [~] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked). Done: vehicle sun shadow (stencil-free convex hull with penumbra rim, draped on the ground) and contact shadow; open: baked building/tree shadows.
-- [ ] `RQ-050` Roads: reworked asphalt (wear tracks, patches, edge weathering), quieter sidewalk paving, kerb profile with gutter, grass verge strip blending road and terrain outside town, gravel shoulder texture, intersection surface continuity, marking wear. Acceptance: road no longer reads as a clean strip on a plane; lane widths unchanged (map tests).
+- [x] `RQ-041` Static ground shadows baked into the terrain macro texture (buildings, trees, walls projected along the sun) and contact shadows under cars; vehicle planar shadow softened with a second offset pass; no shadow acne. Acceptance: shadows visible beside buildings and under avenues; frame cost unchanged (baked). Done: vehicle sun shadow (stencil-free convex hull with penumbra rim, draped on the ground) and contact shadow; `GroundShadowBaker` bakes building sweeps and tree crown discs into the macro and the road vertex colours.
+- [x] `RQ-050` Roads: reworked asphalt (wear tracks, patches, edge weathering), quieter sidewalk paving, kerb profile with gutter, grass verge strip blending road and terrain outside town, gravel shoulder texture, intersection surface continuity, marking wear. Acceptance: road no longer reads as a clean strip on a plane; lane widths unchanged (map tests).
 - [ ] `RQ-051` Czech road details review: sign plate sizes and post heights, delineator spacing, crossing bars, stop line position; corrections applied where wrong.
 - [ ] `RQ-060` Building kit: window reveals with frames and sills as geometry, lintels, cornice and eaves fascia, gutters and downpipes, chimneys with caps, entrance steps, plinth, roof variants (gable, hipped, half-hipped) with ridge tiles, dormers on some houses, facade texture variation; block houses with balcony railings and entrance canopies. Acceptance: town screenshots without floating windows or bare boxes.
 - [ ] `RQ-061` Plots and street furniture: fences (wood, wire, wall) and hedges around house plots with gates and driveways generated from the placed buildings, garden sheds, utility poles along village roads, bus shelter and bench polish. Acceptance: houses no longer stand loose on the meadow.
 - [ ] `RQ-070` Vegetation: new species card textures (lit crowns, several variants per species), near-tree trunk with branches, bushes along roads and forest edges, roadside grass tufts within 60 m, forest understory darkening and edge blending, jittered placement with clumping. Acceptance: forest screenshot without visible rows; town avenue reads as trees.
-- [ ] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
+- [x] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
 
 #### Cameras, mirror, audio, driving
 - [ ] `RQ-080` Chase camera: spring-damped follow with speed-dependent distance, look-ahead in turns, correct reversing behaviour, low-speed stability, terrain clipping avoidance. Cockpit camera: eye position and FOV verified, tiny motion cues, no jitter. Acceptance: description in `docs/cameras.md` and a scripted drive without visible jumps.
@@ -656,3 +656,17 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   narrow inner strip and the tail lens is a deeper red; the instrument cluster gains brushed
   bezel rings, gradient faces, needle drop shadows, chrome hubs and a recessed LCD panel
   (`InstrumentCluster.cpp`). Lights verified in captures (headlamps, tails, indicators, glows).
+- Roads and ground (`RoadMeshBuilder.cpp`, `WorldRenderer.cpp`, `GroundShadowBaker.cpp`):
+  road strips now carry their lighting in vertex colours (rig irradiance per normal, drawn
+  unlit with fog) so the paved surface can hold wheel-track wear (polished tracks lighter,
+  lane centre and outer 0.5 m darker, slow tone variation along the road), packed gravel
+  shoulders, quieter paving and worn marking paint; rows are at most 2.5 m apart and the
+  paved surface has 0.25 m columns. Rural pieces get a 2 m grass verge that drapes from the
+  shoulder edge to the sampled terrain and blends into the exact macro colour, so roads no
+  longer float 12 cm above the ground. Building and tree shadows are baked into a 2048^2
+  ground shadow map (swept footprints at 0.45, crown discs at 0.52, one blur pass) that
+  multiplies the terrain macro and the road vertex colours. Calibration: CNA's
+  DualTextureEffect does not double detail x macro, so the macro now carries the full
+  light (sunlit meadow ~0.33, asphalt ~0.29) and the grass texture, tints and tile size
+  (7 m) were retuned. Tests: `RoadMeshBuilderTests` (wear band, verge drape), `GroundShadowTests`
+  (offset, sample map statistics, per-building shade side), `LightingRig::Irradiance`.

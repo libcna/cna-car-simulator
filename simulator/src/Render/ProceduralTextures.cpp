@@ -37,10 +37,11 @@ namespace CarSim::Render::Textures
             const float coarse = Noise::Fbm(u * period, v * period, 16, 4, 0.5f, seed);
             const float fine = Noise::Value(u * 256.0f, v * 256.0f, 256, seed + 11);
             const float cell = Noise::Cellular(u * 96.0f, v * 96.0f, 96, seed + 23);
-            float g = 0.30f + (coarse - 0.5f) * 0.10f + (fine - 0.5f) * 0.12f;
+            const float aggregate = Noise::Value(u * 512.0f, v * 512.0f, 512, seed + 57);   // exposed stones
+            float g = 0.30f + (coarse - 0.5f) * 0.07f + (fine - 0.5f) * 0.09f + (aggregate - 0.5f) * 0.04f;
             g += (0.5f - cell) * 0.05f;
             const float patch = Noise::Fbm(u * 3.0f, v * 3.0f, 3, 2, 0.5f, seed + 41);
-            g *= 0.9f + patch * 0.2f;
+            g *= 0.93f + patch * 0.14f;
             return ToColor({g, g, g * 0.98f});
         });
         return img;
@@ -67,12 +68,12 @@ namespace CarSim::Render::Textures
             const float clumps = Noise::Fbm(u * 12.0f, v * 12.0f, 12, 4, 0.55f, seed);
             const float blades = Noise::Value(u * 300.0f, v * 90.0f, 300, seed + 3);
             const float dry = Noise::Fbm(u * 3.0f, v * 3.0f, 3, 2, 0.5f, seed + 17);
-            const Rgb green{0.27f, 0.36f, 0.15f};
-            const Rgb light{0.46f, 0.52f, 0.24f};
-            const Rgb hay{0.55f, 0.50f, 0.28f};
+            const Rgb green{0.36f, 0.46f, 0.20f};
+            const Rgb light{0.58f, 0.64f, 0.30f};
+            const Rgb hay{0.66f, 0.60f, 0.34f};
             const float blades2 = Noise::Value(u * 90.0f, v * 300.0f, 300, seed + 7);
-            Rgb c = Lerp(green, light, Clamp01(clumps * 0.7f + (blades - 0.5f) * 0.5f + (blades2 - 0.5f) * 0.4f));
-            c = Lerp(c, hay, Clamp01((dry - 0.5f) * 2.2f));
+            Rgb c = Lerp(green, light, Clamp01(clumps * 0.6f + 0.1f + (blades - 0.5f) * 0.5f + (blades2 - 0.5f) * 0.4f));
+            c = Lerp(c, hay, Clamp01((dry - 0.5f) * 1.2f));   // keep the low-frequency patches quiet so tiling stays hidden
             return ToColor(c);
         });
         return img;
@@ -102,13 +103,28 @@ namespace CarSim::Render::Textures
             const float joint = std::min(gu, gv);
             const int ix = static_cast<int>(fu);
             const int iy = static_cast<int>(fv);
-            const float slabTone = Noise::Hash(ix, iy, seed) * 0.12f;
+            const float slabTone = Noise::Hash(ix, iy, seed) * 0.06f;
             const float grain = Noise::Value(u * 180.0f, v * 180.0f, 180, seed + 2);
-            float g = 0.58f + slabTone + (grain - 0.5f) * 0.08f;
-            if (joint < 0.03f) {
-                g *= 0.62f;
+            const float dirt = Noise::Fbm(u * 4.0f, v * 4.0f, 4, 3, 0.5f, seed + 3);
+            float g = 0.60f + slabTone + (grain - 0.5f) * 0.06f + (dirt - 0.5f) * 0.08f;
+            if (joint < 0.02f) {
+                g *= 0.80f;   // quiet joints: real slabs are grey on grey
             }
             return ToColor({g, g * 0.99f, g * 0.95f});
+        });
+        return img;
+    }
+
+    Image MarkingPaint(const int size, const std::uint32_t seed)
+    {
+        // Worn white paint: speckled with asphalt showing through and a slightly warm tone.
+        Image img(size, size);
+        img.Generate([&](int, int, float u, float v) {
+            const float fine = Noise::Value(u * 64.0f, v * 64.0f, 64, seed);
+            const float holes = Noise::Cellular(u * 24.0f, v * 24.0f, 24, seed + 4);
+            float g = 0.90f + (fine - 0.5f) * 0.12f;
+            if (holes < 0.08f) g *= 0.72f;
+            return ToColor({g, g, g * 0.96f});
         });
         return img;
     }
