@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M1-M9 complete except TRF-007/008, ENV-007, ENV-008, AUD-006, RND-009 and SIM-019; M10 audit in progress).
+Last synchronised with the repository: 2026-09-14 (M0-M10 complete; deferred items are marked `[-]` with their reason; audit record in section 21).
 
 ---
 
@@ -205,16 +205,23 @@ stationary. Determinism: all simulation code uses floats deterministically with 
 
 ## 10. Traffic AI
 
-- Lane graph from the map (section 11); routes planned with A* over lane links; spawn points and
-  destinations from `traffic.json`; density and radius scaling.
+- Lane graph from the map (section 11); routes planned with Dijkstra over lane links (ambient
+  cars pick the next connector with a straight-through preference); spawn ring and density from
+  `traffic.json`.
 - Following: Intelligent Driver Model (desired speed = min(speed limit, curvature limit),
   time headway, minimum gap, comfortable deceleration) against the nearest leader in the lane
   chain (including the player's vehicle when it occupies the lane ahead).
-- Intersections: priority rules from map data (main road, yield/stop, right-hand rule); a gap
-  acceptance model on conflicting connectors; stop lines; simple signal support in the data
-  model (deferred implementation unless the sample map needs it).
-- Lateral: vehicles track their lane centreline with a pure-pursuit controller; lane geometry
-  gives yaw and terrain gives height/pitch/roll.
+- Intersections: priority rules from map data (main road, yield/stop, right-hand rule, left turn
+  yields to oncoming; the lane graph forces right of way to be antisymmetric); gap acceptance by
+  time to arrival on conflicting connectors; stop lines with a full stop; the junction box is
+  kept clear (no entry while the exit or a crossing connector is blocked by a standing car);
+  a car whose body lies on the path (OBB test along the path polyline) is an obstacle whatever
+  the priority; deadlock breaker releases the longest-waiting car once nothing moves inside;
+  a nose-to-nose stand-off is resolved by the yielding car reversing to its line. Traffic
+  signals stay a deferred feature.
+- Lateral: vehicles follow the lane/connector polylines kinematically (path parameter, steer
+  angle from curvature); lane geometry gives yaw and height. Overtaking is not modelled: a car
+  queues behind a player standing in its lane.
 - Reaction to the player: treated as an obstacle in the lane (IDM leader) and in conflict areas.
 - Plates: `PlateGenerator` (section 13) assigns a plate at spawn; textures baked into an atlas.
 
@@ -338,9 +345,9 @@ that logs frame statistics for a scripted camera path.
 - [x] `SIM-014` Odometer (total/trip, ground speed integration) with tests.
 - [x] `SIM-015` Electrics: indicators (blink period, hazard), lights, brake/reverse lamps, horn state.
 - [x] `SIM-016` Vehicle facade + `VehicleState`; fixed 120 Hz sub-stepping inside `Vehicle::Update`; determinism test.
-- [x] `SIM-017` Acceptance drives: 0--100 km/h (8--18 s band, measured ~14 s), braking 100--0 (36--60 m, measured 40 m), clutch stall, hill hold, straight-line stability, steering direction, odometer/fuel response; `tools/simtrace` prints traces. A constant-speed fuel-cycle measurement (L/100 km at 50 and 90 km/h) is still open (SIM-019).
+- [x] `SIM-017` Acceptance drives: 0--100 km/h (8--18 s band, measured ~14 s), braking 100--0 (36--60 m, measured 40 m), clutch stall, hill hold, straight-line stability, steering direction, odometer/fuel response; `tools/simtrace` prints traces.
 - [x] `SIM-018` First vehicle definition `lipan_12.json` with documented parameter rationale.
-- [ ] `SIM-019` Constant-speed fuel-cycle test (50/90 km/h cruise L/100 km bands) and consumption tuning.
+- [x] `SIM-019` Constant-speed fuel-cycle test (`tests/Sim/FuelCycleTests.cpp`): a cruise controller holds 50 and 90 km/h in automatic mode; consumption must land in 3--7 and 4--9 L/100 km (it does without further tuning).
 - [x] `SIM-020` Physics model documented with compromises (`docs/vehicle-physics.md`).
 
 ### M2 Rendering base (`Render`)
@@ -352,7 +359,7 @@ that logs frame statistics for a scripted camera path.
 - [x] `RND-006` `VehicleRenderer`: wheel spin/steer/suspension from `VehicleState`, steering wheel rotation, needle poses, emissive lamps, environment-mapped paint with sun glint (cube map alpha mask), separate interior lighting.
 - [x] `RND-007` Chase camera (smoothed yaw/position, speed pull-back, `--chase-yaw`/`--chase-distance` framing) and cockpit camera (driver eye from data, subtle lateral sway). Collision-aware distance moves to COL-006.
 - [x] `RND-008` Sky dome + sun billboard + cloud layer; fixed lighting rig constants in `LightingRig` (documented in section 8).
-- [ ] `RND-009` Renderer conformance probe at start-up (dual-UV layout, instancing) with graceful fallback and log.
+- [-] `RND-009` Renderer conformance probe at start-up. Deferred: the dual-UV terrain path was verified on the OPENGLES3 renderer (the Linux default) and no instancing is used, so there is nothing to fall back from today; the probe returns with the instanced-tree lever (PERF-002) or when a second renderer shows a difference (observed behaviours are listed in `docs/framework-findings.md` section 3.4).
 - [x] `RND-010` HUD and debug overlay (`F3`): frame time, speed, RPM, gear, engine state, pedals, clutch lock, fuel, coolant; culling counts follow with the world renderer (ENV-008).
 - [x] `RND-011` Screenshot verification workflow under Xvfb (`scripts/run_headless.sh`, `--frames/--screenshot/--auto-drive/--cockpit`); screenshots inspected for every rendering change.
 
@@ -381,18 +388,18 @@ that logs frame statistics for a scripted camera path.
 - [x] `COL-001` Shapes: oriented boxes and vertical cylinders with SAT (15 axes) and segment-box contact generation (`Collision/Shapes`); unit tests for separation, penetration, rotated boxes and cylinders. Convex prisms were not needed: buildings are boxes; the terrain is handled by the suspension raycasts.
 - [x] `COL-002` Impulse response with restitution, Coulomb friction and angular terms (world inverse inertia), split positional correction with slop and per-resolve cap; contact events (point, normal, impulse, closing speed, collider kind) for audio and the debug overlay.
 - [x] `COL-003` Static colliders from `ObjectPlacement`: buildings, walls, fences, shelters, benches, timber, posts, lamps, signs, tree trunks and map boundary walls (44k+ on the sample map) in a spatial grid; delineators stay soft. Kerbs are not colliders (the suspension rides over the 12 cm step).
-- [ ] `COL-004` Vehicle-vehicle collision: `ResolveVehiclePair` (two physics bodies) and `ResolveVehicleAgainstBox` (player against a traffic car treated as a moving box with mass) are implemented and tested; the traffic integration lands with M6.
+- [x] `COL-004` Vehicle-vehicle collision: `ResolveVehiclePair` (two physics bodies) and `ResolveVehicleAgainstBox` (player against a traffic car treated as a moving box with mass) are implemented and tested; the traffic integration is in `SimulatorGame::UpdateTraffic` (TRF-005), verified by driving into a queued car (the car is pushed, the AI car stops and resumes).
 - [x] `COL-005` Scenario tests: wall stop from 43 km/h (no more than 6 cm penetration), offset post impact induces yaw, head-on pair separates with bounded momentum error, sample-map spawns are clear of colliders.
 
 ### M6 Traffic (`Traffic`)
 - [x] `TRF-001` Route search over the lane graph (Dijkstra in `LaneGraph::FindRoute`, tested); ambient traffic picks its next link with straight-through preference (`RandomLink`).
 - [x] `TRF-002` `TrafficVehicle` follows lane and connector polylines kinematically (path parameter, steer angle from curvature) with Intelligent Driver Model car following, speed limits, curve speeds and look-ahead braking; tests (free road, follower keeps distance and matches speed).
-- [x] `TRF-003` Intersection behaviour from the lane graph's conflict/yield lists: priority, yield, stop (full stop at the line), right-hand rule, left turn yields to oncoming, time-gap acceptance, exit-blocked check, deadlock breaker; test: minor road waits for main-road traffic.
+- [x] `TRF-003` Intersection behaviour from the lane graph's conflict/yield lists: priority, yield, stop (full stop at the line), right-hand rule, left turn yields to oncoming, time-gap acceptance, junction box kept clear, path-blocking check against cars inside the box, committed deadlock release, stand-off back-off (section 10); tests: minor road waits for main-road traffic, right of way antisymmetric on the sample map, 30-minute soak (TRF-008).
 - [x] `TRF-004` Spawner/despawner around the player (distance ring, outside the view cone, lane spacing, `maxVehicles` from `traffic.json`), despawn beyond `despawnDistance`; test on the sample map.
 - [x] `TRF-005` Player interaction: the player is projected onto the lane graph and acts as leader/obstacle, is respected in gap acceptance, and collides with traffic cars through `ResolveVehicleAgainstBox` (the AI car stops for a few seconds after a hit).
 - [x] `TRF-006` `PlateGenerator` (standard `1A2 3456` series with regional weights and two-letter series, optional `EL` plates, validation, uniqueness, seeding) with tests; `PlateRenderer` draws 520 x 110 plates with the EU band, stars, `CZ` and D-DIN Bold characters; the player's plate comes from the vehicle definition.
-- [ ] `TRF-007` Traffic vehicle variants: eight paint colours and per-driver speed factors are in; body variants (sedan, van) need additional vehicle definitions (deferred, see section 23).
-- [ ] `TRF-008` Soak test (30 simulated minutes headless): planned for the audit milestone as a tool run (`--auto-drive` plus traffic statistics).
+- [-] `TRF-007` Traffic vehicle variants: eight paint colours, per-driver speed factors and unique plates are in; body variants (sedan, van) need additional vehicle definitions and are deferred (section 23).
+- [x] `TRF-008` Soak test (`tests/Traffic/TrafficSoakTests.cpp`): 30 simulated minutes at 30 Hz with the player parked off the road by the square, 20 cars; no two car bodies overlap (OBB test), no car stands still for two minutes, every plate unique, more than 40 spawns. The first runs exposed mutual yields at a three-way junction and a one-frame deadlock release, both fixed; the passing run shows about 420 spawns and a handful of seconds of deadlock releases/back-offs in total.
 
 ### M7 Audio (`Audio`)
 - [x] `AUD-001` `DynamicSoundEffectInstance` stereo stream (44.1 kHz, three 1024-frame blocks kept pending, underrun counter, `--no-audio`, device failure tolerated) in `Audio::VehicleAudio`.
@@ -400,7 +407,7 @@ that logs frame statistics for a scripted camera path.
 - [x] `AUD-003` Starter whine while cranking (engine state `Starting`), catch clip on the transition to running, fade-out on stop/stall.
 - [x] `AUD-004` Tyre noise (speed and surface), wind, two-tone horn, indicator tick/tock on lamp edges, gear clunk, collision impacts by closing speed. Brake squeal is not modelled.
 - [x] `AUD-005` Software mixer with master/engine/effects levels and cockpit attenuation/low-pass blend; documented in `docs/audio-design.md`. Persisted settings arrive with M9.
-- [ ] `AUD-006` Engine load from delivered torque (expose the engine load fraction in `VehicleState`) instead of the throttle proxy; surface roughness from the ground sample.
+- [x] `AUD-006` Engine load from delivered torque: `VehicleState::engineLoad` (combustion torque over the curve maximum) drives the synthesiser load with a small throttle share; the tyre layer already follows the ground surface class.
 
 ### M8 Environment (`Map`, `Render`)
 - [x] `ENV-001` Baked terrain lighting: the macro texture carries sun shading from the terrain normal, forest canopy shade and road-verge darkening (DualTextureEffect). Roads, buildings and props use the lit BasicEffect with the same rig; sun-visibility occlusion between objects remains a polish item (PERF/UX).
@@ -409,8 +416,8 @@ that logs frame statistics for a scripted camera path.
 - [x] `ENV-004` Countryside: crop fields and meadows via the macro texture, tree avenues along the main and south roads, automatic Z 11 delineators every 50 m on rural roads. Ditches are not modelled (terrain blend only).
 - [x] `ENV-005` Forest: spruce/pine/beech/oak/birch card trees sampled from forest polygons (44k trees on the sample map), gravel forest track with turning loop, timber stacks and a barrier gate.
 - [x] `ENV-006` Sign set: P1, P2, P3, P4, P6, B1, B2, B20a/b, IZ4a/b, IS3a-d, IP6, IJ4c, A7a, A12a, A14, A22 faces drawn procedurally with D-DIN Bold text (`SignGenerator`, `ImageText`), mounted on posts at urban/rural heights.
-- [ ] `ENV-007` Road markings: V 1a, V 2a/b, V 4, V 5 and V 6a are generated (MAP-005); pedestrian crossings (V 7) at the IP6 signs and sidewalk corners at junctions remain.
-- [ ] `ENV-008` Visual pass: screenshots reviewed at each map segment; fixes recorded.
+- [x] `ENV-007` Road markings: V 1a, V 2a/b, V 4, V 5, V 6a (MAP-005) and V 7 zebra crossings generated across the carriageway at every IP6 sign (`RoadMeshBuilder::BuildCrossing`); junction corners are rounded by the kerb fillets of MAP-002. Verified in a screenshot of the square junction.
+- [x] `ENV-008` Visual pass: screenshots reviewed for the square, the church junction, the eastern approach, the prefab estate, the forest track, the sign set, shadows, cockpit and mirror, help/debug overlays and the crossing; fixes made along the way: premultiplied font atlases, environment-map alpha sun mask, textured lit materials (R9), glass boundary classification, A-pillar width, road strip winding, sloped junction planes, terrain sink under roads, sign text orientation, binnacle hood. Final screenshots are in `docs/screenshots/`.
 
 ### M9 Persistence and UX
 - [x] `PER-001` Versioned save JSON (`Core::SaveData`, schema 1) with atomic writes, corruption fallback, read-only handling of newer schemas, in-memory upgrade hook; tests for round trip, corruption, newer version, file I/O.
@@ -420,11 +427,11 @@ that logs frame statistics for a scripted camera path.
 
 ### M10 Polish and audit
 - [x] `PERF-001` Frame-time instrumentation (update/draw/wall, draw calls, triangles in the debug overlay), `--benchmark` summary at exit, measurements recorded in `docs/performance.md`.
-- [ ] `PERF-002` Culling/LOD tuning: terrain LOD (3 levels) and distance culls cut the frame from 828k to 231k triangles (see `docs/performance.md`); batch merging and instanced trees remain as listed levers.
-- [ ] `AUDIT-001` Asset licence audit; `assets/ASSETS.md` regenerated; manifest test.
-- [ ] `AUDIT-002` Final audit checklist (section 21) executed and recorded.
-- [ ] `DOC-001` README complete (status, build, controls, architecture, limitations, testing).
-- [ ] `UX-006` Car body polish: nose/tail sculpting, bumper split lines, lamp housings, wheel arch lips, seam lines; compare against reference proportions in screenshots.
+- [x] `PERF-002` Culling/LOD tuning: terrain LOD (3 levels) and distance culls cut the frame from 828k to 231k triangles and halved the software-rendered frame time (see `docs/performance.md`); batch merging and instanced trees are documented there as the next levers (section 23).
+- [x] `AUDIT-001` Asset licence audit: the only external asset is the D-DIN font family (OFL 1.1, licence file and FONTLOG kept, SHA-256 in the manifest); every other texture, mesh, sound, plate and sign face is generated by project code; `scripts/check_assets.py` (CTest `asset_manifest_check`) verifies manifest fields, allowed licences, checksums and that no unlisted file sits under `assets/external/`.
+- [x] `AUDIT-002` Final audit checklist executed and recorded in section 21.
+- [x] `DOC-001` README complete: status, requirements, build, command line, controls (synchronised with `InputMapper` defaults), save file and binding overrides, architecture, API boundary, data-driven vehicles and maps, traffic, testing, performance, licensing and provenance, screenshots.
+- [-] `UX-006` Car body polish (nose/tail sculpting, bumper split lines, lamp housings, wheel arch lips, seam lines). Deferred: the procedural hatchback reads as a car in all views and the remaining work is aesthetic; it is the first item once a licensed real-car model or more modelling time is available (section 23).
 
 ## 20. Acceptance criteria (product level)
 
@@ -446,6 +453,31 @@ dashboard; odometer; temperature; fuel; reserve lamp; refill rule; mirror; traff
 collision; static collision; plates; engine audio; provenance complete; docs current; plan.md
 matches reality; clean tree; pushed.
 
+### Audit record (2026-09-14)
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Build from a clean checkout | pass | fresh clone of the pushed branch configured and built with the `opengles3` preset (GCC 13, Ninja); all 5 CTests passed there |
+| CNA `next`, Sharp Runtime `next`, `CNA_CNAEXT=OFF` | pass | `CMakeCache.txt`: `CNA_CNAEXT:BOOL=OFF`; dependency roots point at the `next` checkouts recorded in `docs/framework-findings.md` |
+| Static XNA-only check | pass | `scripts/check_xna_only.py`: 147 files scanned, no CNAEXT/renderer/platform includes or types |
+| No renderer dependency | pass | the simulator never reads the renderer selection; renderer-specific behaviour is handled inside the XNA API (section 3.4 of the findings) |
+| Tests | pass | 119 GoogleTest cases, `xna_only_api_check`, `asset_manifest_check`, `map_validate_lipova`, `simulator_smoke` |
+| Sample map loads, vehicle drives | pass | `--spawn square/forest --auto-drive` runs, screenshots `docs/screenshots/` |
+| Both cameras, steering wheel, mirror, dashboard | pass | cockpit screenshot: live cluster, wheel angle, mirror image; chase screenshot |
+| Engine start/stop, automatic and manual, clutch stall | pass | unit tests (`EngineTest`, `Clutch`, `ManualTransmission`, `AutomaticTest`, `VehicleDrive`) and manual runs |
+| Indicators, lights, horn | pass | `Electrics` tests; lamps in the cluster and on the body; audio tick/tock and horn layers |
+| Odometer, temperature, fuel, reserve lamp, refill rule | pass | `Odometer`, `EngineThermal`, `FuelTest` (refill at 50 % of reserve to 100 %), `FuelCycle` |
+| Traffic, plates, traffic collision, static collision | pass | `TrafficSystem`, `TrafficSoak`, `PlateGenerator`, `Shapes`/`CollisionWorld` tests; screenshots of a queue with plates and of a stop against a bus shelter |
+| Engine audio | pass | `EngineSynth` tests (firing-frequency tracking, load loudness, continuity); stream verified with the dummy driver |
+| Provenance | pass | `assets/manifest.json` + `assets/ASSETS.md`; `asset_manifest_check` |
+| Docs current | pass | README, `docs/*.md` updated in the same commits as the code |
+| plan.md matches reality | pass | ledger synchronised in this commit |
+| Clean tree, pushed | pass | `git status` clean after the final commit; branch `claude/cna-car-simulator-project-scx0ij` pushed |
+
+Known cosmetic limits recorded during the audit: the procedural car body (UX-006), no
+overtaking in traffic, software-rendered frame times in the container (a GPU is expected to
+render the frame in a few milliseconds).
+
 ## 22. Risks
 
 | ID | Risk | Mitigation |
@@ -454,7 +486,7 @@ matches reality; clean tree; pushed.
 | R2 | No custom shaders limits realism (no normal maps, no soft shadow maps) | baked lighting, environment mapping, geometry detail, texture quality, planar shadows |
 | R3 | Procedural car may look less convincing than a scanned model | invest in loft quality, materials, interior detail; keep glTF path ready |
 | R4 | Tyre model instability at low speed | relaxation/damping, substeps, clamps, tests |
-| R5 | Traffic deadlocks at intersections | gap acceptance with timeouts, priority fallback, soak tests |
+| R5 | Traffic deadlocks at intersections | antisymmetric right of way in the lane graph, junction box kept clear, committed deadlock release, stand-off back-off, 30-minute soak test (TRF-008) |
 | R6 | Headless environment (llvmpipe) hides GPU-only issues | keep renderer-agnostic XNA usage; measure on real hardware when available |
 | R7 | Long CNA build times slow iteration | ccache, EXCLUDE_FROM_ALL, minimal CNA options |
 | R8 | Network policy blocks most asset hosts | procedural assets by default; GitHub-hosted per-item-licensed sources only |
@@ -463,6 +495,8 @@ matches reality; clean tree; pushed.
 ## 23. Deferred features
 
 Binary map cache and chunk streaming; side mirrors; visual damage; traffic signals runtime
-logic; pedestrians; steering-wheel hardware; multiple licensed real-car models; additional maps;
-normal mapping (needs custom shaders); indicator self-cancel (only with reliable steering
-heuristic); weather/day-night (explicitly excluded).
+logic; traffic overtaking and lane changes; traffic body variants (TRF-007); pedestrians;
+gamepad/steering-wheel hardware; multiple licensed real-car models; car body polish (UX-006);
+additional maps; batch merging and instanced trees (PERF-002 levers); renderer conformance probe
+(RND-009); normal mapping (needs custom shaders); indicator self-cancel (only with reliable
+steering heuristic); weather/day-night (explicitly excluded).

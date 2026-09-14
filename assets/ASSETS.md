@@ -3,7 +3,7 @@
 Every non-generated asset used by cna-car-simulator is recorded in `assets/manifest.json` with
 its original title, author, source URL, licence (SPDX), retrieval date, the local files derived
 from it (with SHA-256), the modifications applied and the attribution text required. This file
-summarises the manifest for humans; `tools/validate_assets.py` checks both.
+summarises the manifest for humans; `scripts/check_assets.py` checks both (CTest `asset_manifest_check`).
 
 Generated assets (textures, meshes, sounds, plate faces, sign faces) are produced by project
 code and are covered by the repository's MIT licence; they are not listed here.
