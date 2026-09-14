@@ -5,7 +5,20 @@
 # -----------------------------------------------------------------------------
 add_library(carsim_core STATIC
     src/Core/CommandLine.cpp
+    src/Core/PiecewiseLinear.cpp
     src/Core/Version.cpp
+    src/Sim/Clutch.cpp
+    src/Sim/Electrics.cpp
+    src/Sim/Engine.cpp
+    src/Sim/EngineThermal.cpp
+    src/Sim/FuelSystem.cpp
+    src/Sim/Ground.cpp
+    src/Sim/Odometer.cpp
+    src/Sim/RigidBody.cpp
+    src/Sim/Transmission.cpp
+    src/Sim/Tyre.cpp
+    src/Sim/Vehicle.cpp
+    src/Sim/VehicleDefinition.cpp
 )
 target_include_directories(carsim_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(carsim_core PUBLIC CNA::Math CNA::CoreHeaders SharpRuntime::Text.Json)

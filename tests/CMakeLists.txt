@@ -16,8 +16,19 @@ endif()
 
 add_executable(carsim_tests
     CommandLineTests.cpp
+    Core/PiecewiseLinearTests.cpp
+    Sim/ClutchTests.cpp
+    Sim/ElectricsTests.cpp
+    Sim/EngineTests.cpp
+    Sim/FuelThermalTests.cpp
+    Sim/RigidBodyTests.cpp
+    Sim/TransmissionTests.cpp
+    Sim/TyreGroundTests.cpp
+    Sim/VehicleDefinitionTests.cpp
+    Sim/VehicleDriveTests.cpp
 )
 target_link_libraries(carsim_tests PRIVATE carsim_core GTest::gtest GTest::gtest_main)
+target_compile_definitions(carsim_tests PRIVATE CARSIM_TEST_CONTENT_DIR="${CMAKE_SOURCE_DIR}/content")
 carsim_apply_warnings(carsim_tests)
 add_test(NAME carsim_unit_tests COMMAND carsim_tests)
 set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 300 LABELS "unit")

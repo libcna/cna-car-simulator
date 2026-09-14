@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M0 in progress).
+Last synchronised with the repository: 2026-09-14 (M1 vehicle core complete except SIM-019).
 
 ---
 
@@ -322,24 +322,26 @@ that logs frame statistics for a scripted camera path.
 - [x] `SKEL-008` README, LICENSE, .gitignore, plan.md; first commit pushed.
 
 ### M1 Vehicle core (`Sim`)
-- [ ] `SIM-001` `VehicleDefinition` JSON schema + loader + validation with tests.
-- [ ] `SIM-002` Torque curve (`Curve` interpolation) + engine friction model with tests.
-- [ ] `SIM-003` Engine state machine (Off/Starting/Running/Stalled), starter, idle control, limiter.
-- [ ] `SIM-004` Clutch model (capacity, slip, lock-up) with tests.
-- [ ] `SIM-005` Manual transmission (ratios, neutral, reverse, shift rules) with tests.
-- [ ] `SIM-006` Automatic transmission (shift map, hysteresis, kick-down, P/R/N/D, creep) with tests.
-- [ ] `SIM-007` Drivetrain (final drive, open differential, inertia) with tests.
-- [ ] `SIM-008` Tyre model (combined slip, load sensitivity, low-speed damping) with tests.
-- [ ] `SIM-009` Suspension ray casts + spring/damper with clamps; tests.
-- [ ] `SIM-010` Rigid body integration (6-DoF, inertia, gravity, drag, rolling resistance) with tests.
-- [ ] `SIM-011` Brakes and handbrake; steering geometry (Ackermann approximation, rate limits, ratio).
-- [ ] `SIM-012` Fuel system (BSFC-style consumption, reserve lamp, configurable 50 % refill) with tests.
-- [ ] `SIM-013` Engine thermal model with tests.
-- [ ] `SIM-014` Odometer (total/trip, ground speed integration) with tests.
-- [ ] `SIM-015` Electrics: indicators (blink period, hazard), lights, brake/reverse lamps, horn state.
-- [ ] `SIM-016` Vehicle facade + `VehicleState`; `FixedStepper`; determinism test.
-- [ ] `SIM-017` Acceptance drives: 0--100 km/h, braking 100--0, stall, hill hold, fuel cycle; tolerances documented.
-- [ ] `SIM-018` First vehicle definition `lipan_12.json` with documented parameter rationale.
+- [x] `SIM-001` `VehicleDefinition` JSON schema + loader + validation with tests.
+- [x] `SIM-002` Torque curve (`Curve` interpolation) + engine friction model with tests.
+- [x] `SIM-003` Engine state machine (Off/Starting/Running/Stalled), starter, idle control, limiter.
+- [x] `SIM-004` Clutch model (capacity, slip, lock-up) with tests.
+- [x] `SIM-005` Manual transmission (ratios, neutral, reverse, shift rules) with tests.
+- [x] `SIM-006` Automatic transmission (shift map, hysteresis, kick-down, P/R/N/D, creep) with tests.
+- [x] `SIM-007` Drivetrain (final drive, open differential, inertia) with tests.
+- [x] `SIM-008` Tyre model (combined slip, load sensitivity, low-speed damping) with tests.
+- [x] `SIM-009` Suspension ray casts + spring/damper with clamps; tests.
+- [x] `SIM-010` Rigid body integration (6-DoF, inertia, gravity, drag, rolling resistance) with tests.
+- [x] `SIM-011` Brakes and handbrake; steering geometry (Ackermann approximation, rate limits, ratio).
+- [x] `SIM-012` Fuel system (BSFC-style consumption, reserve lamp, configurable 50 % refill) with tests.
+- [x] `SIM-013` Engine thermal model with tests.
+- [x] `SIM-014` Odometer (total/trip, ground speed integration) with tests.
+- [x] `SIM-015` Electrics: indicators (blink period, hazard), lights, brake/reverse lamps, horn state.
+- [x] `SIM-016` Vehicle facade + `VehicleState`; fixed 120 Hz sub-stepping inside `Vehicle::Update`; determinism test.
+- [x] `SIM-017` Acceptance drives: 0--100 km/h (8--18 s band, measured ~14 s), braking 100--0 (36--60 m, measured 40 m), clutch stall, hill hold, straight-line stability, steering direction, odometer/fuel response; `tools/simtrace` prints traces. A constant-speed fuel-cycle measurement (L/100 km at 50 and 90 km/h) is still open (SIM-019).
+- [x] `SIM-018` First vehicle definition `lipan_12.json` with documented parameter rationale.
+- [ ] `SIM-019` Constant-speed fuel-cycle test (50/90 km/h cruise L/100 km bands) and consumption tuning.
+- [x] `SIM-020` Physics model documented with compromises (`docs/vehicle-physics.md`).
 
 ### M2 Rendering base (`Render`)
 - [ ] `RND-001` Renderer frame orchestration; camera interfaces; frustum from view/projection.

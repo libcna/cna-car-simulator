@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "lipan_12",
+  "displayName": "Lipan 1.2",
+  "description": "Fictional Czech-style B-segment hatchback with a 1.2 litre four-cylinder petrol engine and a five-speed gearbox. Parameters sit within the publicly documented ranges of that class; they do not reproduce any manufacturer's data sheet.",
+  "chassis": {
+    "mass": 1120,
+    "length": 4.05,
+    "width": 1.73,
+    "height": 1.47,
+    "centerOfMass": [0.0, 0.52, -0.10],
+    "inertia": [1500, 1750, 420],
+    "dragCoefficient": 0.32,
+    "frontalArea": 2.12,
+    "rollingResistance": 0.012
+  },
+  "wheels": [
+    { "name": "FL", "position": [-0.73, 0.302, -1.28], "radius": 0.302, "width": 0.185, "steered": true,  "driven": true,  "brakeTorque": 1500, "handbrakeTorque": 0 },
+    { "name": "FR", "position": [ 0.73, 0.302, -1.28], "radius": 0.302, "width": 0.185, "steered": true,  "driven": true,  "brakeTorque": 1500, "handbrakeTorque": 0 },
+    { "name": "RL", "position": [-0.73, 0.302,  1.28], "radius": 0.302, "width": 0.185, "steered": false, "driven": false, "brakeTorque": 700,  "handbrakeTorque": 900 },
+    { "name": "RR", "position": [ 0.73, 0.302,  1.28], "radius": 0.302, "width": 0.185, "steered": false, "driven": false, "brakeTorque": 700,  "handbrakeTorque": 900 }
+  ],
+  "suspension": {
+    "restLength": 0.36,
+    "travel": 0.22,
+    "springRate": 26000,
+    "damperCompression": 2200,
+    "damperRebound": 3200,
+    "antiRollStiffness": 12000
+  },
+  "tyres": {
+    "peakFriction": 1.0,
+    "peakSlipRatio": 0.12,
+    "peakSlipAngleDeg": 8.0,
+    "shapeFactor": 1.6,
+    "curvatureFactor": 0.97,
+    "loadSensitivity": 0.12,
+    "nominalLoad": 3000,
+    "wheelInertia": 1.1,
+    "lowSpeedMs": 0.8
+  },
+  "steering": {
+    "maxWheelAngleDeg": 34,
+    "steeringRatio": 15.5,
+    "wheelTurnRateDegPerSec": 60,
+    "highSpeedFactor": 0.35,
+    "highSpeedKmh": 130,
+    "ackermannFactor": 0.8
+  },
+  "engine": {
+    "idleRpm": 850,
+    "redlineRpm": 6200,
+    "limiterRpm": 6500,
+    "stallRpm": 450,
+    "inertia": 0.18,
+    "frictionTorque": [8.0, 0.005, 0.0000006],
+    "displacementLiters": 1.2,
+    "cylinders": 4,
+    "torqueCurve": [[500, 60], [800, 85], [1200, 105], [1800, 118], [2500, 122], [3500, 121], [4500, 115], [5500, 103], [6200, 88], [6500, 70]],
+    "starter": { "crankRpm": 280, "crankSeconds": 0.8, "catchRpm": 500 },
+    "thermal": {
+      "ambientC": 20, "operatingC": 90, "thermostatOpenC": 87,
+      "heatCapacityKjPerK": 25, "heatFractionOfFuel": 0.30,
+      "radiatorWPerK": 900, "radiatorClosedWPerK": 90, "airflowWPerKPerMs": 12,
+      "offCoolingWPerK": 25, "warningC": 115
+    },
+    "fuel": {
+      "idleLitersPerHour": 0.75,
+      "bsfcGPerKwh": [[0.1, 420], [0.3, 320], [0.6, 265], [1.0, 250]],
+      "overrunCutoff": true
+    }
+  },
+  "clutch": { "maxTorque": 260, "engageStart": 0.25, "engageEnd": 0.75 },
+  "gearbox": {
+    "defaultMode": "manual",
+    "ratios": [3.77, 2.05, 1.32, 0.97, 0.78],
+    "reverse": 3.60,
+    "finalDrive": 4.06,
+    "efficiency": 0.92,
+    "shiftTime": 0.35,
+    "automatic": {
+      "upshiftRpm": [[0.0, 2100], [0.5, 3200], [1.0, 6000]],
+      "downshiftRpm": [[0.0, 1100], [0.5, 1700], [1.0, 4200]],
+      "minShiftInterval": 1.5,
+      "creepTorque": 25,
+      "lockupSlipRpm": 1400
+    }
+  },
+  "fuel": {
+    "tankLiters": 45,
+    "reserveLiters": 7,
+    "refillAtReserveFraction": 0.5,
+    "refillToFraction": 1.0,
+    "initialLiters": 30
+  },
+  "electrics": { "indicatorPeriod": 0.75 },
+  "dashboard": { "speedometerMaxKmh": 220, "tachometerMaxRpm": 7000, "temperatureMinC": 50, "temperatureMaxC": 130 }
+}
