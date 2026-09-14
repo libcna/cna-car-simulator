@@ -275,3 +275,34 @@ TEST(SampleMap, DrivingOntoTheSquareRollsOnCobbles)
     }
     EXPECT_EQ(grounded, 4);
 }
+
+TEST(SampleMap, GardenTreesStandBehindHousesClearOfBuildingsAndRoads)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    const auto& objects = world->Objects();
+    int gardenTrees = 0;
+    for (const auto& tree : objects.Trees()) {
+        if (tree.species == Map::TreeSpecies::Bush) continue;
+        const Microsoft::Xna::Framework::Vector2 at(tree.position.X, tree.position.Z);
+        // Only look at trees standing close to a house: those are the garden ones.
+        bool nearHouse = false;
+        for (const auto& b : objects.Buildings()) {
+            if (b.spec->type != "house" && b.spec->type != "cottage") continue;
+            if (Microsoft::Xna::Framework::Vector2::DistanceSquared(at, Microsoft::Xna::Framework::Vector2(b.position.X, b.position.Z)) < 400.0f) {
+                nearHouse = true;
+                break;
+            }
+        }
+        if (!nearHouse) continue;
+        ++gardenTrees;
+        EXPECT_FALSE(objects.InsideBuilding(at, 1.0f)) << "a tree grows through a house";
+        Map::RoadHit hit;
+        if (world->Roads().NearestRoad(at, 30.0f, hit)) {
+            const auto& road = world->Roads().Roads()[static_cast<std::size_t>(hit.road)];
+            EXPECT_GT(std::fabs(hit.lateral), road.profile.HalfTotalWidth() + 1.0f) << "a tree stands in the road";
+        }
+    }
+    EXPECT_GT(gardenTrees, 200) << "the plots are planted";
+}
