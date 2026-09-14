@@ -65,6 +65,9 @@ namespace CarSim::Core
             float pitchDeg = 0.0f;
         };
         std::optional<FreeView> freeView;
+
+        /// Cockpit camera inspection: eye offset in the vehicle frame (metres) and a yaw offset (degrees, positive = look left).
+        std::optional<FreeView> eyeOffset;   // x, y, z used; headingDeg = yaw offset, pitchDeg = pitch offset
     };
 
     /// Result of parsing: either options or an error message for the user.

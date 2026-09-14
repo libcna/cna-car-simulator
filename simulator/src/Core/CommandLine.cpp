@@ -140,6 +140,28 @@ namespace CarSim::Core
                 int metres = 0;
                 takeInt(arg, metres, 2);
                 options.chaseDistanceM = static_cast<float>(metres);
+            } else if (arg == "--eye") {
+                // --eye dx dy dz yawDeg pitchDeg (cockpit camera offsets for inspection captures)
+                CommandLineOptions::FreeView eye;
+                float* fields[5] = {&eye.x, &eye.y, &eye.z, &eye.headingDeg, &eye.pitchDeg};
+                bool ok = true;
+                for (float* field : fields) {
+                    const auto value = takeValue(arg);
+                    if (!value) {
+                        ok = false;
+                        break;
+                    }
+                    try {
+                        *field = std::stof(std::string(*value));
+                    } catch (const std::exception&) {
+                        result.errors.push_back("--eye expects five numbers: dx dy dz yawDeg pitchDeg");
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) {
+                    options.eyeOffset = eye;
+                }
             } else {
                 result.errors.push_back("unknown argument '" + std::string(arg) + "'");
             }
@@ -168,6 +190,7 @@ namespace CarSim::Core
             "  --auto-drive <s>      Scripted drive: start the engine and accelerate for s seconds\n"
             "  --chase-yaw <deg>     Rotate the exterior camera around the car (0 = behind)\n"
             "  --chase-distance <m>  Exterior camera distance in metres\n"
+            "  --eye dx dy dz yaw pitch  Cockpit camera offset (vehicle metres, degrees) for inspection\n"
             "  --view x y z hdg pitch  Fixed inspection camera (metres, degrees; heading 0 = north)\n"
             "  --frames <n>          Run n frames and exit (smoke tests)\n"
             "  --screenshot <file>   Save the last frame as PNG before exiting\n"

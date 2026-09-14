@@ -1,13 +1,21 @@
-// Procedural passenger-car mesh generator: a fictional compact hatchback built from lofted
-// cross-sections, with separate parts for wheels, glass, lamps, mirrors and the interior so the
-// renderer can animate and light them independently. Everything is derived from the vehicle
-// definition (dimensions, wheel positions, cockpit geometry) plus a small style preset.
+// Procedural passenger-car mesh generator.
+//
+// The body is a dense loft of cross-section rings along the length of the car. Every ring has
+// the same topology (underbody, rocker, door band, belt, greenhouse tumblehome, roof crown), so
+// panel features live at fixed ring indices and the whole skin is UV-mapped as (u = position
+// around the ring, v = position along the car). Longitudinal shape comes from smooth curves
+// (top line, belt line, plan-view widths); nose and tail are rounded in plan and elevation by a
+// rounded-box sweep and finished with a sculpted face. Lamps, grille and glass outlines are
+// cut from the skin in UV space and re-drawn as decal meshes on the body surface so their
+// edges are exact. Wheels are revolved profiles. Everything is derived from a CarStyle, which is
+// built from the vehicle definition (player car) or from a body preset (traffic variants).
 #pragma once
 
 #include "CarSim/Render/MeshData.hpp"
 #include "CarSim/Sim/VehicleDefinition.hpp"
 
 #include "Microsoft/Xna/Framework/Matrix.hpp"
+#include "Microsoft/Xna/Framework/Vector2.hpp"
 #include "Microsoft/Xna/Framework/Vector3.hpp"
 
 #include <array>
@@ -16,18 +24,22 @@
 
 namespace CarSim::Render
 {
-    /// Material slot of a car part; the renderer maps slots to effects.
+    /// Material slot of a car part; the renderer maps slots to effects and textures.
     enum class CarMaterial
     {
-        Paint,          // body colour, environment-mapped
-        Glass,          // tinted, alpha blended
-        BlackTrim,      // bumpers, sills, arches, mirrors housings
-        Chrome,         // small bright metal parts
-        Tyre,           // rubber
+        Paint,          // body colour, environment-mapped, detail texture with shut lines
+        Glass,          // tinted, alpha blended, frit band texture
+        BlackTrim,      // bumper lower skins, sills, arch liners, mirror housings, wipers
+        GlossBlack,     // B-pillars, window surrounds
+        Chrome,         // badges, handles, exhaust tip, mirror glass
+        Tyre,           // rubber with tread texture
         Rim,            // alloy wheel
-        Interior,       // dashboard, door cards, seats (dark plastic/fabric)
-        InteriorLight,  // headliner, pillars (lighter)
-        LampHead,       // headlight lens (emissive when on)
+        BrakeDisc,      // disc and caliper behind the spokes
+        Grille,         // black mesh texture, recessed
+        Interior,       // dashboard, door cards (dark grained plastic)
+        InteriorLight,  // headliner, pillar trim (light fabric)
+        Fabric,         // seats
+        LampHead,       // headlamp lens (emissive when on)
         LampTail,       // red rear lamp (emissive when braking)
         LampIndicator,  // amber indicator lens
         LampReverse,    // white reverse lens
@@ -45,6 +57,7 @@ namespace CarSim::Render
             WheelFL, WheelFR, WheelRL, WheelRR,   // spin about the axle, steer for the fronts
             SteeringWheel,                        // rotate about the tilted column axis
             NeedleSpeed, NeedleRpm, NeedleFuel, NeedleTemp,
+            GearLever,                            // tilts with the selected gear
             Interior                              // drawn only from the cockpit (and in mirrors)
         };
         std::string name;
@@ -54,6 +67,91 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Vector3 pivot{};      // local origin of the part in vehicle space
         Microsoft::Xna::Framework::Vector3 axis{1.0f, 0.0f, 0.0f};   // rotation axis for animated parts
         bool exteriorOnly = false;                       // hidden from the cockpit camera (e.g. roof)
+        bool detail = false;                             // small part: dropped at the far vehicle LOD
+        bool cabin = false;                              // interior part that is also drawn from outside (seen through the glass)
+    };
+
+    /// Body preset of a car. All lengths in metres, vehicle frame (+X right, +Y up, -Z forward,
+    /// origin on the ground under the wheelbase centre).
+    struct CarStyle
+    {
+        enum class Body
+        {
+            Hatchback,
+            Sedan,
+            Estate,
+            Suv,
+            Van
+        };
+
+        Body body = Body::Hatchback;
+        float length = 4.05f;
+        float width = 1.73f;
+        float height = 1.47f;
+        float wheelbase = 2.56f;
+        float frontOverhangFraction = 0.55f;   // share of (length - wheelbase) in front of the front axle
+        float wheelRadius = 0.302f;
+        float tyreWidth = 0.185f;
+        float track = 1.46f;                   // wheel centre to wheel centre
+        float rideHeight = 0.17f;              // underbody above the ground
+        float beltHeight = 0.93f;              // shoulder line at the B-pillar
+        float cowlFromFrontAxle = 0.43f;       // windshield base behind the front axle
+        float windshieldLength = 0.83f;        // along the car
+        float roofRearFromRearAxle = 0.07f;    // where the roof ends (hatchback / estate: rear window top)
+        float rearWindowDrop = 0.45f;          // height lost by the rear window (hatchback) or its length share (sedan)
+        float bootDeckHeight = 0.0f;           // sedan: boot lid height (0 = no deck)
+        float noseHeight = 0.70f;              // hood leading edge
+        float hoodRise = 0.14f;                // hood height gained from the nose to the cowl
+        float roofCrown = 0.05f;               // roof centre above the roof rail
+        float tumblehome = 0.22f;              // roof rail inset from the belt line (per side)
+        float sillTuck = 0.05f;                // rocker panel inset from the belt (per side)
+        float archFlare = 0.025f;              // fender bulge over the wheel arches
+        float noseRounding = 0.32f;            // plan-view corner radius at the nose
+        float tailRounding = 0.24f;            // plan-view corner radius at the tail
+        bool blackCladding = false;            // SUV: unpainted arches and sills
+        int rimSpokes = 5;                     // twin spokes per wheel
+        float rimRadius = 0.20f;               // 15/16 inch alloy
+        unsigned seed = 1;
+
+        [[nodiscard]] float FrontZ() const { return -(wheelbase * 0.5f + (length - wheelbase) * frontOverhangFraction); }
+        [[nodiscard]] float RearZ() const { return wheelbase * 0.5f + (length - wheelbase) * (1.0f - frontOverhangFraction); }
+        [[nodiscard]] float FrontAxleZ() const { return -wheelbase * 0.5f; }
+        [[nodiscard]] float RearAxleZ() const { return wheelbase * 0.5f; }
+
+        /// Style of the player's vehicle: dimensions and wheels from the definition.
+        [[nodiscard]] static CarStyle FromDefinition(const Sim::VehicleDefinition& definition);
+        /// Traffic preset with typical dimensions of the class; `seed` picks small variations.
+        [[nodiscard]] static CarStyle Preset(Body body, unsigned seed);
+        [[nodiscard]] static const char* ToString(Body body);
+    };
+
+    /// Texture-space landmarks of the body skin (u around the ring, v along the car) used to
+    /// draw the paint detail texture (shut lines, seams, ambient darkening).
+    struct BodyUvLayout
+    {
+        // u values on the right side (mirror: 1 - u on the left); 0.5 is the top centre.
+        float uUnderbody = 0.0f;
+        float uRockerBottom = 0.05f;
+        float uRockerTop = 0.09f;
+        float uDoorMid = 0.15f;
+        float uBelt = 0.22f;
+        float uRoofRail = 0.36f;
+        float uTop = 0.5f;
+        // v values along the car (0 = nose tip, 1 = tail tip).
+        float vNose = 0.0f;
+        float vFrontBumper = 0.12f;
+        float vHoodStart = 0.05f;
+        float vCowl = 0.30f;
+        float vDoorFront = 0.38f;
+        float vBPillar = 0.62f;
+        float vDoorRear = 0.84f;
+        float vTailgate = 0.93f;
+        float vRearBumper = 0.89f;
+        float vFrontArch = 0.20f;
+        float vRearArch = 0.83f;
+        float archHalfV = 0.09f;
+        float fuelFlapU = 0.18f;
+        float fuelFlapV = 0.86f;
     };
 
     struct CarModel
@@ -62,30 +160,16 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Vector3 frontPlateCenter{};
         Microsoft::Xna::Framework::Vector3 rearPlateCenter{};
         float wheelRadius = 0.3f;
+        CarStyle style;
+        BodyUvLayout uv;
+        std::array<Microsoft::Xna::Framework::Vector3, 4> wheelCenters{};   // FL, FR, RL, RR at rest
+        int bodyTriangles = 0;
     };
 
-    /// Generates the model for `definition`. Deterministic.
+    /// Player car: style from the definition, full cockpit interior.
     [[nodiscard]] CarModel GenerateCar(const Sim::VehicleDefinition& definition);
 
-    /// Body profile helpers exposed for tests (height of the body top at a given z, etc.).
-    struct HatchbackProfile
-    {
-        float length, width, height, wheelbase, frontOverhang, rearOverhang;
-        float sillHeight = 0.19f;        // ground clearance to the sill
-        float beltline = 0.86f;          // top of the doors
-        float roofFront = 0.0f;          // z where the roof starts (windshield top)
-        float roofRear = 0.0f;           // z where the roof ends (hatch top)
-        float hoodHeight = 0.74f;        // hood at the base of the windshield
-
-        explicit HatchbackProfile(const Sim::VehicleDefinition& definition);
-
-        /// Body top height at longitudinal position z (vehicle frame, -z forward).
-        [[nodiscard]] float TopHeight(float z) const;
-        /// Half width of the body at height y and position z (includes tumblehome above the beltline).
-        [[nodiscard]] float HalfWidth(float z, float y) const;
-        /// True when (z, y) lies in the greenhouse (glass) region.
-        [[nodiscard]] bool IsGlass(float z, float y) const;
-        [[nodiscard]] float FrontZ() const { return -(wheelbase * 0.5f + frontOverhang); }
-        [[nodiscard]] float RearZ() const { return wheelbase * 0.5f + rearOverhang; }
-    };
+    /// Generic generator. `definition` (optional) supplies the cockpit placement (driver eye,
+    /// steering wheel, cluster, mirror); `interior` selects whether cabin parts are built.
+    [[nodiscard]] CarModel GenerateCar(const CarStyle& style, const Sim::VehicleDefinition* definition, bool interior);
 }

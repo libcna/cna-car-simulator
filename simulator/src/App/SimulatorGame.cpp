@@ -232,6 +232,11 @@ namespace CarSim::App
         if (options_.chaseDistanceM) {
             chaseCamera_.distance = *options_.chaseDistanceM;
         }
+        if (options_.eyeOffset) {
+            cockpitCamera_.eyeOffset = Vector3(options_.eyeOffset->x, options_.eyeOffset->y, options_.eyeOffset->z);
+            cockpitCamera_.yawOffsetDeg = options_.eyeOffset->headingDeg;
+            cockpitCamera_.pitchOffsetDeg = options_.eyeOffset->pitchDeg;
+        }
     }
 
     void SimulatorGame::ApplyAutoDrive(Sim::DriverControls& controls)
@@ -537,7 +542,7 @@ namespace CarSim::App
             }
             vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundPoint, groundNormal);
         }
-        vehicleRenderer_->DrawTransparent(device, state, view, projection);
+        vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
 
         if (hudVisible_ || showHelp_ || showDebug_) {
             DrawHud();

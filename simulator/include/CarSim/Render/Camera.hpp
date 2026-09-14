@@ -63,6 +63,11 @@ namespace CarSim::Render
         void Update(const Sim::VehicleState& state, const Sim::VehicleDefinition& definition, float dt);
         [[nodiscard]] const CameraPose& Pose() const { return pose_; }
 
+        /// Inspection offsets (vehicle frame metres; yaw positive = look left, pitch positive = up).
+        Microsoft::Xna::Framework::Vector3 eyeOffset{};
+        float yawOffsetDeg = 0.0f;
+        float pitchOffsetDeg = 0.0f;
+
     private:
         CameraPose pose_;
         float lateralOffset_ = 0.0f;

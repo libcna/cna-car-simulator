@@ -100,11 +100,11 @@
     "interiorColor": [0.16, 0.16, 0.17],
     "driverEye": [-0.37, 1.15, 0.12],
     "cockpitFovDeg": 68,
-    "steeringWheelCenter": [-0.37, 0.80, -0.52],
+    "steeringWheelCenter": [-0.37, 0.80, -0.40],
     "steeringWheelTiltDeg": 27,
     "steeringWheelDiameterM": 0.36,
-    "mirrorCenter": [0.0, 1.24, -0.72],
-    "clusterCenter": [-0.37, 1.00, -0.90],
+    "mirrorCenter": [0.0, 1.22, -0.50],
+    "clusterCenter": [-0.37, 0.96, -0.62],
     "plate": "3S4 7182"
   },
   "dashboard": { "speedometerMaxKmh": 220, "tachometerMaxRpm": 7000, "temperatureMinC": 50, "temperatureMaxC": 130 }

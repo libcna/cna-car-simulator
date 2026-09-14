@@ -99,8 +99,12 @@ namespace CarSim::Render
         const float targetOffset = std::clamp(-lateralAccel * 0.004f, -0.03f, 0.03f);
         lateralOffset_ += (targetOffset - lateralOffset_) * std::min(1.0f, dt * 6.0f);
 
-        const Vector3 eyeWorld = Vector3::Transform(eyeLocal + Vector3(lateralOffset_, 0.0f, 0.0f), state.worldMatrix);
-        const Vector3 lookLocal = eyeLocal + Vector3(0.0f, -0.02f, -10.0f);
+        const Vector3 eyeBase = eyeLocal + eyeOffset;
+        const Vector3 eyeWorld = Vector3::Transform(eyeBase + Vector3(lateralOffset_, 0.0f, 0.0f), state.worldMatrix);
+        const float yaw = MathHelper::ToRadians(yawOffsetDeg);
+        const float pitch = MathHelper::ToRadians(pitchOffsetDeg) - 0.002f;
+        const Vector3 lookDir(-std::sin(yaw) * std::cos(pitch), std::sin(pitch), -std::cos(yaw) * std::cos(pitch));
+        const Vector3 lookLocal = eyeBase + lookDir * 10.0f;
         const Vector3 lookWorld = Vector3::Transform(lookLocal, state.worldMatrix);
         pose_.position = eyeWorld;
         pose_.target = lookWorld;

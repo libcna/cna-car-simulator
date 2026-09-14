@@ -175,13 +175,13 @@ namespace CarSim::Sim
         std::string bodyStyle = "hatchback";                       // procedural generator preset
         Microsoft::Xna::Framework::Vector3 paintColor{0.62f, 0.10f, 0.12f};   // linear RGB
         Microsoft::Xna::Framework::Vector3 interiorColor{0.16f, 0.16f, 0.17f};
-        Microsoft::Xna::Framework::Vector3 driverEye{-0.37f, 1.16f, -0.05f};
+        Microsoft::Xna::Framework::Vector3 driverEye{-0.37f, 1.15f, 0.12f};
         float cockpitFovDeg = 68.0f;
-        Microsoft::Xna::Framework::Vector3 steeringWheelCenter{-0.37f, 0.86f, -0.62f};
+        Microsoft::Xna::Framework::Vector3 steeringWheelCenter{-0.37f, 0.80f, -0.40f};
         float steeringWheelTiltDeg = 24.0f;                        // rim tilted back from vertical
         float steeringWheelDiameterM = 0.37f;
-        Microsoft::Xna::Framework::Vector3 mirrorCenter{0.0f, 1.24f, -0.72f};   // interior rear-view mirror
-        Microsoft::Xna::Framework::Vector3 clusterCenter{-0.37f, 0.95f, -0.95f};
+        Microsoft::Xna::Framework::Vector3 mirrorCenter{0.0f, 1.22f, -0.50f};   // interior rear-view mirror
+        Microsoft::Xna::Framework::Vector3 clusterCenter{-0.37f, 0.96f, -0.62f};
         std::string plate;   // registration plate text ("1A2 3456"); generated when empty
     };
 

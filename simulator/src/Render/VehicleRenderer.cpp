@@ -1,5 +1,6 @@
 #include "CarSim/Render/VehicleRenderer.hpp"
 
+#include "CarSim/Render/CarTextures.hpp"
 #include "CarSim/Render/Image.hpp"
 #include "CarSim/Render/ProceduralTextures.hpp"
 #include "CarSim/Sim/Units.hpp"
@@ -42,74 +43,98 @@ namespace CarSim::Render
             float specularPower = 16.0f;
             Vector3 emissive{0.0f, 0.0f, 0.0f};
             float alpha = 1.0f;
+            float envAmount = 0.0f;   // > 0: environment-mapped (paint, chrome)
         };
 
-        MaterialLook LookFor(const CarPart& part, const Sim::VehicleDefinition& def, const Sim::VehicleState& state,
+        MaterialLook LookFor(const CarPart& part, const Vector3& paintColor, const Vector3& interiorColor, const Sim::VehicleState& state,
                              const std::optional<Vector3>& paintOverride)
         {
             MaterialLook look;
             switch (part.material) {
                 case CarMaterial::Paint:
-                    look.diffuse = paintOverride.value_or(def.visual.paintColor);
+                    look.diffuse = paintOverride.value_or(paintColor);
                     look.specular = Vector3(0.7f, 0.7f, 0.7f);
                     look.specularPower = 48.0f;
+                    look.envAmount = 0.22f;
                     break;
                 case CarMaterial::Glass:
-                    look.diffuse = Vector3(0.10f, 0.14f, 0.16f);
-                    look.specular = Vector3(1.0f, 1.0f, 1.0f);
+                    look.diffuse = Vector3(0.10f, 0.13f, 0.16f);
+                    look.specular = Vector3(0.5f, 0.5f, 0.5f);
                     look.specularPower = 90.0f;
-                    look.alpha = 0.42f;
+                    look.alpha = 1.0f;   // the tint texture is premultiplied and carries the alpha
+                    look.envAmount = 0.45f;   // sky reflection from outside (disabled from inside)
                     break;
                 case CarMaterial::BlackTrim:
                     look.diffuse = Vector3(0.05f, 0.05f, 0.055f);
-                    look.specular = Vector3(0.15f, 0.15f, 0.15f);
-                    look.specularPower = 12.0f;
+                    look.specular = Vector3(0.12f, 0.12f, 0.12f);
+                    look.specularPower = 10.0f;
+                    break;
+                case CarMaterial::GlossBlack:
+                    look.diffuse = Vector3(0.025f, 0.025f, 0.03f);
+                    look.specular = Vector3(0.9f, 0.9f, 0.9f);
+                    look.specularPower = 70.0f;
                     break;
                 case CarMaterial::Chrome:
-                    look.diffuse = Vector3(0.55f, 0.56f, 0.58f);
+                    look.diffuse = Vector3(0.62f, 0.63f, 0.65f);
                     look.specular = Vector3(1.0f, 1.0f, 1.0f);
-                    look.specularPower = 64.0f;
+                    look.specularPower = 80.0f;
+                    look.envAmount = 0.8f;
                     break;
                 case CarMaterial::Tyre:
-                    look.diffuse = Vector3(0.035f, 0.035f, 0.035f);
-                    look.specular = Vector3(0.05f, 0.05f, 0.05f);
+                    look.diffuse = Vector3(0.95f, 0.95f, 0.95f);   // the tread texture carries the tone
+                    look.specular = Vector3(0.06f, 0.06f, 0.06f);
                     look.specularPower = 8.0f;
                     break;
                 case CarMaterial::Rim:
-                    look.diffuse = Vector3(0.62f, 0.63f, 0.65f);
-                    look.specular = Vector3(0.8f, 0.8f, 0.8f);
-                    look.specularPower = 40.0f;
+                    look.diffuse = Vector3(0.78f, 0.79f, 0.80f);
+                    look.specular = Vector3(0.9f, 0.9f, 0.9f);
+                    look.specularPower = 44.0f;
+                    break;
+                case CarMaterial::BrakeDisc:
+                    look.diffuse = Vector3(0.30f, 0.30f, 0.31f);
+                    look.specular = Vector3(0.5f, 0.5f, 0.5f);
+                    look.specularPower = 30.0f;
+                    break;
+                case CarMaterial::Grille:
+                    look.diffuse = Vector3(1.0f, 1.0f, 1.0f);
+                    look.specular = Vector3(0.25f, 0.25f, 0.25f);
+                    look.specularPower = 20.0f;
                     break;
                 case CarMaterial::Interior:
-                    look.diffuse = def.visual.interiorColor;
-                    look.specular = Vector3(0.05f, 0.05f, 0.05f);
-                    look.specularPower = 6.0f;
+                    look.diffuse = interiorColor * 1.15f;
+                    look.specular = Vector3(0.06f, 0.06f, 0.06f);
+                    look.specularPower = 8.0f;
                     break;
                 case CarMaterial::InteriorLight:
-                    look.diffuse = def.visual.interiorColor * 2.6f + Vector3(0.08f, 0.08f, 0.08f);
+                    look.diffuse = Vector3(0.62f, 0.62f, 0.60f);
                     look.specular = Vector3(0.02f, 0.02f, 0.02f);
                     look.specularPower = 4.0f;
                     break;
+                case CarMaterial::Fabric:
+                    look.diffuse = Vector3(0.30f, 0.30f, 0.32f);
+                    look.specular = Vector3(0.03f, 0.03f, 0.03f);
+                    look.specularPower = 4.0f;
+                    break;
                 case CarMaterial::LampHead:
-                    look.diffuse = Vector3(0.75f, 0.78f, 0.80f);
+                    look.diffuse = Vector3(0.85f, 0.88f, 0.92f);
                     look.specular = Vector3(1.0f, 1.0f, 1.0f);
                     look.specularPower = 80.0f;
                     if (state.lowBeam) {
-                        look.emissive = state.highBeam ? Vector3(1.0f, 0.98f, 0.90f) : Vector3(0.75f, 0.74f, 0.66f);
+                        look.emissive = state.highBeam ? Vector3(1.0f, 0.98f, 0.90f) : Vector3(0.70f, 0.70f, 0.64f);
                     }
                     break;
                 case CarMaterial::LampTail:
-                    look.diffuse = Vector3(0.55f, 0.04f, 0.04f);
+                    look.diffuse = Vector3(0.62f, 0.05f, 0.04f);
                     look.specular = Vector3(0.8f, 0.8f, 0.8f);
                     look.specularPower = 60.0f;
                     if (state.brakeLights) {
                         look.emissive = Vector3(0.95f, 0.05f, 0.03f);
                     } else if (state.lowBeam) {
-                        look.emissive = Vector3(0.35f, 0.02f, 0.01f);
+                        look.emissive = Vector3(0.38f, 0.02f, 0.01f);
                     }
                     break;
                 case CarMaterial::LampIndicator: {
-                    look.diffuse = Vector3(0.85f, 0.45f, 0.08f);
+                    look.diffuse = Vector3(0.90f, 0.50f, 0.10f);
                     look.specular = Vector3(0.8f, 0.8f, 0.8f);
                     look.specularPower = 60.0f;
                     const bool left = part.name.find("left") != std::string::npos;
@@ -120,7 +145,7 @@ namespace CarSim::Render
                     break;
                 }
                 case CarMaterial::LampReverse:
-                    look.diffuse = Vector3(0.8f, 0.8f, 0.8f);
+                    look.diffuse = Vector3(0.82f, 0.82f, 0.82f);
                     look.specular = Vector3(0.8f, 0.8f, 0.8f);
                     look.specularPower = 60.0f;
                     if (state.reverseLights) {
@@ -176,11 +201,11 @@ namespace CarSim::Render
         // stronger ambient, softer key light, no fog.
         interiorLit_ = std::make_unique<BasicEffect>(device);
         rig.Apply(*interiorLit_);
-        interiorLit_->setAmbientLightColorProperty(Vector3(0.55f, 0.56f, 0.60f));
-        interiorLit_->getDirectionalLight0Property().setDiffuseColorProperty(rig.sunColor * 0.7f);
+        interiorLit_->setAmbientLightColorProperty(Vector3(0.50f, 0.51f, 0.55f));
+        interiorLit_->getDirectionalLight0Property().setDiffuseColorProperty(rig.sunColor * 0.65f);
         interiorLit_->getDirectionalLight0Property().setSpecularColorProperty(rig.sunColor * 0.3f);
-        interiorLit_->getDirectionalLight1Property().setDiffuseColorProperty(Vector3(0.22f, 0.24f, 0.28f));
-        interiorLit_->getDirectionalLight2Property().setDiffuseColorProperty(Vector3(0.18f, 0.17f, 0.15f));
+        interiorLit_->getDirectionalLight1Property().setDiffuseColorProperty(Vector3(0.24f, 0.26f, 0.30f));
+        interiorLit_->getDirectionalLight2Property().setDiffuseColorProperty(Vector3(0.16f, 0.15f, 0.13f));
         interiorLit_->setFogEnabledProperty(false);
         interiorLit_->setTextureEnabledProperty(true);
         interiorLit_->setVertexColorEnabledProperty(false);
@@ -206,6 +231,14 @@ namespace CarSim::Render
         shadowStencil_->setStencilDepthBufferFailProperty(StencilOperation::Keep);
 
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
+        tyre_ = UploadTexture(device, CarTextures::TyreTread(256), true);
+        rim_ = UploadTexture(device, CarTextures::RimFinish(128), true);
+        headlamp_ = UploadTexture(device, CarTextures::HeadlampLens(128), true);
+        tailLamp_ = UploadTexture(device, CarTextures::TailLampLens(64), true);
+        grille_ = UploadTexture(device, CarTextures::GrilleMesh(128), true);
+        plastic_ = UploadTexture(device, CarTextures::InteriorPlastic(256, Rgb{0.86f, 0.86f, 0.88f}, 5u), true);
+        fabric_ = UploadTexture(device, CarTextures::Fabric(256, Rgb{0.95f, 0.95f, 0.98f}, 9u), true);
+        headliner_ = UploadTexture(device, CarTextures::Headliner(128), true);
 
         // Default plate: blank white face with the blue band (the traffic system supplies real plates).
         Image plate(256, 54, Color(250, 250, 250, 255));
@@ -225,19 +258,57 @@ namespace CarSim::Render
         defaultCluster_ = UploadTexture(device, cluster, true);
     }
 
+    Texture2D* VehicleMaterials::TextureFor(const CarMaterial material) const
+    {
+        switch (material) {
+            case CarMaterial::Tyre: return tyre_.get();
+            case CarMaterial::Rim: return rim_.get();
+            case CarMaterial::LampHead: return headlamp_.get();
+            case CarMaterial::LampTail:
+            case CarMaterial::LampIndicator:
+            case CarMaterial::LampReverse: return tailLamp_.get();
+            case CarMaterial::Grille: return grille_.get();
+            case CarMaterial::Interior: return plastic_.get();
+            case CarMaterial::Fabric: return fabric_.get();
+            case CarMaterial::InteriorLight: return headliner_.get();
+            default: return white_.get();
+        }
+    }
+
     // ------------------------------------------------------------------ renderer
 
     VehicleRenderer::VehicleRenderer(GraphicsDevice& device, VehicleMaterials& materials, const Sim::VehicleDefinition& definition)
         : materials_(materials),
-          definition_(definition),
+          paintColor_(definition.visual.paintColor),
+          interiorColor_(definition.visual.interiorColor),
           model_(GenerateCar(definition))
     {
+        Upload(device);
+    }
+
+    VehicleRenderer::VehicleRenderer(GraphicsDevice& device, VehicleMaterials& materials, const CarStyle& style,
+                                     const Sim::VehicleDefinition* definition, const bool interior)
+        : materials_(materials),
+          paintColor_(definition ? definition->visual.paintColor : Vector3(0.7f, 0.7f, 0.7f)),
+          interiorColor_(definition ? definition->visual.interiorColor : Vector3(0.16f, 0.16f, 0.17f)),
+          model_(GenerateCar(style, definition, interior))
+    {
+        Upload(device);
+    }
+
+    void VehicleRenderer::Upload(GraphicsDevice& device)
+    {
+        triangles_ = 0;
         for (const auto& part : model_.parts) {
             GpuPart gpu;
             gpu.part = &part;
             gpu.mesh = GpuMesh::Create(device, part.mesh, VertexLayout::PositionNormalTexture);
+            triangles_ += static_cast<int>(part.mesh.TriangleCount());
             parts_.push_back(std::move(gpu));
         }
+        paintDetail_ = UploadTexture(device, CarTextures::PaintDetail(model_.uv, 1024), true);
+        glassOutside_ = UploadTexture(device, CarTextures::GlassTint(model_.uv, 512, 0.62f), true);
+        glassInside_ = UploadTexture(device, CarTextures::GlassTint(model_.uv, 512, 0.20f), true);
     }
 
     Matrix VehicleRenderer::PartWorld(const CarPart& part, const Sim::VehicleState& state, const GaugePose& gauges) const
@@ -265,12 +336,29 @@ namespace CarSim::Render
                 const Matrix turn = Matrix::CreateFromAxisAngle(part.axis, -state.steeringWheelAngle);
                 return turn * Matrix::CreateTranslation(part.pivot) * vehicle;
             }
+            case CarPart::Role::GearLever: {
+                // Manual: H pattern (odd gears forward, even back, left/right by pair); automatic:
+                // P forward through R, N to D back. Angles in radians about the lever base.
+                float fore = 0.0f;
+                float lateral = 0.0f;
+                if (state.transmissionMode == Sim::TransmissionMode::Automatic) {
+                    const char c = state.gearLabel.empty() ? 'N' : state.gearLabel[0];
+                    fore = c == 'P' ? -0.34f : c == 'R' ? -0.16f : c == 'N' ? 0.02f : 0.20f;
+                } else if (state.gear < 0) {
+                    fore = 0.26f;
+                    lateral = 0.30f;
+                } else if (state.gear > 0) {
+                    const int pair = (state.gear - 1) / 2;   // 0: 1-2, 1: 3-4, 2: 5-6
+                    fore = (state.gear % 2 == 1) ? -0.26f : 0.26f;
+                    lateral = pair == 0 ? 0.20f : pair == 1 ? 0.0f : -0.20f;
+                }
+                const Matrix tilt = Matrix::CreateRotationZ(lateral) * Matrix::CreateRotationX(fore);
+                return tilt * Matrix::CreateTranslation(part.pivot) * vehicle;
+            }
             case CarPart::Role::NeedleSpeed:
             case CarPart::Role::NeedleRpm:
             case CarPart::Role::NeedleFuel:
             case CarPart::Role::NeedleTemp: {
-                // Dials sweep clockwise (seen by the driver) from -135 to +135 degrees for the big
-                // gauges and -60 to +60 for the small ones.
                 float fraction = 0.0f;
                 float sweep = 270.0f;
                 switch (part.role) {
@@ -280,8 +368,6 @@ namespace CarSim::Render
                     default: fraction = gauges.temperature; sweep = 120.0f; break;
                 }
                 const float angle = Sim::Units::DegToRad(-sweep * 0.5f + sweep * std::clamp(fraction, 0.0f, 1.0f));
-                // Needle local +y points up at zero; clockwise for the driver is a negative rotation
-                // about the axis pointing towards the driver.
                 const Matrix turn = Matrix::CreateFromAxisAngle(part.axis, -angle);
                 return turn * Matrix::CreateTranslation(part.pivot) * vehicle;
             }
@@ -292,7 +378,7 @@ namespace CarSim::Render
 
     bool VehicleRenderer::IsInteriorPart(const CarPart& part)
     {
-        return part.role == CarPart::Role::Interior || part.role == CarPart::Role::SteeringWheel ||
+        return part.role == CarPart::Role::Interior || part.role == CarPart::Role::SteeringWheel || part.role == CarPart::Role::GearLever ||
                part.role == CarPart::Role::NeedleSpeed || part.role == CarPart::Role::NeedleRpm ||
                part.role == CarPart::Role::NeedleFuel || part.role == CarPart::Role::NeedleTemp;
     }
@@ -304,27 +390,35 @@ namespace CarSim::Render
             return;
         }
         const CarPart& part = *gpu.part;
-        const MaterialLook look = LookFor(part, definition_, state, paintOverride_);
+        MaterialLook look = LookFor(part, paintColor_, interiorColor_, state, paintOverride_);
         const Matrix world = PartWorld(part, state, gauges);
         const bool interior = IsInteriorPart(part);
+        const bool mirrorFace = part.name == "mirror_face" && mirrorTexture_ != nullptr;
+        const bool glass = part.material == CarMaterial::Glass;
+        if (glass && glassFromInside_) {
+            look.envAmount = 0.0f;
+        }
 
-        if (part.material == CarMaterial::Paint) {
+        if (look.envAmount > 0.0f && !mirrorFace) {
             auto& e = materials_.Paint();
             e.setWorldProperty(world);
             e.setViewProperty(view);
             e.setProjectionProperty(projection);
             e.setDiffuseColorProperty(look.diffuse);
             e.setEmissiveColorProperty(look.emissive);
-            e.setTextureProperty(&materials_.White());
+            e.setEnvironmentMapAmountProperty(look.envAmount);
+            e.setFresnelFactorProperty(part.material == CarMaterial::Chrome ? 0.0f : glass ? 1.2f : 2.2f);
+            e.setAlphaProperty(1.0f);
+            e.setTextureProperty(part.material == CarMaterial::Paint ? paintDetail_.get() : glass ? glassOutside_.get() : &materials_.White());
+            device.getSamplerStatesProperty()[0] = glass ? SamplerState::LinearClamp : SamplerState::AnisotropicWrap;
             ApplyAll(e, device, *gpu.mesh);
-        } else if (part.material == CarMaterial::Plate || part.material == CarMaterial::Cluster ||
-                   (part.name == "mirror_face" && mirrorTexture_ != nullptr)) {
+        } else if (part.material == CarMaterial::Plate || part.material == CarMaterial::Cluster || mirrorFace) {
             auto& e = materials_.LitTextured();
             Texture2D* texture = part.material == CarMaterial::Plate ? (plateTexture_ ? plateTexture_ : &materials_.DefaultPlate())
                                : part.material == CarMaterial::Cluster ? (clusterTexture_ ? clusterTexture_ : &materials_.DefaultCluster())
                                : mirrorTexture_;
             device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
-            const bool display = (part.material == CarMaterial::Cluster && clusterTexture_ != nullptr) || part.name == "mirror_face";
+            const bool display = (part.material == CarMaterial::Cluster && clusterTexture_ != nullptr) || mirrorFace;
             e.setWorldProperty(world);
             e.setViewProperty(view);
             e.setProjectionProperty(projection);
@@ -338,6 +432,8 @@ namespace CarSim::Render
             ApplyAll(e, device, *gpu.mesh);
         } else {
             auto& e = interior ? materials_.InteriorLit() : materials_.Lit();
+            Texture2D* texture = glass ? glassInside_.get() : materials_.TextureFor(part.material);
+            device.getSamplerStatesProperty()[0] = glass ? SamplerState::LinearClamp : SamplerState::AnisotropicWrap;
             e.setWorldProperty(world);
             e.setViewProperty(view);
             e.setProjectionProperty(projection);
@@ -346,14 +442,14 @@ namespace CarSim::Render
             e.setSpecularColorProperty(look.specular);
             e.setSpecularPowerProperty(look.specularPower);
             e.setAlphaProperty(look.alpha);
-            e.setTextureProperty(&materials_.White());
+            e.setTextureProperty(texture);
             ApplyAll(e, device, *gpu.mesh);
         }
         ++drawCalls_;
     }
 
     void VehicleRenderer::DrawOpaque(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
-                                     const Matrix& projection, const bool drawInterior, const GaugePose& gauges, const bool mirrored)
+                                     const Matrix& projection, const bool drawInterior, const GaugePose& gauges, const bool mirrored, const int lod)
     {
         drawCalls_ = 0;
         device.setBlendStateProperty(BlendState::Opaque);
@@ -364,11 +460,19 @@ namespace CarSim::Render
             if (part.material == CarMaterial::Glass) {
                 continue;
             }
-            if (IsInteriorPart(part) && !drawInterior) {
+            if (IsInteriorPart(part) && !drawInterior && (!part.cabin || lod >= 1)) {
+                continue;
+            }
+            if (lod >= 1 && part.detail) {
+                continue;
+            }
+            if (lod >= 2 && (part.material == CarMaterial::Chrome || part.material == CarMaterial::GlossBlack || part.material == CarMaterial::Grille ||
+                             part.material == CarMaterial::BrakeDisc || part.material == CarMaterial::Plate)) {
                 continue;
             }
             DrawPart(device, gpu, state, view, projection, gauges);
         }
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
     }
 
     void VehicleRenderer::DrawShadow(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection,
@@ -394,7 +498,7 @@ namespace CarSim::Render
         GaugePose none;
         for (const auto& gpu : parts_) {
             const CarPart& part = *gpu.part;
-            if (!gpu.mesh || part.material == CarMaterial::Glass || IsInteriorPart(part)) {
+            if (!gpu.mesh || part.material == CarMaterial::Glass || IsInteriorPart(part) || part.detail) {
                 continue;
             }
             e.setWorldProperty(PartWorld(part, state, none) * shadow);
@@ -406,18 +510,23 @@ namespace CarSim::Render
     }
 
     void VehicleRenderer::DrawTransparent(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
-                                          const Matrix& projection, const bool mirrored)
+                                          const Matrix& projection, const bool mirrored, const bool fromInside)
     {
+        glassFromInside_ = fromInside;
         device.setBlendStateProperty(BlendState::AlphaBlend);
         device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
-        device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
+        // Glass is seen from both sides (cockpit camera, mirrors): no culling.
+        device.setRasterizerStateProperty(RasterizerState::CullNone);
         GaugePose none;
         for (const auto& gpu : parts_) {
             if (gpu.part->material == CarMaterial::Glass) {
                 DrawPart(device, gpu, state, view, projection, none);
             }
         }
+        glassFromInside_ = false;
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
     }
 }
