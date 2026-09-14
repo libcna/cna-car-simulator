@@ -448,6 +448,7 @@ namespace CarSim::Sim
                 r.Float(obj, "steeringWheelDiameterM", vis.steeringWheelDiameterM, "visual");
                 r.Vec3(obj, "mirrorCenter", vis.mirrorCenter, "visual");
                 r.Vec3(obj, "clusterCenter", vis.clusterCenter, "visual");
+                r.String(obj, "plate", vis.plate, "visual");
             }
             if (r.HasObject(root, "dashboard", obj)) {
                 auto& d = def.dashboard;

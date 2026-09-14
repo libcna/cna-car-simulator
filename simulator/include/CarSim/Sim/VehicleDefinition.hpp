@@ -182,6 +182,7 @@ namespace CarSim::Sim
         float steeringWheelDiameterM = 0.37f;
         Microsoft::Xna::Framework::Vector3 mirrorCenter{0.0f, 1.24f, -0.72f};   // interior rear-view mirror
         Microsoft::Xna::Framework::Vector3 clusterCenter{-0.37f, 0.95f, -0.95f};
+        std::string plate;   // registration plate text ("1A2 3456"); generated when empty
     };
 
     struct DashboardDefinition

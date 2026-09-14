@@ -110,6 +110,7 @@ namespace CarSim::App
             return;
         }
         collision_.Build(*map_);
+        traffic_ = std::make_unique<Traffic::TrafficSystem>(*map_, 7u);
         const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "collision: " << collision_.StaticCount() << " static colliders\n";
         std::cout << "map: " << map_->Data().info.displayName << " (" << name << "), " << map_->Roads().Roads().size() << " roads, "
@@ -207,6 +208,15 @@ namespace CarSim::App
         }
         vehicleMaterials_ = std::make_unique<Render::VehicleMaterials>(device, rig_);
         vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
+        plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
+        trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleRenderer_, definition_, plateFont_.get());
+        {
+            std::string plate = definition_.visual.plate;
+            if (plate.empty()) {
+                plate = Traffic::PlateGenerator(1u).Next();
+            }
+            playerPlate_ = trafficRenderer_->PlateTexture(device, plate);
+        }
         spriteBatch_ = std::make_unique<SpriteBatch>(device);
 
         gaugeFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/gauge_condensed_96");
@@ -220,6 +230,9 @@ namespace CarSim::App
 
     void SimulatorGame::UnloadContent()
     {
+        trafficRenderer_.reset();
+        plateFont_.reset();
+        playerPlate_ = nullptr;
         cluster_.reset();
         mirror_.reset();
         gaugeFont_.reset();
@@ -259,6 +272,44 @@ namespace CarSim::App
         }
     }
 
+    Traffic::PlayerProbe SimulatorGame::PlayerProbe() const
+    {
+        Traffic::PlayerProbe probe;
+        if (!vehicle_) {
+            return probe;
+        }
+        probe.valid = true;
+        probe.position = vehicle_->OriginPosition();
+        probe.forward = vehicle_->Body().Forward();
+        probe.speed = vehicle_->ForwardSpeedMs();
+        probe.lengthM = definition_.chassis.lengthM;
+        return probe;
+    }
+
+    void SimulatorGame::UpdateTraffic(const float dt)
+    {
+        if (!traffic_) {
+            return;
+        }
+        traffic_->Update(dt, PlayerProbe());
+        // Player against traffic cars: the AI car acts as a moving box with mass; it stops for a
+        // while after a hit.
+        const Vector3 playerPosition = vehicle_->OriginPosition();
+        for (auto& car : traffic_->Vehicles()) {
+            if (Vector3::DistanceSquared(car.position, playerPosition) > 15.0f * 15.0f) {
+                continue;
+            }
+            const Collision::Obb box = Collision::Obb::FromHeading(car.position + Vector3(0.0f, car.heightM * 0.5f, 0.0f),
+                                                                    Vector3(car.widthM * 0.5f, car.heightM * 0.5f, car.lengthM * 0.5f), car.headingRad);
+            const Vector3 impulse = collision_.ResolveVehicleAgainstBox(*vehicle_, box, car.massKg, car.Velocity(), contactEvents_);
+            if (impulse.LengthSquared() > 1.0f) {
+                traffic_->NotifyCollision(car.id, 4.0f);
+                ++collisionCount_;
+                lastImpactSpeed_ = std::max(lastImpactSpeed_, impulse.Length() / vehicle_->Body().Mass());
+            }
+        }
+    }
+
     void SimulatorGame::Update(GameTime& gameTime)
     {
         if (exitRequested_) {
@@ -280,6 +331,7 @@ namespace CarSim::App
         vehicle_->Update(controls, dt, ground);
         contactEvents_.clear();
         collision_.ResolveVehicle(*vehicle_, contactEvents_);
+        UpdateTraffic(dt);
         for (const auto& e : contactEvents_) {
             if (e.closingSpeed > 0.5f) {
                 ++collisionCount_;
@@ -320,8 +372,13 @@ namespace CarSim::App
             if (worldRenderer_) {
                 worldRenderer_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), true);
             }
+            vehicleRenderer_->SetPlateTexture(playerPlate_);
             vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
             vehicleRenderer_->DrawTransparent(device, state, mirror_->View(), mirror_->Projection(), true);
+            if (traffic_ && trafficRenderer_) {
+                trafficRenderer_->Draw(device, *traffic_, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), mirror_->Pose().position, rig_,
+                                       [this](const Vector3& p) { return map_ ? map_->Ground().NormalAt(p.X, p.Z) : Vector3(0.0f, 1.0f, 0.0f); }, true);
+            }
             mirror_->End(device);
             vehicleRenderer_->SetMirrorTexture(mirror_->Texture());
         } else {
@@ -351,6 +408,11 @@ namespace CarSim::App
             testGround_->Draw(device, view, projection);
         }
 
+        if (traffic_ && trafficRenderer_) {
+            trafficRenderer_->Draw(device, *traffic_, view, projection, camera.Frustum(aspect), camera.position, rig_,
+                                   [this](const Vector3& p) { return map_ ? map_->Ground().NormalAt(p.X, p.Z) : Vector3(0.0f, 1.0f, 0.0f); }, false);
+        }
+        vehicleRenderer_->SetPlateTexture(playerPlate_);
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
         {
             // Ground plane for the projected shadow: lowest grounded wheel contact, terrain normal there.
@@ -422,7 +484,8 @@ namespace CarSim::App
                 << "\nfuel " << s.fuelLiters << " L (" << s.instantConsumptionLPerH << " L/h)  coolant " << s.coolantC
                 << " C  odo " << s.odometerKm << " km  trip " << s.tripKm << " km"
                 << "\npos " << s.originPosition.X << ", " << s.originPosition.Y << ", " << s.originPosition.Z
-                << "  collisions " << collisionCount_ << " (last " << lastImpactSpeed_ * 3.6f << " km/h)";
+                << "  collisions " << collisionCount_ << " (last " << lastImpactSpeed_ * 3.6f << " km/h)"
+                << "  traffic " << (traffic_ ? traffic_->Vehicles().size() : 0u) << " cars";
             if (worldRenderer_) {
                 const auto& ws = worldRenderer_->Stats();
                 dbg << "\nworld: terrain " << ws.terrainChunksDrawn << "/" << ws.terrainChunksTotal << " chunks, roads " << ws.roadBatchesDrawn << "/"

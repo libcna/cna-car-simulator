@@ -31,6 +31,8 @@ add_library(carsim_core STATIC
     src/Sim/Tyre.cpp
     src/Sim/Vehicle.cpp
     src/Sim/VehicleDefinition.cpp
+    src/Traffic/PlateGenerator.cpp
+    src/Traffic/TrafficSystem.cpp
 )
 target_include_directories(carsim_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(carsim_core PUBLIC CNA::Math CNA::CoreHeaders SharpRuntime::Text.Json)
@@ -52,6 +54,7 @@ add_library(carsim_render STATIC
     src/Render/LightingRig.cpp
     src/Render/MeshData.cpp
     src/Render/MirrorView.cpp
+    src/Render/PlateRenderer.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralTextures.cpp
     src/Render/PropGenerator.cpp
@@ -60,6 +63,7 @@ add_library(carsim_render STATIC
     src/Render/SignGenerator.cpp
     src/Render/SkyRenderer.cpp
     src/Render/TestGround.cpp
+    src/Render/TrafficRenderer.cpp
     src/Render/VegetationGenerator.cpp
     src/Render/VehicleRenderer.cpp
     src/Render/WorldRenderer.cpp

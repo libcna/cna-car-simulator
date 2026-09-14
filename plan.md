@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M8 environment largely complete; ENV-007 crossings, ENV-008 visual pass, UI-001, RND-009 and SIM-019 open).
+Last synchronised with the repository: 2026-09-14 (M5 collision and M6 traffic complete except TRF-007/008; ENV-007, ENV-008, UI-001, RND-009 and SIM-019 open).
 
 ---
 
@@ -385,14 +385,14 @@ that logs frame statistics for a scripted camera path.
 - [x] `COL-005` Scenario tests: wall stop from 43 km/h (no more than 6 cm penetration), offset post impact induces yaw, head-on pair separates with bounded momentum error, sample-map spawns are clear of colliders.
 
 ### M6 Traffic (`Traffic`)
-- [ ] `TRF-001` Route planner (A* over lane graph) with tests.
-- [ ] `TRF-002` `TrafficVehicle` lane following (pure pursuit) + IDM leader following; tests.
-- [ ] `TRF-003` Intersection manager (priority/yield/stop, right-hand rule, gap acceptance).
-- [ ] `TRF-004` Spawner/despawner, density scaling, distance-based simplification.
-- [ ] `TRF-005` Player interaction (player as leader/obstacle, conflict yielding).
-- [ ] `TRF-006` Plate generator + tests; plate texture atlas renderer.
-- [ ] `TRF-007` Traffic vehicle variants (colours, sizes: hatchback, sedan, van) via definitions.
-- [ ] `TRF-008` Soak test (30 simulated minutes headless): no overlaps beyond tolerance, no stuck vehicles.
+- [x] `TRF-001` Route search over the lane graph (Dijkstra in `LaneGraph::FindRoute`, tested); ambient traffic picks its next link with straight-through preference (`RandomLink`).
+- [x] `TRF-002` `TrafficVehicle` follows lane and connector polylines kinematically (path parameter, steer angle from curvature) with Intelligent Driver Model car following, speed limits, curve speeds and look-ahead braking; tests (free road, follower keeps distance and matches speed).
+- [x] `TRF-003` Intersection behaviour from the lane graph's conflict/yield lists: priority, yield, stop (full stop at the line), right-hand rule, left turn yields to oncoming, time-gap acceptance, exit-blocked check, deadlock breaker; test: minor road waits for main-road traffic.
+- [x] `TRF-004` Spawner/despawner around the player (distance ring, outside the view cone, lane spacing, `maxVehicles` from `traffic.json`), despawn beyond `despawnDistance`; test on the sample map.
+- [x] `TRF-005` Player interaction: the player is projected onto the lane graph and acts as leader/obstacle, is respected in gap acceptance, and collides with traffic cars through `ResolveVehicleAgainstBox` (the AI car stops for a few seconds after a hit).
+- [x] `TRF-006` `PlateGenerator` (standard `1A2 3456` series with regional weights and two-letter series, optional `EL` plates, validation, uniqueness, seeding) with tests; `PlateRenderer` draws 520 x 110 plates with the EU band, stars, `CZ` and D-DIN Bold characters; the player's plate comes from the vehicle definition.
+- [ ] `TRF-007` Traffic vehicle variants: eight paint colours and per-driver speed factors are in; body variants (sedan, van) need additional vehicle definitions (deferred, see section 23).
+- [ ] `TRF-008` Soak test (30 simulated minutes headless): planned for the audit milestone as a tool run (`--auto-drive` plus traffic statistics).
 
 ### M7 Audio (`Audio`)
 - [ ] `AUD-001` `DynamicSoundEffectInstance` streaming harness; buffer cadence; underrun handling.

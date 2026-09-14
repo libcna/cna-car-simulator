@@ -12,11 +12,13 @@
 #include "CarSim/Render/SkyRenderer.hpp"
 #include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Render/TestGround.hpp"
+#include "CarSim/Render/TrafficRenderer.hpp"
 #include "CarSim/Render/WorldRenderer.hpp"
 #include "CarSim/Render/VehicleRenderer.hpp"
 #include "CarSim/Sim/Ground.hpp"
 #include "CarSim/Sim/Vehicle.hpp"
 #include "CarSim/Sim/VehicleDefinition.hpp"
+#include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include "Microsoft/Xna/Framework/Game.hpp"
 #include "Microsoft/Xna/Framework/GameTime.hpp"
@@ -51,6 +53,8 @@ namespace CarSim::App
         void LoadVehicle();
         void HandleAppActions();
         void ApplyAutoDrive(Sim::DriverControls& controls);
+        void UpdateTraffic(float dt);
+        [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
         void DrawHud();
         void DrawHelp();
         void FinishFrame();
@@ -65,6 +69,7 @@ namespace CarSim::App
         Sim::FlatGround ground_{0.0f};              // fallback when no map is loaded
         std::unique_ptr<Map::MapWorld> map_;
         Collision::CollisionWorld collision_;
+        std::unique_ptr<Traffic::TrafficSystem> traffic_;
         std::vector<Collision::ContactEvent> contactEvents_;
         int collisionCount_ = 0;
         float lastImpactSpeed_ = 0.0f;
@@ -75,6 +80,9 @@ namespace CarSim::App
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::TestGround> testGround_;
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;
+        std::unique_ptr<Render::TrafficRenderer> trafficRenderer_;
+        std::unique_ptr<Render::BitmapFont> plateFont_;
+        Microsoft::Xna::Framework::Graphics::Texture2D* playerPlate_ = nullptr;
         std::unique_ptr<Render::VehicleMaterials> vehicleMaterials_;
         std::unique_ptr<Render::VehicleRenderer> vehicleRenderer_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::SpriteBatch> spriteBatch_;

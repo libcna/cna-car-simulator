@@ -15,6 +15,7 @@
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace CarSim::Render
@@ -66,6 +67,8 @@ namespace CarSim::Render
 
         /// Sets the textures used for the plate and cluster faces (owned elsewhere).
         void SetPlateTexture(Microsoft::Xna::Framework::Graphics::Texture2D* texture) { plateTexture_ = texture; }
+        /// Overrides the paint colour of the definition (traffic cars share one model).
+        void SetPaintOverride(const std::optional<Microsoft::Xna::Framework::Vector3>& paint) { paintOverride_ = paint; }
         void SetClusterTexture(Microsoft::Xna::Framework::Graphics::Texture2D* texture) { clusterTexture_ = texture; }
         void SetMirrorTexture(Microsoft::Xna::Framework::Graphics::Texture2D* texture) { mirrorTexture_ = texture; }
 
@@ -105,6 +108,7 @@ namespace CarSim::Render
         CarModel model_;
         std::vector<GpuPart> parts_;
         Microsoft::Xna::Framework::Graphics::Texture2D* plateTexture_ = nullptr;
+        std::optional<Microsoft::Xna::Framework::Vector3> paintOverride_;
         Microsoft::Xna::Framework::Graphics::Texture2D* clusterTexture_ = nullptr;
         Microsoft::Xna::Framework::Graphics::Texture2D* mirrorTexture_ = nullptr;
         int drawCalls_ = 0;

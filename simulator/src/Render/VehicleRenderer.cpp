@@ -44,12 +44,13 @@ namespace CarSim::Render
             float alpha = 1.0f;
         };
 
-        MaterialLook LookFor(const CarPart& part, const Sim::VehicleDefinition& def, const Sim::VehicleState& state)
+        MaterialLook LookFor(const CarPart& part, const Sim::VehicleDefinition& def, const Sim::VehicleState& state,
+                             const std::optional<Vector3>& paintOverride)
         {
             MaterialLook look;
             switch (part.material) {
                 case CarMaterial::Paint:
-                    look.diffuse = def.visual.paintColor;
+                    look.diffuse = paintOverride.value_or(def.visual.paintColor);
                     look.specular = Vector3(0.7f, 0.7f, 0.7f);
                     look.specularPower = 48.0f;
                     break;
@@ -303,7 +304,7 @@ namespace CarSim::Render
             return;
         }
         const CarPart& part = *gpu.part;
-        const MaterialLook look = LookFor(part, definition_, state);
+        const MaterialLook look = LookFor(part, definition_, state, paintOverride_);
         const Matrix world = PartWorld(part, state, gauges);
         const bool interior = IsInteriorPart(part);
 

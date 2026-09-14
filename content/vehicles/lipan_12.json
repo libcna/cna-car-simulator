@@ -104,7 +104,8 @@
     "steeringWheelTiltDeg": 27,
     "steeringWheelDiameterM": 0.36,
     "mirrorCenter": [0.0, 1.24, -0.72],
-    "clusterCenter": [-0.37, 1.00, -0.90]
+    "clusterCenter": [-0.37, 1.00, -0.90],
+    "plate": "3S4 7182"
   },
   "dashboard": { "speedometerMaxKmh": 220, "tachometerMaxRpm": 7000, "temperatureMinC": 50, "temperatureMaxC": 130 }
 }
