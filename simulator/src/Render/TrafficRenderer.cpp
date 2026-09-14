@@ -111,8 +111,8 @@ namespace CarSim::Render
             const BoundingSphere sphere(car.position + Vector3(0.0f, 0.5f * model.style.height, 0.0f), 0.5f * model.style.length + 0.8f);
             if (!frustum.Intersects(sphere)) continue;
             const float distance = Vector3::Distance(cameraPosition, car.position);
-            if (distance > cullDistanceM) continue;
-            const int lod = distance < lod1DistanceM ? 0 : distance < lod2DistanceM ? 1 : 2;
+            if (distance > parkedCullDistanceM) continue;
+            const int lod = distance < parkedLod1DistanceM ? 0 : distance < parkedLod2DistanceM ? 1 : 2;
 
             Sim::VehicleState state;
             state.originPosition = car.position;
@@ -131,7 +131,7 @@ namespace CarSim::Render
             renderer.DrawOpaque(device, state, view, projection, false, none, mirrored, lod);
             stats_.drawCalls += renderer.DrawCallsLastFrame();
             stats_.drawn += 1;
-            if (distance < shadowDistanceM && !mirrored) {
+            if (distance < parkedShadowDistanceM && !mirrored) {
                 renderer.DrawShadow(device, state, view, projection, rig.sunDirection, ground);
             }
             if (lod < 2) {

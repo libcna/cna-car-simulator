@@ -70,6 +70,11 @@ namespace CarSim::Render
         float lod2DistanceM = 130.0f;
         float cullDistanceM = 900.0f;
         float shadowDistanceM = 120.0f;
+        /// Parked cars are scenery: they drop detail sooner and disappear earlier than traffic.
+        float parkedLod1DistanceM = 25.0f;
+        float parkedLod2DistanceM = 70.0f;
+        float parkedCullDistanceM = 400.0f;
+        float parkedShadowDistanceM = 60.0f;
 
     private:
         [[nodiscard]] Sim::VehicleState StateOf(const Traffic::TrafficVehicle& v, const CarModel& model) const;

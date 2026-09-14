@@ -16,7 +16,7 @@ Load time on the same machine: map data 0.5 s (terrain conformance dominates), w
 geometry 3.1 s (three terrain LODs, 44k tree cards, 356 buildings), total about 4 s to the
 first frame.
 
-## Phase 11 measurements (per pass, LOD and culling)
+## Measurements (per pass, LOD and culling)
 
 Measured with `--benchmark --lockstep --frames 150 --auto-drive 6` (120 measured frames after
 30 warm-up frames; `--traffic-warmup 40` on the town runs) on the same container. `--benchmark`
@@ -26,20 +26,20 @@ average includes llvmpipe's rasterisation and the swap.
 
 | Scene | draw submission | draw calls | triangles | cluster | mirror | sky | world | traffic | vehicle | hud |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Town chase (`--spawn square`, 20 traffic cars) | 84.7 ms | 705 | 575k | 0.5 | 0 | 1.6 | 46.3 | 30.5 | 5.5 | 0.3 |
-| Town cockpit, mirror every frame | 144.8 ms | 785 | 832k | 0.5 | 62.8 | 0.5 | 64.1 | 12.5 | 4.1 | 0.2 |
-| Town cockpit, `--mirror-every 2` | 124.3 ms | 785 | 832k | 0.5 | 31.8 | 1.1 | 72.4 | 14.0 | 4.2 | 0.2 |
-| Forest road (`--spawn forest`) | 65.6 ms | 490 | 812k | 0.5 | 0 | 1.7 | 56.3 | 0 | 6.8 | 0.3 |
-| Fields (`--spawn fields`) | 19.3 ms | 211 | 196k | 0.5 | 0 | 1.5 | 10.9 | 0.8 | 5.4 | 0.2 |
+| Town chase (`--spawn square`, 20 traffic cars) | 114.6 ms | 1024 | 868k | 0.5 | 0 | 1.0 | 65.4 | 42.5 | 4.9 | 0.2 |
+| Town cockpit, mirror every frame | 174.2 ms | 1020 | 872k | 0.5 | 61.6 | 0.3 | 66.6 | 40.9 | 4.1 | 0.2 |
+| Town cockpit, `--mirror-every 2` | 145.4 ms | 1020 | 872k | 0.5 | 30.7 | 1.0 | 67.5 | 41.3 | 4.2 | 0.2 |
+| Forest road (`--spawn forest`) | 55.4 ms | 442 | 589k | 0.5 | 0 | 2.0 | 42.7 | 3.7 | 6.3 | 0.2 |
+| Fields (`--spawn fields`) | 26.2 ms | 421 | 360k | 0.5 | 0 | 1.6 | 19.0 | 0 | 4.9 | 0.2 |
 
-Pass columns are milliseconds per frame. Visible batches on the town chase run: 257 terrain
-chunks, 25 road batches, 177 object batches, 7 tree batches; of the 20 traffic cars 7 are drawn
-per frame on average (2.5 at LOD 0, 1.5 at LOD 1, 3 at LOD 2). The forest run draws 89 tree
-batches and 90 object batches; the fields run 126 terrain chunks and 25 object batches.
+Pass columns are milliseconds per frame. Visible batches on the town chase run: 296 terrain
+chunks, 35 road batches, 264 object batches, 8 tree batches; of the 20 traffic cars and 15
+parked cars, 16 are drawn per frame on average. The forest run draws 67 tree batches and 73
+object batches; the fields run 301 terrain chunks and 56 object batches.
 
-The Phase 11 building detail (window frames, gutters, reveals, plots, poles) raised the town
-triangle count from about 341k to 558k before culling; the levers below bring the measured
-frames back to the numbers in the table.
+These numbers replace an earlier table measured before two changes that moved them: the chase
+camera used to sit on the mirror image of its orbit (so a different part of the map was in
+view), and the town gained a paved square, twelve more buildings and fifteen parked cars.
 
 ### Levers in use
 
@@ -50,9 +50,12 @@ frames back to the numbers in the table.
 - **Traffic LOD** (RQ-031): LOD 0 (full car) within 45 m, LOD 1 (no small parts) to 130 m,
   LOD 2 (reduced body, no glass, lamp glows or plate) to 900 m, nothing further; ground
   shadows only within 120 m. Cars outside the frustum are skipped by their bounding sphere.
+- **Parked cars** are scenery, so they drop detail sooner: LOD 0 within 25 m, LOD 1 to 70 m,
+  LOD 2 to 400 m, shadows within 60 m. Their fifteen cars cost about 12 ms of the town
+  traffic pass; with the traffic radii they cost 27 ms.
 - **Mirror update interval** (`mirrorUpdateEvery` in the save file, `--mirror-every <n>`):
   the mirror target is redrawn every n frames and the previous image is shown in between.
-  Every second frame halves the mirror cost (62.8 to 31.8 ms here, 20 ms per frame overall);
+  Every second frame halves the mirror cost (61.6 to 30.7 ms here, 29 ms per frame overall);
   on a real GPU the saving is a few percent, so the default stays 1.
 - **Vehicle ground shadow** is a convex-hull blob draped on the sampled ground (one draw call)
   instead of a stencil volume; building and tree shadows are baked into the terrain macro
