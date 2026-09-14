@@ -849,3 +849,7 @@ committed with its own regression test and screenshot check.
   `ObjectPlacement::PlaceMeadowTrees` scatters a solitary tree or a clump of three per 130 m
   cell with a 42 % chance, only inside meadow regions and clear of roads, buildings and other
   trees (570 trees; the fields benchmark moves from 25.4 to 26.7 ms).
+- [x] `RQ-173` Content-pass audit: commit `206066fbd5fde40aa701b63457584fc363943db0` cloned
+  fresh from `origin` and built against the dependency checkouts (Release, Ninja, OPENGLES3):
+  every target builds, `ctest` passes all five registrations in 32 s (159 unit and scenario
+  tests), both static checks are clean and `carsim-mapvalidate` reports no warnings.

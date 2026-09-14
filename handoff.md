@@ -120,10 +120,12 @@ section 24.4; section 24.5 holds the follow-up work done after that audit, all o
 - `RQ-162` the memorial column on the square,
 - `RQ-163` street parking generated along urban local and residential streets.
 
-Recent commits, newest first: street parking; the memorial; refreshed screenshots; the
-benchmark table and parked-car LOD radii; parked cars; the paved square; the Phase 11 audit
-record; the interior mirror height; the fog lamps and lamp housing cuts; the headlamp lens and
-`--lights`; the curated screenshot set; the chase camera fix.
+Section 24.5 now also covers a content pass on the sample map: prefab block facades
+(`RQ-164`), the forest wrapped around the track loop (`RQ-165`), a wayside chapel at the
+eastern junction (`RQ-166`), planted gardens behind the houses (`RQ-167`), a horizon apron so
+the terrain no longer ends in mid-air (`RQ-168`), help-overlay wording (`RQ-169`), a filling
+station with `yard` paving and exact four-corner paved outlines (`RQ-171`) and meadow trees
+(`RQ-172`). Audits of the follow-up work are recorded as `RQ-170` and `RQ-173`.
 
 Open / next ideas (nothing is blocking):
 
