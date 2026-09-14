@@ -40,9 +40,12 @@ What you get today:
 - One drivable car, the fictional **Lipan 1.2** (a small four-cylinder hatchback defined in
   `content/vehicles/lipan_12.json`), with a project-owned rigid-body, suspension, tyre,
   engine, clutch, manual and automatic gearbox, fuel, thermal and electrical simulation.
-- One map, **Lipová**: a small town with a square, church, prefab estate, shops and bus stops,
-  a main road with tree avenues, fields and meadows, a forest with a gravel forest track, about
-  17 km of roads, 13 intersections, Czech traffic signs and road markings.
+- One map, **Lipová**: a small town around a cobbled square with the church, a memorial column,
+  town houses and parked cars, a prefab estate, shops, a filling station on the eastern
+  approach, bus stops and a wayside chapel at the eastern junction; residential streets with
+  fenced and planted gardens and cars parked at the kerb; a main road with tree avenues, fields
+  and meadows, and a forest with a gravel forest track. About 17 km of roads, 13 intersections,
+  Czech traffic signs and road markings.
 - Cockpit camera with a live instrument cluster, rotating steering wheel and a working
   rear-view mirror; exterior chase camera.
 - Ambient traffic with Czech registration plates that follows lanes, keeps distance, obeys
