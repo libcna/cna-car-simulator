@@ -324,20 +324,32 @@ namespace CarSim::Render
         if (type == "block") {
             // Prefab block: flat roof with parapet, dense window grid, balconies on the front.
             Box(roof, Vector3(-hw - 0.1f, h, -hd - 0.1f), Vector3(hw + 0.1f, h + 0.25f, hd + 0.1f), 0.25f);
-            Box(trim, Vector3(-hw + 0.5f, h + 0.25f, -hd + 0.5f), Vector3(-hw + 2.0f, h + 1.4f, -hd + 2.0f), 0.5f);   // lift housing
+            Box(concrete, Vector3(-hw + 0.5f, h + 0.25f, -hd + 0.5f), Vector3(-hw + 2.0f, h + 1.4f, -hd + 2.0f), 0.5f);   // lift housing
             for (int f = 0; f < floors; ++f) {
                 const float y = static_cast<float>(f) * floorH + 0.9f;
                 WindowRow(glass, trim, &frames, &dark, hw, hd, y, 1.5f, 1.6f, 3.0f, front, false);
                 WindowRow(glass, trim, &frames, &dark, hw, hd, y, 1.5f, 1.6f, 3.0f, back, false);
+                // Gable ends: a pair of small windows per floor (stairwell and bathroom), so the
+                // end wall is not a blank slab.
+                WindowRow(glass, trim, &frames, &dark, hw, hd, y + 0.15f, 1.1f, 0.9f, 4.0f, left, false);
+                WindowRow(glass, trim, &frames, &dark, hw, hd, y + 0.15f, 1.1f, 0.9f, 4.0f, right, false);
                 if (f > 0) {
-                    // Balconies every second bay on the front: slab, solid parapet, steel handrail.
+                    // Loggias every second bay: concrete slab, concrete parapet, steel handrail.
+                    // The back row is offset by one bay so the two facades do not look identical.
                     const int bays = std::max(1, static_cast<int>((hw * 2.0f - 0.8f) / 3.0f));
                     for (int i = 0; i < bays; i += 2) {
                         const float t = (static_cast<float>(i) + 0.5f) / static_cast<float>(bays) - 0.5f;
                         const float x = t * (hw * 2.0f - 0.8f);
                         Box(concrete, Vector3(x - 1.4f, y - 0.9f, hd), Vector3(x + 1.4f, y - 0.75f, hd + 1.2f), 0.5f);
-                        Box(trim, Vector3(x - 1.4f, y - 0.75f, hd + 1.1f), Vector3(x + 1.4f, y + 0.20f, hd + 1.2f), 0.5f);
+                        Box(concrete, Vector3(x - 1.4f, y - 0.75f, hd + 1.1f), Vector3(x + 1.4f, y + 0.20f, hd + 1.2f), 0.5f);
                         metal.AddBox(Vector3(x - 1.42f, y + 0.20f, hd + 1.08f), Vector3(x + 1.42f, y + 0.25f, hd + 1.22f), 1.0f);
+                    }
+                    for (int i = 1; i < bays; i += 2) {
+                        const float t = (static_cast<float>(i) + 0.5f) / static_cast<float>(bays) - 0.5f;
+                        const float x = t * (hw * 2.0f - 0.8f);
+                        Box(concrete, Vector3(x - 1.4f, y - 0.9f, -hd - 1.2f), Vector3(x + 1.4f, y - 0.75f, -hd), 0.5f);
+                        Box(concrete, Vector3(x - 1.4f, y - 0.75f, -hd - 1.2f), Vector3(x + 1.4f, y + 0.20f, -hd - 1.1f), 0.5f);
+                        metal.AddBox(Vector3(x - 1.42f, y + 0.20f, -hd - 1.22f), Vector3(x + 1.42f, y + 0.25f, -hd - 1.08f), 1.0f);
                     }
                 }
             }

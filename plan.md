@@ -812,3 +812,12 @@ committed with its own regression test and screenshot check.
   never meets them. The Lipova map gains 76 street cars on top of the 15 on the square; the
   town benchmark rises by 3.5 ms (llvmpipe). Test: the parked-car test now checks the authored
   cars on the square and every generated car for clearance of the carriageway and junctions.
+- [x] `RQ-164` Prefab blocks: the gable ends were blank slabs and the loggia parapets were dark
+  brown (the trim colour). Each floor now gets a pair of small windows on both end walls, the
+  loggias and the lift housing are concrete, and a second row of loggias sits on the rear
+  facade offset by one bay so the two long sides differ.
+- [x] `RQ-170` Follow-up audit: commit `124cecdd6cd2261b7db9163ffab1370a9c7cfd74` cloned fresh
+  from `origin` and built against the dependency checkouts (Release, Ninja, OPENGLES3): every
+  target builds, `ctest` passes all five registrations in 29 s (156 unit and scenario tests,
+  the headless smoke run, both static checks, the content check), `check_xna_only.py` and
+  `check_assets.py` are clean and `carsim-mapvalidate` reports no warnings.
