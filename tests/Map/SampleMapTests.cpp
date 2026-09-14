@@ -1,4 +1,5 @@
 #include "CarSim/Collision/CollisionWorld.hpp"
+#include "CarSim/Sim/Vehicle.hpp"
 #include "CarSim/Map/MapDocument.hpp"
 #include "CarSim/Map/MapWorld.hpp"
 
@@ -225,4 +226,41 @@ TEST(SampleMap, ParkedCarsStandOnTheSquareClearOfBuildingsAndRoads)
         if (c.kind == Collision::ColliderKind::Vehicle) ++vehicles;
     }
     EXPECT_EQ(vehicles, parked.size());
+}
+
+TEST(SampleMap, DrivingOntoTheSquareRollsOnCobbles)
+{
+    // The paved square is not only a texture: the wheels report cobbles there, which is what
+    // the rolling-noise layer and the tyre model read.
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    const Map::RegionSpec* square = nullptr;
+    for (const auto& region : world->Data().terrain.regions) {
+        if (region.type == Map::RegionType::Square) square = &region;
+    }
+    ASSERT_NE(square, nullptr);
+    float minX = 1e9f, maxX = -1e9f, minZ = 1e9f, maxZ = -1e9f;
+    for (const auto& p : square->polygon) {
+        minX = std::min(minX, p.X); maxX = std::max(maxX, p.X);
+        minZ = std::min(minZ, p.Y); maxZ = std::max(maxZ, p.Y);
+    }
+    // A clear patch of paving, away from the church and the parked rows.
+    const float x = 0.5f * (minX + maxX) + 8.0f;
+    const float z = maxZ - 14.0f;
+    Sim::VehicleDefinition def = Sim::MakeReferenceVehicle();
+    Sim::Vehicle vehicle(def, Sim::TransmissionMode::Automatic);
+    vehicle.PlaceAt(Microsoft::Xna::Framework::Vector3(x, world->Ground().HeightAt(x, z), z), 0.0f);
+    Sim::DriverControls idle;
+    for (int i = 0; i < 90; ++i) {
+        vehicle.Update(idle, 1.0f / 60.0f, world->Ground());
+    }
+    const Sim::VehicleState state = vehicle.Snapshot();
+    int grounded = 0;
+    for (const auto& wheel : state.wheels) {
+        if (!wheel.grounded) continue;
+        ++grounded;
+        EXPECT_EQ(wheel.surface, Sim::SurfaceType::Cobbles);
+    }
+    EXPECT_EQ(grounded, 4);
 }
