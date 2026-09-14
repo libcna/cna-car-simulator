@@ -573,14 +573,14 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [x] `RQ-071` Terrain surface: less saturated multi-scale grass, crop textures with rows, dirt near roads, meadow variation; macro tint tuned with the lighting rebalance.
 
 #### Cameras, mirror, audio, driving
-- [ ] `RQ-080` Chase camera: spring-damped follow with speed-dependent distance, look-ahead in turns, correct reversing behaviour, low-speed stability, terrain clipping avoidance. Cockpit camera: eye position and FOV verified, tiny motion cues, no jitter. Acceptance: description in `docs/cameras.md` and a scripted drive without visible jumps.
-- [ ] `RQ-081` Mirror: framing and FOV checked, traffic visible, optional half-rate update setting, cost measured and recorded.
-- [ ] `RQ-090` Audio polish: layered engine (intake/exhaust/mechanical crossfades by load and rpm, overrun burble, gear-change dip), surface-dependent rolling noise, brake and wind layers; tests for continuity and level ordering; `docs/audio-design.md` updated.
-- [ ] `RQ-100` Driving feel audit: scripted drives at parking, 50 and 90 km/h, launches, braking, reversing, slopes; defects fixed with regression tests.
+- [x] `RQ-080` Chase camera: spring-damped follow with speed-dependent distance, look-ahead in turns, correct reversing behaviour, low-speed stability, terrain clipping avoidance. Cockpit camera: eye position and FOV verified, tiny motion cues, no jitter. Acceptance: description in `docs/cameras.md` and a scripted drive without visible jumps.
+- [x] `RQ-081` Mirror: framing and FOV checked, traffic visible, optional half-rate update setting, cost measured and recorded (llvmpipe: 62.8 ms per frame at every frame, 31.8 ms at every second frame).
+- [x] `RQ-090` Audio polish: layered engine (intake/exhaust/mechanical crossfades by load and rpm, overrun burble, gear-change dip), surface-dependent rolling noise, brake and wind layers; tests for continuity and level ordering; `docs/audio-design.md` updated.
+- [x] `RQ-100` Driving feel audit: scripted drives at parking, 50 and 90 km/h, launches, braking, reversing, slopes; defects fixed with regression tests.
 
 #### Performance and validation
-- [ ] `RQ-120` Instrumentation: per-pass CPU timings (cluster, mirror, world, traffic, vehicle, HUD), visible/culled counts per class, traffic count, draw calls, triangles in the debug overlay and in the `--benchmark` summary (also written as JSON with `--benchmark-json`).
-- [ ] `RQ-121` LOD and culling: distance culling for props and buildings with far LOD, tree far LOD, vehicle LOD (RQ-031); measured before/after in `docs/performance.md`.
+- [x] `RQ-120` Instrumentation: per-pass CPU timings (cluster, mirror, world, traffic, vehicle, HUD), visible/culled counts per class, traffic count, draw calls, triangles in the debug overlay and in the `--benchmark` summary (also written as JSON with `--benchmark-json`).
+- [x] `RQ-121` LOD and culling: distance culling for props and buildings with far LOD, tree far LOD, vehicle LOD (RQ-031); measured before/after in `docs/performance.md`.
 - [ ] `RQ-130` Renderer conformance: build and run the same code on the renderers available in the environment (OPENGLES3, OPENGL33, SOFTWARE where it links); results, screenshots and differences recorded in `docs/renderer-conformance.md`. No renderer-specific project code.
 - [ ] `RQ-131` `docs/real-hardware-validation.md`: reproducible procedure for a real PC (build, launch, views, controls, overlay, capture, metrics to report, checklist).
 - [ ] `RQ-140` Screenshot loop: curated final set in `docs/screenshots/` (hero exterior, cockpit, dashboard, traffic, town, countryside, forest, intersection), README updated.
@@ -687,3 +687,22 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   along rural road verges (45 % of 9 m steps, 3-5.5 m off the road) and just outside forest
   polygon edges, clear of buildings, roads and existing trees; bushes cast baked shadow discs
   like trees. Test: `BushesLineRuralVergesAndForestEdges`.
+- Cameras, mirror rate, instrumentation, audio layers, driving feel (`Camera.cpp`,
+  `SimulatorGame.cpp`, `AudioLayers.cpp`, `VehicleAudio.cpp`): the chase camera follows with a
+  frame-rate independent exponential (9/s), pulls back and rises with speed, follows the body
+  yaw at 2.5-5.5/s so parking and reversing do not swing the view, slides its aim point up to
+  1.6 m into a bend from the filtered yaw rate, and is clamped 0.7 m above the sampled ground
+  (same query as the physics) so embankments never swallow it; jumps over 20 m snap. The
+  cockpit eye/FOV are documented in `docs/cameras.md`. The mirror target can be redrawn every
+  n frames (`mirrorUpdateEvery`, `--mirror-every`), keeping the previous image in between.
+  Per-pass CPU timings (cluster, mirror, sky, world, traffic, vehicle, HUD), visible batch
+  counts per class and traffic LOD counts are shown in the debug overlay and in the
+  `--benchmark` summary, which `--benchmark-json <file>` also writes as JSON;
+  `docs/performance.md` records the Phase 11 table and the LOD/culling levers. Audio gains a
+  gear-change dip, an overrun burble gate, surface-dependent rolling noise from the wheel
+  contact surfaces and a brake hiss layer (`docs/audio-design.md`). Tests: `CameraTests`
+  (frame-rate independence, speed pull, ground clearance, reversing, look-ahead),
+  `AudioLayersTests`, `ParsesBenchmarkJsonAndMirrorRate`, and the driving-feel scripts in
+  `VehicleDriveTests`: `FullLockAtParkingSpeedTurnsInAPlausibleCircle`,
+  `ReverseGearDrivesBackwardsAndSwingsTheNoseTheOtherWay`, `HoldsFiftyOnTheFlatWithPartThrottle`,
+  `ClimbsAnEightPercentGradeWithoutLosingMuchSpeed`.

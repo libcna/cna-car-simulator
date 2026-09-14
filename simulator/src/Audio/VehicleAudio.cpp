@@ -1,5 +1,7 @@
 #include "CarSim/Audio/VehicleAudio.hpp"
 
+#include "CarSim/Audio/AudioLayers.hpp"
+
 #include "Microsoft/Xna/Framework/Audio/AudioChannels.hpp"
 
 #include <algorithm>
@@ -72,6 +74,7 @@ namespace CarSim::Audio
         // Gear engagement.
         if (state.gear != prevGear_ && state.ignitionOn) {
             Trigger(clunk_, state.transmissionMode == Sim::TransmissionMode::Manual ? 0.8f : 0.4f);
+            if (state.engineState == Sim::EngineState::Running && state.speedKmh > 3.0f) secondsSinceShift_ = 0.0f;
         }
         prevGear_ = state.gear;
         // Starter catch.
@@ -101,6 +104,13 @@ namespace CarSim::Audio
         // Delivered torque fraction from the engine model (0 on overrun); the throttle adds a
         // little presence so a blipped pedal is audible before the load builds up.
         engineInput.load = std::clamp(0.85f * state.engineLoad + 0.15f * state.throttlePedal, 0.0f, 1.0f);
+        // Layers: the gear-change dip cuts the load for a quarter second after a shift; overrun
+        // adds irregular exhaust pops while the wheels drive the engine.
+        const float blockSeconds = static_cast<float>(kBlockFrames) / static_cast<float>(kSampleRate);
+        engineInput.load *= Layers::ShiftDip(secondsSinceShift_);
+        engineInput.load = std::clamp(engineInput.load + Layers::OverrunBurble(blockIndex_, state.engineRpm, state.engineLoad, state.throttlePedal, state.speedKmh), 0.0f, 1.0f);
+        secondsSinceShift_ = std::min(1e9f, secondsSinceShift_ + blockSeconds);
+        ++blockIndex_;
         switch (state.engineState) {
             case Sim::EngineState::Off: engineInput.state = EngineSoundState::Off; break;
             case Sim::EngineState::Starting: engineInput.state = EngineSoundState::Starting; break;
@@ -115,9 +125,29 @@ namespace CarSim::Audio
         bool grounded = false;
         for (const auto& w : state.wheels) grounded = grounded || w.grounded;
         rolling.grounded = grounded;
-        rolling.surfaceRoughness = 1.0f;
+        // Roughness of the surface under the grounded wheels (average), so gravel and grass
+        // roar while asphalt hisses.
+        float roughness = 0.0f;
+        int groundedWheels = 0;
+        for (const auto& w : state.wheels) {
+            if (!w.grounded) continue;
+            roughness += Layers::SurfaceRoughness(w.surface);
+            ++groundedWheels;
+        }
+        rolling.surfaceRoughness = groundedWheels > 0 ? roughness / static_cast<float>(groundedWheels) : 1.0f;
         std::vector<float> effects(static_cast<std::size_t>(kBlockFrames), 0.0f);
         rolling_.Render(effects.data(), kBlockFrames, rolling);
+        // Brake hiss: band-limited noise that grows with pedal travel and speed.
+        {
+            const float target = Layers::BrakeHissGain(state.brakePedal, state.speedKmh) * (grounded ? 1.0f : 0.0f);
+            brakeLp_.SetCutoff(1400.0f, kSampleRate);
+            const float step = (target - brakeGain_) / static_cast<float>(kBlockFrames);
+            for (int i = 0; i < kBlockFrames; ++i) {
+                brakeGain_ += step;
+                effects[static_cast<std::size_t>(i)] += brakeLp_.Process(brakeNoise_.Next()) * brakeGain_;
+            }
+            brakeGain_ = target;
+        }
         horn_.Render(effects.data(), kBlockFrames, hornPressed_);
         for (auto& v : voices_) {
             for (int i = 0; i < kBlockFrames && v.position < v.clip->samples.size(); ++i, ++v.position) {

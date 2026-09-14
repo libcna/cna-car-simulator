@@ -54,6 +54,17 @@ namespace CarSim::Core
 
             if (arg == "--help" || arg == "-h") {
                 options.showHelp = true;
+            } else if (arg == "--benchmark-json") {
+                if (const auto value = takeValue(arg)) {
+                    options.benchmark = true;
+                    options.benchmarkJsonPath = std::string(*value);
+                }
+            } else if (arg == "--mirror-every") {
+                int every = 1;
+                takeInt(arg, every, 1);
+                if (every >= 1) {
+                    options.mirrorEvery = std::min(every, 8);
+                }
             } else if (arg == "--frames") {
                 int frames = 0;
                 takeInt(arg, frames, 1);
@@ -188,6 +199,8 @@ namespace CarSim::Core
             "  --no-audio            Disable the audio stream\n"
             "  --save <file>         Save file (default: $XDG_DATA_HOME/cna-car-simulator/save.json)\n"
             "  --no-save             Do not load or write the save file\n"            "  --benchmark           Print frame-time statistics at exit (combine with --frames)\n"
+            "  --benchmark-json <f>  Also write the frame statistics (per pass, scene counts) as JSON\n"
+            "  --mirror-every <n>    Redraw the rear-view mirror every n frames (1 = every frame)\n"
             "  --lockstep            One simulation step per drawn frame (deterministic captures on slow renderers)\n"
             "  --traffic-warmup <s>  Simulate the traffic for s seconds before the first frame (captures)\n"
             "  --lights              Switch the headlights on at start (captures)\n"

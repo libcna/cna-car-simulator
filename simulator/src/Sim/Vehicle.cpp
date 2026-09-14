@@ -691,6 +691,7 @@ namespace CarSim::Sim
             p.slipRatio = w.slipRatio;
             p.slipAngle = w.slipAngle;
             p.load = w.suspensionForce;
+            p.surface = w.hit.surface;
             abs = abs || w.absActive;
         }
         s.absActive = abs;

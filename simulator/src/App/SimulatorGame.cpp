@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <cstdio>
 #include <filesystem>
 #include <iostream>
@@ -316,7 +317,11 @@ namespace CarSim::App
         }
         cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
         mirror_ = std::make_unique<Render::MirrorView>(device);
+        chaseCamera_.groundHeight = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
         chaseCamera_.Snap(vehicle_->Snapshot());
+        if (options_.mirrorEvery) {
+            save_.settings.mirrorUpdateEvery = *options_.mirrorEvery;
+        }
         if (traffic_ && options_.trafficWarmupSeconds > 0.0f) {
             const int steps = static_cast<int>(options_.trafficWarmupSeconds * 60.0f);
             for (int i = 0; i < steps; ++i) {
@@ -495,7 +500,15 @@ namespace CarSim::App
         gauges.temperature = (state.coolantC - definition_.dashboard.temperatureMinC) /
                              std::max(1.0f, definition_.dashboard.temperatureMaxC - definition_.dashboard.temperatureMinC);
         const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
-        const bool mirrorPass = cockpit && mirrorEnabled_;
+        const int mirrorEvery = std::max(1, save_.settings.mirrorUpdateEvery);
+        const bool mirrorPass = cockpit && mirrorEnabled_ && (framesDrawn_ % mirrorEvery == 0 || !mirror_->Texture());
+        auto passClock = std::chrono::steady_clock::now();
+        const auto lap = [&](const int pass) {
+            const auto now = std::chrono::steady_clock::now();
+            passMs_[pass] = std::chrono::duration<float, std::milli>(now - passClock).count();
+            passClock = now;
+        };
+        for (float& v : passMs_) v = 0.0f;
 
         // Ground queries for draping car shadows on roads, kerbs and terrain.
         Render::GroundQuery groundQuery;
@@ -505,6 +518,7 @@ namespace CarSim::App
         // Off-screen passes first: the instrument cluster and, in the cockpit, the rear-view mirror.
         cluster_->Render(device, *spriteBatch_, state, elapsedSeconds_);
         vehicleRenderer_->SetClusterTexture(cluster_->Texture());
+        lap(kPassCluster);
         if (mirrorPass) {
             mirror_->Update(state, definition_);
             mirror_->Begin(device);
@@ -521,9 +535,12 @@ namespace CarSim::App
             }
             mirror_->End(device);
             vehicleRenderer_->SetMirrorTexture(mirror_->Texture());
+        } else if (cockpit && mirrorEnabled_) {
+            vehicleRenderer_->SetMirrorTexture(mirror_->Texture());   // half-rate: keep the previous image
         } else {
             vehicleRenderer_->SetMirrorTexture(nullptr);
         }
+        lap(kPassMirror);
 
         device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, Color(120, 160, 210, 255), 1.0f, 0);
 
@@ -542,15 +559,18 @@ namespace CarSim::App
         const Matrix projection = camera.Projection(aspect);
 
         sky_->Draw(device, camera, aspect);
+        lap(kPassSky);
         if (worldRenderer_) {
             worldRenderer_->Draw(device, view, projection, camera.Frustum(aspect));
         } else if (testGround_) {
             testGround_->Draw(device, view, projection);
         }
+        lap(kPassWorld);
 
         if (traffic_ && trafficRenderer_) {
             trafficRenderer_->Draw(device, *traffic_, view, projection, camera.Frustum(aspect), camera.position, rig_, groundQuery, false);
         }
+        lap(kPassTraffic);
         vehicleRenderer_->SetPlateTexture(playerPlate_);
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
         vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundQuery);
@@ -558,6 +578,7 @@ namespace CarSim::App
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);
         }
+        lap(kPassVehicle);
 
         if (hudVisible_ || showHelp_ || showDebug_) {
             DrawHud();
@@ -565,6 +586,7 @@ namespace CarSim::App
         if (showHelp_) {
             DrawHelp();
         }
+        lap(kPassHud);
 
         Game::Draw(gameTime);
         const auto drawEnd = std::chrono::steady_clock::now();
@@ -580,9 +602,24 @@ namespace CarSim::App
                     bench_.wallSum += std::chrono::duration<double, std::milli>(drawEnd - lastFrameEnd_).count();
                 }
                 if (worldRenderer_) {
-                    bench_.drawCalls += worldRenderer_->Stats().drawCalls + vehicleRenderer_->DrawCallsLastFrame();
-                    bench_.triangles += worldRenderer_->Stats().triangles;
+                    const auto& ws = worldRenderer_->Stats();
+                    bench_.drawCalls += ws.drawCalls + vehicleRenderer_->DrawCallsLastFrame();
+                    bench_.triangles += ws.triangles + vehicleRenderer_->TriangleCount();
+                    bench_.terrainChunks += ws.terrainChunksDrawn;
+                    bench_.roadBatches += ws.roadBatchesDrawn;
+                    bench_.objectBatches += ws.objectBatchesDrawn;
+                    bench_.treeBatches += ws.treeBatchesDrawn;
                 }
+                if (trafficRenderer_) {
+                    const auto& ts = trafficRenderer_->Stats();
+                    bench_.drawCalls += ts.drawCalls;
+                    bench_.trafficDrawn += ts.drawn;
+                    bench_.trafficLod0 += ts.lod0;
+                    bench_.trafficLod1 += ts.lod1;
+                    bench_.trafficLod2 += ts.lod2;
+                }
+                bench_.trafficCount += traffic_ ? static_cast<long long>(traffic_->Vehicles().size()) : 0;
+                for (int i = 0; i < kPassCount; ++i) bench_.passSum[i] += passMs_[i];
             }
             lastFrameEnd_ = drawEnd;
         }
@@ -643,6 +680,13 @@ namespace CarSim::App
                 dbg << "\nworld: terrain " << ws.terrainChunksDrawn << "/" << ws.terrainChunksTotal << " chunks, roads " << ws.roadBatchesDrawn << "/"
                     << ws.roadBatchesTotal << ", objects " << ws.objectBatchesDrawn << "/" << ws.objectBatchesTotal << ", trees " << ws.treeBatchesDrawn
                     << "/" << ws.treeBatchesTotal << ", " << ws.drawCalls << " draws, " << ws.triangles / 1000 << "k tris";
+            }
+            dbg << "\npasses ms: cluster " << passMs_[kPassCluster] << " mirror " << passMs_[kPassMirror] << " sky " << passMs_[kPassSky] << " world "
+                << passMs_[kPassWorld] << " traffic " << passMs_[kPassTraffic] << " vehicle " << passMs_[kPassVehicle] << " hud " << passMs_[kPassHud];
+            if (trafficRenderer_) {
+                const auto& ts = trafficRenderer_->Stats();
+                dbg << "\ntraffic drawn " << ts.drawn << " (lod0 " << ts.lod0 << ", lod1 " << ts.lod1 << ", lod2 " << ts.lod2 << "), " << ts.drawCalls
+                    << " draws, mirror every " << std::max(1, save_.settings.mirrorUpdateEvery) << " frame(s)";
             }
             dbg << "\nwheels";
             for (const auto& wh : s.wheels) {
@@ -740,13 +784,43 @@ namespace CarSim::App
         }
         if (options_.benchmark && bench_.frames > 0) {
             const double n = static_cast<double>(bench_.frames);
+            static const char* const passNames[kPassCount] = {"cluster", "mirror", "sky", "world", "traffic", "vehicle", "hud"};
             std::cout << "benchmark: " << bench_.frames << " frames after " << bench_.warmupFrames << " warm-up frames, "
                       << viewportWidth_ << "x" << viewportHeight_ << "\n"
                       << "  update  avg " << bench_.updateSum / n << " ms, max " << bench_.updateMax << " ms\n"
                       << "  draw    avg " << bench_.drawSum / n << " ms, max " << bench_.drawMax << " ms (CPU submission)\n"
                       << "  frame   avg " << bench_.wallSum / std::max(1.0, n - 1.0) << " ms wall clock\n"
                       << "  scene   avg " << static_cast<double>(bench_.drawCalls) / n << " draw calls, "
-                      << static_cast<double>(bench_.triangles) / n / 1000.0 << "k triangles\n";
+                      << static_cast<double>(bench_.triangles) / n / 1000.0 << "k triangles\n"
+                      << "  passes  avg ms:";
+            for (int i = 0; i < kPassCount; ++i) std::cout << " " << passNames[i] << " " << bench_.passSum[i] / n;
+            std::cout << "\n  visible avg: terrain chunks " << static_cast<double>(bench_.terrainChunks) / n << ", road batches "
+                      << static_cast<double>(bench_.roadBatches) / n << ", object batches " << static_cast<double>(bench_.objectBatches) / n
+                      << ", tree batches " << static_cast<double>(bench_.treeBatches) / n << "\n"
+                      << "  traffic avg: " << static_cast<double>(bench_.trafficCount) / n << " cars, drawn " << static_cast<double>(bench_.trafficDrawn) / n
+                      << " (lod0 " << static_cast<double>(bench_.trafficLod0) / n << ", lod1 " << static_cast<double>(bench_.trafficLod1) / n << ", lod2 "
+                      << static_cast<double>(bench_.trafficLod2) / n << ")\n";
+            if (options_.benchmarkJsonPath) {
+                std::ofstream json(*options_.benchmarkJsonPath);
+                if (json) {
+                    json.setf(std::ios::fixed);
+                    json.precision(3);
+                    json << "{\n  \"frames\": " << bench_.frames << ",\n  \"warmupFrames\": " << bench_.warmupFrames << ",\n  \"width\": " << viewportWidth_
+                         << ",\n  \"height\": " << viewportHeight_ << ",\n  \"updateMsAvg\": " << bench_.updateSum / n << ",\n  \"updateMsMax\": " << bench_.updateMax
+                         << ",\n  \"drawMsAvg\": " << bench_.drawSum / n << ",\n  \"drawMsMax\": " << bench_.drawMax << ",\n  \"frameMsAvg\": "
+                         << bench_.wallSum / std::max(1.0, n - 1.0) << ",\n  \"drawCallsAvg\": " << static_cast<double>(bench_.drawCalls) / n
+                         << ",\n  \"trianglesAvg\": " << static_cast<double>(bench_.triangles) / n << ",\n  \"passesMsAvg\": {";
+                    for (int i = 0; i < kPassCount; ++i) json << (i ? ", " : "") << "\"" << passNames[i] << "\": " << bench_.passSum[i] / n;
+                    json << "},\n  \"visibleAvg\": {\"terrainChunks\": " << static_cast<double>(bench_.terrainChunks) / n << ", \"roadBatches\": "
+                         << static_cast<double>(bench_.roadBatches) / n << ", \"objectBatches\": " << static_cast<double>(bench_.objectBatches) / n
+                         << ", \"treeBatches\": " << static_cast<double>(bench_.treeBatches) / n << "},\n  \"trafficAvg\": {\"cars\": "
+                         << static_cast<double>(bench_.trafficCount) / n << ", \"drawn\": " << static_cast<double>(bench_.trafficDrawn) / n << ", \"lod0\": "
+                         << static_cast<double>(bench_.trafficLod0) / n << ", \"lod1\": " << static_cast<double>(bench_.trafficLod1) / n << ", \"lod2\": "
+                         << static_cast<double>(bench_.trafficLod2) / n << "},\n  \"mirrorUpdateEvery\": " << std::max(1, save_.settings.mirrorUpdateEvery)
+                         << "\n}\n";
+                    std::cout << "benchmark JSON written to " << *options_.benchmarkJsonPath << "\n";
+                }
+            }
         }
         std::cout << "frame limit reached (" << framesDrawn_ << " frames); exiting\n";
         exitRequested_ = true;

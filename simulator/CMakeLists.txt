@@ -4,6 +4,7 @@
 # Sharp Runtime, so unit tests never need a graphics device.
 # -----------------------------------------------------------------------------
 add_library(carsim_core STATIC
+    src/Audio/AudioLayers.cpp
     src/Audio/EngineSynth.cpp
     src/Audio/SoundSynth.cpp
     src/Collision/CollisionWorld.cpp

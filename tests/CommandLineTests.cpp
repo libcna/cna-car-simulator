@@ -46,3 +46,15 @@ TEST(CommandLine, RejectsMissingValue)
     const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
     EXPECT_FALSE(result.ok());
 }
+
+TEST(CommandLine, ParsesBenchmarkJsonAndMirrorRate)
+{
+    const std::array<const char*, 5> argv{"sim", "--benchmark-json", "out.json", "--mirror-every", "2"};
+    const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+    ASSERT_TRUE(result.ok()) << result.errors.front();
+    EXPECT_TRUE(result.options.benchmark);
+    ASSERT_TRUE(result.options.benchmarkJsonPath.has_value());
+    EXPECT_EQ(*result.options.benchmarkJsonPath, "out.json");
+    ASSERT_TRUE(result.options.mirrorEvery.has_value());
+    EXPECT_EQ(*result.options.mirrorEvery, 2);
+}

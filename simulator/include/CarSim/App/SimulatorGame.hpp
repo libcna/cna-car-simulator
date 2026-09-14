@@ -117,6 +117,8 @@ namespace CarSim::App
         float drawMs_ = 0.0f;
         int viewportWidth_ = 0;
         int viewportHeight_ = 0;
+        enum Pass { kPassCluster = 0, kPassMirror, kPassSky, kPassWorld, kPassTraffic, kPassVehicle, kPassHud, kPassCount };
+        float passMs_[kPassCount] = {};   // CPU submission time of each draw pass in the last frame
         struct BenchmarkStats
         {
             int frames = 0;
@@ -124,6 +126,9 @@ namespace CarSim::App
             double drawSum = 0.0, drawMax = 0.0;
             double wallSum = 0.0;
             long long drawCalls = 0, triangles = 0;
+            long long terrainChunks = 0, roadBatches = 0, objectBatches = 0, treeBatches = 0;
+            long long trafficCount = 0, trafficDrawn = 0, trafficLod0 = 0, trafficLod1 = 0, trafficLod2 = 0;
+            double passSum[kPassCount] = {};
             int warmupFrames = 30;
         } bench_;
         std::chrono::steady_clock::time_point lastFrameEnd_{};

@@ -34,6 +34,26 @@ stopping the simulator.
 Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on
 overrun) blended with a small throttle share so a blipped pedal is audible immediately.
 
+## Layers driven by the drive state (`Audio::Layers`)
+
+Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio::RenderBlock`:
+
+- **Gear-change dip** (`ShiftDip`): on a gear change while rolling faster than 3 km/h the
+  engine load input is multiplied by 0.2 and recovers quadratically to 1.0 over 0.26 s, so a
+  shift "breathes" instead of the note simply stepping.
+- **Overrun burble** (`OverrunBurble`): while the wheels push the engine (load and throttle
+  below 5 %, rpm above 2200, speed above 15 km/h) a hashed gate fires on roughly a third of
+  the 23 ms blocks (denser at high rpm) and adds 0.10-0.22 of exhaust load for that block:
+  irregular pops on the overrun, deterministic per block index.
+- **Surface rolling noise** (`SurfaceRoughness`): the tyre noise amplitude is scaled by the
+  average roughness of the grounded wheels' contact surfaces (asphalt 1.0, concrete 1.1,
+  grass 1.4, dirt 1.6, cobbles 1.7, gravel 1.8). Surfaces come from the wheel snapshot
+  (`WheelPose::surface`), so leaving the road onto a verge is audible at once.
+- **Brake hiss** (`BrakeHissGain`): noise low-passed at 1.4 kHz with gain
+  0.16 x pedal^2 x min(speed/60, 1), silent when stopped; the gain ramps linearly across each
+  block so pedal taps do not click.
+- Wind stays as before (cubic growth above 60 km/h).
+
 ## Rolling noise, wind, horn, one-shots (`Audio::SoundSynth`)
 
 - Tyres: low-passed white noise, cutoff rising with speed, amplitude proportional to the square
@@ -60,3 +80,6 @@ low-pass 1700 Hz. Settings persistence arrives with M9.
 `tests/Audio/EngineSynthTests.cpp`: silence when off and fade-in when running; the firing
 frequency dominates the spectrum at 1500/3000/4500 rpm; load increases loudness; block
 boundaries are continuous; clips are bounded and short; rolling noise grows with speed.
+`tests/Audio/AudioLayersTests.cpp`: the shift dip cuts to 0.2 and recovers within 0.26 s; the
+overrun gate fires only on overrun and on 15-55 % of blocks; brake hiss grows with pedal and
+speed and is bounded; surface roughness ordering (gravel > grass > asphalt, cobbles > concrete).

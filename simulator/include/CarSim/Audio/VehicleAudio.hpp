@@ -73,6 +73,11 @@ namespace CarSim::Audio
         int underruns_ = 0;
         float cockpitBlend_ = 0.0f;
         bool hornPressed_ = false;
+        unsigned blockIndex_ = 0;            // for the overrun burble gate
+        float secondsSinceShift_ = 1e9f;     // gear-change dip envelope
+        float brakeGain_ = 0.0f;             // smoothed brake hiss gain
+        NoiseSource brakeNoise_{4242u};
+        OnePoleLowPass brakeLp_;
         // Edge detection.
         bool prevLeft_ = false;
         bool prevRight_ = false;

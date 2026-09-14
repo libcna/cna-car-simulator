@@ -53,7 +53,10 @@ namespace CarSim::Render
     {
         const Vector3 forward = state.worldMatrix.getForwardProperty();
         smoothedYaw_ = YawOf(forward);
-        const Vector3 behind(std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
+        previousBodyYaw_ = smoothedYaw_;
+        yawRate_ = 0.0f;
+        lookAhead_ = 0.0f;
+        const Vector3 behind(-std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
         smoothedPosition_ = state.originPosition + behind * distance + Vector3(0.0f, height, 0.0f);
         initialised_ = true;
         Update(state, 0.0f);
@@ -67,20 +70,43 @@ namespace CarSim::Render
         }
         const Vector3 forward = state.worldMatrix.getForwardProperty();
         const float bodyYaw = YawOf(forward);
-        const float yawRate = 1.0f - std::exp(-dt * 4.0f);
-        smoothedYaw_ = LerpAngle(smoothedYaw_, bodyYaw, yawRate);
+        // Yaw follow: quick at speed, lazier when crawling so parking manoeuvres do not swing
+        // the view around; reversing keeps the camera behind the nose.
+        const float speedFraction = std::clamp(state.speedKmh / 130.0f, 0.0f, 1.0f);
+        const float followRate = 2.5f + 3.0f * std::clamp(state.speedKmh / 30.0f, 0.0f, 1.0f);
+        smoothedYaw_ = LerpAngle(smoothedYaw_, bodyYaw, 1.0f - std::exp(-dt * followRate));
+        if (dt > 1e-5f) {
+            float delta = bodyYaw - previousBodyYaw_;
+            while (delta > MathHelper::Pi) delta -= MathHelper::TwoPi;
+            while (delta < -MathHelper::Pi) delta += MathHelper::TwoPi;
+            const float instant = delta / dt;
+            yawRate_ += (instant - yawRate_) * std::min(1.0f, dt * 5.0f);
+        }
+        previousBodyYaw_ = bodyYaw;
+        // Look-ahead: in a turn the aim point slides towards the inside of the bend (yaw rate
+        // positive = turning left = aim left), scaled by speed and capped at 1.6 m.
+        const float aheadTarget = std::clamp(-yawRate_ * 2.2f * std::clamp(state.speedKmh / 40.0f, 0.0f, 1.0f), -1.6f, 1.6f);
+        lookAhead_ += (aheadTarget - lookAhead_) * std::min(1.0f, dt * 4.0f);
 
-        const float speedPull = std::clamp(state.speedKmh / 130.0f, 0.0f, 1.0f) * 1.2f;
+        const float speedPull = speedFraction * 1.2f;
+        const float speedRise = speedFraction * 0.35f;
         // With yaw = 0 the car faces -Z, so "behind" is +Z; rotate that by the smoothed yaw.
         const Vector3 behind(-std::sin(smoothedYaw_), 0.0f, std::cos(smoothedYaw_));
+        const Vector3 rightOf(std::cos(smoothedYaw_), 0.0f, std::sin(smoothedYaw_));
         const float orbitYaw = smoothedYaw_ + yawOffset;
         const Vector3 orbit(-std::sin(orbitYaw), 0.0f, std::cos(orbitYaw));
-        const Vector3 desired = state.originPosition + orbit * (distance + speedPull) + Vector3(0.0f, height, 0.0f);
+        const Vector3 desired = state.originPosition + orbit * (distance + speedPull) + Vector3(0.0f, height + speedRise, 0.0f);
+        // Position follow: near-critically damped exponential approach (9/s), independent of the
+        // frame rate; a snap on large jumps (vehicle reset) avoids a long fly-in.
         const float posRate = 1.0f - std::exp(-dt * 9.0f);
-        smoothedPosition_ = Vector3::Lerp(smoothedPosition_, desired, posRate);
+        smoothedPosition_ = Vector3::DistanceSquared(smoothedPosition_, desired) > 400.0f ? desired : Vector3::Lerp(smoothedPosition_, desired, posRate);
+        if (groundHeight) {
+            const float floor = groundHeight(smoothedPosition_.X, smoothedPosition_.Z) + groundClearance;
+            if (smoothedPosition_.Y < floor) smoothedPosition_.Y = floor;
+        }
 
         pose_.position = smoothedPosition_;
-        pose_.target = state.originPosition + Vector3(0.0f, targetHeight, 0.0f) - behind * 1.0f;
+        pose_.target = state.originPosition + Vector3(0.0f, targetHeight, 0.0f) - behind * 1.0f + rightOf * lookAhead_;
         pose_.up = Vector3(0.0f, 1.0f, 0.0f);
         pose_.fieldOfViewDeg = 60.0f;
         pose_.nearPlane = 0.3f;   // depth precision: roads sit 12 cm above the terrain

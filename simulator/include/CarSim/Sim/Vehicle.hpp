@@ -112,6 +112,7 @@ namespace CarSim::Sim
             float slipRatio = 0.0f;
             float slipAngle = 0.0f;
             float load = 0.0f;
+            SurfaceType surface = SurfaceType::Asphalt;   // ground under the contact patch
         };
         std::array<WheelPose, 4> wheels{};
     };

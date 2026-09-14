@@ -31,6 +31,8 @@ namespace CarSim::Core
         bool showHelp = false;
         bool noAudio = false;   // skip the audio stream (headless runs, tests)
         bool benchmark = false;         // collect frame statistics and print them at exit
+        std::optional<std::string> benchmarkJsonPath;   // also write the statistics as JSON to this file
+        std::optional<int> mirrorEvery;  // redraw the mirror every n frames (overrides the saved setting)
         bool lockstep = false;          // exactly one 1/60 s simulation step per drawn frame (deterministic captures)
         float trafficWarmupSeconds = 0.0f;   // simulate the traffic this long before the first frame (captures)
         bool lights = false;                 // switch the headlights on at start (captures)

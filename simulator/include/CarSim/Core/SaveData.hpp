@@ -18,6 +18,7 @@ namespace CarSim::Core
         float engineVolume = 1.0f;
         float effectsVolume = 1.0f;
         bool mirrorEnabled = true;
+        int mirrorUpdateEvery = 1;   // redraw the rear-view mirror every n frames (2 = half rate)
         bool hudVisible = true;
         bool startInCockpit = false;
     };

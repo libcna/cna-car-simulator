@@ -31,6 +31,7 @@ add_executable(carsim_tests
     Render/MeshDataTests.cpp
     Render/ProceduralCarTests.cpp
     Render/ShadowGeometryTests.cpp
+    Render/CameraTests.cpp
     Render/RoadMeshBuilderTests.cpp
     Render/GroundShadowTests.cpp
     Map/MapDocumentTests.cpp
@@ -43,6 +44,7 @@ add_executable(carsim_tests
     Traffic/TrafficTests.cpp
     Traffic/TrafficSoakTests.cpp
     Audio/EngineSynthTests.cpp
+    Audio/AudioLayersTests.cpp
     Render/ImageTests.cpp
 )
 target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtest GTest::gtest_main)

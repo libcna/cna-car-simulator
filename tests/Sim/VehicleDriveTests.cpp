@@ -265,3 +265,119 @@ TEST_F(VehicleDrive, OdometerAndFuelRespondToDriving)
     EXPECT_LT(lPer100, 25.0f) << "accelerating from rest is thirsty but not absurd";
     EXPECT_GT(v.Thermal().CoolantC(), def.engine.thermal.ambientC + 1.0f);
 }
+
+// ---- Driving feel audit (Phase 11, RQ-100): parking, reversing, cruising, climbing ----------
+
+TEST_F(VehicleDrive, FullLockAtParkingSpeedTurnsInAPlausibleCircle)
+{
+    Vehicle v(def, TransmissionMode::Automatic);
+    DriverControls c;
+    c.brake = 1.0f;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = true;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = false;
+    Drive(v, ground, 3.0f, [c](float) { return c; });
+    ASSERT_EQ(v.GetEngine().State(), EngineState::Running);
+    c.selector = AutomaticSelector::Drive;
+    v.Update(c, kFrame, ground);
+    // Creep with a little throttle and full right lock; record the position when the car has
+    // turned 90 and 270 degrees to measure the turning circle.
+    const float yaw0 = Yaw(v);
+    float turned = 0.0f, previous = yaw0;
+    Vector3 at90{}, at270{};
+    bool got90 = false, got270 = false;
+    float maxSpeed = 0.0f;
+    for (float t = 0.0f; t < 40.0f && !got270; t += kFrame) {
+        DriverControls k;
+        k.throttle = v.SpeedKmh() < 8.0f ? 0.25f : 0.0f;
+        k.steering = 1.0f;
+        v.Update(k, kFrame, ground);
+        maxSpeed = std::max(maxSpeed, v.SpeedKmh());
+        float delta = Yaw(v) - previous;
+        while (delta > Units::DegToRad(180.0f)) delta -= Units::DegToRad(360.0f);
+        while (delta < -Units::DegToRad(180.0f)) delta += Units::DegToRad(360.0f);
+        turned += -delta;   // right turn = negative yaw
+        previous = Yaw(v);
+        if (!got90 && turned >= Units::DegToRad(90.0f)) { got90 = true; at90 = v.OriginPosition(); }
+        if (!got270 && turned >= Units::DegToRad(270.0f)) { got270 = true; at270 = v.OriginPosition(); }
+    }
+    ASSERT_TRUE(got270) << "the car should complete three quarters of a circle within 40 s";
+    EXPECT_LT(maxSpeed, 14.0f) << "a parking manoeuvre stays at walking pace";
+    const float diameter = Vector3::Distance(at90, at270);   // opposite points of the circle
+    EXPECT_GT(diameter, 8.0f) << "turning circle of a small hatchback (origin path; kerb to kerb ~10-11 m)";
+    EXPECT_LT(diameter, 13.5f);
+}
+
+TEST_F(VehicleDrive, ReverseGearDrivesBackwardsAndSwingsTheNoseTheOtherWay)
+{
+    Vehicle v(def, TransmissionMode::Automatic);
+    DriverControls c;
+    c.brake = 1.0f;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = true;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = false;
+    Drive(v, ground, 3.0f, [c](float) { return c; });
+    ASSERT_EQ(v.GetEngine().State(), EngineState::Running);
+    c.selector = AutomaticSelector::Reverse;
+    v.Update(c, kFrame, ground);
+    const Vector3 start = v.OriginPosition();
+    const float yaw0 = Yaw(v);
+    Drive(v, ground, 4.0f, [](float) { DriverControls k; k.throttle = 0.3f; k.steering = 0.6f; return k; });
+    const Vector3 forward = v.Body().Forward();
+    EXPECT_LT(Vector3::Dot(v.Body().LinearVelocity(), forward), -1.0f) << "the car moves backwards along its own axis";
+    EXPECT_LT(v.SpeedKmh(), 25.0f) << "reverse is a low gear";
+    EXPECT_GT(v.OriginPosition().Z - start.Z, 3.0f) << "facing -Z, reversing moves towards +Z";
+    // Front wheels steered right while reversing swing the nose to the left (positive yaw).
+    EXPECT_GT(Yaw(v) - yaw0, Units::DegToRad(5.0f));
+}
+
+TEST_F(VehicleDrive, HoldsFiftyOnTheFlatWithPartThrottle)
+{
+    Vehicle v(def, TransmissionMode::Automatic);
+    DriverControls c;
+    c.brake = 1.0f;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = true;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = false;
+    Drive(v, ground, 3.0f, [c](float) { return c; });
+    c.selector = AutomaticSelector::Drive;
+    v.Update(c, kFrame, ground);
+    v.ForceForwardSpeed(Units::KmhToMs(50.0f));
+    // A simple speed hold: more throttle below 50, less above; the pedal should settle low.
+    float pedalSum = 0.0f;
+    int samples = 0;
+    float pedal = 0.15f;
+    for (float t = 0.0f; t < 12.0f; t += kFrame) {
+        pedal = std::clamp(pedal + (50.0f - v.SpeedKmh()) * 0.004f, 0.0f, 0.6f);
+        DriverControls k;
+        k.throttle = pedal;
+        v.Update(k, kFrame, ground);
+        if (t > 6.0f) { pedalSum += pedal; ++samples; }
+    }
+    EXPECT_NEAR(v.SpeedKmh(), 50.0f, 4.0f);
+    EXPECT_LT(pedalSum / static_cast<float>(std::max(1, samples)), 0.35f) << "50 km/h on the flat needs a light pedal";
+}
+
+TEST_F(VehicleDrive, ClimbsAnEightPercentGradeWithoutLosingMuchSpeed)
+{
+    // Uphill when driving towards -Z: the ground rises as z decreases.
+    const FunctionGround slope([](float, float z) { return -0.08f * z; });
+    Vehicle v(def, TransmissionMode::Automatic);
+    DriverControls c;
+    c.brake = 1.0f;
+    v.Update(c, kFrame, slope);
+    c.toggleEngine = true;
+    v.Update(c, kFrame, slope);
+    c.toggleEngine = false;
+    Drive(v, slope, 3.0f, [c](float) { return c; });
+    c.selector = AutomaticSelector::Drive;
+    v.Update(c, kFrame, slope);
+    v.ForceForwardSpeed(Units::KmhToMs(50.0f));
+    Drive(v, slope, 8.0f, [](float) { DriverControls k; k.throttle = 1.0f; return k; });
+    EXPECT_GT(v.SpeedKmh(), 48.0f) << "60 kW is plenty for 8 % at 50 km/h";
+    EXPECT_GT(v.OriginPosition().Y, 5.0f) << "and the car has climbed";
+    EXPECT_EQ(v.GetEngine().State(), EngineState::Running);
+}

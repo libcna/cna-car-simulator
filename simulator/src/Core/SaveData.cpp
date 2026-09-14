@@ -102,6 +102,8 @@ namespace CarSim::Core
             r.Float(settings, "engineVolume", d.settings.engineVolume, "save.settings");
             r.Float(settings, "effectsVolume", d.settings.effectsVolume, "save.settings");
             r.Bool(settings, "mirrorEnabled", d.settings.mirrorEnabled, "save.settings");
+            r.Int(settings, "mirrorUpdateEvery", d.settings.mirrorUpdateEvery, "save.settings");
+            d.settings.mirrorUpdateEvery = std::clamp(d.settings.mirrorUpdateEvery, 1, 8);
             r.Bool(settings, "hudVisible", d.settings.hudVisible, "save.settings");
             r.Bool(settings, "startInCockpit", d.settings.startInCockpit, "save.settings");
         }
@@ -165,6 +167,7 @@ namespace CarSim::Core
         out << "    \"engineVolume\": " << data.settings.engineVolume << ",\n";
         out << "    \"effectsVolume\": " << data.settings.effectsVolume << ",\n";
         out << "    \"mirrorEnabled\": " << (data.settings.mirrorEnabled ? "true" : "false") << ",\n";
+        out << "    \"mirrorUpdateEvery\": " << data.settings.mirrorUpdateEvery << ",\n";
         out << "    \"hudVisible\": " << (data.settings.hudVisible ? "true" : "false") << ",\n";
         out << "    \"startInCockpit\": " << (data.settings.startInCockpit ? "true" : "false") << "\n";
         out << "  },\n";
