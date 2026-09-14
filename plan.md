@@ -547,19 +547,19 @@ capture under `docs/screenshots/` reviewed against the baseline.
 
 #### Hero car exterior
 - [x] `RQ-001` Baseline captures and audit table (this section); `docs/screenshots/m10-baseline/`.
-- [ ] `RQ-010` New Lipan body surface: dense station loft (<= 4 cm) with plan-view rounding of nose and tail, sculpted hood/cowl/roof/tailgate profile, fender flares over the arches, tucked sills, smooth tumblehome, slim A/B/C pillars (glass classified against pillar bands, not ring segments), recessed glass, separate bumper skins with air dam and fog-lamp recesses, grille recess, headlamp and tail-lamp housings, shaped mirrors on stalks, door handles, wipers, exhaust, antenna. Acceptance: front 3/4, rear 3/4 and side close-ups show no flat caps or box lamps; the cabin from inside has slim pillars; wheel transform tests unchanged; body under 60k triangles.
-- [ ] `RQ-011` Body detail texture: UV-mapped loft with a generated paint texture (door and hood shut lines, tailgate seam, fuel flap, sill and arch ambient darkening) through `EnvironmentMapEffect`'s texture. Acceptance: shut lines visible in side close-up; paint colour still authoritative from the definition.
-- [ ] `RQ-012` Wheels and tyres: revolved tyre profile (tread, shoulder, sidewall bulge, bead) with a tread/sidewall texture, revolved rim (lip, dish, well) with five twin spokes that have depth, hub cap, brake disc and caliper behind the spokes. Spin/steer/suspension unchanged (existing tests); a new test checks the tyre mesh touches y = 0 within 1 cm at the definition radius.
-- [ ] `RQ-013` Vehicle lights: headlamp units (reflector texture + clear lens), tail-lamp clusters (red/amber/white segments in one housing), side repeaters; emissive states from `VehicleState` only; daytime lens look when off. Acceptance: lights screenshot with lights off/on/brake/indicator.
-- [ ] `RQ-014` Material audit: distinct looks for paint, glass (tint + frit band texture), rubber, black plastic, chrome, interior fabric and plastics (grain textures), lamp lenses, plate; documented in `docs/materials.md`. All through stock effects.
+- [~] `RQ-010` New Lipan body surface: dense station loft (<= 4 cm) with plan-view rounding of nose and tail, sculpted hood/cowl/roof/tailgate profile, fender flares over the arches, tucked sills, smooth tumblehome, slim A/B/C pillars (glass classified against pillar bands, not ring segments), recessed glass, separate bumper skins with air dam and fog-lamp recesses, grille recess, headlamp and tail-lamp housings, shaped mirrors on stalks, door handles, wipers, exhaust, antenna. Acceptance: front 3/4, rear 3/4 and side close-ups show no flat caps or box lamps; the cabin from inside has slim pillars; wheel transform tests unchanged; body under 60k triangles.
+- [x] `RQ-011` Body detail texture: UV-mapped loft with a generated paint texture (door and hood shut lines, tailgate seam, fuel flap, sill and arch ambient darkening) through `EnvironmentMapEffect`'s texture. Acceptance: shut lines visible in side close-up; paint colour still authoritative from the definition.
+- [x] `RQ-012` Wheels and tyres: revolved tyre profile (tread, shoulder, sidewall bulge, bead) with a tread/sidewall texture, revolved rim (lip, dish, well) with five twin spokes that have depth, hub cap, brake disc and caliper behind the spokes. Spin/steer/suspension unchanged (existing tests); a new test checks the tyre mesh touches y = 0 within 1 cm at the definition radius.
+- [~] `RQ-013` Vehicle lights: headlamp units (reflector texture + clear lens), tail-lamp clusters (red/amber/white segments in one housing), side repeaters; emissive states from `VehicleState` only; daytime lens look when off. Acceptance: lights screenshot with lights off/on/brake/indicator.
+- [~] `RQ-014` Material audit: distinct looks for paint, glass (tint + frit band texture), rubber, black plastic, chrome, interior fabric and plastics (grain textures), lamp lenses, plate; documented in `docs/materials.md`. All through stock effects.
 
 #### Cockpit and dashboard
-- [ ] `RQ-020` Cockpit rebuild: shaped dashboard (curved top, binnacle cowl, centre stack with vents and controls, glovebox), steering column, gear lever that follows the transmission state, handbrake, shaped front seats with head restraints, door cards with armrests, slim A-pillars with trim, headliner, sun visors, mirror housing, windshield frit band. Acceptance: cockpit screenshot without grey wedges, steering wheel still synchronised (test), no geometry closer than the near plane.
+- [~] `RQ-020` Cockpit rebuild: shaped dashboard (curved top, binnacle cowl, centre stack with vents and controls, glovebox), steering column, gear lever that follows the transmission state, handbrake, shaped front seats with head restraints, door cards with armrests, slim A-pillars with trim, headliner, sun visors, mirror housing, windshield frit band. Acceptance: cockpit screenshot without grey wedges, steering wheel still synchronised (test), no geometry closer than the near plane.
 - [ ] `RQ-021` Instrument cluster presentation: redesigned faces (typography, tick hierarchy, red zone), needle with hub and shadow, lamp icons redrawn, backlit look with ignition, digital display area (odometer, trip, gear, consumption, clock-free). Simulation values remain authoritative (`LampLit` test kept). Acceptance: `--screenshot-cluster` review.
 
 #### Traffic and vehicle variety
-- [ ] `RQ-030` Traffic body variants: generator presets for hatchback, sedan, estate, small SUV and van (dimensions, greenhouse, overhangs, roof line, ride height) selected per traffic car with paint, wheel style and plate; traffic cars share materials. Acceptance: traffic screenshot with at least three distinct silhouettes; soak test unchanged.
-- [ ] `RQ-031` Vehicle LOD: traffic beyond a near radius drops interior, glass, shadow and small parts; beyond a far radius uses a reduced body. Draw calls per traffic car reported in the debug overlay.
+- [x] `RQ-030` Traffic body variants: generator presets for hatchback, sedan, estate, small SUV and van (dimensions, greenhouse, overhangs, roof line, ride height) selected per traffic car with paint, wheel style and plate; traffic cars share materials. Acceptance: traffic screenshot with at least three distinct silhouettes; soak test unchanged.
+- [x] `RQ-031` Vehicle LOD: traffic beyond a near radius drops interior, glass, shadow and small parts; beyond a far radius uses a reduced body. Draw calls per traffic car reported in the debug overlay.
 - [ ] `RQ-032` Traffic presentation polish: lane centring and steering smoothness checked while driving, spawning outside the view, wheel spin matches speed, brake lights and indicators verified.
 
 #### Environment
@@ -600,3 +600,25 @@ capture under `docs/screenshots/` reviewed against the baseline.
 ### 24.4 Phase record
 
 Filled in as tasks complete (commit per logical unit; final SHA at the end of the phase).
+
+- `b1c8167` Hero car rebuilt: `ProceduralCar` is a dense fixed-topology loft driven by smooth
+  longitudinal curves (`CarBody.hpp`, `ProceduralCar.cpp`), with rounded-box sweeps for nose
+  and tail, sculpted face grids (grille, intake, plate recesses), decal lamp units cut from the
+  skin in UV space, fender flares, slim pillars, recessed glass, mirrors, handles, wipers,
+  exhaust, antenna, badges, fog lamps; revolved tyres and rims with twin spokes, brake discs and
+  calipers (`CarWheels.cpp`); UV-mapped paint detail texture with shut lines and sill/arch
+  darkening and a premultiplied glass tint with frit bands (`CarTextures.cpp`); glass reflects
+  the sky from outside and is nearly clear from inside. Tests: `ProceduralCarTests`
+  (roles, chassis box, tyre contact at the definition radius, every style, UV layout).
+- Cockpit rebuilt (`ProceduralCockpit.cpp`): two-tone dashboard loft with binnacle visor,
+  centre stack (display, vents, knobs), glovebox seam, steering wheel with hub badge, column
+  and stalks, gear lever animated from the transmission state (H pattern / P-R-N-D), handbrake,
+  bolstered seats, door cards with armrests, inner shell (pillars dark at the base, light
+  headliner), parcel shelf, mirror, visors. Cabin parts are also drawn from outside so cars are
+  not hollow. `--eye dx dy dz yaw pitch` moves the cockpit camera for inspection captures.
+- Traffic variety (`CarStyle` presets in `Sim/CarStyle.cpp`, `TrafficRenderer`): hatchback,
+  sedan, estate, SUV and van in two size variants each, picked at spawn with matching
+  collision dimensions and masses; ten paint colours (vans mostly white/silver); distance LODs
+  (full / no small parts / reduced without cabin, glass and plate) and a one-part cabin block
+  for traffic models. `--lockstep` gives one simulation step per drawn frame so captures on
+  slow renderers are deterministic; `--traffic-warmup <s>` pre-runs the traffic for captures.

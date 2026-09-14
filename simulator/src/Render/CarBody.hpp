@@ -117,4 +117,8 @@ namespace CarSim::Render::CarBody
     /// Cockpit parts appended to the model (needs the skin for the inner shell).
     void BuildCockpit(CarModel& model, const CarStyle& style, const Sim::VehicleDefinition* definition, const SkinGrid& skin,
                       const std::vector<std::vector<CarMaterial>>& skinMaterials, float zCowl, float zRoofFront, float zSideGlassRear);
+    /// Cheap cabin (inner shell, floor, dashboard slab, seat blocks) for cars without a cockpit,
+    /// so they are not hollow when seen through the glass. One part.
+    void BuildCabinBlock(CarModel& model, const CarStyle& style, const SkinGrid& skin, const std::vector<std::vector<CarMaterial>>& skinMaterials,
+                         float zCowl, float zSideGlassRear);
 }

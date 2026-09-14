@@ -31,6 +31,8 @@ namespace CarSim::Core
         bool showHelp = false;
         bool noAudio = false;   // skip the audio stream (headless runs, tests)
         bool benchmark = false;         // collect frame statistics and print them at exit
+        bool lockstep = false;          // exactly one 1/60 s simulation step per drawn frame (deterministic captures)
+        float trafficWarmupSeconds = 0.0f;   // simulate the traffic this long before the first frame (captures)
         bool showHelpOverlay = false;   // start with the F1 help overlay open (captures)
         bool showDebugOverlay = false;  // start with the F3 debug overlay open
 

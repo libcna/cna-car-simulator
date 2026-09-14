@@ -22,6 +22,7 @@ add_library(carsim_core STATIC
     src/Map/RoadNetwork.cpp
     src/Map/SpatialGrid.cpp
     src/Map/TerrainField.cpp
+    src/Sim/CarStyle.cpp
     src/Sim/Clutch.cpp
     src/Sim/Electrics.cpp
     src/Sim/Engine.cpp

@@ -1,11 +1,12 @@
-// Draws the traffic cars with the shared procedural car model: per-car paint, plate texture,
-// wheel animation, brake lights and indicators; shadows for nearby cars.
+// Draws the traffic cars: one procedural model per body style variant (hatchback, sedan,
+// estate, SUV, van in two size variations each), per-car paint, plate texture, wheel
+// animation, brake lights and indicators, distance LODs and shadows for nearby cars.
 #pragma once
 
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/VehicleRenderer.hpp"
-#include "CarSim/Sim/VehicleDefinition.hpp"
+#include "CarSim/Sim/CarStyle.hpp"
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include "Microsoft/Xna/Framework/BoundingFrustum.hpp"
@@ -13,17 +14,28 @@
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 
+#include <array>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
 
 namespace CarSim::Render
 {
+    struct TrafficRenderStats
+    {
+        int drawn = 0;
+        int lod0 = 0, lod1 = 0, lod2 = 0;
+        int drawCalls = 0;
+        int triangles = 0;
+    };
+
     class TrafficRenderer
     {
     public:
-        TrafficRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, VehicleRenderer& renderer, const Sim::VehicleDefinition& definition,
-                        const BitmapFont* plateFont);
+        static constexpr int kVariantsPerBody = 2;
+
+        TrafficRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, VehicleMaterials& materials, const BitmapFont* plateFont);
 
         /// Draws all cars inside the frustum (opaque, shadow and glass passes).
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Traffic::TrafficSystem& traffic,
@@ -36,17 +48,28 @@ namespace CarSim::Render
         [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* PlateTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
                                                                                     const std::string& text);
 
-        [[nodiscard]] static Microsoft::Xna::Framework::Vector3 PaintColour(int paletteIndex);
-        [[nodiscard]] int DrawnLastFrame() const { return drawn_; }
+        /// Paint palette: common Czech car colours; vans lean to white and silver.
+        [[nodiscard]] static Microsoft::Xna::Framework::Vector3 PaintColour(int paletteIndex, Sim::CarStyle::Body body);
+        /// Preset seed of a style variant slot.
+        [[nodiscard]] static unsigned VariantSeed(unsigned styleSeed) { return styleSeed % kVariantsPerBody == 0 ? 1u : 5u; }
+        [[nodiscard]] int DrawnLastFrame() const { return stats_.drawn; }
+        [[nodiscard]] const TrafficRenderStats& Stats() const { return stats_; }
+        [[nodiscard]] int ModelCount() const { return static_cast<int>(renderers_.size()); }
+
+        /// LOD radii (metres): full detail, no small parts, reduced.
+        float lod1DistanceM = 45.0f;
+        float lod2DistanceM = 130.0f;
+        float cullDistanceM = 900.0f;
+        float shadowDistanceM = 120.0f;
 
     private:
-        [[nodiscard]] Sim::VehicleState StateOf(const Traffic::TrafficVehicle& v) const;
+        [[nodiscard]] Sim::VehicleState StateOf(const Traffic::TrafficVehicle& v, const CarModel& model) const;
+        [[nodiscard]] VehicleRenderer& RendererFor(const Traffic::TrafficVehicle& v);
 
-        VehicleRenderer& renderer_;
-        const Sim::VehicleDefinition& definition_;
+        std::array<std::unique_ptr<VehicleRenderer>, 5 * kVariantsPerBody> renderers_;
         const BitmapFont* plateFont_;
         std::unique_ptr<Image> plateAtlas_;
         std::map<std::string, std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> plates_;
-        int drawn_ = 0;
+        TrafficRenderStats stats_;
     };
 }

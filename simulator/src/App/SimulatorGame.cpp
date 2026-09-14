@@ -296,7 +296,7 @@ namespace CarSim::App
         vehicleMaterials_ = std::make_unique<Render::VehicleMaterials>(device, rig_);
         vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
         plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
-        trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleRenderer_, definition_, plateFont_.get());
+        trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleMaterials_, plateFont_.get());
         {
             std::string plate = definition_.visual.plate;
             if (plate.empty()) {
@@ -313,6 +313,13 @@ namespace CarSim::App
         cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
         mirror_ = std::make_unique<Render::MirrorView>(device);
         chaseCamera_.Snap(vehicle_->Snapshot());
+        if (traffic_ && options_.trafficWarmupSeconds > 0.0f) {
+            const int steps = static_cast<int>(options_.trafficWarmupSeconds * 60.0f);
+            for (int i = 0; i < steps; ++i) {
+                traffic_->Update(1.0f / 60.0f, PlayerProbe());
+            }
+            std::cout << "traffic: warmed up " << options_.trafficWarmupSeconds << " s, " << traffic_->Vehicles().size() << " cars\n";
+        }
         audio_ = std::make_unique<Audio::VehicleAudio>(!options_.noAudio);
         audio_->levels.master = save_.settings.masterVolume;
         audio_->levels.engine = save_.settings.engineVolume;
@@ -419,6 +426,13 @@ namespace CarSim::App
         if (exitRequested_) {
             return;
         }
+        // Lockstep captures: the fixed-step game loop calls Update several times per Draw when
+        // rendering is slow (software renderers); keep exactly one step per drawn frame so a
+        // capture at frame N is the same scene whatever the renderer speed.
+        if (options_.lockstep && updatesSinceDraw_ > 0) {
+            return;
+        }
+        ++updatesSinceDraw_;
         const auto frameStart = std::chrono::steady_clock::now();
         const float dt = static_cast<float>(gameTime.getElapsedGameTimeProperty().getTotalSecondsProperty());
         elapsedSeconds_ += static_cast<double>(dt);
@@ -461,6 +475,7 @@ namespace CarSim::App
 
     void SimulatorGame::Draw(const GameTime& gameTime)
     {
+        updatesSinceDraw_ = 0;
         const auto drawStart = std::chrono::steady_clock::now();
         auto& device = getGraphicsDeviceProperty();
         const auto& viewport = device.getViewportProperty();

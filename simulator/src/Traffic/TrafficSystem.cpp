@@ -585,6 +585,15 @@ namespace CarSim::Traffic
         }
     }
 
+    Sim::CarStyle::Body TrafficSystem::PickBody(const float roll)
+    {
+        if (roll < 0.40f) return Sim::CarStyle::Body::Hatchback;
+        if (roll < 0.62f) return Sim::CarStyle::Body::Sedan;
+        if (roll < 0.78f) return Sim::CarStyle::Body::Estate;
+        if (roll < 0.91f) return Sim::CarStyle::Body::Suv;
+        return Sim::CarStyle::Body::Van;
+    }
+
     int TrafficSystem::SpawnOn(const int lane, const float s, const float speed)
     {
         if (lane < 0 || static_cast<std::size_t>(lane) >= lanes_.Lanes().size()) {
@@ -597,9 +606,20 @@ namespace CarSim::Traffic
         v.s = std::clamp(s, 0.0f, lanes_.LaneAt(lane).length);
         v.speed = std::max(0.0f, speed);
         std::uniform_real_distribution<float> factor(0.9f, 1.08f);
-        std::uniform_int_distribution<int> palette(0, 7);
+        std::uniform_int_distribution<int> palette(0, 9);
+        std::uniform_real_distribution<float> roll(0.0f, 1.0f);
+        std::uniform_int_distribution<unsigned> seed(0u, 6u);
         v.driverFactor = factor(rng_);
         v.paletteIndex = palette(rng_);
+        v.body = PickBody(roll(rng_));
+        v.styleSeed = seed(rng_);
+        const Sim::CarStyle style = Sim::CarStyle::Preset(v.body, v.styleSeed);
+        v.lengthM = style.length;
+        v.widthM = style.width;
+        v.heightM = style.height;
+        v.massKg = Sim::TypicalMassKg(v.body);
+        // Vans and SUVs drive a little more conservatively.
+        if (v.body == Sim::CarStyle::Body::Van) v.driverFactor = std::min(v.driverFactor, 1.0f);
         v.plate = plates_.Next();
         ChooseNextLink(v);
         UpdatePose(v);

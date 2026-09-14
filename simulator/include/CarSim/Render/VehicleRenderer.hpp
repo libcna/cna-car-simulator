@@ -60,6 +60,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> plastic_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> fabric_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> headliner_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> vent_;
     };
 
     /// Gauge values used to pose the needles (fractions 0..1 of the dial sweep).

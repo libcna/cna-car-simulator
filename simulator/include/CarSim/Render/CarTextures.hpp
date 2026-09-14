@@ -23,5 +23,6 @@ namespace CarSim::Render::CarTextures
     [[nodiscard]] Image InteriorPlastic(int size, const Rgb& base, unsigned seed);
     [[nodiscard]] Image Fabric(int size, const Rgb& base, unsigned seed);
     [[nodiscard]] Image Headliner(int size);
+    [[nodiscard]] Image VentSlats(int size);
     [[nodiscard]] Image Chrome(int size);
 }

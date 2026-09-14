@@ -105,6 +105,16 @@ namespace CarSim::Render
                     look.specular = Vector3(0.06f, 0.06f, 0.06f);
                     look.specularPower = 8.0f;
                     break;
+                case CarMaterial::InteriorMid:
+                    look.diffuse = interiorColor * 2.0f + Vector3(0.04f, 0.04f, 0.04f);
+                    look.specular = Vector3(0.05f, 0.05f, 0.05f);
+                    look.specularPower = 8.0f;
+                    break;
+                case CarMaterial::Vent:
+                    look.diffuse = Vector3(1.0f, 1.0f, 1.0f);
+                    look.specular = Vector3(0.15f, 0.15f, 0.15f);
+                    look.specularPower = 12.0f;
+                    break;
                 case CarMaterial::InteriorLight:
                     look.diffuse = Vector3(0.62f, 0.62f, 0.60f);
                     look.specular = Vector3(0.02f, 0.02f, 0.02f);
@@ -239,6 +249,7 @@ namespace CarSim::Render
         plastic_ = UploadTexture(device, CarTextures::InteriorPlastic(256, Rgb{0.86f, 0.86f, 0.88f}, 5u), true);
         fabric_ = UploadTexture(device, CarTextures::Fabric(256, Rgb{0.95f, 0.95f, 0.98f}, 9u), true);
         headliner_ = UploadTexture(device, CarTextures::Headliner(128), true);
+        vent_ = UploadTexture(device, CarTextures::VentSlats(64), true);
 
         // Default plate: blank white face with the blue band (the traffic system supplies real plates).
         Image plate(256, 54, Color(250, 250, 250, 255));
@@ -268,7 +279,9 @@ namespace CarSim::Render
             case CarMaterial::LampIndicator:
             case CarMaterial::LampReverse: return tailLamp_.get();
             case CarMaterial::Grille: return grille_.get();
-            case CarMaterial::Interior: return plastic_.get();
+            case CarMaterial::Interior:
+            case CarMaterial::InteriorMid: return plastic_.get();
+            case CarMaterial::Vent: return vent_.get();
             case CarMaterial::Fabric: return fabric_.get();
             case CarMaterial::InteriorLight: return headliner_.get();
             default: return white_.get();
@@ -460,7 +473,7 @@ namespace CarSim::Render
             if (part.material == CarMaterial::Glass) {
                 continue;
             }
-            if (IsInteriorPart(part) && !drawInterior && (!part.cabin || lod >= 1)) {
+            if (IsInteriorPart(part) && !drawInterior && (!part.cabin || lod >= 2)) {
                 continue;
             }
             if (lod >= 1 && part.detail) {

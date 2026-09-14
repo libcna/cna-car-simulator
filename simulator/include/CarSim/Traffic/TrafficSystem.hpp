@@ -6,6 +6,7 @@
 
 #include "CarSim/Map/LaneGraph.hpp"
 #include "CarSim/Map/MapWorld.hpp"
+#include "CarSim/Sim/CarStyle.hpp"
 #include "CarSim/Traffic/PlateGenerator.hpp"
 
 #include "Microsoft/Xna/Framework/Matrix.hpp"
@@ -33,6 +34,8 @@ namespace CarSim::Traffic
         float heightM = 1.48f;
         float massKg = 1250.0f;
         int paletteIndex = 0;
+        Sim::CarStyle::Body body = Sim::CarStyle::Body::Hatchback;   // body variant (dimensions follow the preset)
+        unsigned styleSeed = 1;                                       // preset variation
         std::string plate;
         // Derived pose.
         Microsoft::Xna::Framework::Vector3 position{};   // origin on the ground
@@ -104,6 +107,9 @@ namespace CarSim::Traffic
         [[nodiscard]] int SpawnedTotal() const { return spawnedTotal_; }
 
         TrafficParams params;
+
+        /// Picks a body style for a new car: hatchbacks are common, vans rare (public for tests).
+        [[nodiscard]] static Sim::CarStyle::Body PickBody(float roll);
 
         /// Intelligent Driver Model acceleration (public for tests).
         [[nodiscard]] static float IdmAcceleration(float speed, float desiredSpeed, float gap, float leaderSpeed, const TrafficParams& p);

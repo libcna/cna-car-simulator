@@ -94,11 +94,17 @@ TEST(ProceduralCar, EveryBodyStyleGeneratesACompleteExterior)
             EXPECT_LT(bounds.Max.Y, style.height + 0.02f) << CarStyle::ToString(body);
             EXPECT_GT(bounds.Max.Y, style.height - 0.08f) << CarStyle::ToString(body);
             int wheels = 0;
+            int cabin = 0;
             for (const auto& p : model.parts) {
                 if (p.role == CarPart::Role::WheelFL || p.role == CarPart::Role::WheelFR || p.role == CarPart::Role::WheelRL || p.role == CarPart::Role::WheelRR) ++wheels;
-                EXPECT_NE(p.role, CarPart::Role::Interior) << "no cockpit requested";
+                if (p.role == CarPart::Role::Interior) {
+                    EXPECT_EQ(p.name, "cabin") << "without a cockpit only the cabin block is an interior part";
+                    EXPECT_TRUE(p.cabin);
+                    ++cabin;
+                }
             }
             EXPECT_EQ(wheels, 12) << "tyre, rim and disc per wheel";
+            EXPECT_EQ(cabin, 1);
         }
     }
 }

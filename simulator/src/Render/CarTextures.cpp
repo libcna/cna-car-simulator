@@ -283,6 +283,18 @@ namespace CarSim::Render::CarTextures
         return img;
     }
 
+    Image VentSlats(const int size)
+    {
+        Image img(size, size);
+        img.Generate([&](int, int, float u, float v) {
+            const float slat = std::fmod(v * 6.0f, 1.0f);
+            const float g = slat < 0.55f ? 0.34f + 0.10f * (slat / 0.55f) : 0.05f;
+            const float edge = std::min(u, 1.0f - u);
+            return Grey(edge < 0.03f ? 0.30f : g);
+        });
+        return img;
+    }
+
     Image Chrome(const int size)
     {
         Image img(size, size);

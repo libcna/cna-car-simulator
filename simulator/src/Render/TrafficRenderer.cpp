@@ -9,23 +9,35 @@ namespace CarSim::Render
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
 
-    TrafficRenderer::TrafficRenderer(GraphicsDevice& device, VehicleRenderer& renderer, const Sim::VehicleDefinition& definition, const BitmapFont* plateFont)
-        : renderer_(renderer), definition_(definition), plateFont_(plateFont)
+    TrafficRenderer::TrafficRenderer(GraphicsDevice& device, VehicleMaterials& materials, const BitmapFont* plateFont)
+        : plateFont_(plateFont)
     {
-        (void)device;
         if (plateFont_) {
             plateAtlas_ = std::make_unique<Image>(plateFont_->AtlasImage());
         }
+        // One model per body style and size variant, without cockpits (a cabin block keeps them
+        // from looking hollow through the glass).
+        for (int b = 0; b < 5; ++b) {
+            for (int k = 0; k < kVariantsPerBody; ++k) {
+                const Sim::CarStyle style = Sim::CarStyle::Preset(static_cast<Sim::CarStyle::Body>(b), VariantSeed(static_cast<unsigned>(k)));
+                renderers_[static_cast<std::size_t>(b * kVariantsPerBody + k)] = std::make_unique<VehicleRenderer>(device, materials, style, nullptr, false);
+            }
+        }
     }
 
-    Vector3 TrafficRenderer::PaintColour(const int paletteIndex)
+    Vector3 TrafficRenderer::PaintColour(const int paletteIndex, const Sim::CarStyle::Body body)
     {
-        // Common Czech car colours: white, silver, grey, black, dark blue, red, dark green, beige.
-        static const Vector3 palette[8] = {
+        // Common Czech car colours: white, silver, grey, black, dark blue, red, dark green, beige, light blue, brown.
+        static const Vector3 palette[10] = {
             Vector3(0.90f, 0.90f, 0.88f), Vector3(0.66f, 0.68f, 0.70f), Vector3(0.36f, 0.37f, 0.39f), Vector3(0.05f, 0.05f, 0.06f),
             Vector3(0.08f, 0.14f, 0.36f), Vector3(0.62f, 0.10f, 0.10f), Vector3(0.10f, 0.28f, 0.16f), Vector3(0.72f, 0.64f, 0.50f),
+            Vector3(0.40f, 0.55f, 0.72f), Vector3(0.32f, 0.20f, 0.12f),
         };
-        return palette[static_cast<std::size_t>(paletteIndex % 8)];
+        int index = paletteIndex % 10;
+        if (body == Sim::CarStyle::Body::Van && index >= 4) {
+            index = index % 2;   // vans: mostly white or silver
+        }
+        return palette[static_cast<std::size_t>(index)];
     }
 
     Texture2D* TrafficRenderer::PlateTexture(GraphicsDevice& device, const std::string& text)
@@ -43,7 +55,14 @@ namespace CarSim::Render
         return raw;
     }
 
-    Sim::VehicleState TrafficRenderer::StateOf(const Traffic::TrafficVehicle& v) const
+    VehicleRenderer& TrafficRenderer::RendererFor(const Traffic::TrafficVehicle& v)
+    {
+        const int b = static_cast<int>(v.body);
+        const int k = static_cast<int>(v.styleSeed % static_cast<unsigned>(kVariantsPerBody));
+        return *renderers_[static_cast<std::size_t>(b * kVariantsPerBody + k)];
+    }
+
+    Sim::VehicleState TrafficRenderer::StateOf(const Traffic::TrafficVehicle& v, const CarModel& model) const
     {
         Sim::VehicleState s;
         s.originPosition = v.position;
@@ -59,14 +78,14 @@ namespace CarSim::Render
         s.leftIndicatorLit = v.indicatorLeft && blink;
         s.rightIndicatorLit = v.indicatorRight && blink;
         s.lowBeam = true;   // daytime running lights
-        s.steeringWheelAngle = -v.steerAngle * definition_.steering.steeringRatio;
+        s.steeringWheelAngle = -v.steerAngle * 15.5f;
         const Matrix rotation = Matrix::CreateRotationY(-v.headingRad);
-        for (std::size_t i = 0; i < 4 && i < definition_.wheels.size(); ++i) {
-            const auto& w = definition_.wheels[i];
+        for (std::size_t i = 0; i < 4; ++i) {
+            const Vector3& c = model.wheelCenters[i];
             Sim::VehicleState::WheelPose pose;
-            pose.worldCenter = v.position + Vector3::TransformNormal(Vector3(w.position.X, w.radiusM, w.position.Z), rotation);
-            pose.steerAngle = w.steered ? v.steerAngle : 0.0f;
-            pose.spinAngle = v.wheelSpin;
+            pose.worldCenter = v.position + Vector3::TransformNormal(c, rotation);
+            pose.steerAngle = i < 2 ? v.steerAngle : 0.0f;
+            pose.spinAngle = v.wheelSpin * (model.style.wheelRadius > 0.0f ? 0.31f / model.style.wheelRadius : 1.0f);   // the traffic model integrates spin at a 0.31 m reference radius
             pose.grounded = true;
             s.wheels[i] = pose;
         }
@@ -77,28 +96,34 @@ namespace CarSim::Render
                                const BoundingFrustum& frustum, const Vector3& cameraPosition, const LightingRig& rig,
                                const std::function<Vector3(const Vector3&)>& groundNormal, const bool mirrored)
     {
-        drawn_ = 0;
+        stats_ = TrafficRenderStats{};
         GaugePose none;
         for (const auto& v : traffic.Vehicles()) {
-            const BoundingSphere sphere(v.position + Vector3(0.0f, 0.8f, 0.0f), 2.8f);
+            const BoundingSphere sphere(v.position + Vector3(0.0f, 0.5f * v.heightM, 0.0f), 0.5f * v.lengthM + 0.8f);
             if (!frustum.Intersects(sphere)) {
                 continue;
             }
             const float distance = Vector3::Distance(cameraPosition, v.position);
-            if (distance > 900.0f) {
+            if (distance > cullDistanceM) {
                 continue;
             }
-            const Sim::VehicleState state = StateOf(v);
-            renderer_.SetPaintOverride(PaintColour(v.paletteIndex));
-            renderer_.SetPlateTexture(PlateTexture(device, v.plate));
-            renderer_.DrawOpaque(device, state, view, projection, false, none, mirrored);
-            if (distance < 120.0f && !mirrored) {
-                renderer_.DrawShadow(device, state, view, projection, rig.sunDirection, v.position, groundNormal(v.position));
+            const int lod = distance < lod1DistanceM ? 0 : distance < lod2DistanceM ? 1 : 2;
+            VehicleRenderer& renderer = RendererFor(v);
+            const Sim::VehicleState state = StateOf(v, renderer.Model());
+            renderer.SetPaintOverride(PaintColour(v.paletteIndex, v.body));
+            renderer.SetPlateTexture(lod < 2 ? PlateTexture(device, v.plate) : nullptr);
+            renderer.DrawOpaque(device, state, view, projection, false, none, mirrored, lod);
+            stats_.drawCalls += renderer.DrawCallsLastFrame();
+            if (distance < shadowDistanceM && !mirrored) {
+                renderer.DrawShadow(device, state, view, projection, rig.sunDirection, v.position, groundNormal(v.position));
             }
-            renderer_.DrawTransparent(device, state, view, projection, mirrored);
-            ++drawn_;
+            if (lod < 2) {
+                renderer.DrawTransparent(device, state, view, projection, mirrored);
+            }
+            renderer.SetPaintOverride(std::nullopt);
+            renderer.SetPlateTexture(nullptr);
+            ++stats_.drawn;
+            if (lod == 0) ++stats_.lod0; else if (lod == 1) ++stats_.lod1; else ++stats_.lod2;
         }
-        renderer_.SetPaintOverride(std::nullopt);
-        renderer_.SetPlateTexture(nullptr);
     }
 }

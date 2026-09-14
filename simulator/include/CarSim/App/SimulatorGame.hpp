@@ -128,6 +128,7 @@ namespace CarSim::App
         } bench_;
         std::chrono::steady_clock::time_point lastFrameEnd_{};
         int framesDrawn_ = 0;
+        int updatesSinceDraw_ = 0;
         bool exitRequested_ = false;
         bool screenshotRequested_ = false;
         bool autoDriveStarted_ = false;
