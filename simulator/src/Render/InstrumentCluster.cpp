@@ -28,8 +28,6 @@ namespace CarSim::Render
         constexpr float kDeg = std::numbers::pi_v<float> / 180.0f;
         constexpr int kIconSize = 64;
 
-        const Color kFaceDark(22, 23, 26, 255);
-        const Color kFaceRim(48, 50, 56, 255);
         const Color kTickWhite(236, 236, 232, 255);
         const Color kTickDim(150, 150, 148, 255);
         const Color kRedZone(200, 40, 30, 255);
@@ -179,6 +177,47 @@ namespace CarSim::Render
             return img;
         }
 
+        /// Dial face: matte dark disc with a slightly lighter outer band (premultiplied alpha).
+        Image BuildFace()
+        {
+            Image img(128, 128, Color(0, 0, 0, 0));
+            for (int y = 0; y < 128; ++y) {
+                for (int x = 0; x < 128; ++x) {
+                    const float d = std::hypot(static_cast<float>(x) + 0.5f - 64.0f, static_cast<float>(y) + 0.5f - 64.0f) / 63.5f;
+                    const float a = std::clamp((1.0f - d) * 63.5f + 0.5f, 0.0f, 1.0f);
+                    const float t = std::clamp((d - 0.55f) / 0.45f, 0.0f, 1.0f);
+                    const float band = t * t * (3.0f - 2.0f * t);
+                    const float g = 20.0f + 14.0f * band;
+                    const int r = static_cast<int>(g * a), gg = static_cast<int>((g + 1.0f) * a), b = static_cast<int>((g + 4.0f) * a);
+                    img.FillRect(x, y, x + 1, y + 1, Color(r, gg, b, static_cast<int>(a * 255.0f)));
+                }
+            }
+            return img;
+        }
+
+        /// Bezel ring: brushed metal, lit from the top-left, dark inner lip (premultiplied alpha).
+        Image BuildBezel()
+        {
+            Image img(128, 128, Color(0, 0, 0, 0));
+            for (int y = 0; y < 128; ++y) {
+                for (int x = 0; x < 128; ++x) {
+                    const float dx = static_cast<float>(x) + 0.5f - 64.0f, dy = static_cast<float>(y) + 0.5f - 64.0f;
+                    const float d = std::hypot(dx, dy) / 63.5f;
+                    const float outer = std::clamp((1.0f - d) * 63.5f + 0.5f, 0.0f, 1.0f);
+                    const float inner = std::clamp((d - 0.84f) * 63.5f + 0.5f, 0.0f, 1.0f);
+                    const float a = outer * inner;
+                    if (a <= 0.0f) continue;
+                    const float angle = std::atan2(dy, dx);
+                    float shade = 0.40f + 0.28f * (0.5f + 0.5f * std::cos(angle + 2.35f));   // highlight top-left
+                    if (d < 0.88f) shade *= 0.55f;    // inner lip in shadow
+                    if (d > 0.97f) shade *= 0.75f;    // outer chamfer
+                    const int v = static_cast<int>(shade * 255.0f * a);
+                    img.FillRect(x, y, x + 1, y + 1, Color(v, v, static_cast<int>(shade * 262.0f * a), static_cast<int>(a * 255.0f)));
+                }
+            }
+            return img;
+        }
+
         Image BuildDisc()
         {
             Image img(64, 64, Color(0, 0, 0, 0));
@@ -204,6 +243,8 @@ namespace CarSim::Render
                                                        RenderTargetUsage::PreserveContents);
         white_ = UploadTexture(device, Textures::Solid(4, Color(255, 255, 255, 255)), false);
         disc_ = UploadTexture(device, BuildDisc(), true);
+        face_ = UploadTexture(device, BuildFace(), true);
+        bezel_ = UploadTexture(device, BuildBezel(), true);
         needle_ = UploadTexture(device, BuildNeedle(), true);
         icons_ = UploadTexture(device, BuildIcons(), true);
 
@@ -247,11 +288,7 @@ namespace CarSim::Render
     void InstrumentCluster::DrawDialFace(SpriteBatch& batch, const Dial& dial, const float maxValue, const float majorStep, const float minorStep,
                                          const float labelScale, const float labelDivisor, const float redFrom) const
     {
-        // Face: rim disc then dark face.
-        const float rimScale = (dial.radius + 10.0f) * 2.0f / 64.0f;
-        batch.Draw(*disc_, dial.centre, std::nullopt, kFaceRim, 0.0f, Vector2(32.0f, 32.0f), Vector2(rimScale, rimScale), SpriteEffects::None, 0.0f);
-        const float faceScale = dial.radius * 2.0f / 64.0f;
-        batch.Draw(*disc_, dial.centre, std::nullopt, kFaceDark, 0.0f, Vector2(32.0f, 32.0f), Vector2(faceScale, faceScale), SpriteEffects::None, 0.0f);
+        DrawFace(batch, dial, 12.0f);
         // Red zone arc as dense short ticks.
         if (redFrom < maxValue) {
             for (float v = redFrom; v <= maxValue; v += maxValue / 400.0f) {
@@ -276,13 +313,31 @@ namespace CarSim::Render
         }
     }
 
+    void InstrumentCluster::DrawFace(SpriteBatch& batch, const Dial& dial, const float bezelWidth) const
+    {
+        // Bezel ring around the face, then the matte face with its lighter outer band.
+        const float bezelScale = (dial.radius + bezelWidth) * 2.0f / 128.0f;
+        batch.Draw(*bezel_, dial.centre, std::nullopt, Color(255, 255, 255, 255), 0.0f, Vector2(64.0f, 64.0f), Vector2(bezelScale, bezelScale),
+                   SpriteEffects::None, 0.0f);
+        const float faceScale = (dial.radius + 1.0f) * 2.0f / 128.0f;
+        batch.Draw(*face_, dial.centre, std::nullopt, Color(255, 255, 255, 255), 0.0f, Vector2(64.0f, 64.0f), Vector2(faceScale, faceScale),
+                   SpriteEffects::None, 0.0f);
+    }
+
     void InstrumentCluster::DrawNeedle(SpriteBatch& batch, const Dial& dial, const float fraction, const float length, const Color& color) const
     {
         const float f = std::clamp(fraction, -0.02f, 1.02f);
         const float angle = (dial.startDeg + dial.sweepDeg * f) * kDeg;
         const float scale = length / 136.0f;   // 136 px from pivot to tip in the needle image
+        // Drop shadow on the face, then the needle, then a chrome-ringed hub.
+        batch.Draw(*needle_, dial.centre + Vector2(3.0f, 5.0f), std::nullopt, Color(0, 0, 0, 110), angle, Vector2(12.0f, 136.0f), Vector2(scale, scale),
+                   SpriteEffects::None, 0.0f);
         batch.Draw(*needle_, dial.centre, std::nullopt, color, angle, Vector2(12.0f, 136.0f), Vector2(scale, scale), SpriteEffects::None, 0.0f);
         const float hub = length * 0.16f * 2.0f / 64.0f;
+        batch.Draw(*disc_, dial.centre + Vector2(1.5f, 2.5f), std::nullopt, Color(0, 0, 0, 120), 0.0f, Vector2(32.0f, 32.0f), Vector2(hub * 1.3f, hub * 1.3f),
+                   SpriteEffects::None, 0.0f);
+        batch.Draw(*disc_, dial.centre, std::nullopt, Color(138, 140, 146, 255), 0.0f, Vector2(32.0f, 32.0f), Vector2(hub * 1.3f, hub * 1.3f),
+                   SpriteEffects::None, 0.0f);
         batch.Draw(*disc_, dial.centre, std::nullopt, Color(30, 30, 32, 255), 0.0f, Vector2(32.0f, 32.0f), Vector2(hub, hub), SpriteEffects::None, 0.0f);
     }
 
@@ -314,10 +369,7 @@ namespace CarSim::Render
         DrawDialFace(batch, tacho_, dash.tachometerMaxRpm, 1000.0f, 250.0f, 0.42f, 1000.0f, definition_.engine.redlineRpm);
         // Small gauges: three ticks each (E / half / F, cold / mid / hot).
         for (const Dial* d : {&fuel_, &temp_}) {
-            const float rim = (d->radius + 4.0f) * 2.0f / 64.0f;
-            batch.Draw(*disc_, d->centre, std::nullopt, kFaceRim, 0.0f, Vector2(32.0f, 32.0f), Vector2(rim, rim), SpriteEffects::None, 0.0f);
-            const float face = d->radius * 2.0f / 64.0f;
-            batch.Draw(*disc_, d->centre, std::nullopt, kFaceDark, 0.0f, Vector2(32.0f, 32.0f), Vector2(face, face), SpriteEffects::None, 0.0f);
+            DrawFace(batch, *d, 5.0f);
             for (int i = 0; i <= 4; ++i) {
                 const float a = d->startDeg + d->sweepDeg * static_cast<float>(i) / 4.0f;
                 DrawTick(batch, *d, a, d->radius - 14.0f, i % 2 == 0 ? 10.0f : 6.0f, i % 2 == 0 ? 3.0f : 2.0f, kTickWhite);
@@ -333,8 +385,10 @@ namespace CarSim::Render
         textFont_.Draw(batch, "F", Vector2(fuel_.centre.X + 44.0f, fuel_.centre.Y - 26.0f), kTickDim, 0.7f, TextAlign::Center);
         textFont_.Draw(batch, "C", Vector2(temp_.centre.X - 44.0f, temp_.centre.Y - 26.0f), kTickDim, 0.7f, TextAlign::Center);
         textFont_.Draw(batch, "H", Vector2(temp_.centre.X + 44.0f, temp_.centre.Y - 26.0f), kTickDim, 0.7f, TextAlign::Center);
-        // Central display bezel.
-        batch.Draw(*white_, Vector2(452.0f, 150.0f), std::nullopt, Color(34, 35, 40, 255), 0.0f, Vector2(0.0f, 0.0f), Vector2(30.0f, 40.0f), SpriteEffects::None, 0.0f);
+        // Central display: dark bezel frame with a recessed LCD panel.
+        batch.Draw(*white_, Vector2(448.0f, 146.0f), std::nullopt, Color(18, 18, 21, 255), 0.0f, Vector2(0.0f, 0.0f), Vector2(32.0f, 42.0f), SpriteEffects::None, 0.0f);
+        batch.Draw(*white_, Vector2(452.0f, 150.0f), std::nullopt, Color(40, 46, 44, 255), 0.0f, Vector2(0.0f, 0.0f), Vector2(30.0f, 40.0f), SpriteEffects::None, 0.0f);
+        batch.Draw(*white_, Vector2(452.0f, 150.0f), std::nullopt, Color(30, 34, 33, 255), 0.0f, Vector2(0.0f, 0.0f), Vector2(30.0f, 1.0f), SpriteEffects::None, 0.0f);
         batch.End();
         device.SetRenderTarget(nullptr);
         staticBuilt_ = true;

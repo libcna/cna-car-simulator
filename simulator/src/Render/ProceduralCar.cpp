@@ -971,6 +971,7 @@ namespace CarSim::Render
         CarPart housings = MakePart("lamp_housings", CarMaterial::GlossBlack);
         CarPart grille = MakePart("grille", CarMaterial::Grille);
         CarPart chrome = MakePart("chrome", CarMaterial::Chrome);
+        CarPart mirrorGlass = MakePart("mirror_glass", CarMaterial::MirrorGlass);
         CarPart plates = MakePart("plates", CarMaterial::Plate);
         CarPart lampHead = MakePart("lamp_head", CarMaterial::LampHead);
         CarPart lampTail = MakePart("lamp_tail", CarMaterial::LampTail);
@@ -1009,7 +1010,8 @@ namespace CarSim::Render
             const float vT2 = skin.V(sh.zR - 0.34f);
             std::vector<Vector2> red = {{uGlassBase - 0.004f, v1}, {uGlassBase - 0.004f, vT2}, {uCrown1 + 0.006f, vT}, {uCrown1 + 0.006f, v1}};
             std::vector<Vector2> amber = {{uDoor10 - 0.002f, v1}, {uDoor10 - 0.002f, vT2}, {uGlassBase - 0.004f, vT2}, {uGlassBase - 0.004f, v1}};
-            std::vector<Vector2> white = {{uDoor9 - 0.004f, v1}, {uDoor9 - 0.004f, vT2}, {uDoor10 - 0.002f, vT2}, {uDoor10 - 0.002f, v1}};
+            const float uWhite0 = 0.5f * (uDoor9 - 0.004f + uDoor10 - 0.002f);   // reversing lamp: a narrow inner segment
+            std::vector<Vector2> white = {{uWhite0, v1}, {uWhite0, vT2}, {uDoor10 - 0.002f, vT2}, {uDoor10 - 0.002f, v1}};
             decals.push_back({red, CarMaterial::LampTail, "tail_right", 0.003f, false});
             decals.push_back({mirrorU(red), CarMaterial::LampTail, "tail_left", 0.003f, false});
             decals.push_back({amber, CarMaterial::LampIndicator, "indicator_right_rear", 0.003f, false});
@@ -1145,7 +1147,7 @@ namespace CarSim::Render
                 // Mirror glass on the rear face of the housing.
                 const Vector3 g = centre + Vector3(0.0f, 0.0f, 0.049f);
                 const Vector3 r(0.085f, 0, 0), u(0, 0.05f, 0);
-                chrome.mesh.AddQuad(g + r - u, g + r + u, g - r + u, g - r - u, Vector3(0, 0, 1), Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), Vector2(1, 1));
+                mirrorGlass.mesh.AddQuad(g + r - u, g + r + u, g - r + u, g - r - u, Vector3(0, 0, 1), Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), Vector2(1, 1));
             }
             // Door handles: flush pull handles with a dark finger recess.
             for (const float side : {-1.0f, 1.0f}) {
@@ -1325,7 +1327,7 @@ namespace CarSim::Render
         }
 
         model.bodyTriangles = static_cast<int>(paint.mesh.TriangleCount() + glass.mesh.TriangleCount() + trim.mesh.TriangleCount() + gloss.mesh.TriangleCount());
-        for (CarPart* p : {&paint, &glass, &trim, &gloss, &housings, &grille, &chrome, &plates, &lampHead, &lampTail, &lampReverse,
+        for (CarPart* p : {&paint, &glass, &trim, &gloss, &housings, &grille, &chrome, &mirrorGlass, &plates, &lampHead, &lampTail, &lampReverse,
                            &indLF, &indRF, &indLR, &indRR, &repeaterL, &repeaterR}) {
             if (p->mesh.TriangleCount() > 0) model.parts.push_back(std::move(*p));
         }

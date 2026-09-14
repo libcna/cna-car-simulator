@@ -66,6 +66,7 @@ namespace CarSim::Render
                           float minorStep, float labelScale, float labelDivisor, float redFrom) const;
         void DrawTick(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, const Dial& dial, float angleDeg, float innerRadius,
                       float length, float thickness, const Microsoft::Xna::Framework::Color& color) const;
+        void DrawFace(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, const Dial& dial, float bezelWidth) const;
         void DrawNeedle(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, const Dial& dial, float fraction, float length,
                         const Microsoft::Xna::Framework::Color& color) const;
         void DrawLamp(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, Lamp lamp, Microsoft::Xna::Framework::Vector2 centre,
@@ -79,6 +80,8 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::RenderTarget2D> background_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> disc_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> face_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> bezel_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> needle_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> icons_;
         Dial speedo_;

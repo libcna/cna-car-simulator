@@ -191,7 +191,8 @@ tools/          map generator, map validator, font atlas generator, simulation t
 scripts/        headless runner, XNA-only static check, asset manifest check
 tests/          GoogleTest suites (unit, scenario, soak) and CTest registrations
 docs/           framework findings, API boundary, map format, vehicle physics, audio
-                design, performance notes, research (Czech roads, plates, assets)
+                design, vehicle materials, performance notes, research (Czech roads,
+                plates, assets)
 ```
 
 Two static libraries keep the renderer-free code testable: `carsim_core` (Core, Sim, Map,

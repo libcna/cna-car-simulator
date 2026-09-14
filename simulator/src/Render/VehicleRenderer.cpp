@@ -84,6 +84,13 @@ namespace CarSim::Render
                     look.specularPower = 80.0f;
                     look.envAmount = 0.8f;
                     break;
+                case CarMaterial::MirrorGlass:
+                    // Mirror glass reads dark grey with a sky reflection, not a white chrome slab.
+                    look.diffuse = Vector3(0.22f, 0.23f, 0.25f);
+                    look.specular = Vector3(1.0f, 1.0f, 1.0f);
+                    look.specularPower = 90.0f;
+                    look.envAmount = 0.45f;
+                    break;
                 case CarMaterial::Tyre:
                     look.diffuse = Vector3(0.95f, 0.95f, 0.95f);   // the tread texture carries the tone
                     look.specular = Vector3(0.06f, 0.06f, 0.06f);
@@ -138,9 +145,9 @@ namespace CarSim::Render
                     }
                     break;
                 case CarMaterial::LampTail:
-                    look.diffuse = Vector3(0.62f, 0.05f, 0.04f);
-                    look.specular = Vector3(0.8f, 0.8f, 0.8f);
-                    look.specularPower = 60.0f;
+                    look.diffuse = Vector3(0.55f, 0.03f, 0.03f);
+                    look.specular = Vector3(0.55f, 0.55f, 0.55f);
+                    look.specularPower = 50.0f;
                     if (state.brakeLights) {
                         look.emissive = Vector3(0.95f, 0.05f, 0.03f);
                     } else if (state.lowBeam) {
@@ -477,7 +484,7 @@ namespace CarSim::Render
             e.setDiffuseColorProperty(look.diffuse);
             e.setEmissiveColorProperty(look.emissive);
             e.setEnvironmentMapAmountProperty(look.envAmount);
-            e.setFresnelFactorProperty(part.material == CarMaterial::Chrome ? 0.0f : glass ? 1.2f : 2.2f);
+            e.setFresnelFactorProperty(part.material == CarMaterial::Chrome || part.material == CarMaterial::MirrorGlass ? 0.0f : glass ? 1.2f : 2.2f);
             e.setAlphaProperty(1.0f);
             e.setTextureProperty(part.material == CarMaterial::Paint ? paintDetail_.get() : glass ? glassOutside_.get() : &materials_.White());
             device.getSamplerStatesProperty()[0] = glass ? SamplerState::LinearClamp : SamplerState::AnisotropicWrap;
@@ -536,7 +543,7 @@ namespace CarSim::Render
             if (lod >= 1 && part.detail) {
                 continue;
             }
-            if (lod >= 2 && (part.material == CarMaterial::Chrome || part.material == CarMaterial::GlossBlack || part.material == CarMaterial::Grille ||
+            if (lod >= 2 && (part.material == CarMaterial::Chrome || part.material == CarMaterial::MirrorGlass || part.material == CarMaterial::GlossBlack || part.material == CarMaterial::Grille ||
                              part.material == CarMaterial::BrakeDisc || part.material == CarMaterial::Plate)) {
                 continue;
             }

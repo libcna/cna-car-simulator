@@ -34,7 +34,8 @@ namespace CarSim::Render
         Glass,          // tinted, alpha blended, frit band texture
         BlackTrim,      // bumper lower skins, sills, arch liners, mirror housings, wipers
         GlossBlack,     // B-pillars, window surrounds
-        Chrome,         // badges, handles, exhaust tip, mirror glass
+        Chrome,         // badges, handles, exhaust tip
+        MirrorGlass,    // door mirror glass: dark reflective, low fresnel
         Tyre,           // rubber with tread texture
         Rim,            // alloy wheel
         BrakeDisc,      // disc and caliper behind the spokes
