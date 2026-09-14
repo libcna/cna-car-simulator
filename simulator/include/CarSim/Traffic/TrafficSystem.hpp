@@ -44,6 +44,9 @@ namespace CarSim::Traffic
         bool waiting = false;         // held at an intersection
         float waitTime = 0.0f;
         bool stoppedAtLine = false;   // stop sign: full stop registered
+        bool committed = false;       // released by the deadlock breaker: enters without re-checking
+        bool backingOff = false;      // reversing out of a junction stand-off back to the line
+        float standoffTime = 0.0f;    // seconds stopped nose to nose inside a junction
         float stunned = 0.0f;         // seconds of forced stop after a collision
         bool brakeLights = false;
         bool indicatorLeft = false;
@@ -111,6 +114,8 @@ namespace CarSim::Traffic
             bool found = false;
             float gap = 1e9f;          // bumper to bumper
             float speed = 0.0f;
+            int id = -1;               // traffic car id, -1 for the player or a stop line
+            bool onConflict = false;   // the leader stands on a crossing connector, not on our path
         };
 
         void UpdateVehicle(TrafficVehicle& v, float dt, const PlayerProbe& player);
@@ -122,6 +127,11 @@ namespace CarSim::Traffic
         void SpawnAroundPlayer(const PlayerProbe& player);
         void Despawn(const PlayerProbe& player);
         [[nodiscard]] float DistanceToEnd(const TrafficVehicle& v) const;
+        /// Point `ahead` metres further along the car's path (lane, chosen link, next lane).
+        [[nodiscard]] bool PathPointAhead(const TrafficVehicle& v, float ahead, Map::LanePoint& out) const;
+        /// Path distance at which `other`'s footprint blocks `v`'s path within `maxAhead`, or -1.
+        [[nodiscard]] float PathBlockedBy(const TrafficVehicle& v, const TrafficVehicle& other, float maxAhead) const;
+        [[nodiscard]] const TrafficVehicle* FindVehicle(int id) const;
         [[nodiscard]] bool LaneOccupiedNear(int lane, float s, float radius, int ignoreId) const;
 
         const Map::MapWorld& world_;

@@ -27,6 +27,10 @@ namespace CarSim::Render
         /// Flat fan mesh of an intersection patch plus its give-way/stop lines.
         void BuildIntersection(const Map::Intersection& intersection, MeshData& paved, MeshData& markings) const;
 
+        /// Pedestrian crossing (V 7): 0.5 m bars across the paved width at the road point nearest
+        /// to `position` (typically an IP 6 sign). Returns false when no road is near.
+        [[nodiscard]] bool BuildCrossing(const Microsoft::Xna::Framework::Vector2& position, MeshData& markings) const;
+
         /// Lift of the marking geometry above the road surface (metres).
         static constexpr float kMarkingLift = 0.008f;
 

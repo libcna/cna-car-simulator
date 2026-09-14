@@ -264,6 +264,12 @@ namespace CarSim::Render
             MeshData& target = inter.surface == Sim::SurfaceType::Gravel || inter.surface == Sim::SurfaceType::Dirt ? gravel : asphalt;
             builder.BuildIntersection(inter, target, markings);
         }
+        // Pedestrian crossings (V 7) wherever an IP 6 sign stands.
+        for (const auto& sign : world_.Objects().Signs()) {
+            if (sign.spec && sign.spec->code == "IP6") {
+                builder.BuildCrossing(Microsoft::Xna::Framework::Vector2(sign.position.X, sign.position.Z), markings);
+            }
+        }
         const auto push = [&](MeshData& m, Surface s) {
             if (m.TriangleCount() == 0) return;
             Batch b;

@@ -31,8 +31,8 @@ stopping the simulator.
   `Running`.
 - Off/stalled: the master gain fades out over 0.18 s.
 
-Load is approximated by the throttle pedal (delivered torque fraction would need the engine's
-load signal in `VehicleState`; see plan `AUD-006`).
+Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on
+overrun) blended with a small throttle share so a blipped pedal is audible immediately.
 
 ## Rolling noise, wind, horn, one-shots (`Audio::SoundSynth`)
 

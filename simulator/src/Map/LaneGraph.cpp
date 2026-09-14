@@ -394,12 +394,9 @@ namespace CarSim::Map
                             yield = true;   // left turn gives way to oncoming traffic
                         } else if (L.turn == TurnType::Left && oncoming && M.turn == TurnType::Left) {
                             yield = false;
-                        } else if (!oncoming) {
-                            if (mFromRight) {
-                                yield = true;   // right-hand rule
-                            } else if (L.turn == TurnType::Right && M.turn == TurnType::Straight && merge) {
-                                yield = true;   // merging into a through movement from the left
-                            }
+                        } else if (!oncoming && mFromRight) {
+                            // Right-hand rule; it covers merges too: the car from the right goes first.
+                            yield = true;
                         }
                     } else if (!L.priority && M.priority) {
                         yield = true;
@@ -407,6 +404,23 @@ namespace CarSim::Map
                     if (yield) {
                         L.yieldTo.push_back(M.id);
                     }
+                }
+            }
+            // Right of way must be antisymmetric, otherwise two cars wait for each other forever.
+            // Should odd geometry produce a mutual yield, the turning movement gives way (the
+            // higher link id if both turn or both go straight).
+            for (const int a : ids) {
+                LaneLink& A = links_[static_cast<std::size_t>(a)];
+                const std::vector<int> yields = A.yieldTo;
+                for (const int b : yields) {
+                    LaneLink& B = links_[static_cast<std::size_t>(b)];
+                    if (std::find(B.yieldTo.begin(), B.yieldTo.end(), A.id) == B.yieldTo.end()) continue;
+                    const bool aTurns = A.turn != TurnType::Straight;
+                    const bool bTurns = B.turn != TurnType::Straight;
+                    const bool aKeepsYielding = aTurns == bTurns ? A.id > B.id : aTurns;
+                    std::vector<int>& drop = aKeepsYielding ? B.yieldTo : A.yieldTo;
+                    const int victim = aKeepsYielding ? A.id : B.id;
+                    drop.erase(std::remove(drop.begin(), drop.end(), victim), drop.end());
                 }
             }
         }

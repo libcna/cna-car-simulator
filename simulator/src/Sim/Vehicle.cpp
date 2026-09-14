@@ -650,6 +650,7 @@ namespace CarSim::Sim
         s.speedMs = ForwardSpeedMs();
         s.speedKmh = SpeedKmh();
         s.engineRpm = engine_.Rpm();
+        s.engineLoad = std::clamp(engine_.LoadFraction(), 0.0f, 1.0f);
         s.engineState = engine_.State();
         s.ignitionOn = engine_.IgnitionOn();
         s.throttlePedal = throttlePedal_;

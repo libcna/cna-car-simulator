@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <string>
 
 using namespace CarSim;
@@ -66,4 +67,23 @@ TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)
     EXPECT_FLOAT_EQ(road->SpeedLimitAt(hit.s), 50.0f);
     ASSERT_TRUE(roads.NearestRoad(Microsoft::Xna::Framework::Vector2(1000.0f, -210.0f), 40.0f, hit));
     EXPECT_FLOAT_EQ(road->SpeedLimitAt(hit.s), 90.0f);
+}
+
+TEST(SampleMap, RightOfWayIsAntisymmetric)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    const auto& lanes = world->Lanes();
+    int yields = 0;
+    for (const auto& link : lanes.Links()) {
+        for (const int other : link.yieldTo) {
+            ++yields;
+            const auto& m = lanes.LinkAt(other);
+            EXPECT_TRUE(std::find(m.yieldTo.begin(), m.yieldTo.end(), link.id) == m.yieldTo.end())
+                << "links " << link.id << " and " << other << " yield to each other";
+            EXPECT_TRUE(std::find(link.conflicts.begin(), link.conflicts.end(), other) != link.conflicts.end());
+        }
+    }
+    EXPECT_GT(yields, 20);
 }

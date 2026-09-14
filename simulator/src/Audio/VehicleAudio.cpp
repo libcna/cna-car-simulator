@@ -98,8 +98,9 @@ namespace CarSim::Audio
         EngineSoundInput engineInput;
         engineInput.rpm = state.engineRpm;
         engineInput.throttle = state.throttlePedal;
-        // Load proxy: throttle while running; overrun (no throttle, high rpm) sounds unloaded.
-        engineInput.load = state.throttlePedal;
+        // Delivered torque fraction from the engine model (0 on overrun); the throttle adds a
+        // little presence so a blipped pedal is audible before the load builds up.
+        engineInput.load = std::clamp(0.85f * state.engineLoad + 0.15f * state.throttlePedal, 0.0f, 1.0f);
         switch (state.engineState) {
             case Sim::EngineState::Off: engineInput.state = EngineSoundState::Off; break;
             case Sim::EngineState::Starting: engineInput.state = EngineSoundState::Starting; break;

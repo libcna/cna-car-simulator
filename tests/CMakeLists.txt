@@ -22,6 +22,7 @@ add_executable(carsim_tests
     Sim/ElectricsTests.cpp
     Sim/EngineTests.cpp
     Sim/FuelThermalTests.cpp
+    Sim/FuelCycleTests.cpp
     Sim/RigidBodyTests.cpp
     Sim/TransmissionTests.cpp
     Sim/TyreGroundTests.cpp
@@ -36,6 +37,7 @@ add_executable(carsim_tests
     Collision/CollisionTests.cpp
     Traffic/PlateTests.cpp
     Traffic/TrafficTests.cpp
+    Traffic/TrafficSoakTests.cpp
     Audio/EngineSynthTests.cpp
     Render/ImageTests.cpp
 )
@@ -71,3 +73,8 @@ set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;displa
 add_test(NAME map_validate_lipova
     COMMAND carsim-mapvalidate --content "${CMAKE_SOURCE_DIR}/content" --map lipova --quiet)
 set_tests_properties(map_validate_lipova PROPERTIES TIMEOUT 120 LABELS "content")
+
+# Asset provenance: every external file listed with licence and matching SHA-256.
+add_test(NAME asset_manifest_check
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/scripts/check_assets.py" --root "${CMAKE_SOURCE_DIR}")
+set_tests_properties(asset_manifest_check PROPERTIES LABELS "static")

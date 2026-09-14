@@ -72,6 +72,7 @@ namespace CarSim::Sim
         float speedMs = 0.0f;                // signed forward speed
         float speedKmh = 0.0f;               // absolute
         float engineRpm = 0.0f;
+        float engineLoad = 0.0f;             // delivered torque fraction 0..1 (0 on overrun)
         EngineState engineState = EngineState::Off;
         bool ignitionOn = false;
         float throttlePedal = 0.0f;

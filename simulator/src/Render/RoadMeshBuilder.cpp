@@ -310,4 +310,44 @@ namespace CarSim::Render
             paved.AddTriangle(centre, b, a);
         }
     }
+
+    bool RoadMeshBuilder::BuildCrossing(const Vector2& position, MeshData& markings) const
+    {
+        Map::RoadHit hit;
+        if (!network_.NearestRoad(position, 14.0f, hit)) {
+            return false;
+        }
+        const Map::Road& road = network_.Roads()[static_cast<std::size_t>(hit.road)];
+        const float hp = road.profile.HalfPavedWidth();
+        const float crown = road.profile.crownPercent * 0.01f;
+        const float barLength = 4.0f;      // along the road
+        const float barWidth = 0.5f;       // across the road (V 7: 0.5 m bars, 0.5 m gaps)
+        const int bars = std::max(2, static_cast<int>((2.0f * hp - 0.3f) / (2.0f * barWidth)));
+        const float span = static_cast<float>(bars) * 2.0f * barWidth - barWidth;
+        const float s0 = hit.s - barLength * 0.5f;
+        const float s1 = hit.s + barLength * 0.5f;
+        std::vector<Row> rows;
+        for (const float s : {s0, s1}) {
+            const Map::RoadSample sm = road.curve.Evaluate(std::clamp(s, 0.0f, road.curve.Length()));
+            Row r;
+            r.centre = sm.position;
+            Vector3 t(sm.tangent.X, 0.0f, sm.tangent.Z);
+            if (t.LengthSquared() < 1e-8f) t = Vector3(0.0f, 0.0f, -1.0f);
+            t.Normalize();
+            r.right = Vector3(-t.Z, 0.0f, t.X);
+            r.up = Vector3(0.0f, 1.0f, 0.0f);
+            r.s = s;
+            rows.push_back(r);
+        }
+        const auto surfaceHeight = [&](const Row& r, const float lat) {
+            const float a = std::fabs(lat);
+            return a <= hp ? r.centre.Y - a * crown : r.centre.Y - hp * crown - (a - hp) * 0.04f;
+        };
+        for (int i = 0; i < bars; ++i) {
+            const float latA = -span * 0.5f + static_cast<float>(i) * 2.0f * barWidth;
+            const float latB = latA + barWidth;
+            AddStrip(markings, rows, latA, latB, surfaceHeight, 0.0f, 1.0f, 1.0f, kMarkingLift);
+        }
+        return true;
+    }
 }

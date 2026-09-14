@@ -1,5 +1,7 @@
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
+#include "CarSim/Collision/Shapes.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -64,6 +66,75 @@ namespace CarSim::Traffic
             return lanes_.LaneAt(v.lane).length - v.s;
         }
         return 0.0f;
+    }
+
+    bool TrafficSystem::PathPointAhead(const TrafficVehicle& v, const float ahead, LanePoint& out) const
+    {
+        if (v.link >= 0) {
+            const LaneLink& link = lanes_.LinkAt(v.link);
+            const float s = v.s + ahead;
+            if (s <= link.length) {
+                out = link.Evaluate(s);
+                return true;
+            }
+            const Lane& next = lanes_.LaneAt(link.toLane);
+            if (s - link.length <= next.length) {
+                out = next.Evaluate(s - link.length);
+                return true;
+            }
+            return false;
+        }
+        if (v.lane < 0) {
+            return false;
+        }
+        const Lane& lane = lanes_.LaneAt(v.lane);
+        float s = v.s + ahead;
+        if (s <= lane.length) {
+            out = lane.Evaluate(s);
+            return true;
+        }
+        if (v.nextLink < 0) {
+            return false;
+        }
+        const LaneLink& link = lanes_.LinkAt(v.nextLink);
+        s -= lane.length;
+        if (s <= link.length) {
+            out = link.Evaluate(s);
+            return true;
+        }
+        const Lane& next = lanes_.LaneAt(link.toLane);
+        s -= link.length;
+        if (s <= next.length) {
+            out = next.Evaluate(s);
+            return true;
+        }
+        return false;
+    }
+
+    float TrafficSystem::PathBlockedBy(const TrafficVehicle& v, const TrafficVehicle& other, const float maxAhead) const
+    {
+        const Collision::Obb box = Collision::Obb::FromHeading(other.position + Vector3(0.0f, 0.5f * other.heightM, 0.0f),
+                                                               Vector3(0.5f * other.widthM, 0.5f * other.heightM, 0.5f * other.lengthM),
+                                                               other.headingRad);
+        const float margin = 0.5f * v.widthM + 0.2f;
+        for (float d = 0.0f; d <= maxAhead; d += 0.75f) {
+            LanePoint p;
+            if (!PathPointAhead(v, d, p)) break;
+            Vector3 q = p.position;
+            q.Y = box.centre.Y;
+            if (box.Contains(q, margin)) {
+                return d;
+            }
+        }
+        return -1.0f;
+    }
+
+    const TrafficVehicle* TrafficSystem::FindVehicle(const int id) const
+    {
+        for (const auto& o : vehicles_) {
+            if (o.id == id) return &o;
+        }
+        return nullptr;
     }
 
     bool TrafficSystem::LaneOccupiedNear(const int lane, const float s, const float radius, const int ignoreId) const
@@ -171,12 +242,14 @@ namespace CarSim::Traffic
             }
         }
         Leader best;
-        const auto consider = [&](const float distanceAhead, const float otherLength, const float otherSpeed) {
+        const auto consider = [&](const float distanceAhead, const float otherLength, const float otherSpeed, const int id, const bool onConflict) {
             const float gap = distanceAhead - otherLength * 0.5f - v.lengthM * 0.5f;
             if (gap < best.gap) {
                 best.found = true;
                 best.gap = gap;
                 best.speed = otherSpeed;
+                best.id = id;
+                best.onConflict = onConflict;
             }
         };
         for (const auto& o : vehicles_) {
@@ -187,7 +260,7 @@ namespace CarSim::Traffic
                 if (o.s < seg.sFrom - 0.5f) continue;
                 const float ahead = seg.offset + (o.s - seg.sFrom);
                 if (ahead > lookahead) continue;
-                consider(ahead, o.lengthM, o.speed);
+                consider(ahead, o.lengthM, o.speed, o.id, false);
             }
         }
         // The player: only when it drives along one of our path lanes in our direction.
@@ -200,7 +273,29 @@ namespace CarSim::Traffic
                 const Lane& lane = lanes_.LaneAt(playerLane_);
                 const LanePoint lp = lane.Evaluate(playerS_);
                 const float along = Vector3::Dot(player.forward * player.speed, lp.tangent);
-                consider(ahead, player.lengthM, std::max(0.0f, along));
+                consider(ahead, player.lengthM, std::max(0.0f, along), -1, false);
+            }
+        }
+        // Inside a junction (or about to enter one): a car on a crossing connector whose body sits
+        // on our path is an obstacle whatever the priority, so nobody is ever driven through.
+        {
+            const LaneLink* box = nullptr;
+            if (v.link >= 0) {
+                box = &lanes_.LinkAt(v.link);
+            } else if (v.nextLink >= 0 && DistanceToEnd(v) < 20.0f) {
+                box = &lanes_.LinkAt(v.nextLink);
+            }
+            if (box) {
+                for (const auto& o : vehicles_) {
+                    if (o.id == v.id || o.link < 0) continue;
+                    if (std::find(box->conflicts.begin(), box->conflicts.end(), o.link) == box->conflicts.end()) continue;
+                    if (Vector3::DistanceSquared(o.position, v.position) > 30.0f * 30.0f) continue;
+                    const float blockedAt = PathBlockedBy(v, o, 24.0f);
+                    if (blockedAt < 0.0f) continue;
+                    // The sample lies at the other car's boundary: measure from our front bumper.
+                    const float distanceAhead = blockedAt + 0.5f * o.lengthM;
+                    consider(distanceAhead, o.lengthM, std::max(0.0f, Vector3::Dot(o.Velocity(), v.forward)), o.id, true);
+                }
             }
         }
         // Also treat the player as an obstacle when it physically sits on our path (any heading).
@@ -215,7 +310,7 @@ namespace CarSim::Traffic
                 if (ahead > lookahead) continue;
                 const LanePoint lp = lane.Evaluate(ps);
                 const float along = Vector3::Dot(player.forward * player.speed, lp.tangent);
-                consider(ahead, player.lengthM, std::max(0.0f, along));
+                consider(ahead, player.lengthM, std::max(0.0f, along), -1, false);
             }
         }
         return best;
@@ -227,11 +322,24 @@ namespace CarSim::Traffic
             return true;
         }
         const LaneLink& link = lanes_.LinkAt(v.nextLink);
-        // Exit must be free (no gridlock).
+        // Exit must be free (keep the junction box clear): no stopped car on the exit lane within
+        // our own length, and no stopped car at the far end of our connector.
         for (const auto& o : vehicles_) {
-            if (o.id == v.id) continue;
-            if (o.link < 0 && o.lane == link.toLane && o.s < v.lengthM + 3.0f && o.speed < 0.5f) {
+            if (o.id == v.id || o.speed >= 0.5f) continue;
+            if (o.link < 0 && o.lane == link.toLane && o.s < v.lengthM + 0.5f * o.lengthM + 3.0f) {
                 return false;
+            }
+            if (o.link == v.nextLink && link.length - o.s < v.lengthM + 2.0f) {
+                return false;
+            }
+        }
+        // A car standing on any crossing connector: the box is not clear, entering would only add
+        // to the stand-off.
+        for (const int cId : link.conflicts) {
+            for (const auto& o : vehicles_) {
+                if (o.id != v.id && o.link == cId && o.speed < 0.5f) {
+                    return false;
+                }
             }
         }
         // Give way to conflicting movements.
@@ -286,11 +394,61 @@ namespace CarSim::Traffic
     void TrafficSystem::UpdateVehicle(TrafficVehicle& v, const float dt, const PlayerProbe& player)
     {
         v.age += dt;
+        if (v.backingOff) {
+            // Reverse along the connector at walking pace until back at the line.
+            v.speed = 0.0f;
+            v.acceleration = 0.0f;
+            v.brakeLights = true;
+            v.s -= 1.2f * dt;
+            v.wheelSpin -= 1.2f * dt / kWheelRadius;
+            if (v.s <= 0.0f && v.link >= 0) {
+                const LaneLink& link = lanes_.LinkAt(v.link);
+                v.lane = link.fromLane;
+                v.nextLink = v.link;
+                v.link = -1;
+                v.s = std::max(0.0f, lanes_.LaneAt(v.lane).length - 0.05f);
+                v.backingOff = false;
+                v.committed = false;
+                v.stoppedAtLine = true;
+                v.waiting = true;
+                v.waitTime = 0.0f;
+            }
+            UpdatePose(v);
+            return;
+        }
         const float distanceToEnd = DistanceToEnd(v);
         float desired = DesiredSpeedAhead(v);
         Leader leader = FindLeader(v, player);
         float gap = leader.found ? leader.gap : 1e9f;
         float leaderSpeed = leader.found ? leader.speed : 0.0f;
+
+        // Stand-off inside a junction: stopped nose to nose with a car on a crossing connector that
+        // is stopped as well. After a while the car without right of way (or, when neither yields,
+        // the one that arrived later) backs out to its line so the other can pass.
+        if (v.link >= 0) {
+            const bool standing = v.speed < 0.05f && leader.found && leader.onConflict && leader.speed < 0.05f;
+            v.standoffTime = standing ? v.standoffTime + dt : 0.0f;
+            const TrafficVehicle* other = standing && v.standoffTime > params.deadlockSeconds ? FindVehicle(leader.id) : nullptr;
+            if (other && other->link >= 0) {
+                const LaneLink& mine = lanes_.LinkAt(v.link);
+                const LaneLink& theirs = lanes_.LinkAt(other->link);
+                const bool iYield = std::find(mine.yieldTo.begin(), mine.yieldTo.end(), theirs.id) != mine.yieldTo.end();
+                const bool theyYield = std::find(theirs.yieldTo.begin(), theirs.yieldTo.end(), mine.id) != theirs.yieldTo.end();
+                bool roomBehind = true;
+                for (const auto& o : vehicles_) {
+                    if (o.id == v.id) continue;
+                    if ((o.link == v.link && o.s < v.s) || (o.link < 0 && o.lane == mine.fromLane && lanes_.LaneAt(o.lane).length - o.s < v.s + 8.0f)) {
+                        roomBehind = false;
+                    }
+                }
+                if (roomBehind && (iYield || (!theyYield && v.id > other->id))) {
+                    v.backingOff = true;
+                    v.standoffTime = 0.0f;
+                }
+            }
+        } else {
+            v.standoffTime = 0.0f;
+        }
 
         // Intersection control at the end of a lane.
         v.indicatorLeft = v.indicatorRight = false;
@@ -311,21 +469,34 @@ namespace CarSim::Traffic
                         v.stoppedAtLine = true;
                     }
                 }
-                if (!hold && !MayEnterIntersection(v, player)) {
+                if (!hold && !v.committed && !MayEnterIntersection(v, player)) {
                     hold = true;
                 }
                 if (hold) {
                     v.waiting = true;
                     v.waitTime += dt;
-                    // Deadlock breaker: after a long wait with nothing moving inside, go.
-                    bool anyoneInside = false;
-                    for (const auto& o : vehicles_) {
-                        if (o.id != v.id && o.link >= 0 && lanes_.LinkAt(o.link).intersection == link.intersection && o.speed > 0.3f) {
-                            anyoneInside = true;
+                    // Deadlock breaker: after a long wait with nothing moving inside the junction,
+                    // the car that has waited longest commits and goes; the others keep waiting
+                    // until it is through (the released car stays committed until it is on the link).
+                    if (v.waitTime > params.deadlockSeconds) {
+                        bool anyoneInside = false;
+                        bool someoneElseFirst = false;
+                        for (const auto& o : vehicles_) {
+                            if (o.id == v.id) continue;
+                            if (o.link >= 0 && lanes_.LinkAt(o.link).intersection == link.intersection &&
+                                (o.speed > 0.3f || std::find(link.conflicts.begin(), link.conflicts.end(), o.link) != link.conflicts.end())) {
+                                anyoneInside = true;
+                            }
+                            if (o.link < 0 && o.nextLink >= 0 && lanes_.LinkAt(o.nextLink).intersection == link.intersection) {
+                                if (o.committed || o.waitTime > v.waitTime || (o.waitTime == v.waitTime && o.id < v.id)) {
+                                    someoneElseFirst = true;
+                                }
+                            }
                         }
-                    }
-                    if (v.waitTime > params.deadlockSeconds && !anyoneInside) {
-                        hold = false;
+                        if (!anyoneInside && !someoneElseFirst) {
+                            hold = false;
+                            v.committed = true;
+                        }
                     }
                 }
                 if (hold) {
@@ -385,6 +556,7 @@ namespace CarSim::Traffic
                 v.s -= lane.length;
                 v.link = v.nextLink;
                 v.nextLink = -1;
+                v.committed = false;
             } else {
                 break;
             }
