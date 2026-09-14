@@ -64,6 +64,10 @@ namespace CarSim::Core
                 if (const auto value = takeValue(arg)) {
                     options.screenshotPath = std::string(*value);
                 }
+            } else if (arg == "--screenshot-cluster") {
+                if (const auto value = takeValue(arg)) {
+                    options.clusterScreenshotPath = std::string(*value);
+                }
             } else if (arg == "--content") {
                 if (const auto value = takeValue(arg)) {
                     options.contentDirectory = std::string(*value);
@@ -148,6 +152,7 @@ namespace CarSim::Core
             "  --view x y z hdg pitch  Fixed inspection camera (metres, degrees; heading 0 = north)\n"
             "  --frames <n>          Run n frames and exit (smoke tests)\n"
             "  --screenshot <file>   Save the last frame as PNG before exiting\n"
+            "  --screenshot-cluster <file>  Save the instrument cluster texture of the last frame\n"
             "  -h, --help            Show this help\n";
     }
 }

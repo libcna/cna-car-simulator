@@ -300,12 +300,14 @@ namespace CarSim::Render
                                : part.material == CarMaterial::Cluster ? (clusterTexture_ ? clusterTexture_ : &materials_.DefaultCluster())
                                : mirrorTexture_;
             device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+            const bool display = (part.material == CarMaterial::Cluster && clusterTexture_ != nullptr) || part.name == "mirror_face";
             e.setWorldProperty(world);
             e.setViewProperty(view);
             e.setProjectionProperty(projection);
-            e.setDiffuseColorProperty(look.diffuse);
-            e.setEmissiveColorProperty(part.name == "mirror_face" ? Vector3(0.6f, 0.6f, 0.6f) : look.emissive);
-            e.setSpecularColorProperty(look.specular);
+            // Displays and the mirror image are self-lit: the texture is shown as is.
+            e.setDiffuseColorProperty(display ? Vector3(0.0f, 0.0f, 0.0f) : look.diffuse);
+            e.setEmissiveColorProperty(display ? Vector3(1.0f, 1.0f, 1.0f) : look.emissive);
+            e.setSpecularColorProperty(display ? Vector3(0.0f, 0.0f, 0.0f) : look.specular);
             e.setSpecularPowerProperty(look.specularPower);
             e.setAlphaProperty(1.0f);
             e.setTextureProperty(texture);
@@ -327,12 +329,12 @@ namespace CarSim::Render
     }
 
     void VehicleRenderer::DrawOpaque(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
-                                     const Matrix& projection, const bool drawInterior, const GaugePose& gauges)
+                                     const Matrix& projection, const bool drawInterior, const GaugePose& gauges, const bool mirrored)
     {
         drawCalls_ = 0;
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
-        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
         for (const auto& gpu : parts_) {
             const CarPart& part = *gpu.part;
             if (part.material == CarMaterial::Glass) {
@@ -346,11 +348,11 @@ namespace CarSim::Render
     }
 
     void VehicleRenderer::DrawTransparent(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
-                                          const Matrix& projection)
+                                          const Matrix& projection, const bool mirrored)
     {
         device.setBlendStateProperty(BlendState::AlphaBlend);
         device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
-        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
         GaugePose none;
         for (const auto& gpu : parts_) {
             if (gpu.part->material == CarMaterial::Glass) {

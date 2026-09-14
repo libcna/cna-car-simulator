@@ -20,6 +20,9 @@ namespace CarSim::Render
 
         /// Draws the sky centred on the camera. Call first in the frame, after Clear.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const CameraPose& camera, float aspect);
+        /// Draws with explicit matrices (mirror pass); `position` centres the dome.
+        void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Microsoft::Xna::Framework::Matrix& view,
+                  const Microsoft::Xna::Framework::Matrix& projection, const Microsoft::Xna::Framework::Vector3& position, bool mirrored = false);
 
     private:
         const LightingRig& rig_;

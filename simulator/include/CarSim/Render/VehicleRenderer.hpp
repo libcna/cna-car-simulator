@@ -67,10 +67,10 @@ namespace CarSim::Render
         /// Opaque parts. `drawInterior` selects cockpit-only parts (drawn from inside or in mirrors).
         void DrawOpaque(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
                         const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
-                        bool drawInterior, const GaugePose& gauges);
+                        bool drawInterior, const GaugePose& gauges, bool mirrored = false);
         /// Transparent parts (glass), drawn after all opaque geometry.
         void DrawTransparent(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
-                             const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection);
+                             const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection, bool mirrored = false);
 
         [[nodiscard]] const CarModel& Model() const { return model_; }
         [[nodiscard]] int DrawCallsLastFrame() const { return drawCalls_; }

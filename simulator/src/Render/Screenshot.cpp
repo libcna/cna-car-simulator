@@ -41,4 +41,16 @@ namespace CarSim::Render
             return false;
         }
     }
+
+    bool SaveTexturePng(Texture2D& texture, const std::string& path)
+    {
+        try {
+            System::IO::FileStream stream(path, System::IO::FileMode::Create);
+            texture.SaveAsPng(&stream, texture.getWidthProperty(), texture.getHeightProperty());
+            return true;
+        } catch (const std::exception& ex) {
+            std::cerr << "texture screenshot failed: " << ex.what() << "\n";
+            return false;
+        }
+    }
 }

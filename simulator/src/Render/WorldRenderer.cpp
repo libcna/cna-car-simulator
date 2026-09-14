@@ -74,6 +74,10 @@ namespace CarSim::Render
         markingState_->setCullModeProperty(CullMode::CullCounterClockwiseFace);
         markingState_->setDepthBiasProperty(-0.00002f);
         markingState_->setSlopeScaleDepthBiasProperty(-1.0f);
+        markingStateMirrored_ = std::make_unique<RasterizerState>();
+        markingStateMirrored_->setCullModeProperty(CullMode::CullClockwiseFace);
+        markingStateMirrored_->setDepthBiasProperty(-0.00002f);
+        markingStateMirrored_->setSlopeScaleDepthBiasProperty(-1.0f);
     }
 
     void WorldRenderer::BuildMacroTexture(GraphicsDevice& device)
@@ -247,8 +251,10 @@ namespace CarSim::Render
         return white_.get();
     }
 
-    void WorldRenderer::Draw(GraphicsDevice& device, const Matrix& view, const Matrix& projection, const BoundingFrustum& frustum)
+    void WorldRenderer::Draw(GraphicsDevice& device, const Matrix& view, const Matrix& projection, const BoundingFrustum& frustum,
+                             const bool mirrored)
     {
+        const RasterizerState& solid = mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise;
         stats_.terrainChunksDrawn = 0;
         stats_.roadBatchesDrawn = 0;
         stats_.drawCalls = 0;
@@ -256,7 +262,7 @@ namespace CarSim::Render
 
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
-        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.setRasterizerStateProperty(solid);
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
         device.getSamplerStatesProperty()[1] = SamplerState::LinearClamp;
 
@@ -280,7 +286,7 @@ namespace CarSim::Render
         for (int pass = 0; pass < 2; ++pass) {
             // Pass 0: surfaces; pass 1: markings with a depth bias.
             const bool markings = pass == 1;
-            device.setRasterizerStateProperty(markings ? *markingState_ : RasterizerState::CullCounterClockwise);
+            device.setRasterizerStateProperty(markings ? (mirrored ? *markingStateMirrored_ : *markingState_) : solid);
             roadEffect_->setDiffuseColorProperty(markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f));
             for (const auto& b : roadBatches_) {
                 if ((b.surface == Surface::Marking) != markings || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) {

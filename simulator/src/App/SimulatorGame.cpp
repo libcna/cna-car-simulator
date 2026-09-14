@@ -207,11 +207,20 @@ namespace CarSim::App
         if (!fontBold_) {
             fontBold_ = Render::BitmapFont::CreateBuiltin(device);
         }
+        gaugeFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/gauge_condensed_96");
+        if (!gaugeFont_) {
+            gaugeFont_ = Render::BitmapFont::CreateBuiltin(device);
+        }
+        cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
+        mirror_ = std::make_unique<Render::MirrorView>(device);
         chaseCamera_.Snap(vehicle_->Snapshot());
     }
 
     void SimulatorGame::UnloadContent()
     {
+        cluster_.reset();
+        mirror_.reset();
+        gaugeFont_.reset();
         vehicleRenderer_.reset();
         vehicleMaterials_.reset();
         worldRenderer_.reset();
@@ -282,9 +291,35 @@ namespace CarSim::App
         const auto& viewport = device.getViewportProperty();
         const float aspect = static_cast<float>(viewport.getWidthProperty()) / static_cast<float>(std::max(1, viewport.getHeightProperty()));
 
+        const auto state = vehicle_->Snapshot();
+        Render::GaugePose gauges;
+        gauges.speed = state.speedKmh / definition_.dashboard.speedometerMaxKmh;
+        gauges.rpm = state.engineRpm / definition_.dashboard.tachometerMaxRpm;
+        gauges.fuel = state.fuelFraction;
+        gauges.temperature = (state.coolantC - definition_.dashboard.temperatureMinC) /
+                             std::max(1.0f, definition_.dashboard.temperatureMaxC - definition_.dashboard.temperatureMinC);
+        const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
+
+        // Off-screen passes first: the instrument cluster and, in the cockpit, the rear-view mirror.
+        cluster_->Render(device, *spriteBatch_, state, elapsedSeconds_);
+        vehicleRenderer_->SetClusterTexture(cluster_->Texture());
+        if (cockpit) {
+            mirror_->Update(state, definition_);
+            mirror_->Begin(device);
+            sky_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, true);
+            if (worldRenderer_) {
+                worldRenderer_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), true);
+            }
+            vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
+            vehicleRenderer_->DrawTransparent(device, state, mirror_->View(), mirror_->Projection(), true);
+            mirror_->End(device);
+            vehicleRenderer_->SetMirrorTexture(mirror_->Texture());
+        } else {
+            vehicleRenderer_->SetMirrorTexture(nullptr);
+        }
+
         device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, Color(120, 160, 210, 255), 1.0f, 0);
 
-        const auto state = vehicle_->Snapshot();
         Render::CameraPose camera = cameraMode_ == Render::CameraMode::Chase ? chaseCamera_.Pose() : cockpitCamera_.Pose();
         if (options_.freeView) {
             const auto& fv = *options_.freeView;
@@ -306,13 +341,6 @@ namespace CarSim::App
             testGround_->Draw(device, view, projection);
         }
 
-        Render::GaugePose gauges;
-        gauges.speed = state.speedKmh / definition_.dashboard.speedometerMaxKmh;
-        gauges.rpm = state.engineRpm / definition_.dashboard.tachometerMaxRpm;
-        gauges.fuel = state.fuelFraction;
-        gauges.temperature = (state.coolantC - definition_.dashboard.temperatureMinC) /
-                             std::max(1.0f, definition_.dashboard.temperatureMaxC - definition_.dashboard.temperatureMinC);
-        const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit;
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
         vehicleRenderer_->DrawTransparent(device, state, view, projection);
 
@@ -437,6 +465,11 @@ namespace CarSim::App
         }
         if (!options_.frames || framesDrawn_ < *options_.frames || exitRequested_) {
             return;
+        }
+        if (options_.clusterScreenshotPath && cluster_ && cluster_->Texture()) {
+            if (Render::SaveTexturePng(*cluster_->Texture(), *options_.clusterScreenshotPath)) {
+                std::cout << "cluster screenshot saved to " << *options_.clusterScreenshotPath << "\n";
+            }
         }
         if (options_.screenshotPath) {
             if (Render::SaveBackBufferPng(device, *options_.screenshotPath)) {

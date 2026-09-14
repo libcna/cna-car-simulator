@@ -35,8 +35,10 @@ namespace CarSim::Render
     public:
         WorldRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world);
 
+        /// `mirrored`: the projection flips x (mirror pass), so front faces are clockwise.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Microsoft::Xna::Framework::Matrix& view,
-                  const Microsoft::Xna::Framework::Matrix& projection, const Microsoft::Xna::Framework::BoundingFrustum& frustum);
+                  const Microsoft::Xna::Framework::Matrix& projection, const Microsoft::Xna::Framework::BoundingFrustum& frustum,
+                  bool mirrored = false);
 
         [[nodiscard]] const WorldRenderStats& Stats() const { return stats_; }
 
@@ -68,6 +70,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::DualTextureEffect> terrainEffect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadEffect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::RasterizerState> markingState_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::RasterizerState> markingStateMirrored_;
 
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> grass_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> macro_;

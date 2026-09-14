@@ -578,33 +578,20 @@ namespace CarSim::Render
         CarPart cluster = MakePart("cluster", CarMaterial::Cluster, CarPart::Role::Interior);
         {
             const Vector3 c = vis.clusterCenter;
-            AddOrientedBox(interior, c + Vector3(0.0f, 0.02f, -0.06f), Vector3(0.36f, 0.16f, 0.12f), 0.0f, -0.35f);
-            // Cluster face: a quad tilted back 20 degrees, facing the driver (+z).
+            // Cluster face: a quad tilted back 20 degrees, facing the driver (+z); the binnacle body
+            // sits behind it and a hood shades it from above.
             const float tilt = 0.35f;
             const Vector3 right(0.17f, 0.0f, 0.0f);
             const Vector3 upv(0.0f, 0.075f * std::cos(tilt), -0.075f * std::sin(tilt));
             const Vector3 n(0.0f, std::sin(tilt), std::cos(tilt));
-            const Vector3 o = c + n * 0.001f;
+            AddOrientedBox(interior, c - n * 0.045f, Vector3(0.38f, 0.19f, 0.08f), 0.0f, -tilt);          // body behind the face
+            AddOrientedBox(interior, c + upv * 1.15f + n * 0.05f, Vector3(0.40f, 0.02f, 0.16f), 0.0f, -tilt * 0.6f);   // hood
+            AddOrientedBox(interior, c - right * 1.1f, Vector3(0.03f, 0.19f, 0.10f), 0.0f, -tilt);          // side cheeks
+            AddOrientedBox(interior, c + right * 1.1f, Vector3(0.03f, 0.19f, 0.10f), 0.0f, -tilt);
+            const Vector3 o = c + n * 0.002f;
             cluster.mesh.AddQuad(o - right - upv, o + right - upv, o + right + upv, o - right + upv, n,
                                  Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
-            // Needles: thin boxes pivoting at the gauge centres (speedometer left, tachometer right).
-            const auto needle = [&](const std::string& name, CarPart::Role role, const Vector3& center) {
-                CarPart p = MakePart(name, CarMaterial::Needle, role);
-                p.pivot = center + n * 0.004f;
-                p.axis = n;
-                p.mesh.AddBox(Vector3(-0.0025f, -0.008f, -0.001f), Vector3(0.0025f, 0.058f, 0.001f), 1.0f);
-                // Align the needle's local +y with the cluster's up direction.
-                Vector3 upN = upv;
-                upN.Normalize();
-                const Matrix basis = Matrix(1, 0, 0, 0,  upN.X, upN.Y, upN.Z, 0,  n.X, n.Y, n.Z, 0,  0, 0, 0, 1);
-                p.mesh.Transform(basis);
-                p.mesh.ComputeSmoothNormals();
-                model.parts.push_back(std::move(p));
-            };
-            needle("needle_speed", CarPart::Role::NeedleSpeed, c - right * 0.55f);
-            needle("needle_rpm", CarPart::Role::NeedleRpm, c + right * 0.55f);
-            needle("needle_fuel", CarPart::Role::NeedleFuel, c + right * 0.55f + upv * 0.25f);
-            needle("needle_temp", CarPart::Role::NeedleTemp, c - right * 0.55f + upv * 0.25f);
+            // Needles, lamps and displays are drawn into the cluster render target (InstrumentCluster).
         }
         // Steering column and wheel.
         CarPart steering = MakePart("steering_wheel", CarMaterial::Interior, CarPart::Role::SteeringWheel);

@@ -4,7 +4,7 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M3 map core and world renderer complete except MAP-007; RND-009 and SIM-019 open).
+Last synchronised with the repository: 2026-09-14 (M4 cockpit complete except UI-001 JSON bindings; MAP-007, RND-009 and SIM-019 open).
 
 ---
 
@@ -369,13 +369,13 @@ that logs frame statistics for a scripted camera path.
 - [x] `MAP-010` Sample map "Lipová" v1: road network (17 km, 13 intersections), terrain, regions, 356 buildings, signs, forests, avenues and spawns authored by `tools/maps/generate_lipova.py`, validated, loaded by the simulator (`--map`, `--spawn`) and driven on; screenshots of the square, the church junction and the eastern approach reviewed. Buildings, vegetation, signs and props are drawn in M8.
 
 ### M4 Cockpit and controls (`Render`, `Input`)
-- [ ] `UI-001` Input mapper with action bindings (JSON), defaults documented; gamepad-ready abstraction.
-- [ ] `UI-002` Instrument cluster: speedometer, tachometer, fuel, temperature needles; odometer/trip digital display; gear/mode display.
-- [ ] `UI-003` Warning/indicator lamps (left/right, headlights, high beam, low fuel, engine/ignition, handbrake).
-- [ ] `UI-004` Steering wheel animation with plausible ratio; interior visible in cockpit view.
-- [ ] `UI-005` Rear-view mirror `RenderTarget2D` pass with quality settings; documented.
-- [ ] `UI-006` Exterior lamps: headlights, brake, reverse, indicators, hazard; visible emissive state.
-- [ ] `UI-007` Camera switch (`C`) immediate and robust; help overlay (`F1`).
+- [ ] `UI-001` Input mapper with action bindings: `InputMapper` with default keyboard bindings and action enumeration is in place (M2); JSON overrides and the gamepad path follow in M9 (`UX-002`).
+- [x] `UI-002` Instrument cluster rendered into a `RenderTarget2D` with `SpriteBatch` (`InstrumentCluster`): speedometer and tachometer with tick marks, numerals (D-DIN condensed) and red zone, fuel and coolant gauges, odometer/trip display, gear and mode, consumption; ignition-off state; `--screenshot-cluster` dump for review.
+- [x] `UI-003` Cluster lamps with procedural icons: indicators, low/high beam, handbrake, coolant, low fuel, battery, engine; `InstrumentCluster::LampLit` is the single source of the lamp logic.
+- [x] `UI-004` Steering wheel rotates with the simulated steering-wheel angle (ratio from the vehicle definition); interior shell, door cards, dashboard, hooded binnacle, seats and mirror visible in the cockpit view.
+- [x] `UI-005` Rear-view mirror: `MirrorView` renders sky, world and vehicle exterior into a 768 x 200 `RenderTarget2D` from the mirror position with a horizontally flipped projection (clockwise culling), only while the cockpit camera is active. Resolution/rate settings arrive with the settings file (M9).
+- [x] `UI-006` Exterior lamps: headlight, brake, reverse and indicator/hazard parts switch emissive colour from `VehicleState`.
+- [x] `UI-007` Camera switch (`C`) toggles cockpit/chase immediately (the chase camera snaps on first use); help overlay (`F1`) lists the bindings; `F3` debug overlay; `F12` screenshot.
 
 ### M5 Collision (`Collision`)
 - [ ] `COL-001` Shapes (OBB, convex prism, heightfield query), SAT contact generation with tests.

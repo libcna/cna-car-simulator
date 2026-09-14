@@ -113,8 +113,13 @@ namespace CarSim::Render
 
     void SkyRenderer::Draw(GraphicsDevice& device, const CameraPose& camera, const float aspect)
     {
-        const Matrix view = camera.View();
-        const Matrix projection = camera.Projection(aspect);
+        Draw(device, camera.View(), camera.Projection(aspect), camera.position, false);
+    }
+
+    void SkyRenderer::Draw(GraphicsDevice& device, const Matrix& view, const Matrix& projection, const Vector3& position, const bool mirrored)
+    {
+        CameraPose camera;
+        camera.position = position;
         const float radius = camera.farPlane * 0.85f;
 
         device.setDepthStencilStateProperty(DepthStencilState::None);
@@ -148,6 +153,6 @@ namespace CarSim::Render
 
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
-        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
     }
 }

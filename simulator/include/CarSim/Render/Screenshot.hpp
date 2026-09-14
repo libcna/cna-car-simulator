@@ -6,6 +6,7 @@
 namespace Microsoft::Xna::Framework::Graphics
 {
     class GraphicsDevice;
+    class Texture2D;
 }
 
 namespace CarSim::Render
@@ -14,4 +15,7 @@ namespace CarSim::Render
     /// Returns false (and logs to stderr) when the device or file refuses.
     bool SaveBackBufferPng(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
                            const std::string& path);
+
+    /// Writes any texture (including render targets) as a PNG file.
+    bool SaveTexturePng(Microsoft::Xna::Framework::Graphics::Texture2D& texture, const std::string& path);
 }

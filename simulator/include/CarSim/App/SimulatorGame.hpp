@@ -5,6 +5,8 @@
 #include "CarSim/Input/InputMapper.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/Camera.hpp"
+#include "CarSim/Render/InstrumentCluster.hpp"
+#include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/SkyRenderer.hpp"
 #include "CarSim/Map/MapWorld.hpp"
@@ -72,6 +74,9 @@ namespace CarSim::App
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::SpriteBatch> spriteBatch_;
         std::unique_ptr<Render::BitmapFont> font_;
         std::unique_ptr<Render::BitmapFont> fontBold_;
+        std::unique_ptr<Render::BitmapFont> gaugeFont_;
+        std::unique_ptr<Render::InstrumentCluster> cluster_;
+        std::unique_ptr<Render::MirrorView> mirror_;
         Render::ChaseCamera chaseCamera_;
         Render::CockpitCamera cockpitCamera_;
         Render::CameraMode cameraMode_ = Render::CameraMode::Chase;

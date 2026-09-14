@@ -43,8 +43,10 @@ add_library(carsim_render STATIC
     src/Render/Camera.cpp
     src/Render/GpuMesh.cpp
     src/Render/Image.cpp
+    src/Render/InstrumentCluster.cpp
     src/Render/LightingRig.cpp
     src/Render/MeshData.cpp
+    src/Render/MirrorView.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralTextures.cpp
     src/Render/RoadMeshBuilder.cpp

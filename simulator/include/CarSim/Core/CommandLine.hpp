@@ -18,6 +18,9 @@ namespace CarSim::Core
         /// Save the back buffer of the last frame to this PNG file before exiting.
         std::optional<std::string> screenshotPath;
 
+        /// Save the instrument cluster render target of the last frame to this PNG file.
+        std::optional<std::string> clusterScreenshotPath;
+
         /// Content root override. When empty the executable looks for a
         /// `content/` directory next to itself, then falls back to the source tree.
         std::string contentDirectory;
