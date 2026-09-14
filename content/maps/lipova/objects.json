@@ -5152,6 +5152,20 @@
    "floors": 2,
    "roofPitchDeg": 42,
    "seed": 7400
+  },
+  {
+   "type": "chapel",
+   "position": [
+    352.0,
+    -72.0
+   ],
+   "rotationDeg": 205.0,
+   "width": 5.0,
+   "depth": 7.0,
+   "eavesHeight": 4.2,
+   "roofPitchDeg": 46,
+   "floors": 1,
+   "seed": 7701
   }
  ],
  "props": [

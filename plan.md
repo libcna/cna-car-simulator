@@ -825,3 +825,6 @@ committed with its own regression test and screenshot check.
   edge of the wood, so the "forest" road finished in open meadow. The big forest polygon now
   reaches z = -2840 and wraps the loop (52.3k trees instead of 46.5k, forest benchmark
   unchanged at 55 ms).
+- [x] `RQ-166` Eastern junction: the node was named "U kostela" (at the church) although the
+  church stands on the square 400 m away. A wayside chapel with its bell tower now stands at
+  the junction and the node is named "U kaple".
