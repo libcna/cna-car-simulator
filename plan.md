@@ -584,7 +584,7 @@ capture under `docs/screenshots/` reviewed against the baseline.
 - [x] `RQ-130` Renderer conformance: build and run the same code on the renderers available in the environment (OPENGLES3, OPENGL33, SOFTWARE where it links); results, screenshots and differences recorded in `docs/renderer-conformance.md`. No renderer-specific project code.
 - [x] `RQ-131` `docs/real-hardware-validation.md`: reproducible procedure for a real PC (build, launch, views, controls, overlay, capture, metrics to report, checklist).
 - [x] `RQ-140` Screenshot loop: curated final set in `docs/screenshots/` (hero exterior, cockpit, dashboard, traffic, town, countryside, forest, intersection), README updated. Set: `hero.jpg`, `cockpit.jpg`, `cluster.png`, `town.jpg`, `traffic.jpg`, `countryside.jpg`, `forest.jpg`, `intersection.jpg` (JPEG quality 88 for the scene captures, PNG for the cluster texture); the M10 set stays in `m10-baseline/`, renderer grids in `renderers/`. The loop found and fixed the chase camera orbit defect (RQ-080).
-- [ ] `RQ-150` Final audit: fresh clone build, all tests, static and asset checks, plan/README synchronised, final SHA recorded in section 24.4.
+- [x] `RQ-150` Final audit: fresh clone build, all tests, static and asset checks, plan/README synchronised, final SHA recorded in section 24.4.
 
 ### 24.3 Principles for this phase
 
@@ -760,3 +760,22 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   windscreen header; the cockpit placement test gained an assertion that the housing's lower
   edge stays at least 5 cm above the eye. The curated screenshots were re-captured with the
   final build (fog lamps, lens housings, mirror).
+
+#### Phase 11 final audit (RQ-150)
+
+Verified commit `a1a7efd83a83c17347ef5c6b98082fcaf7524014` by cloning the branch fresh from
+`origin` into an empty directory and building it against the dependency checkouts
+(`-DCARSIM_CNA_ROOT` and `-DCARSIM_SHARP_RUNTIME_ROOT`; CNA `next`, Sharp Runtime `next`,
+EasyGL and MetaGL beside them), Release, Ninja, `CNA_GRAPHICS_RENDERER=OPENGLES3`:
+
+| Step | Result |
+| --- | --- |
+| Configure and build every target (simulator, tests, four tools) | no errors, no warnings in project code |
+| `ctest` | 5/5 registrations pass in 27 s (152 unit and scenario tests, the headless smoke run, both static checks, the content check) |
+| `scripts/check_xna_only.py` | OK, 166 files scanned against 544 XNA 4.0 types |
+| `scripts/check_assets.py` | OK, 5 files listed, 1 asset |
+| `carsim-mapvalidate content/maps/lipova` | OK, 0 warnings |
+| Headless smoke capture (60 frames, scripted drive) | frame written, no errors |
+
+`README.md` and this ledger agree: every row of section 24 is `[x]` and the README claims no
+feature the ledger does not mark as done.
