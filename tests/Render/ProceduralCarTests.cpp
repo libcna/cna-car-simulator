@@ -10,6 +10,7 @@
 #include <cmath>
 #include <set>
 #include <string>
+#include <vector>
 
 using namespace CarSim;
 using namespace CarSim::Render;
@@ -209,4 +210,31 @@ TEST(ProceduralCar, SeatBackrestsLeanRearwardBehindTheEye)
     headZ /= static_cast<float>(count);
     EXPECT_GT(headZ, def.visual.driverEye.Z + 0.08f) << "head restraint behind the eye";
     EXPECT_GT(topY, def.visual.driverEye.Y - 0.05f) << "head restraint reaches eye height";
+}
+
+TEST(ProceduralCar, FogLampsFollowTheNoseInsteadOfHangingBesideIt)
+{
+    // Regression: the fog lamps were placed at the depth of the centre-line nose tip, but the
+    // nose sweeps inwards and backwards towards the corners, so the outboard lamps hung beside
+    // the bumper over the road (they were 3-4 cm in front of the frontmost painted point, at a
+    // lateral position where the body has already curved back by more than 10 cm). They are now
+    // projected onto the skin, which also tilts each ring with the surface.
+    const Sim::VehicleDefinition def = Sim::MakeReferenceVehicle();
+    const CarModel model = GenerateCar(def);
+    const CarPart* paint = Find(model, "body_paint");
+    const CarPart* chrome = Find(model, "chrome");
+    ASSERT_NE(paint, nullptr);
+    ASSERT_NE(chrome, nullptr);
+    const float noseZ = paint->mesh.Bounds().Min.Z;
+    float front = 1e9f, back = -1e9f;
+    int lampVertices = 0;
+    for (const auto& v : chrome->mesh.vertices) {
+        if (std::fabs(v.position.X) < 0.35f || v.position.Z > 0.0f) continue;   // fog lamps only
+        front = std::min(front, v.position.Z);
+        back = std::max(back, v.position.Z);
+        ++lampVertices;
+    }
+    ASSERT_GT(lampVertices, 100) << "two fog lamp rings with a lens each";
+    EXPECT_GE(front, noseZ) << "a fog lamp reaches further forward than the nose tip";
+    EXPECT_GT(back - front, 0.03f) << "the ring should follow the curved nose, not sit in a flat plane";
 }

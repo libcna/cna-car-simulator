@@ -547,7 +547,7 @@ capture under `docs/screenshots/` reviewed against the baseline.
 
 #### Hero car exterior
 - [x] `RQ-001` Baseline captures and audit table (this section); `docs/screenshots/m10-baseline/`.
-- [~] `RQ-010` New Lipan body surface: dense station loft (<= 4 cm) with plan-view rounding of nose and tail, sculpted hood/cowl/roof/tailgate profile, fender flares over the arches, tucked sills, smooth tumblehome, slim A/B/C pillars (glass classified against pillar bands, not ring segments), recessed glass, separate bumper skins with air dam and fog-lamp recesses, grille recess, headlamp and tail-lamp housings, shaped mirrors on stalks, door handles, wipers, exhaust, antenna. Acceptance: front 3/4, rear 3/4 and side close-ups show no flat caps or box lamps; the cabin from inside has slim pillars; wheel transform tests unchanged; body under 60k triangles.
+- [x] `RQ-010` New Lipan body surface: dense station loft (<= 4 cm) with plan-view rounding of nose and tail, sculpted hood/cowl/roof/tailgate profile, fender flares over the arches, tucked sills, smooth tumblehome, slim A/B/C pillars (glass classified against pillar bands, not ring segments), recessed glass, separate bumper skins with air dam and fog-lamp recesses, grille recess, headlamp and tail-lamp housings, shaped mirrors on stalks, door handles, wipers, exhaust, antenna. Acceptance: front 3/4, rear 3/4 and side close-ups show no flat caps or box lamps; the cabin from inside has slim pillars; wheel transform tests unchanged; body under 60k triangles.
 - [x] `RQ-011` Body detail texture: UV-mapped loft with a generated paint texture (door and hood shut lines, tailgate seam, fuel flap, sill and arch ambient darkening) through `EnvironmentMapEffect`'s texture. Acceptance: shut lines visible in side close-up; paint colour still authoritative from the definition.
 - [x] `RQ-012` Wheels and tyres: revolved tyre profile (tread, shoulder, sidewall bulge, bead) with a tread/sidewall texture, revolved rim (lip, dish, well) with five twin spokes that have depth, hub cap, brake disc and caliper behind the spokes. Spin/steer/suspension unchanged (existing tests); a new test checks the tyre mesh touches y = 0 within 1 cm at the definition radius.
 - [x] `RQ-013` Vehicle lights: headlamp units (reflector texture + clear lens), tail-lamp clusters (red/amber/white segments in one housing), side repeaters; emissive states from `VehicleState` only; daytime lens look when off. Acceptance: lights screenshot with lights off/on/brake/indicator.
@@ -743,3 +743,14 @@ Filled in as tasks complete (commit per logical unit; final SHA at the end of th
   replaced by a view deeper in the spruce stands and a headlights picture was added to the
   README. The yellow chevron visible in the sky of the forest captures was tracked down to the
   HUD indicator telltale drawn at the top centre, not a world artifact.
+- Hero body close-up review (closes `RQ-010`): front, rear and side close-ups at 4 m show no
+  flat caps or box lamps, the cabin has slim pillars from inside and the body stays under the
+  60k triangle budget (test). Two defects the review found were fixed. The fog lamps were
+  placed at the depth of the centre-line nose tip, but the nose sweeps inwards towards the
+  corners, so the outboard lamps hung beside the bumper over the road; they are now projected
+  onto the skin with `FrontFacePoint`, which also tilts each ring with the surface (test
+  `FogLampsFollowTheNoseInsteadOfHangingBesideIt`). And a skin quad became a recessed lamp
+  housing when its centre fell inside the lens polygon, so housing quads stuck out past the
+  headlamp and tail lamp lenses as black notches while paint quads intruded under the lens edge
+  as red slivers; a quad is now cut only when all four of its corners are inside the polygon and
+  the lens decals sit 6 mm proud instead of 3 mm.

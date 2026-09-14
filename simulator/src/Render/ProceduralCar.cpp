@@ -587,6 +587,29 @@ namespace CarSim::Render
             }
         }
 
+        /// Nearest point of the nose skin to a wanted lateral offset and height, with its outward
+        /// normal. Details on the front face (fog lamps) cannot be placed from the centre-line
+        /// setback alone: the nose rings sweep inwards, so a point at the outer end of the bumper
+        /// computed that way floats in front of the body.
+        bool FrontFacePoint(const SkinGrid& skin, const float x, const float y, Vector3& pos, Vector3& normal)
+        {
+            float best = 1e9f;
+            bool found = false;
+            for (int iv = 0; iv <= 48; ++iv) {
+                const float v = 0.16f * static_cast<float>(iv) / 48.0f;   // front sixth of the body
+                for (int iu = 0; iu < 256; ++iu) {
+                    const float u = static_cast<float>(iu) / 256.0f;
+                    Vector3 p, n;
+                    skin.Sample(u, v, p, n);
+                    if (n.Z > -0.30f) continue;              // must face forward
+                    if (x * p.X < 0.0f) continue;            // same side of the car
+                    const float d = (p.X - x) * (p.X - x) + (p.Y - y) * (p.Y - y);
+                    if (d < best) { best = d; pos = p; normal = n; found = true; }
+                }
+            }
+            return found;
+        }
+
         std::vector<float> Stations(const Shape& sh)
         {
             std::vector<float> zs;
@@ -1002,8 +1025,8 @@ namespace CarSim::Render
             const float v0 = skin.V(sh.zF + 0.015f);
             std::vector<Vector2> head = {{uBelt - 0.012f, v0}, {uBelt - 0.012f, skin.V(sh.zF + 0.22f)}, {uGlassBase + 0.012f, skin.V(sh.zF + 0.40f)},
                                          {uRail + 0.004f, skin.V(sh.zF + 0.44f)}, {uCrown1 + 0.006f, skin.V(sh.zF + 0.30f)}, {uCrown1 + 0.006f, v0}};
-            decals.push_back({head, CarMaterial::LampHead, "head_right", 0.003f, false});
-            decals.push_back({mirrorU(head), CarMaterial::LampHead, "head_left", 0.003f, false});
+            decals.push_back({head, CarMaterial::LampHead, "head_right", 0.006f, false});
+            decals.push_back({mirrorU(head), CarMaterial::LampHead, "head_left", 0.006f, false});
             // Tail lamp cluster: tall unit on the tail corner. Split into red / amber / white bands by u.
             const float v1 = skin.V(sh.zR - 0.012f);
             const float vT = skin.V(sh.zR - 0.30f);
@@ -1012,12 +1035,12 @@ namespace CarSim::Render
             std::vector<Vector2> amber = {{uDoor10 - 0.002f, v1}, {uDoor10 - 0.002f, vT2}, {uGlassBase - 0.004f, vT2}, {uGlassBase - 0.004f, v1}};
             const float uWhite0 = 0.5f * (uDoor9 - 0.004f + uDoor10 - 0.002f);   // reversing lamp: a narrow inner segment
             std::vector<Vector2> white = {{uWhite0, v1}, {uWhite0, vT2}, {uDoor10 - 0.002f, vT2}, {uDoor10 - 0.002f, v1}};
-            decals.push_back({red, CarMaterial::LampTail, "tail_right", 0.003f, false});
-            decals.push_back({mirrorU(red), CarMaterial::LampTail, "tail_left", 0.003f, false});
-            decals.push_back({amber, CarMaterial::LampIndicator, "indicator_right_rear", 0.003f, false});
-            decals.push_back({mirrorU(amber), CarMaterial::LampIndicator, "indicator_left_rear", 0.003f, false});
-            decals.push_back({white, CarMaterial::LampReverse, "reverse_right", 0.003f, false});
-            decals.push_back({mirrorU(white), CarMaterial::LampReverse, "reverse_left", 0.003f, false});
+            decals.push_back({red, CarMaterial::LampTail, "tail_right", 0.006f, false});
+            decals.push_back({mirrorU(red), CarMaterial::LampTail, "tail_left", 0.006f, false});
+            decals.push_back({amber, CarMaterial::LampIndicator, "indicator_right_rear", 0.006f, false});
+            decals.push_back({mirrorU(amber), CarMaterial::LampIndicator, "indicator_left_rear", 0.006f, false});
+            decals.push_back({white, CarMaterial::LampReverse, "reverse_right", 0.006f, false});
+            decals.push_back({mirrorU(white), CarMaterial::LampReverse, "reverse_left", 0.006f, false});
         }
 
         // ---- Skin classification ---------------------------------------------------------
@@ -1038,9 +1061,17 @@ namespace CarSim::Render
                 const float uB = s1 == 0 ? 1.0f : skin.u[static_cast<std::size_t>(s1)];
                 const Vector2 uv(0.5f * (uA + uB), vc);
                 Skin sk = ClassifySkin(sh, Ring::RightSegment(seg), c, archTop, rail, belt);
+                // A quad becomes a recessed lamp housing only when all four of its corners are
+                // inside the lens polygon. Testing the centre instead let housing quads stick out
+                // past the lens, which showed as black notches around the headlamps, and let paint
+                // quads intrude under the lens edge as red slivers.
+                const float v0 = skin.V(z0);
+                const float v1 = skin.V(z1);
                 bool cut = false;
                 for (const auto& d : decals) {
-                    if (InsidePolygon(uv, d.polygon)) { cut = true; break; }
+                    if (InsidePolygon(Vector2(uA, v0), d.polygon) && InsidePolygon(Vector2(uB, v0), d.polygon) &&
+                        InsidePolygon(Vector2(uA, v1), d.polygon) && InsidePolygon(Vector2(uB, v1), d.polygon) &&
+                        InsidePolygon(uv, d.polygon)) { cut = true; break; }
                 }
                 CarMaterial material = CarMaterial::Paint;
                 switch (sk) {
@@ -1205,9 +1236,11 @@ namespace CarSim::Render
             for (const float side : {-1.0f, 1.0f}) {
                 const float fy = sh.ybot + 0.15f;
                 const float fx = side * (style.width * 0.5f - 0.33f);
-                const float fz = sh.zF - FrontSetback(sh, fy) + 0.005f;
-                chrome.mesh.AddTorus(Vector3(fx, fy, fz), Vector3(0, 0, 1), 0.052f, 0.008f, 20, 6);
-                gloss.mesh.AddCylinder(Vector3(fx, fy, fz + 0.03f), Vector3(0, 0, -1), 0.05f, 0.028f, 20, true);
+                Vector3 fp(fx, fy, sh.zF - FrontSetback(sh, fy) + 0.005f);
+                Vector3 fn(0.0f, 0.0f, -1.0f);
+                FrontFacePoint(skin, fx, fy, fp, fn);
+                chrome.mesh.AddTorus(fp + fn * 0.006f, fn, 0.052f, 0.008f, 20, 6);
+                gloss.mesh.AddCylinder(fp - fn * 0.004f, fn, 0.05f, 0.022f, 20, true);
                 // Side repeater on the front fender.
                 const float sz = sh.zCowl - 0.42f;
                 const float sy = sh.Belt(sz) - 0.10f;
@@ -1223,7 +1256,7 @@ namespace CarSim::Render
                 const float uB = side > 0.0f ? uBelt - 0.016f : 1.0f - (uBelt - 0.016f);
                 poly = {{uA, skin.V(sh.zF + 0.03f)}, {uA, skin.V(sh.zF + 0.20f)}, {uB, skin.V(sh.zF + 0.20f)}, {uB, skin.V(sh.zF + 0.03f)}};
                 if (side < 0.0f) std::reverse(poly.begin(), poly.end());
-                BuildDecal(ind.mesh, skin, poly, 0.004f, uMetres, vMetres);
+                BuildDecal(ind.mesh, skin, poly, 0.006f, uMetres, vMetres);
                 LampGlow glow;
                 skin.Sample(0.5f * (uA + uB), skin.V(sh.zF + 0.11f), glow.position, glow.normal);
                 glow.kind = CarMaterial::LampIndicator;
