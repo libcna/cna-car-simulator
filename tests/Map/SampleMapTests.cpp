@@ -342,3 +342,26 @@ TEST(SampleMap, TheFillingStationHasAPavedForecourtWithSolidCanopyColumns)
     }
     EXPECT_EQ(posts, 4);
 }
+
+TEST(SampleMap, MeadowTreesStandInTheMeadowsClearOfTheRoadsAndBuildings)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    int meadowTrees = 0;
+    for (const auto& tree : world->Objects().Trees()) {
+        if (tree.species == Map::TreeSpecies::Bush) continue;
+        const float x = tree.position.X;
+        const float z = tree.position.Z;
+        if (world->Terrain().RegionAt(x, z) != Map::RegionType::Meadow) continue;
+        ++meadowTrees;
+        Map::RoadHit hit;
+        if (world->Roads().NearestRoad(Microsoft::Xna::Framework::Vector2(x, z), 40.0f, hit)) {
+            const auto& road = world->Roads().Roads()[static_cast<std::size_t>(hit.road)];
+            // Avenue trees stand deliberately close; nothing may grow on the road itself.
+            EXPECT_GT(std::fabs(hit.lateral), road.profile.HalfTotalWidth() + 1.5f) << "a tree stands in the road";
+        }
+        EXPECT_FALSE(world->Objects().InsideBuilding(Microsoft::Xna::Framework::Vector2(x, z), 4.0f));
+    }
+    EXPECT_GT(meadowTrees, 100) << "the meadows are planted";
+}
