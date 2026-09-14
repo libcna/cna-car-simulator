@@ -103,6 +103,20 @@ Measured with the project's own scenes under Xvfb + Mesa llvmpipe (OpenGL ES 3.2
   `ContentManager` are not premultiplied on this path, so the font atlas generator writes
   premultiplied pixels (`tools/fontatlas.py`).
 - `GetBackBufferData` requires `GraphicsProfile::HiDef` (Reach throws).
+- **Stencil clears are not applied reliably after the second frame**: a shadow volume that
+  cleared the stencil buffer each frame and tested `Equal 0` disappeared from frame 3 onwards.
+  Nothing in the project relies on stencil state now (the vehicle shadow is a draped hull).
+- **`DrawUserPrimitives` drew nothing** when issued after the world pass in the town scene; the
+  same geometry in a `VertexBuffer`/`IndexBuffer` with per-frame `SetData` draws correctly, so
+  all dynamic geometry goes through buffers.
+- **`DualTextureEffect` does not double `detail x macro`** the way XNA's does on this path, so
+  the terrain macro texture carries the full lighting rather than half of it.
+- Sampler state is per texture slot and survives between draws: the terrain draw sets slot 0 to
+  `AnisotropicWrap` for the detail texture and slot 1 to `LinearClamp` for the macro, which is
+  what lets the horizon apron reuse the macro colour by clamping past its edge.
+- Ground meshes must wind the same way as the terrain grid (the project emits
+  `(x,z) -> (x,z+1) -> (x+1,z+1)`, counter-clockwise seen from above) or they are back-face
+  culled; this caught the first version of the paved square, which rendered as nothing.
 
 ## 4. Audio
 
