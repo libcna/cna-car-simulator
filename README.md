@@ -126,6 +126,7 @@ Headless smoke run (Xvfb, dummy audio) as used by the tests and for screenshots:
 
 ```bash
 scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --frames 60 --screenshot shot.png
+scripts/capture_set.sh                      # the whole curated set in docs/screenshots/
 ```
 
 ## Controls
@@ -213,7 +214,7 @@ simulator/
     App/        SimulatorGame (XNA Game subclass), Program
 content/        vehicles/*.json, maps/<name>/*.json, fonts/ (generated glyph atlases)
 tools/          map generator, map validator, font atlas generator, simulation tracer
-scripts/        headless runner, XNA-only static check, asset manifest check
+scripts/        headless runner, curated capture set, XNA-only static check, asset check
 tests/          GoogleTest suites (unit, scenario, soak) and CTest registrations
 docs/           framework findings, API boundary, map format, vehicle physics, audio
                 design, vehicle materials, cameras, performance notes, renderer
