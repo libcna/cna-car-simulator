@@ -1334,3 +1334,11 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   the shipped map: the 507 trees within 8 m of the boundary average **0.65** scale against
   **1.00** for the 37 227 well inside it, and a test holds the ratio between 0.4 and 0.85. No
   extra geometry: the same 54 186 trees, at different heights.
+- [x] `RH-026` **A signalised junction is painted like one.** Every arm of "U kaple" carried the
+  give-way triangles (V 6a) that belong on a yield approach: the marking code skipped `Priority`
+  and `RightHandRule` but not `Signal`, so the lights said one thing and the road said another.
+  A signalised approach now gets the transverse stop line (V 5), which is the correct marking at
+  traffic lights. A test in `tests/Render/RoadMeshBuilderTests.cpp` separates the two exactly by
+  counting *lone* marking triangles in the band where the line is painted -- every other marking
+  is a strip of quads, so a give-way triangle is the only marking that stands on its own: 0 over
+  four signalised approaches, 15 over four yield approaches.

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <iostream>
 #include <vector>
 
 using namespace CarSim;
@@ -97,4 +98,79 @@ TEST(RoadMeshBuilder, RuralVergesDrapeFromTheShoulderToTheTerrain)
         if (++rural >= 4) break;
     }
     EXPECT_GE(rural, 2);
+}
+
+// Markings must agree with the control at the junction they are painted for. A signalised
+// approach was getting the give-way triangles (V 6a) that belong on a yield approach: the lights
+// decide who goes, so triangles there are both wrong and contradictory, and every arm of the
+// junction at "U kaple" was painted with them.
+TEST(RoadMeshBuilder, SignalisedApproachesGetAStopLineAndNotGiveWayTriangles)
+{
+    auto world = LoadLipova();
+    ASSERT_TRUE(world);
+    RoadMeshBuilder builder(world->Roads());
+
+    // Count the *lone* marking triangles in the narrow band where the stop line or the give-way
+    // row is painted: between one and two metres in front of the junction patch. Every other
+    // marking -- the stop bar, the centre-line dashes, a crossing -- is a strip of quads, so each
+    // of its triangles shares an edge with a neighbour. A give-way triangle is the only marking
+    // that is a triangle, standing on its own. Counting those separates the two exactly, where
+    // counting all the geometry near a junction just measures how much else is painted there.
+    const auto loneTrianglesAtTheLine = [&](const Map::Approach& approach) {
+        const auto& piece = world->Roads().Pieces()[static_cast<std::size_t>(approach.piece)];
+        const auto& road = world->Roads().Roads()[static_cast<std::size_t>(piece.road)];
+        const float s = approach.leavesForward ? approach.nodeS + approach.setback + 1.3f
+                                               : approach.nodeS - approach.setback - 1.3f;
+        const Vector3 line = road.curve.Evaluate(s).position;
+        const RoadPieceMeshes meshes = builder.BuildPiece(piece);
+        const auto& indices = meshes.markings.indices;
+        const std::size_t triangles = indices.size() / 3;
+        const auto sharesAnEdge = [&](const std::size_t a) {
+            for (std::size_t b = 0; b < triangles; ++b) {
+                if (b == a) continue;
+                int shared = 0;
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {
+                        if (indices[a * 3 + static_cast<std::size_t>(i)] == indices[b * 3 + static_cast<std::size_t>(j)]) ++shared;
+                    }
+                }
+                if (shared >= 2) return true;
+            }
+            return false;
+        };
+        int lone = 0;
+        for (std::size_t t = 0; t < triangles; ++t) {
+            Vector3 centre(0.0f, 0.0f, 0.0f);
+            for (int k = 0; k < 3; ++k) centre = centre + meshes.markings.vertices[indices[t * 3 + static_cast<std::size_t>(k)]].position;
+            centre = centre * (1.0f / 3.0f);
+            const float dx = centre.X - line.X;
+            const float dz = centre.Z - line.Z;
+            if (std::sqrt(dx * dx + dz * dz) > 2.5f) continue;
+            if (!sharesAnEdge(t)) ++lone;
+        }
+        return lone;
+    };
+
+    int signalisedChecked = 0;
+    int yieldChecked = 0;
+    int signalisedTriangles = 0;
+    int yieldTriangles = 0;
+    for (const auto& inter : world->Roads().Intersections()) {
+        for (const auto& approach : inter.approaches) {
+            if (approach.piece < 0) continue;
+            if (approach.control == Map::ApproachControl::Signal && signalisedChecked < 4) {
+                signalisedTriangles += loneTrianglesAtTheLine(approach);
+                ++signalisedChecked;
+            } else if (approach.control == Map::ApproachControl::Yield && yieldChecked < 4) {
+                yieldTriangles += loneTrianglesAtTheLine(approach);
+                ++yieldChecked;
+            }
+        }
+    }
+    ASSERT_GE(signalisedChecked, 2) << "the sample map must have a signalised junction to check";
+    ASSERT_GE(yieldChecked, 2) << "and a yield junction to compare it against";
+    std::cout << "  lone marking triangles at the line: signalised " << signalisedTriangles << " over "
+              << signalisedChecked << " approaches, yield " << yieldTriangles << " over " << yieldChecked << "\n";
+    EXPECT_EQ(signalisedTriangles, 0) << "a signalised approach is painted with give-way triangles";
+    EXPECT_GE(yieldTriangles, 2 * yieldChecked) << "a yield approach has lost its give-way triangles";
 }

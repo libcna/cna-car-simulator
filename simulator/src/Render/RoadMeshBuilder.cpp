@@ -337,8 +337,11 @@ namespace CarSim::Render
                 const float lane1 = a.leavesForward ? 0.0f : profile.laneWidth;
                 const float sEnd = which == 0 ? piece.s0 : piece.s1;
                 const float dir = which == 0 ? 1.0f : -1.0f;   // into the piece
-                if (a.control == Map::ApproachControl::Stop) {
-                    // V 5: 0.5 m bar across the incoming lane, 1 m before the patch.
+                if (a.control == Map::ApproachControl::Stop || a.control == Map::ApproachControl::Signal) {
+                    // V 5: 0.5 m bar across the incoming lane, 1 m before the patch. A signalised
+                    // approach gets the same stop line -- the lights decide who goes, so the
+                    // give-way triangles below would be both wrong and contradictory. Every
+                    // approach of the junction at "U kaple" was painted with them before.
                     std::vector<Row> bar;
                     for (const float off : {1.0f, 1.5f}) {
                         const float s = sEnd + dir * off;

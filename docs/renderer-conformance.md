@@ -96,6 +96,35 @@ after the second frame on the EasyGL path, was removed from the design rather th
 around: the vehicle shadow is a stencil-free convex-hull blob and no code path relies on
 stencil state.
 
+## What "tested" means here (Phase 13)
+
+"Three renderers were tested" has to mean something, so each renderer is recorded against the
+same six words, and nothing is claimed that was not done. `scripts/renderer_compare.sh` performs
+the first four automatically and prints this table; the last two are human steps and the script
+says so rather than pretending otherwise.
+
+| | configures | compiles | starts | renders | visually inspected | performance tested |
+| --- | --- | --- | --- | --- | --- | --- |
+| `OPENGLES3` | yes | yes | yes | yes | yes -- every screenshot in this repository | yes |
+| `OPENGL33` | yes | yes | yes | yes | yes -- the two comparison sheets below | yes |
+| `SOFTWARE` | yes | yes | yes | yes | yes -- the two comparison sheets below | yes (twenty times slower) |
+| `VULKAN` | no | no | no | no | no | no |
+| `DIRECTX*`, `METAL`, `WEBGL*` | no | no | no | no | no | no |
+
+- **configures / compiles**: `cmake --preset <p>` succeeds and produces a binary.
+- **starts**: the process runs the scene and exits cleanly.
+- **renders**: a screenshot came out, with its own draw-call and triangle counts.
+- **visually inspected**: a person compared the images. **Equal draw calls are not visual
+  equivalence** -- the two GL paths submit identical geometry and still differ by 3.8/255 in the
+  mean, mostly from anisotropic filtering and half-texel edge coverage, which is exactly why the
+  image-difference table below exists and why this row is not inferred from the one above it.
+- **performance tested**: the benchmark numbers in this page's tables.
+
+Everything above is the container: Xvfb, Mesa llvmpipe, **no GPU**. On a real machine the whole
+table should be re-run (`docs/real-hardware-validation.md`, section 7) and the differences
+recorded rather than assumed to vanish; a renderer discrepancy that turns out to be in CNA is to
+be isolated and documented there, never worked around with renderer-specific application code.
+
 ## Not covered
 
 - `VULKAN`, `DIRECTX*`, `METAL`, `WEBGL*`: not available in the container. The project does
