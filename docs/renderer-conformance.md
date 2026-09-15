@@ -21,7 +21,7 @@ checked out beside it.
 | `vulkan` | `VULKAN` | not built | No Vulkan ICD in the container (no `lavapipe` package); nothing to run it on. |
 
 Every build is configured with `CNA_CNAEXT=OFF` and the same project options; only the
-renderer variable differs. `ctest` runs against the `opengles3` build (149 tests).
+renderer variable differs. `ctest` runs against the `opengles3` build (178 tests).
 
 ## Runs
 
