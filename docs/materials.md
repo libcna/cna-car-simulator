@@ -49,6 +49,23 @@ ground bounce 0.10/0.09/0.07): textures keep their contrast instead of clipping 
 interior effect uses a brighter ambient (0.50/0.51/0.55) because the cabin receives no baked
 occlusion and would otherwise read black.
 
+## Day and night
+
+`LightingRig::SetTimeOfDay(hours)` moves the sun (latitude 49.8 deg N, declination +20 deg,
+solar noon at 13:00) and derives the whole palette from its elevation. Below -1 degree the key
+light becomes a dim cold moon from the opposite side of the sky.
+
+The terrain macro texture, the ground shadows and the road and verge vertex colours are baked
+once under a fixed reference sun, `LightingRig::BakeReference()` at 10:30 -- the same rig
+whatever hour the game starts at. Everything baked is then scaled per frame by
+`BakedLightingScale`, the ratio of the horizontal irradiance now to the irradiance at the bake,
+which `WorldRenderer::ApplyLighting` writes into the terrain, road and tree effects. The
+direction of the baked shadows therefore does not follow the sun; only their strength does.
+
+`LightingRig::LampFactor()` says how much artificial light the world needs: 0 above six degrees
+of sun elevation, 1 once the sun is four degrees below the horizon. It fades in the lit window
+batches (`nightEmissive`), the street lamp pools and glows, and the headlamp pool on the road.
+
 ## Traffic
 
 Traffic cars share `VehicleMaterials`; each of the ten style models keeps its own paint detail

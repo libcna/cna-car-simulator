@@ -52,7 +52,7 @@ TEST(LightingRig, NightIsDarkAndSunsetIsWarm)
     const Vector3 up(0.0f, 1.0f, 0.0f);
     EXPECT_GT(noon.Irradiance(up).Y, 4.0f * dusk.Irradiance(up).Y);
     EXPECT_GT(dusk.Irradiance(up).Y, night.Irradiance(up).Y);
-    EXPECT_LT(night.Irradiance(up).Y, 0.12f);
+    EXPECT_LT(night.Irradiance(up).Y, 0.25f);   // moonlight: readable, an order below noon
     // Low sun is warm: more red than blue, unlike the neutral noon light.
     EXPECT_GT(dusk.sunColor.X / std::max(0.001f, dusk.sunColor.Z), noon.sunColor.X / std::max(0.001f, noon.sunColor.Z));
     // The sky follows: a warm horizon at dusk, a dark one at night.
@@ -69,7 +69,7 @@ TEST(LightingRig, BakedLightingScaleFollowsTheDay)
     const Vector3 noon = At(13.0f).BakedLightingScale(reference);
     const Vector3 night = At(1.0f).BakedLightingScale(reference);
     EXPECT_GT(noon.Y, 1.0f);
-    EXPECT_LT(night.Y, 0.15f);
+    EXPECT_LT(night.Y, 0.20f);
     EXPECT_GT(night.Y, 0.0f);
     // The scale falls monotonically from noon through the evening into the night. (It stays
     // slightly blue at dusk: a horizontal surface then sees mostly skylight, while the warm

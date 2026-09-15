@@ -71,6 +71,7 @@ namespace CarSim::Render
         BuildIntersections(device, shadow);
         BuildPavedAreas(device, shadow);
         BuildObjects(device);
+        BuildLampLights(device);
         BuildTrees(device);
         BuildSigns(device, signFont);
 
@@ -138,6 +139,7 @@ namespace CarSim::Render
             terrainEffect_->setFogEndProperty(rig_.fogEnd);
         }
         bakedScale_ = scale;
+        lampFactor_ = rig_.LampFactor();
         if (roadUnlitEffect_) {
             roadUnlitEffect_->setDiffuseColorProperty(scale);
             roadUnlitEffect_->setFogColorProperty(rig_.fogColor);
@@ -644,9 +646,11 @@ namespace CarSim::Render
             VegetationGenerator::AppendTrunk(t, trunkChunks[ChunkKey(t.position.X, t.position.Z)]);
         }
         const auto push = [&](MeshData& m, Texture2D* texture, const Vector3& diffuse, const Vector3& specular, const float power,
-                              const Vector3& emissive = Vector3(0.0f, 0.0f, 0.0f), const float cullDistance = 0.0f) {
+                              const Vector3& emissive = Vector3(0.0f, 0.0f, 0.0f), const float cullDistance = 0.0f,
+                              const Vector3& nightEmissive = Vector3(0.0f, 0.0f, 0.0f)) {
             if (m.TriangleCount() == 0) return;
             ObjectBatch b;
+            b.nightEmissive = nightEmissive;
             b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionNormalTexture);
             b.texture = texture;
             b.diffuse = diffuse;
@@ -669,6 +673,10 @@ namespace CarSim::Render
             }
             push(bm.windows, windowTexture_.get(), one, Vector3(0.6f, 0.6f, 0.6f), 40.0f);
             push(bm.glassDark, white_.get(), Vector3(0.20f, 0.25f, 0.30f), Vector3(0.8f, 0.8f, 0.8f), 60.0f);
+            // The same windows with the light on: warm emissive that fades in after sunset.
+            push(bm.windowsLit, windowTexture_.get(), one, Vector3(0.6f, 0.6f, 0.6f), 40.0f, noGlow, 0.0f, Vector3(0.62f, 0.50f, 0.30f));
+            push(bm.glassLit, white_.get(), Vector3(0.20f, 0.25f, 0.30f), Vector3(0.8f, 0.8f, 0.8f), 60.0f, noGlow, 0.0f,
+                 Vector3(0.50f, 0.42f, 0.26f));
             push(bm.trim, white_.get(), Vector3(0.28f, 0.22f, 0.18f), matte, 6.0f);
             push(bm.frames, white_.get(), Vector3(0.90f, 0.89f, 0.84f), Vector3(0.2f, 0.2f, 0.2f), 12.0f, noGlow, kDetailRangeM);
             push(bm.metal, white_.get(), Vector3(0.52f, 0.54f, 0.57f), Vector3(0.5f, 0.5f, 0.5f), 30.0f, noGlow, kDetailRangeM);
@@ -691,6 +699,112 @@ namespace CarSim::Render
             push(m, barkTexture_.get(), one, matte, 6.0f, noGlow, 700.0f);
         }
         stats_.objectBatchesTotal = static_cast<int>(objectBatches_.size());
+    }
+
+
+    void WorldRenderer::BuildLampLights(GraphicsDevice& device)
+    {
+        // Soft radial falloff, used both for the pool on the ground and for the glow around the
+        // lantern. Additive, so black is transparent.
+        Image glow(64, 64, Color(0, 0, 0, 255));
+        glow.Generate([](int, int, const float u, const float v) {
+            const float dx = u * 2.0f - 1.0f;
+            const float dy = v * 2.0f - 1.0f;
+            const float r = std::sqrt(dx * dx + dy * dy);
+            const float a = std::clamp(1.0f - r, 0.0f, 1.0f);
+            const float f = a * a * (0.35f + 0.65f * a);
+            return Color(static_cast<int>(f * 255.0f), static_cast<int>(f * 255.0f), static_cast<int>(f * 255.0f), 255);
+        });
+        glowTexture_ = UploadTexture(device, glow, true);
+
+        glowEffect_ = std::make_unique<BasicEffect>(device);
+        glowEffect_->setLightingEnabledProperty(false);
+        glowEffect_->setTextureEnabledProperty(true);
+        glowEffect_->setVertexColorEnabledProperty(true);
+        glowEffect_->setFogEnabledProperty(false);
+
+        const auto& ground = world_.Ground();
+        std::map<std::pair<int, int>, MeshData> chunks;
+        constexpr float kPoolRadiusM = 8.5f;
+        constexpr int kPoolCells = 6;          // grid so the pool follows the camber and the kerb
+        constexpr float kGlowRadiusM = 1.1f;
+        for (const auto& prop : world_.Objects().Props()) {
+            if (prop.type != Map::PropType::Lamp) {
+                continue;
+            }
+            const float s = prop.scale;
+            const float sinH = std::sin(prop.headingRad);
+            const float cosH = std::cos(prop.headingRad);
+            // The lantern hangs on an arm reaching 1.35 s metres along the prop's local +z.
+            const float armZ = 1.35f * s;
+            const Vector3 lantern(prop.position.X + sinH * armZ, prop.position.Y + 6.93f * s, prop.position.Z + cosH * armZ);
+            MeshData& mesh = chunks[ChunkKey(lantern.X, lantern.Z)];
+
+            // Ground pool: a grid centred under the lantern, laid on the ground surface and
+            // faded out at the rim by the texture.
+            const float radius = kPoolRadiusM * s;
+            for (int j = 0; j < kPoolCells; ++j) {
+                for (int i = 0; i < kPoolCells; ++i) {
+                    const float u0 = static_cast<float>(i) / kPoolCells;
+                    const float u1 = static_cast<float>(i + 1) / kPoolCells;
+                    const float v0 = static_cast<float>(j) / kPoolCells;
+                    const float v1 = static_cast<float>(j + 1) / kPoolCells;
+                    const auto corner = [&](const float u, const float v) {
+                        const float x = lantern.X + (u * 2.0f - 1.0f) * radius;
+                        const float z = lantern.Z + (v * 2.0f - 1.0f) * radius;
+                        return Vector3(x, ground.HeightAt(x, z) + 0.05f, z);
+                    };
+                    // Wound like the terrain grid so the pool is not culled from above.
+                    mesh.AddQuad(corner(u0, v0), corner(u0, v1), corner(u1, v1), corner(u1, v0), Vector3(0.0f, 1.0f, 0.0f),
+                                 Vector2(u0, v0), Vector2(u0, v1), Vector2(u1, v1), Vector2(u1, v0), Color(115, 108, 96, 255));
+                }
+            }
+            // Lantern glow: two crossed vertical cards, so it reads from any direction without
+            // per-frame billboarding.
+            const float g = kGlowRadiusM * s;
+            for (int axis = 0; axis < 2; ++axis) {
+                const float ax = axis == 0 ? cosH : -sinH;
+                const float az = axis == 0 ? -sinH : -cosH;
+                const Vector3 right(ax * g, 0.0f, az * g);
+                const Vector3 up(0.0f, g, 0.0f);
+                const Vector3 n(-az, 0.0f, ax);
+                mesh.AddQuad(lantern - right - up, lantern + right - up, lantern + right + up, lantern - right + up, n,
+                             Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0), Color(255, 244, 222, 255));
+            }
+        }
+        for (auto& [key, mesh] : chunks) {
+            if (mesh.TriangleCount() == 0) continue;
+            lampLights_.push_back(GpuMesh::Create(device, mesh, VertexLayout::PositionColorTexture));
+        }
+    }
+
+    void WorldRenderer::DrawLampLights(GraphicsDevice& device, const Matrix& view, const Matrix& projection, const BoundingFrustum& frustum)
+    {
+        if (lampFactor_ <= 0.01f || !glowEffect_ || lampLights_.empty()) {
+            return;
+        }
+        glowEffect_->setWorldProperty(Matrix::getIdentityProperty());
+        glowEffect_->setViewProperty(view);
+        glowEffect_->setProjectionProperty(projection);
+        glowEffect_->setTextureProperty(glowTexture_.get());
+        // Sodium-white lamps. The lantern runs near white; the pool on the ground carries its
+        // lower intensity in the vertex colour, since both share this one effect.
+        glowEffect_->setDiffuseColorProperty(Vector3(0.95f, 0.84f, 0.60f) * lampFactor_);
+        device.setBlendStateProperty(BlendState::Additive);
+        device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+        device.setRasterizerStateProperty(RasterizerState::CullNone);
+        device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        for (const auto& mesh : lampLights_) {
+            if (!mesh || !frustum.Intersects(mesh->Sphere())) continue;
+            ApplyAll(*glowEffect_, device, *mesh);
+            ++stats_.drawCalls;
+            stats_.triangles += mesh->PrimitiveCount();
+        }
+        device.setBlendStateProperty(BlendState::Opaque);
+        device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+        glowEffect_->setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
     }
 
     void WorldRenderer::BuildTrees(GraphicsDevice& device)
@@ -863,7 +977,7 @@ namespace CarSim::Render
             }
             roadEffect_->setTextureProperty(b.texture);
             roadEffect_->setDiffuseColorProperty(b.diffuse);
-            roadEffect_->setEmissiveColorProperty(b.emissive);
+            roadEffect_->setEmissiveColorProperty(b.emissive + b.nightEmissive * lampFactor_);
             roadEffect_->setSpecularColorProperty(b.specular);
             roadEffect_->setSpecularPowerProperty(b.specularPower);
             ApplyAll(*roadEffect_, device, *b.mesh);
@@ -911,5 +1025,8 @@ namespace CarSim::Render
         }
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+
+        // Street lamp light last, so it adds on top of everything the pass has drawn.
+        DrawLampLights(device, view, projection, frustum);
     }
 }

@@ -122,6 +122,11 @@ namespace CarSim::Render
         void DrawShadow(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
                         const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
                         const Microsoft::Xna::Framework::Vector3& sunDirection, const GroundQuery& ground);
+        /// Warm pool the headlamps throw on the road ahead, draped on the ground and drawn
+        /// additively. `intensity` is the rig's lamp factor, so nothing shows in daylight.
+        void DrawHeadlightPool(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
+                               const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
+                               const GroundQuery& ground, float intensity);
         /// Transparent parts (glass), drawn after all opaque geometry. `fromInside` (cockpit camera)
         /// uses the light tint without reflections; from outside the glass reflects the sky.
         void DrawTransparent(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
@@ -167,6 +172,11 @@ namespace CarSim::Render
         std::vector<ShadowCaster> casters_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> shadowVertices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> shadowIndices_;
+        static constexpr int kPoolCellsAlong = 12;
+        static constexpr int kPoolCellsAcross = 10;
+        static constexpr int kPoolVertexCapacity = kPoolCellsAlong * kPoolCellsAcross * 6;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> poolVertices_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> poolIndices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paintDetail_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glassOutside_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glassInside_;

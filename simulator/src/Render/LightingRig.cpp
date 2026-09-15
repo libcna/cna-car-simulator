@@ -79,16 +79,16 @@ namespace CarSim::Render
         sunColor = Mix(noonSun, lowSun, warm * 0.9f) * strength;
         if (elevationDeg < -1.0f) {
             // Moonlight: a dim, cold key from roughly the opposite side of the sky.
-            sunColor = Vector3(0.05f, 0.06f, 0.09f) * (0.35f + 0.65f * night);
+            sunColor = Vector3(0.068f, 0.078f, 0.115f) * (0.35f + 0.65f * night);
             sunDirection = Vector3(-dir.X, -std::fabs(dir.Y) * 0.8f - 0.3f, -dir.Z);
             sunDirection.Normalize();
         }
 
         const Vector3 dayAmbient(0.21f, 0.23f, 0.28f);
         const Vector3 duskAmbient(0.17f, 0.14f, 0.15f);
-        const Vector3 nightAmbient(0.035f, 0.040f, 0.062f);
+        const Vector3 nightAmbient(0.050f, 0.056f, 0.080f);
         skyAmbient = Mix(Mix(nightAmbient, duskAmbient, 1.0f - night), dayAmbient, day);
-        skyFillColor = Mix(Vector3(0.020f, 0.024f, 0.042f), Vector3(0.15f, 0.18f, 0.24f), day) + Vector3(0.05f, 0.03f, 0.02f) * dusk;
+        skyFillColor = Mix(Vector3(0.027f, 0.032f, 0.052f), Vector3(0.15f, 0.18f, 0.24f), day) + Vector3(0.05f, 0.03f, 0.02f) * dusk;
         groundBounceColor = Mix(Vector3(0.010f, 0.010f, 0.014f), Vector3(0.10f, 0.09f, 0.07f), day);
 
         const Vector3 dayFog(0.76f, 0.82f, 0.90f);
@@ -107,6 +107,13 @@ namespace CarSim::Render
         // Night air is clearer but the view fades sooner in the dark.
         fogStart = Mix(Vector3(120.0f, 0.0f, 0.0f), Vector3(300.0f, 0.0f, 0.0f), day).X;
         fogEnd = Mix(Vector3(1400.0f, 0.0f, 0.0f), Vector3(2600.0f, 0.0f, 0.0f), day).X;
+    }
+
+    float LightingRig::LampFactor() const
+    {
+        // Lamps come on as the sun sets (they are already on below the horizon) and go off again
+        // once it is properly up.
+        return 1.0f - SmoothStep(-4.0f, 6.0f, sunElevationDeg);
     }
 
     Vector3 LightingRig::BakedLightingScale(const LightingRig& reference) const

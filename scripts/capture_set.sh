@@ -33,9 +33,15 @@ shot countryside --spawn fields --frames 150 --auto-drive 6
 shot forest      --spawn forest --frames 900 --auto-drive 15
 # Headlights on (the flag starts the engine itself so the electrics are live).
 shot lights      --spawn square --frames 240 --chase-yaw 150 --chase-distance 5 --lights --traffic-warmup 20
+# Time of day: the same square at dusk and at night, and a lit street from beside the car.
+shot dusk        --spawn square --frames 40  --view -78 9 -30 50 -6 --time 21:30 --time-scale 0
+shot night       --spawn square --frames 40  --view -66 6 25 0 -10  --time 23:00 --time-scale 0
+shot headlights  --spawn square --frames 300 --chase-yaw 90 --chase-distance 14 --lights --auto-drive 4 \
+                 --time 23:00 --time-scale 0 --traffic-warmup 20
 
 echo
 echo "captured into $OUT; convert the scene shots to JPEG before committing them:"
 echo "  python3 -c \"from PIL import Image; [Image.open(f'$OUT/{n}.png').convert('RGB')"
 echo "      .save(f'$OUT/{n}.jpg', quality=88, optimize=True, subsampling=1) for n in"
-echo "      ['hero','cockpit','town','traffic','square','countryside','forest','lights']]\""
+echo "      ['hero','cockpit','town','traffic','square','countryside','forest','lights',"
+echo "      'dusk','night','headlights']]\""

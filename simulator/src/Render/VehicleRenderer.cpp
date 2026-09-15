@@ -422,6 +422,12 @@ namespace CarSim::Render
         for (std::size_t i = 0; i < identity.size(); ++i) identity[i] = static_cast<std::uint32_t>(i);
         shadowIndices_ = std::make_unique<IndexBuffer>(device, IndexElementSize::ThirtyTwoBits, kShadowVertexCapacity, BufferUsage::WriteOnly);
         shadowIndices_->SetData(identity.data(), kShadowVertexCapacity);
+        poolVertices_ = std::make_unique<VertexBuffer>(device, VertexPositionColorTexture::getVertexDeclarationStatic(), kPoolVertexCapacity,
+                                                       BufferUsage::WriteOnly);
+        std::vector<std::uint32_t> poolIdentity(static_cast<std::size_t>(kPoolVertexCapacity));
+        for (std::size_t i = 0; i < poolIdentity.size(); ++i) poolIdentity[i] = static_cast<std::uint32_t>(i);
+        poolIndices_ = std::make_unique<IndexBuffer>(device, IndexElementSize::ThirtyTwoBits, kPoolVertexCapacity, BufferUsage::WriteOnly);
+        poolIndices_->SetData(poolIdentity.data(), kPoolVertexCapacity);
     }
 
     Matrix VehicleRenderer::PartWorld(const CarPart& part, const Sim::VehicleState& state, const GaugePose& gauges) const
@@ -731,6 +737,87 @@ namespace CarSim::Render
         };
         draw(0, contactCount, materials_.ContactTexture());
         draw(contactCount, hullCount, materials_.White());
+        device.setBlendStateProperty(BlendState::Opaque);
+        device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+    }
+
+
+    void VehicleRenderer::DrawHeadlightPool(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
+                                            const Matrix& projection, const GroundQuery& ground, const float intensity)
+    {
+        if (!poolVertices_ || !poolIndices_ || !state.lowBeam || intensity <= 0.01f) {
+            return;
+        }
+        // Low beam: a short, wide pool that starts just ahead of the bumper and is cut off where
+        // the beam drops. High beam reaches roughly twice as far and stays brighter.
+        const bool high = state.highBeam;
+        const float nearM = 2.2f;
+        const float farM = high ? 48.0f : 26.0f;
+        const float halfNear = 1.7f;
+        const float halfFar = high ? 7.5f : 8.5f;
+        const Vector3 origin = state.originPosition;
+        Vector3 forward = state.worldMatrix.getForwardProperty();
+        forward.Y = 0.0f;
+        if (forward.LengthSquared() < 1e-6f) return;
+        forward.Normalize();
+        const Vector3 right(-forward.Z, 0.0f, forward.X);
+        const Vector3 warm = high ? Vector3(0.95f, 0.94f, 0.88f) : Vector3(0.80f, 0.78f, 0.70f);
+
+        const auto sample = [&](const int j, const int i) {
+            const float t = static_cast<float>(j) / kPoolCellsAlong;            // 0 near, 1 far
+            const float u = static_cast<float>(i) / kPoolCellsAcross * 2.0f - 1.0f;   // -1..1 across
+            const float distance = nearM + t * (farM - nearM);
+            const float half = halfNear + t * (halfFar - halfNear);
+            const Vector3 p = origin + forward * distance + right * (u * half);
+            const float y = (ground.height ? ground.height(p.X, p.Z) : origin.Y) + 0.05f;
+            // Falls off sideways and towards the end of the beam. The pool is brightest around
+            // a third of the way out, not right under the bumper, where the car hides it anyway.
+            const float lateral = std::max(0.0f, 1.0f - u * u);
+            const float rise = std::min(1.0f, t / 0.22f);
+            const float fall = std::pow(std::max(0.0f, 1.0f - t), 1.1f);
+            const float f = std::clamp(lateral * lateral * rise * fall * 1.9f * intensity, 0.0f, 1.0f);
+            const Vector3 c = warm * f;
+            const Color colour(static_cast<int>(c.X * 255.0f), static_cast<int>(c.Y * 255.0f), static_cast<int>(c.Z * 255.0f), 255);
+            return VertexPositionColorTexture(Vector3(p.X, y, p.Z), colour, Vector2(0.5f, 0.5f));
+        };
+
+        std::vector<VertexPositionColorTexture> verts;
+        verts.reserve(static_cast<std::size_t>(kPoolVertexCapacity));
+        for (int j = 0; j < kPoolCellsAlong; ++j) {
+            for (int i = 0; i < kPoolCellsAcross; ++i) {
+                const auto a = sample(j, i);
+                const auto b = sample(j, i + 1);
+                const auto c = sample(j + 1, i + 1);
+                const auto d = sample(j + 1, i);
+                verts.push_back(a); verts.push_back(b); verts.push_back(c);
+                verts.push_back(a); verts.push_back(c); verts.push_back(d);
+            }
+        }
+        poolVertices_->SetData(verts.data(), static_cast<int>(verts.size()));
+
+        device.setBlendStateProperty(BlendState::Additive);
+        device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+        device.setRasterizerStateProperty(RasterizerState::CullNone);
+        device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        device.SetVertexBuffer(poolVertices_.get());
+        device.setIndicesProperty(poolIndices_.get());
+        // The shadow effect is the only unlit vertex-colour effect the car owns; it normally runs
+        // with a black diffuse (shadows), so the pool borrows it with a white one.
+        auto& e = materials_.Shadow();
+        e.setViewProperty(view);
+        e.setProjectionProperty(projection);
+        e.setWorldProperty(Matrix::getIdentityProperty());
+        e.setTextureProperty(&materials_.White());
+        e.setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
+        auto& passes = e.getCurrentTechniqueProperty()->getPassesProperty();
+        for (int i = 0; i < passes.getCountProperty(); ++i) {
+            passes[i]->Apply();
+            device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, static_cast<int>(verts.size()), 0, static_cast<int>(verts.size()) / 3);
+        }
+        ++drawCalls_;
+        e.setDiffuseColorProperty(Vector3(0.0f, 0.0f, 0.0f));
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);

@@ -38,6 +38,31 @@ namespace CarSim::Render
             m.AddQuad(a, b, c, d, n, Vector2(0, v1), Vector2(u1, v1), Vector2(u1, 0), Vector2(0, 0), kWhite);
         }
 
+
+        /// Splits a mesh of window quads (four vertices, six indices each) into the ones whose
+        /// light is on after dark and the rest. The choice is a hash of the quad centre and the
+        /// building seed, so it is stable between runs and between renderers.
+        void SplitLitWindows(const MeshData& in, const unsigned seed, const int litPercent, MeshData& darkOut, MeshData& litOut)
+        {
+            for (std::size_t q = 0; q + 4 <= in.vertices.size(); q += 4) {
+                Vector3 centre(0.0f, 0.0f, 0.0f);
+                for (std::size_t k = 0; k < 4; ++k) centre += in.vertices[q + k].position;
+                centre *= 0.25f;
+                unsigned hash = seed * 2654435761u;
+                hash ^= static_cast<unsigned>(static_cast<int>(centre.X * 37.0f)) * 2246822519u;
+                hash ^= static_cast<unsigned>(static_cast<int>(centre.Y * 53.0f)) * 3266489917u;
+                hash ^= static_cast<unsigned>(static_cast<int>(centre.Z * 41.0f)) * 668265263u;
+                hash ^= hash >> 15;
+                hash *= 2246822519u;
+                hash ^= hash >> 13;
+                MeshData& target = static_cast<int>(hash % 100u) < litPercent ? litOut : darkOut;
+                const auto base = static_cast<std::uint32_t>(target.vertices.size());
+                for (std::size_t k = 0; k < 4; ++k) target.vertices.push_back(in.vertices[q + k]);
+                const std::uint32_t order[6] = {0, 1, 2, 0, 2, 3};
+                for (const std::uint32_t o : order) target.indices.push_back(base + o);
+            }
+        }
+
         /// Local frame on a wall: x along the wall (right), y up, z out along the normal.
         Matrix FaceBasis(const Vector3& n, const Vector3& origin)
         {
@@ -444,9 +469,17 @@ namespace CarSim::Render
         const int roofIndex = BuildingPalette::RoofIndex(b);
         out.walls[static_cast<std::size_t>(wallIndex)].Append(walls, world);
         out.roofs[static_cast<std::size_t>(roofIndex)].Append(roof, world);
-        out.windows.Append(windows, world);
+        // After dark roughly two windows in five are lit; the rest stay as they are.
+        const unsigned litSeed = b.spec->seed * 2654435761u ^ (static_cast<unsigned>(b.position.X * 7.0f) << 8) ^
+                                 static_cast<unsigned>(b.position.Z * 11.0f);
+        MeshData windowsDark, windowsLit, glassDarkOnly, glassLit;
+        SplitLitWindows(windows, litSeed, 40, windowsDark, windowsLit);
+        SplitLitWindows(glass, litSeed + 17u, 35, glassDarkOnly, glassLit);
+        out.windows.Append(windowsDark, world);
+        out.windowsLit.Append(windowsLit, world);
         out.trim.Append(trim, world);
-        out.glassDark.Append(glass, world);
+        out.glassDark.Append(glassDarkOnly, world);
+        out.glassLit.Append(glassLit, world);
         out.frames.Append(frames, world);
         out.metal.Append(metal, world);
         out.dark.Append(dark, world);

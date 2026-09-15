@@ -909,3 +909,23 @@ test, and the static checks stay mandatory.
   lighting when the sun has moved a quarter of a degree, and shows the time in the HUD. `--time
   <hh:mm>` (or decimal hours) and `--time-scale <x>` set it from the command line, the save file
   remembers both, and F6/F7 step the clock an hour back and forward while F8 freezes it.
+- [x] `LW-006` Lit windows. `BuildingGenerator` splits the window quads of every building into a
+  dark and a lit batch with a hash of the quad centre and the building seed (40 % of the framed
+  windows, 35 % of the shop and block glazing), so the split is the same in every run and on
+  every renderer. The lit batches carry a warm `nightEmissive` that `WorldRenderer` adds to the
+  batch emissive in proportion to the rig's lamp factor, so the town lights up after sunset and
+  goes dark again at dawn without a second draw of the same geometry.
+- [x] `LW-007` Street lamps. `WorldRenderer::BuildLampLights` builds, per terrain chunk, a warm
+  pool on the ground under each lamp (a 6x6 grid draped on the ground surface so it follows the
+  camber and the kerb, 8.5 m across) and a glow at the lantern (two crossed cards, so no
+  per-frame billboarding). They are drawn additively after the world pass, scaled by
+  `LightingRig::LampFactor()`: 0 above six degrees of sun elevation, 1 once the sun is four
+  degrees below the horizon. The pass costs about 2 ms of the 76 ms town frame on llvmpipe and
+  nothing at all by day, when it is skipped outright.
+- [x] `LW-008` Headlamp pool. `VehicleRenderer::DrawHeadlightPool` drapes a 12x10 grid on the
+  road ahead of the car (2.2 to 26 m on low beam, 48 m on high beam) with a lateral and
+  longitudinal falloff baked into the vertex colours, drawn additively through the car's own
+  unlit vertex-colour effect. It fades in with the same lamp factor, so the beam does not show
+  in daylight. The night floor of the palette was raised by half a stop at the same time
+  (moonlight, night ambient and night sky fill) so that a moonlit street is legible without the
+  lamps.

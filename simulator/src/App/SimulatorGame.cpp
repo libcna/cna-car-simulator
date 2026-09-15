@@ -693,6 +693,7 @@ namespace CarSim::App
         vehicleRenderer_->SetPlateTexture(playerPlate_);
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
         vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundQuery);
+        vehicleRenderer_->DrawHeadlightPool(device, state, view, projection, groundQuery, rig_.LampFactor());
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);

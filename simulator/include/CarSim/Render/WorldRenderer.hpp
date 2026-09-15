@@ -80,6 +80,8 @@ namespace CarSim::Render
             Microsoft::Xna::Framework::Graphics::Texture2D* texture = nullptr;
             Microsoft::Xna::Framework::Vector3 diffuse{1.0f, 1.0f, 1.0f};
             Microsoft::Xna::Framework::Vector3 emissive{0.0f, 0.0f, 0.0f};
+            /// Added to `emissive` in proportion to the rig's lamp factor: lit windows.
+            Microsoft::Xna::Framework::Vector3 nightEmissive{0.0f, 0.0f, 0.0f};
             Microsoft::Xna::Framework::Vector3 specular{0.05f, 0.05f, 0.05f};
             float specularPower = 8.0f;
             float cullDistance = 0.0f;   // > 0: skipped when the batch sphere is farther than this
@@ -91,6 +93,13 @@ namespace CarSim::Render
         };
 
         void BuildObjects(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        /// Warm pools on the ground under the street lamps and a glow at each lantern, drawn
+        /// additively while the lamps are on.
+        void BuildLampLights(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        void DrawLampLights(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
+                            const Microsoft::Xna::Framework::Matrix& view,
+                            const Microsoft::Xna::Framework::Matrix& projection,
+                            const Microsoft::Xna::Framework::BoundingFrustum& frustum);
         void BuildSigns(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const BitmapFont* font);
         void BuildTrees(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildTerrain(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
@@ -132,6 +141,10 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
 
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::AlphaTestEffect> treeEffect_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> glowEffect_;        // unlit, additive: street lamp light
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glowTexture_;         // radial falloff
+        std::vector<std::unique_ptr<GpuMesh>> lampLights_;                                    // one mesh per chunk
+        float lampFactor_ = 0.0f;                                                             // 0 by day, 1 after dark
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> roofTextures_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> windowTexture_;

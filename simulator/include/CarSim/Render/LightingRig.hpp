@@ -55,6 +55,9 @@ namespace CarSim::Render
         [[nodiscard]] float SunAzimuthDeg() const { return sunAzimuthDeg; }
         /// True once the sun is far enough below the horizon for headlights to matter.
         [[nodiscard]] bool IsNight() const { return SunElevationDeg() < -1.0f; }
+        /// How much artificial light the world needs: 0 in daylight, 1 once it is properly dark.
+        /// Street lamps, lit windows and headlamp pools fade in and out with it.
+        [[nodiscard]] float LampFactor() const;
 
         /// Multiplier that turns lighting baked under `reference` into lighting for this rig:
         /// the ratio of the irradiance of a horizontal surface, tinted like the current key
