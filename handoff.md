@@ -1,7 +1,7 @@
 # Handoff: cna-car-simulator
 
 Written for an AI agent (or a person) who picks this project up in a fresh context. Read this
-file, then `plan.md` (the authoritative task ledger; section 24 is the current phase) and
+file, then `plan.md` (the authoritative task ledger; section 26 is the current phase) and
 `README.md`. Everything below is verified against the repository state at the time of writing;
 re-verify with `git log` and the ledger before acting.
 
@@ -35,14 +35,16 @@ simulator/include/CarSim/<Area>/   headers      simulator/src/<Area>/   sources
   Input, Render (world/road/building/vegetation/sign/car/cockpit generators, cameras,
   cluster, mirror, sky, shadows), App (SimulatorGame, Program)
 content/     vehicles/lipan_12.json, maps/lipova/{map,roads,terrain,objects,traffic}.json, fonts/
-tests/       GoogleTest suites, registered in tests/CMakeLists.txt (178 tests at present)
-tools/       map generator/validator, font atlas generator, simulation tracer
-scripts/     run_headless.sh, check_xna_only.py, check_assets.py
-docs/        api-boundary, framework-findings, map-format, vehicle-physics, audio-design,
-             materials, cameras, performance, renderer-conformance, real-hardware-validation,
-             research/, screenshots/ (curated set, m10-baseline/, renderers/)
-plan.md      ledger; section 24 = Phase 11, section 25 = Phase 12 (day/night, weather,
-             signals, the wider region)
+tests/       GoogleTest suites, registered in tests/CMakeLists.txt (190 tests at present)
+tools/       maps/build_map.py (the map pipeline), mapvalidate, font atlas generator, simtrace
+scripts/     run_headless.sh, capture_set.sh, benchmark_suite.sh, benchmark_report.py,
+             check_xna_only.py, check_assets.py
+docs/        api-boundary, framework-findings, map-format, map-generation, vehicle-physics,
+             audio-design, materials, cameras, performance, renderer-conformance,
+             real-hardware-validation, research/, screenshots/ (curated set, m10-baseline/,
+             renderers/)
+plan.md      ledger; section 24 = Phase 11, 25 = Phase 12 (day/night, weather, signals, the
+             wider region), 26 = Phase 13 (real hardware, visual realism, driving polish)
 ```
 
 ## Building and testing in this environment
@@ -87,8 +89,13 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   `--eye dx dy dz yaw pitch` (cockpit eye offset), `--lights`, `--benchmark`,
   `--benchmark-json file`, `--mirror-every n`, `--debug-overlay`.
 - `--time <hh:mm>` and `--time-scale <x>` fix the clock (`--time-scale 0` freezes the sky, which
-  every deterministic capture wants), `--weather clear|cloudy|overcast|rain` fixes the weather.
-  `scripts/capture_set.sh` reproduces the whole curated set in one command.
+  every deterministic capture wants), `--weather clear|cloudy|overcast|rain` fixes the weather,
+  `--quality low|medium|high` picks the graphics tier (default `high`, which is what every
+  picture and table was taken at). `scripts/capture_set.sh` reproduces the whole curated set.
+- `--route town|country|forest` drives a route from `traffic.json` with the autopilot
+  (`Traffic::RouteDriver`) through the ordinary physics and exits at its end; `--route-stay`
+  keeps going. `scripts/benchmark_suite.sh` runs eight deterministic scenes over a route and
+  `scripts/benchmark_report.py` turns the JSON into the tables in `docs/performance.md`.
 - llvmpipe renders 0.2-0.5 s per frame in town; long captures run in the background.
   Downscale to half size before viewing to save context.
 
@@ -141,24 +148,43 @@ that is committed; change a stage and commit the regenerated map with it, or the
 `map_regeneration_check` (`build_map.py --check`) fails. Neither stage runs without
 `--stage-only`. Full description in `docs/map-generation.md`.
 
-## State of the project (plan.md section 24)
+## State of the project (plan.md sections 24-26)
 
-Phase 11 ("Realism & Production Quality") is complete and its final audit is recorded in
-section 24.4; section 24.5 holds the follow-up work done after that audit, all of it `[x]`:
+Phase 11 (realism and production quality), Phase 12 (day and night, weather, traffic signals,
+four more settlements) and Phase 13 (real hardware, visual realism, driving polish) are all
+complete, with their audits in sections 24.4, 25.2 and 26.6.
 
-- `RQ-160` the paved town square (a `square` terrain region drawn with generated granite setts,
-  cobbles under the wheels, town houses lining three sides, lime trees, benches, lamps),
-- `RQ-161` parked cars (`objects.vehicles[]`, drawn by `TrafficRenderer::DrawParked`, solid in
-  the collision world),
-- `RQ-162` the memorial column on the square,
-- `RQ-163` street parking generated along urban local and residential streets.
+What Phase 13 changed, in the order it matters:
 
-Section 24.5 now also covers a content pass on the sample map: prefab block facades
-(`RQ-164`), the forest wrapped around the track loop (`RQ-165`), a wayside chapel at the
-eastern junction (`RQ-166`), planted gardens behind the houses (`RQ-167`), a horizon apron so
-the terrain no longer ends in mid-air (`RQ-168`), help-overlay wording (`RQ-169`), a filling
-station with `yard` paving and exact four-corner paved outlines (`RQ-171`) and meadow trees
-(`RQ-172`). Audits of the follow-up work are recorded as `RQ-170` and `RQ-173`.
+- **The map has one authoritative workflow.** `tools/maps/build_map.py` (see above and
+  `docs/map-generation.md`). The stale generator that would have destroyed the square, the
+  chapel, the filling station and the parked cars is gone; a ctest fails if the shipped map and
+  its generator drift apart.
+- **Measurement is first class.** `Traffic::RouteDriver` drives the car along the lane graph
+  through the ordinary physics (`--route`), `scripts/benchmark_suite.sh` runs eight
+  deterministic scenes over a route, `scripts/benchmark_report.py` prints the tables, and the
+  `F3` overlay reports frames per second with the worst 1 %, the update and draw halves split by
+  stage and pass, the mirror's cost and size, the weather and sun, and drawn-against-culled
+  batches. `docs/real-hardware-validation.md` is the procedure for a real machine.
+- **Junctions meet their roads.** A 47 cm step on a connector at Podhájí led to three fixes in
+  `RoadNetwork` (concave kerb fillets, crossfall running into a flat apron, centreline height on
+  a sloped plane). Over 52.4 km of lane and 148 connectors the worst deviation between the
+  ground and the designed road surface is now 3.6 cm; `carsim-mapvalidate` measures it and two
+  tests hold it.
+- **The car reads as a car.** The sky cube map's alpha carried a four-degree sun disc that fell
+  inside two texels of a 64-pixel face, so the paint never had a highlight; it now carries a
+  disc, a glare lobe and a sky term at 128 pixels, and each material scales how much of it it
+  takes. The A-pillar's saw-tooth edge (a world-space height test across a quad grid) follows a
+  ring of the loft now, and the wing mirror is convex instead of a flat grey card.
+- **Night and rain are worth driving in.** The headlamp pool reaches 40 m with a plateau and a
+  soft cut-off instead of peaking at seven metres; wet roads get a grazing-angle sky sheen from a
+  second additive road pass whose fog *is* the distance ramp; stars are soft points, not blue
+  squares.
+- **Two real signal defects**, found by a new ten-minute soak at the signalised junction: a car
+  caught past the stop line crept across the box instead of clearing it, and a car that committed
+  on green kept its commitment while queueing and then entered on red.
+- **The mirror costs a third less** (58.9 -> 45.5 ms) from a 300 m draw-distance cap, and three
+  graphics tiers (`--quality`) trade draw distance, vegetation and mirror rate.
 
 Open / next ideas (nothing is blocking):
 
@@ -168,14 +194,24 @@ Open / next ideas (nothing is blocking):
   scaling the bake instead of re-baking).
 - Snow and fog are not modelled; the weather is clear / cloud / overcast / rain.
 - Nové Město has a square laid out in buildings but no paved `square` region of its own.
+- Building facades are flat: windows are darker rectangles with no frame, sill or reveal at this
+  distance, which is the most obvious remaining "procedural" tell in a street scene.
+- The paved square and the station forecourt do not take the wet sheen (it runs over road
+  batches only).
+- **No run on real GPU hardware has been recorded.** Every picture and every number in this
+  repository is Mesa llvmpipe in a container. That is stated on every page that carries a figure,
+  and `docs/real-hardware-validation.md` has the procedure and an empty results table waiting.
 
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,
-  record what changed in the plan ledger (section 25 for Phase 12) in the same commit.
+  record what changed in the plan ledger (section 26 for Phase 13) in the same commit.
 - Every defect fix: a regression test in the matching `tests/` suite, registered in
   `tests/CMakeLists.txt`; new sources registered in `simulator/CMakeLists.txt`.
 - Keep temporary diagnostics (environment-variable switches, dumps) out of commits.
 - Docs to keep in sync when touching an area: `docs/materials.md` (car looks),
   `docs/cameras.md`, `docs/performance.md` (numbers per scene), `docs/audio-design.md`,
-  `docs/renderer-conformance.md`, `docs/real-hardware-validation.md`.
+  `docs/renderer-conformance.md`, `docs/real-hardware-validation.md`,
+  `docs/map-generation.md` (anything under `tools/maps`).
+- Never write a performance figure or a picture caption that implies GPU hardware. Everything
+  here is a software rasteriser until somebody runs the real-hardware procedure and adds a row.

@@ -47,6 +47,11 @@ shot signals     --spawn kostel --frames 90 --view 312 7.5 -22 92 -2 --time 13:0
 # Weather: the same square under a lid and in the rain.
 shot overcast    --spawn square --frames 40  --view -78 9 -30 50 -6 --time 13:00 --time-scale 0 --weather overcast
 shot rain        --spawn square --frames 40  --view -78 9 -30 50 -6 --time 13:00 --time-scale 0 --weather rain
+# Wet road and rainy night: the two scenes the wet sheen and the headlamp beam are judged on.
+shot wetroad     --spawn kostel --frames 240 --auto-drive 4 --chase-distance 8 --traffic-warmup 30 \
+                 --time 13:00 --time-scale 0 --weather rain
+shot rainynight  --spawn kostel --frames 240 --auto-drive 4 --chase-distance 8 --traffic-warmup 30 --lights \
+                 --time 22:30 --time-scale 0 --weather rain
 
 echo
 echo "captured into $OUT; convert the scene shots to JPEG before committing them:"

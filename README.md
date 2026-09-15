@@ -40,13 +40,18 @@ filtering. Older sets are kept in `docs/screenshots/m10-baseline/` (before Phase
 
 ## Status
 
-The initial product milestone is complete and the realism and production-quality phase
-(Phase 11 in `plan.md`: hero car, cockpit and cluster, materials, lighting and shadows, roads,
-buildings and plots, vegetation, traffic diversity, cameras, audio layers, instrumentation,
-renderer conformance) has been delivered: every feature listed below exists, runs from a
-clean checkout, is covered by automated tests where a test is meaningful, and was verified in
-screenshots. [`plan.md`](plan.md) is the authoritative task ledger; nothing in this README
-claims a feature that `plan.md` does not mark as done.
+The initial product milestone, the realism and production-quality phase (Phase 11), the living
+world (Phase 12: day and night, weather, traffic signals, four more settlements) and the real
+hardware, visual realism and driving polish pass (Phase 13) are all complete. Every feature
+listed below exists, runs from a clean checkout, is covered by automated tests where a test is
+meaningful, and was verified in screenshots. [`plan.md`](plan.md) is the authoritative task
+ledger; nothing in this README claims a feature that `plan.md` does not mark as done.
+
+**All performance figures and every picture in this repository come from a headless container
+with no GPU** (Xvfb, Mesa llvmpipe software rasterisation). They describe a software rasteriser,
+not a graphics card. [`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) is
+the copy-and-paste procedure for producing figures on a real machine; no such run has been
+recorded yet.
 
 What you get today:
 
@@ -127,6 +132,9 @@ cna-car-simulator [options]
   --vehicle <name> --map <name>             vehicle definition and map to load
   --spawn <name>                            player spawn point: square, forest, fields, east,
                                             kostel, brezi, podhaji, mesto, kamenice
+  --route <name> [--route-stay]             drive a named route (town, country, forest) with the
+                                            autopilot and exit at its end; --route-stay keeps going
+  --quality <tier>                          graphics tier: low, medium or high (default: saved)
   --cockpit                                 start in the cockpit camera
   --help-overlay --debug-overlay            start with an overlay open
   --benchmark [--benchmark-json <file>]     print frame-time statistics at exit (and write JSON)
@@ -150,7 +158,21 @@ Headless smoke run (Xvfb, dummy audio) as used by the tests and for screenshots:
 ```bash
 scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --frames 60 --screenshot shot.png
 scripts/capture_set.sh                      # the whole curated set in docs/screenshots/
+scripts/benchmark_suite.sh --quick          # the eight benchmark scenes
+python3 scripts/benchmark_report.py build/benchmarks --label "this machine"
 ```
+
+### Measuring and validating
+
+`--route <name>` drives one of the routes defined in `content/maps/lipova/traffic.json` with an
+autopilot that follows the lane graph through the ordinary physics -- nothing is teleported -- so a
+run is repeatable to the metre. `scripts/benchmark_suite.sh` uses that to run eight deterministic
+scenes (clear day, rain, clear night, rainy night, each from the exterior and the cockpit) and
+`scripts/benchmark_report.py` turns them into the tables in
+[`docs/performance.md`](docs/performance.md), with `--against` for a before-and-after comparison.
+`F3` opens the diagnostic overlay: frames per second with the worst 1 %, the update and draw
+halves split by stage and by pass, the mirror's cost and resolution, the weather and sun state,
+and drawn-against-culled batch counts.
 
 ## Controls
 
@@ -192,7 +214,10 @@ Odometer, trip, transmission mode, the last vehicle and map, and settings are st
 (schema 1) in `$CARSIM_SAVE_DIR/save.json`, else `$XDG_DATA_HOME/cna-car-simulator/save.json`
 (`%APPDATA%\cna-car-simulator\save.json` on Windows, `~/.local/share/...` as the fallback).
 The file is written atomically every 30 s and on exit; a file with a newer schema is opened
-read-only. Settings and bindings can be edited by hand:
+read-only. Fields have been added over time (the clock and the weather in Phase 12, the graphics
+tier in Phase 13) without a schema bump: they are additive with defaults, an older build ignores
+keys it does not know, and a test loads a profile written before any of them existed and checks
+nothing is lost. Settings and bindings can be edited by hand:
 
 ```json
 {
@@ -201,7 +226,9 @@ read-only. Settings and bindings can be edited by hand:
   "vehicleId": "lipan_12", "mapId": "lipova",
   "settings": {
     "masterVolume": 0.8, "engineVolume": 1.0, "effectsVolume": 1.0,
-    "mirrorEnabled": true, "hudVisible": true, "startInCockpit": false
+    "mirrorEnabled": true, "hudVisible": true, "startInCockpit": false,
+    "timeOfDayHours": 10.5, "timeScale": 60.0, "weather": "few-clouds",
+    "graphicsQuality": "high", "mirrorUpdateEvery": 1
   },
   "bindings": [
     { "action": "Horn", "key": "Enter" },
@@ -312,30 +339,37 @@ player who stops in the lane; it does not overtake.
 ctest --preset opengles3                  # everything below
 ctest --preset opengles3 -L unit          # GoogleTest suites (no display needed)
 ctest --preset opengles3 -L static        # XNA-only API check, asset manifest check
-ctest --preset opengles3 -L content       # sample map validation
+ctest --preset opengles3 -L content       # sample map validation and map-generation consistency
 ctest --preset opengles3 -L display       # headless smoke run through scripts/run_headless.sh
 ```
 
 The unit binary `carsim_tests` covers the vehicle model (engine states, clutch stall, gear
 logic, fuel refill rule, thermal, odometer, determinism, acceleration and braking bands, a
-constant-speed fuel cycle), map loading and validation, road and lane graph geometry (turn
-types, right of way, antisymmetric yields, routes), terrain/ground agreement, collision shapes
-and scenarios, traffic (IDM, following, intersections, spawning, a 30-minute soak with no body
-overlaps and no stuck cars), plates, engine synthesis and save data.
+constant-speed fuel cycle), wet braking, cornering and acceleration measured against dry, map
+loading and validation, road and lane graph geometry (turn types, right of way, antisymmetric
+yields, routes), terrain/ground agreement over every lane and junction connector, collision
+shapes and scenarios, traffic (IDM, following, intersections, spawning, a 30-minute soak with no
+body overlaps or stuck cars and a 10-minute soak at the signalised junction with no red-light
+crossings), the autopilot driving every benchmark route of the shipped map end to end, plates,
+engine synthesis, graphics tiers and save data, including a profile written by an earlier phase.
 
 Screenshots were reviewed for every rendering change; the headless workflow is
 `scripts/run_headless.sh <binary> --frames N --screenshot out.png [--view ...|--cockpit|--auto-drive s]`.
 
 ## Performance
 
-`--benchmark --lockstep --frames 150 --auto-drive 6` on the development container (Mesa
-llvmpipe software rendering, four threads, 1280 x 720): update below 0.5 ms; draw submission
-120 ms in town with 20 traffic cars and 91 parked ones (1078 draw calls, 878k triangles),
-54 ms on the forest road, 25 ms in the fields; the cockpit view with the mirror adds 63 ms
-(31 ms with the mirror redrawn every second frame). A GPU renders the same frames in a few milliseconds. Per-pass
-timings, visible counts and the LOD/culling levers are in
-[`docs/performance.md`](docs/performance.md); `--benchmark-json` writes them as JSON. The
-same scenes were built and compared on the OPENGLES3, OPENGL33 and SOFTWARE renderers
+Everything measured here is the development container: Mesa llvmpipe **software** rendering, four
+threads, no GPU. The update half of a frame stays below 0.5 ms (vehicle physics 0.19 ms,
+collision 0.01 ms, traffic AI 0.18 ms, audio 0.001 ms) at every world size the map reaches; all
+the cost is in the draw half, which on a software rasteriser is rasterisation rather than
+submission. The cockpit's rear-view mirror was the largest single lever -- a second full world
+pass into a 200-pixel strip -- and capping its draw distance at 300 m took it from 58.9 ms to
+45.5 ms. Three graphics tiers (`--quality low|medium|high`, `settings.graphicsQuality`) trade
+draw distance, vegetation distance and mirror rate; `high` is the default and is what every
+picture and table was taken at. Per-scene tables, the before-and-after comparisons and the
+commands that reproduce them are in [`docs/performance.md`](docs/performance.md);
+`--benchmark-json` writes them as JSON. The same scenes were built and compared on the
+OPENGLES3, OPENGL33 and SOFTWARE renderers
 ([`docs/renderer-conformance.md`](docs/renderer-conformance.md)), and
 [`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) is the procedure for a
 first run on a real PC with a GPU.
