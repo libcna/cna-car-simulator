@@ -439,37 +439,6 @@ namespace CarSim::Traffic
         // Stand-off inside a junction: stopped nose to nose with a car on a crossing connector that
         // is stopped as well. After a while the car without right of way (or, when neither yields,
         // the one that arrived later) backs out to its line so the other can pass.
-        // Last resort inside the box: a car that has stood still on a connector for twice the
-        // deadlock time, held up by something on a crossing connector rather than by the car in
-        // front of it on its own path, creeps out of the junction. Only the lower id of a pair
-        // moves, so two cars nose to nose separate instead of driving through each other. Without
-        // this a pair that entered together can stand there for the rest of the session: the
-        // back-off below needs room behind, and there is not always any.
-        bool clearTheBox = false;
-        if (v.link >= 0) {
-            v.blockedTime = v.speed < 0.3f ? v.blockedTime + dt : 0.0f;
-            if (v.clearingBox) {
-                clearTheBox = true;
-            } else if (v.blockedTime > params.deadlockSeconds * 1.5f) {
-                // Only if nothing is queued ahead of us on our own connector: that car is a
-                // legitimate leader and creeping into it would be a collision, not a release.
-                bool queuedAhead = false;
-                int lowestBlockedId = v.id;
-                for (const auto& o : vehicles_) {
-                    if (o.id == v.id) continue;
-                    if (o.link == v.link && o.s > v.s && o.s - v.s < v.lengthM + 6.0f) queuedAhead = true;
-                    if (o.link >= 0 && o.link != v.link && o.blockedTime > params.deadlockSeconds * 2.0f &&
-                        Vector3::Distance(o.position, v.position) < 12.0f) {
-                        lowestBlockedId = std::min(lowestBlockedId, o.id);
-                    }
-                }
-                clearTheBox = !queuedAhead && lowestBlockedId == v.id;
-                v.clearingBox = clearTheBox;
-            }
-        } else {
-            v.blockedTime = 0.0f;
-            v.clearingBox = false;
-        }
         if (v.link >= 0) {
             const bool standing = v.speed < 0.05f && leader.found && leader.onConflict && leader.speed < 0.05f;
             v.standoffTime = standing ? v.standoffTime + dt : 0.0f;
@@ -493,6 +462,37 @@ namespace CarSim::Traffic
             }
         } else {
             v.standoffTime = 0.0f;
+        }
+
+        // Last resort inside the box: a car that has stood still on a connector for half again the
+        // deadlock time creeps out of the junction. Only the lower id of a pair moves, so two cars
+        // nose to nose separate instead of driving through each other, and only when nothing is
+        // queued ahead on its own connector. Without this a pair that entered together can stand
+        // there for the rest of the session: the back-off above needs room behind, and there is
+        // not always any.
+        bool clearTheBox = false;
+        if (v.link >= 0) {
+            v.blockedTime = v.speed < 0.3f ? v.blockedTime + dt : 0.0f;
+            const float releaseAfter = params.deadlockSeconds * 1.5f;
+            if (v.clearingBox) {
+                clearTheBox = true;
+            } else if (v.blockedTime > releaseAfter) {
+                bool queuedAhead = false;
+                int lowestBlockedId = v.id;
+                for (const auto& o : vehicles_) {
+                    if (o.id == v.id) continue;
+                    if (o.link == v.link && o.s > v.s && o.s - v.s < v.lengthM + 6.0f) queuedAhead = true;
+                    if (o.link >= 0 && o.link != v.link && o.blockedTime > releaseAfter &&
+                        Vector3::Distance(o.position, v.position) < 12.0f) {
+                        lowestBlockedId = std::min(lowestBlockedId, o.id);
+                    }
+                }
+                clearTheBox = !queuedAhead && lowestBlockedId == v.id;
+                v.clearingBox = clearTheBox;
+            }
+        } else {
+            v.blockedTime = 0.0f;
+            v.clearingBox = false;
         }
 
         // Intersection control at the end of a lane.
