@@ -35,12 +35,17 @@ NODES = {
     "FT1": (-120, -2400), "FT2": (-60, -2650), "FT3": (-20, -2720), "FT4": (-100, -2740),
 }
 URBAN = {"W2", "W1", "SQ", "E1", "E2", "N1", "N2", "N3", "S2", "S1", "RW1", "RE1", "RN1", "RC1"}
-NAMES = {"SQ": "náměstí", "E1": "U kostela", "N2": "sídliště"}
+NAMES = {"SQ": "náměstí", "E1": "U kaple", "N2": "sídliště"}
 MAIN_ROADS = {
     "SQ": ["main"], "E1": ["main"], "W1": ["main"], "W2": ["main"], "N1": ["north"], "N2": ["north"],
     "S1": ["south"], "F4": ["north"], "F3": ["north"],
 }
 CONTROL = {"F3": [{"road": "forest_track", "control": "stop"}]}
+# Signalised junctions: the main road takes one phase, the side streets the other.
+SIGNALS = {
+    "E1": {"enabled": True, "green": 22, "amber": 3, "allRed": 2,
+           "groups": [["main"], ["r_east", "r_church"]]},
+}
 
 ROADS = [
     {"id": "main", "name": "Hlavní", "number": "II/156", "class": "II",
@@ -98,6 +103,8 @@ def node_list():
             n["mainRoads"] = MAIN_ROADS[nid]
         if nid in CONTROL:
             n["control"] = CONTROL[nid]
+        if nid in SIGNALS:
+            n["signals"] = SIGNALS[nid]
         out.append(n)
     return out
 

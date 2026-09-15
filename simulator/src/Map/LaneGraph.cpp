@@ -269,6 +269,7 @@ namespace CarSim::Map
                             link.intersection = static_cast<int>(ii);
                             link.control = in.control;
                             link.priority = in.control == ApproachControl::Priority;
+                            link.signalGroup = in.signalGroup;
                             const float hIn = HeadingOf(from.points.back().tangent);
                             const float hOut = HeadingOf(to.points.front().tangent);
                             const float delta = WrapAngle(hOut - hIn);

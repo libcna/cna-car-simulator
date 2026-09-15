@@ -94,6 +94,7 @@ namespace CarSim::Map
         Memorial,       // stone column on a stepped plinth with a cross (town squares)
         FuelCanopy,     // filling station canopy on four columns
         FuelPump,       // filling station pump with a hose and a display
+        SignalHead,     // traffic signal mast and housing (generated at signalised junctions)
         Unknown
     };
 
@@ -109,6 +110,16 @@ namespace CarSim::Map
         bool reflectorRight = true;   // delineators: orange reflector faces the driver on the right
     };
 
+    /// One traffic signal head: a mast on the kerb of a signalised approach, its lenses facing
+    /// the traffic that is coming towards the junction.
+    struct PlacedSignal
+    {
+        Microsoft::Xna::Framework::Vector3 position{};   // foot of the mast
+        float headingRad = 0.0f;                         // direction the lenses face
+        int intersection = -1;
+        int group = -1;                                  // signal group of the approach
+    };
+
     class ObjectPlacement
     {
     public:
@@ -119,6 +130,7 @@ namespace CarSim::Map
         [[nodiscard]] const std::vector<PlacedSign>& Signs() const { return signs_; }
         [[nodiscard]] const std::vector<PlacedProp>& Props() const { return props_; }
         [[nodiscard]] const std::vector<PlacedVehicle>& Vehicles() const { return vehicles_; }
+        [[nodiscard]] const std::vector<PlacedSignal>& Signals() const { return signals_; }
 
         /// Broad-phase grids (ids index the vectors above).
         [[nodiscard]] const SpatialGrid& BuildingGrid() const { return buildingGrid_; }
@@ -138,6 +150,8 @@ namespace CarSim::Map
         void PlaceGardenTrees(const MapWorld& world);
         void PlaceMeadowTrees(const MapWorld& world);
         void PlaceDelineators(const MapWorld& world);
+        /// Signal masts on the right-hand kerb of every approach to a signalised node.
+        void PlaceTrafficSignals(const MapWorld& world);
         /// Front fences (picket, wire or hedge) with a gate gap along the street side of houses
         /// and cottages, side fences on cottages, and a shed behind every second one.
         void PlacePlots(const MapWorld& world);
@@ -153,6 +167,7 @@ namespace CarSim::Map
         std::vector<PlacedSign> signs_;
         std::vector<PlacedProp> props_;
         std::vector<PlacedVehicle> vehicles_;
+        std::vector<PlacedSignal> signals_;
         SpatialGrid buildingGrid_;
         SpatialGrid treeGrid_;
     };

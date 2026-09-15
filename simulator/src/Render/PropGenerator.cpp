@@ -216,6 +216,18 @@ namespace CarSim::Render
                 Quad(glass, Vector3(0.7f, 1.0f, 1.06f), Vector3(1.15f, 1.0f, 1.06f), Vector3(1.15f, 1.5f, 1.06f), Vector3(0.7f, 1.5f, 1.06f), Vector3(0, 0, 1));
                 break;
             }
+            case PropType::SignalHead: {
+                // Signal mast on a concrete foot with a three-lens housing facing +z; the lenses
+                // themselves are drawn separately, because they change with the phase.
+                concrete.AddCylinder(Vector3(0, -0.15f, 0), Vector3(0, 1, 0), 0.14f, 0.22f, 10, true);
+                metal.AddCylinder(Vector3(0, 0.0f, 0), Vector3(0, 1, 0), 0.055f, 2.55f, 10, false);
+                black.AddBox(Vector3(-0.19f, 2.50f, -0.11f), Vector3(0.19f, 3.52f, 0.11f), 1.0f);
+                // Visors over each lens.
+                for (const float y : {2.68f, 2.98f, 3.28f}) {
+                    black.AddBox(Vector3(-0.17f, y + 0.13f, 0.10f), Vector3(0.17f, y + 0.16f, 0.26f), 1.0f);
+                }
+                break;
+            }
             case PropType::UtilityPole: {
                 // 8 m wooden pole, crossarm across the line, three insulators.
                 wood.AddCylinder(Vector3(0, -0.3f, 0), Vector3(0, 1, 0), 0.13f, 8.3f, 8, true, kWhite, 0.5f);

@@ -38,6 +38,7 @@ add_library(carsim_core STATIC
     src/Sim/Vehicle.cpp
     src/Sim/VehicleDefinition.cpp
     src/Traffic/PlateGenerator.cpp
+    src/Traffic/SignalController.cpp
     src/Traffic/TrafficSystem.cpp
 )
 target_include_directories(carsim_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -74,6 +75,7 @@ add_library(carsim_render STATIC
     src/Render/Screenshot.cpp
     src/Render/ShadowGeometry.cpp
     src/Render/SignGenerator.cpp
+    src/Render/SignalRenderer.cpp
     src/Render/SkyRenderer.cpp
     src/Render/TestGround.cpp
     src/Render/TrafficRenderer.cpp

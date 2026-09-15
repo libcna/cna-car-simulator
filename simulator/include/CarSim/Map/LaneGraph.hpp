@@ -57,6 +57,7 @@ namespace CarSim::Map
         TurnType turn = TurnType::Straight;
         ApproachControl control = ApproachControl::RightHandRule;   // control of the approach this link starts from
         bool priority = false;        // the approach has the right of way
+        int signalGroup = -1;         // signal group of the approach (-1 = not signalised)
         std::vector<LanePoint> points;
         float length = 0.0f;
         std::vector<int> conflicts;   // links whose paths cross or merge with this one

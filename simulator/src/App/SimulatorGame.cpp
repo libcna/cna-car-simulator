@@ -323,6 +323,7 @@ namespace CarSim::App
         if (map_) {
             const auto start = std::chrono::steady_clock::now();
             worldRenderer_ = std::make_unique<Render::WorldRenderer>(device, rig_, *map_, fontBold_.get());
+            signalRenderer_ = std::make_unique<Render::SignalRenderer>(device, *map_);
             std::cout << "world: " << worldRenderer_->Stats().terrainChunksTotal << " terrain chunks, "
                       << worldRenderer_->Stats().roadBatchesTotal << " road batches, built in "
                       << std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count() << " s\n";
@@ -745,6 +746,10 @@ namespace CarSim::App
             worldRenderer_->Draw(device, view, projection, camera.Frustum(aspect));
         } else if (testGround_) {
             testGround_->Draw(device, view, projection);
+        }
+        if (signalRenderer_ && traffic_) {
+            signalRenderer_->Draw(device, view, projection, camera.Frustum(aspect), camera.position, rig_,
+                                  [this](const int intersection, const int group) { return traffic_->AspectOf(intersection, group); });
         }
         lap(kPassWorld);
 

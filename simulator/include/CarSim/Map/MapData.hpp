@@ -43,7 +43,22 @@ namespace CarSim::Map
         Priority,      // main road: does not yield (except left turns to oncoming traffic)
         RightHandRule, // uncontrolled: yield to traffic from the right
         Yield,         // P 4 Dej přednost v jízdě!
-        Stop           // P 6 Stůj, dej přednost v jízdě!
+        Stop,          // P 6 Stůj, dej přednost v jízdě!
+        Signal         // světelné signalizační zařízení: the node's signal plan decides
+    };
+
+    /// Fixed-time signal plan for one node. The approaches are split into groups that go green
+    /// together (typically the main road against the side road); the controller runs the groups
+    /// in order, each getting `greenSeconds` of green, `amberSeconds` of amber, and then
+    /// `allRedSeconds` with everything red before the next group starts.
+    struct SignalPlan
+    {
+        bool enabled = false;
+        float greenSeconds = 20.0f;
+        float amberSeconds = 3.0f;
+        float allRedSeconds = 2.0f;
+        float offsetSeconds = 0.0f;                       // shifts this node's cycle (green waves)
+        std::vector<std::vector<std::string>> groups;     // road ids that go green together
     };
 
     struct RoadNodeSpec
@@ -55,6 +70,7 @@ namespace CarSim::Map
         std::string name;                                // optional label (e.g. square name)
         std::vector<std::string> mainRoads;              // roads with priority through this node
         std::map<std::string, ApproachControl> approachControl;   // per-road override
+        SignalPlan signals;                              // used when an approach is `signal`
         float cornerRadius = 0.0f;                       // 0 = use the road's default smoothing
     };
 

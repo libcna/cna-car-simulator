@@ -13,6 +13,7 @@
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/RainRenderer.hpp"
+#include "CarSim/Render/SignalRenderer.hpp"
 #include "CarSim/Render/SkyRenderer.hpp"
 #include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Render/TestGround.hpp"
@@ -113,6 +114,7 @@ namespace CarSim::App
         float lastEnvironmentElevationDeg_ = -999.0f;
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::RainRenderer> rain_;
+        std::unique_ptr<Render::SignalRenderer> signalRenderer_;
         std::unique_ptr<Render::TestGround> testGround_;
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;
         std::unique_ptr<Render::TrafficRenderer> trafficRenderer_;

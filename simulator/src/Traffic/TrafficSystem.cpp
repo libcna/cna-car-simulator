@@ -451,8 +451,39 @@ namespace CarSim::Traffic
                 v.indicatorLeft = link.turn == Map::TurnType::Left || link.turn == Map::TurnType::UTurn;
                 v.indicatorRight = link.turn == Map::TurnType::Right;
             }
-            const bool controlled = link.control == Map::ApproachControl::Yield || link.control == Map::ApproachControl::Stop ||
-                                    link.control == Map::ApproachControl::RightHandRule || !link.yieldTo.empty();
+            // Signals first: a red light overrides every priority rule, and a green one means
+            // the cross traffic is being held, so only the turning conflicts inside the junction
+            // still matter.
+            SignalAspect aspect = SignalAspect::Green;
+            bool signalised = false;
+            bool signalHold = false;
+            if (link.control == Map::ApproachControl::Signal && link.signalGroup >= 0) {
+                aspect = AspectOf(link.intersection, link.signalGroup);
+                signalised = true;
+            }
+            if (signalised && distanceToEnd < 60.0f && !v.committed) {
+                // Amber means stop unless that would mean braking harder than a normal stop, in
+                // which case the car is already too close and carries on.
+                const float comfortableStop = v.speed * v.speed / (2.0f * 3.0f) + 1.0f;
+                const bool mustStop = aspect == SignalAspect::Red || aspect == SignalAspect::RedAmber ||
+                                      (aspect == SignalAspect::Amber && distanceToEnd > comfortableStop);
+                if (mustStop) {
+                    signalHold = true;
+                    v.waiting = true;
+                    v.waitTime += dt;
+                    v.stoppedAtLine = false;
+                    const float lineGap = distanceToEnd - 1.0f - v.lengthM * 0.5f;
+                    if (lineGap < gap) {
+                        gap = std::max(0.05f, lineGap);
+                        leaderSpeed = 0.0f;
+                    }
+                } else if (distanceToEnd < 12.0f) {
+                    v.committed = true;   // through on green: do not stop halfway on a change
+                }
+            }
+            const bool controlled = !signalised &&
+                                    (link.control == Map::ApproachControl::Yield || link.control == Map::ApproachControl::Stop ||
+                                     link.control == Map::ApproachControl::RightHandRule || !link.yieldTo.empty());
             if (controlled && distanceToEnd < 40.0f) {
                 bool hold = false;
                 if (link.control == Map::ApproachControl::Stop && !v.stoppedAtLine) {
@@ -503,7 +534,7 @@ namespace CarSim::Traffic
                     v.waiting = false;
                     v.waitTime = 0.0f;
                 }
-            } else {
+            } else if (!signalHold) {
                 v.waiting = false;
                 v.waitTime = 0.0f;
             }
@@ -557,6 +588,15 @@ namespace CarSim::Traffic
         UpdatePose(v);
     }
 
+    SignalAspect TrafficSystem::AspectOf(const int intersection, const int group) const
+    {
+        const auto& intersections = world_.Roads().Intersections();
+        if (intersection < 0 || static_cast<std::size_t>(intersection) >= intersections.size()) {
+            return SignalAspect::Green;
+        }
+        return signals_.Aspect(intersections[static_cast<std::size_t>(intersection)].signals, group);
+    }
+
     void TrafficSystem::Update(const float dt, const PlayerProbe& player)
     {
         if (dt <= 0.0f) {
@@ -568,6 +608,7 @@ namespace CarSim::Traffic
             const float heading = std::atan2(player.forward.X, -player.forward.Z);
             playerLane_ = lanes_.NearestLane(Vector2(player.position.X, player.position.Z), heading, 4.0f, &playerS_);
         }
+        signals_.Update(dt);
         Despawn(player);
         SpawnAroundPlayer(player);
         for (auto& v : vehicles_) {

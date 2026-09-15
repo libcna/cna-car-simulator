@@ -79,6 +79,7 @@ namespace CarSim::Map
         Microsoft::Xna::Framework::Vector2 direction{};   // unit, map plane, away from the node
         ApproachControl control = ApproachControl::RightHandRule;
         int piece = -1;                // road piece attached to this approach
+        int signalGroup = -1;          // index into the node's signal plan (-1 = not signalised)
     };
 
     struct Intersection
@@ -90,6 +91,7 @@ namespace CarSim::Map
         std::vector<Microsoft::Xna::Framework::Vector2> patch;  // boundary polygon (map plane), counter-clockwise seen from above
         Sim::SurfaceType surface = Sim::SurfaceType::Asphalt;
         bool hasPriorityRoad = false;
+        SignalPlan signals;            // fixed-time plan when any approach is `signal`
         float radius = 0.0f;                                    // bounding radius of the patch
         Microsoft::Xna::Framework::Vector2 gradient{};          // slope of the patch plane (dh/dx, dh/dz)
 

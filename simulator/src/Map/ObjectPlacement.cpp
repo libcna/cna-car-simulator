@@ -112,6 +112,7 @@ namespace CarSim::Map
         else if (text == "hedge") out = PropType::Hedge;
         else if (text == "shed") out = PropType::Shed;
         else if (text == "utility_pole") out = PropType::UtilityPole;
+        else if (text == "signal_head") out = PropType::SignalHead;
         else return false;
         return true;
     }
@@ -133,6 +134,7 @@ namespace CarSim::Map
         PlaceVehicles(world, warnings);
         PlaceStreetParking(world);
         PlaceDelineators(world);
+        PlaceTrafficSignals(world);
         PlacePlots(world);
         PlaceUtilityPoles(world);
         PlaceBushes(world);
@@ -718,6 +720,44 @@ namespace CarSim::Map
                 v.headingRad = HeadingFromDirection(nose.X, nose.Y);
                 v.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
                 vehicles_.push_back(v);
+            }
+        }
+    }
+
+    void ObjectPlacement::PlaceTrafficSignals(const MapWorld& world)
+    {
+        const MapGround& ground = world.Ground();
+        const RoadNetwork& network = world.Roads();
+        for (std::size_t i = 0; i < network.Intersections().size(); ++i) {
+            const Intersection& inter = network.Intersections()[i];
+            if (!inter.signals.enabled) {
+                continue;
+            }
+            for (const Approach& a : inter.approaches) {
+                if (a.signalGroup < 0 || a.road < 0) continue;
+                const Road& road = network.Roads()[static_cast<std::size_t>(a.road)];
+                // Stop line, then out to the kerb on the approaching driver's right. The driver
+                // travels towards the node, that is along -direction, so their right is
+                // (direction.z, -direction.x).
+                const Vector2 centre(inter.center.X, inter.center.Z);
+                const Vector2 stopLine = centre + a.direction * (a.setback + 0.8f);
+                const Vector2 right(a.direction.Y, -a.direction.X);
+                const float lateral = road.profile.HalfPavedWidth() + 0.9f;
+                const Vector2 p = stopLine + right * lateral;
+
+                PlacedSignal signal;
+                signal.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
+                // The lenses face the traffic coming towards the node, i.e. along +direction.
+                signal.headingRad = HeadingFromDirection(a.direction.X, a.direction.Y);
+                signal.intersection = static_cast<int>(i);
+                signal.group = a.signalGroup;
+                signals_.push_back(signal);
+
+                PlacedProp mast;
+                mast.type = PropType::SignalHead;
+                mast.position = signal.position;
+                mast.headingRad = signal.headingRad;
+                props_.push_back(mast);
             }
         }
     }

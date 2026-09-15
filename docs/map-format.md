@@ -97,7 +97,21 @@ north = -z). Headings: 0 = north, 90 = east (clockwise).
 ### roads.json
 `nodes[]`: `id`, `position`, optional `elevation`, `urban` (built-up area: urban speed limit,
 sidewalks), `name`, `mainRoads[]` (roads with priority through this node), `control[]`
-(`{road, control}` with `priority|right_hand|yield|stop`), `cornerRadius`.
+(`{road, control}` with `priority|right_hand|yield|stop|signal`), `cornerRadius`, `signals`.
+
+`signals` makes the node a signalised junction and every approach `signal`:
+
+```json
+"signals": {"enabled": true, "green": 22, "amber": 3, "allRed": 2, "offset": 0,
+            "groups": [["main"], ["r_east", "r_church"]]}
+```
+
+The groups take their green in turn, each followed by `amber` seconds of amber and `allRed`
+seconds with everything red; the last second before a group's green is red-and-amber together.
+`offset` shifts this node's cycle, so neighbouring junctions can be coordinated. Roads the
+groups do not name get a phase of their own; with `groups` left out, the node's `mainRoads` take
+one phase and the rest the other. A mast with a three-lens head is generated on the right-hand
+kerb of every signalised approach, facing the traffic coming towards the junction.
 
 `roads[]`: `id`, `name`, `number`, `class` (`I|II|III|local|residential|forest|track`),
 `nodes[]` (>= 2, consecutive nodes >= 4 m apart), `lanesPerDirection`, `laneWidth`,

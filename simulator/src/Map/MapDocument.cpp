@@ -141,6 +141,33 @@ namespace CarSim::Map
                             n.approachControl[road] = parsed;
                         }
                     }
+                    JsonElement signals;
+                    if (r.HasObject(e, "signals", signals)) {
+                        const std::string sp = np + ".signals";
+                        n.signals.enabled = true;
+                        r.Bool(signals, "enabled", n.signals.enabled, sp);
+                        r.Float(signals, "green", n.signals.greenSeconds, sp);
+                        r.Float(signals, "amber", n.signals.amberSeconds, sp);
+                        r.Float(signals, "allRed", n.signals.allRedSeconds, sp);
+                        r.Float(signals, "offset", n.signals.offsetSeconds, sp);
+                        JsonElement groups;
+                        if (r.HasArray(signals, "groups", groups)) {
+                            std::size_t g = 0;
+                            for (const auto& group : groups.EnumerateArray()) {
+                                std::vector<std::string> roads;
+                                if (JsonReader::IsArray(group)) {
+                                    for (const auto& road : group.EnumerateArray()) {
+                                        if (JsonReader::IsString(road)) roads.push_back(road.GetString());
+                                    }
+                                }
+                                if (roads.empty()) {
+                                    r.Error(sp + ".groups[" + std::to_string(g) + "]: must list at least one road");
+                                }
+                                n.signals.groups.push_back(std::move(roads));
+                                ++g;
+                            }
+                        }
+                    }
                     data.nodes.push_back(std::move(n));
                 }
             }
@@ -543,6 +570,33 @@ namespace CarSim::Map
                     errors.push_back("roads.nodes['" + n.id + "'].control: unknown road '" + roadId + "'");
                 } else if (std::find(road->nodes.begin(), road->nodes.end(), n.id) == road->nodes.end()) {
                     errors.push_back("roads.nodes['" + n.id + "'].control: road '" + roadId + "' does not pass through this node");
+                }
+            }
+            if (n.signals.enabled) {
+                const std::string sp = "roads.nodes['" + n.id + "'].signals";
+                if (n.signals.greenSeconds < 3.0f) {
+                    errors.push_back(sp + ".green: must be at least 3 s");
+                }
+                if (n.signals.amberSeconds < 0.0f || n.signals.allRedSeconds < 0.0f) {
+                    errors.push_back(sp + ": amber and allRed must not be negative");
+                }
+                if (n.signals.groups.size() == 1) {
+                    warnings.push_back(sp + ".groups: a single group is always green; give the side roads a group too");
+                }
+                std::vector<std::string> seen;
+                for (const auto& group : n.signals.groups) {
+                    for (const auto& roadId : group) {
+                        const auto* road = data.FindRoad(roadId);
+                        if (!road) {
+                            errors.push_back(sp + ".groups: unknown road '" + roadId + "'");
+                        } else if (std::find(road->nodes.begin(), road->nodes.end(), n.id) == road->nodes.end()) {
+                            errors.push_back(sp + ".groups: road '" + roadId + "' does not pass through this node");
+                        }
+                        if (std::find(seen.begin(), seen.end(), roadId) != seen.end()) {
+                            errors.push_back(sp + ".groups: road '" + roadId + "' appears in more than one group");
+                        }
+                        seen.push_back(roadId);
+                    }
                 }
             }
             if (nodeUse[n.id] == 0) {

@@ -8,6 +8,7 @@
 #include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Sim/CarStyle.hpp"
 #include "CarSim/Traffic/PlateGenerator.hpp"
+#include "CarSim/Traffic/SignalController.hpp"
 
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 #include "Microsoft/Xna/Framework/Vector3.hpp"
@@ -94,6 +95,12 @@ namespace CarSim::Traffic
         /// Advances all cars; `player` lets the traffic follow, avoid and yield to the player.
         void Update(float dt, const PlayerProbe& player);
 
+        /// The signal clock every signalised intersection on the map runs on. It advances with
+        /// the traffic, so a warm-up of n seconds always leaves the lights in the same state.
+        [[nodiscard]] const SignalController& Signals() const { return signals_; }
+        /// Aspect an approach group at `intersection` is showing right now.
+        [[nodiscard]] SignalAspect AspectOf(int intersection, int group) const;
+
         /// Spawns a car on `lane` at `s` (tests and scripted scenes). Returns its id or -1.
         int SpawnOn(int lane, float s, float speed);
         void RemoveAll() { vehicles_.clear(); }
@@ -145,6 +152,7 @@ namespace CarSim::Traffic
         std::vector<TrafficVehicle> vehicles_;
         std::mt19937 rng_;
         PlateGenerator plates_;
+        SignalController signals_;
         int maxVehicles_ = 20;
         int nextId_ = 1;
         int spawnedTotal_ = 0;

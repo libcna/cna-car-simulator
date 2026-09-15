@@ -52,7 +52,22 @@
    "name": "U kaple",
    "mainRoads": [
     "main"
-   ]
+   ],
+   "signals": {
+    "enabled": true,
+    "green": 22,
+    "amber": 3,
+    "allRed": 2,
+    "groups": [
+     [
+      "main"
+     ],
+     [
+      "r_east",
+      "r_church"
+     ]
+    ]
+   }
   },
   {
    "id": "E2",

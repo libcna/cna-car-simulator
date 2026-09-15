@@ -439,6 +439,40 @@ namespace CarSim::Map
                 inter.hasPriorityRoad = inter.hasPriorityRoad || a.control == ApproachControl::Priority;
             }
 
+            // Signals: the plan comes from the node. Approaches are assigned to the group that
+            // names their road; anything the plan does not mention goes into a group of its own
+            // after the listed ones, so a half-written plan still runs (it just gives the
+            // unnamed approaches their own phase).
+            inter.signals = node.signals;
+            if (inter.signals.enabled) {
+                if (inter.signals.groups.empty()) {
+                    // No explicit grouping: the main roads share one phase, the rest the other.
+                    std::vector<std::string> main, side;
+                    for (const Approach& a : approaches) {
+                        const std::string& roadId = roads_[static_cast<std::size_t>(a.road)].spec->id;
+                        auto& target = std::find(node.mainRoads.begin(), node.mainRoads.end(), roadId) != node.mainRoads.end() ? main : side;
+                        if (std::find(target.begin(), target.end(), roadId) == target.end()) target.push_back(roadId);
+                    }
+                    if (!main.empty()) inter.signals.groups.push_back(main);
+                    if (!side.empty()) inter.signals.groups.push_back(side);
+                }
+                for (Approach& a : approaches) {
+                    const std::string& roadId = roads_[static_cast<std::size_t>(a.road)].spec->id;
+                    for (std::size_t g = 0; g < inter.signals.groups.size(); ++g) {
+                        const auto& group = inter.signals.groups[g];
+                        if (std::find(group.begin(), group.end(), roadId) != group.end()) {
+                            a.signalGroup = static_cast<int>(g);
+                            break;
+                        }
+                    }
+                    if (a.signalGroup < 0) {
+                        inter.signals.groups.push_back({roadId});
+                        a.signalGroup = static_cast<int>(inter.signals.groups.size()) - 1;
+                    }
+                    a.control = ApproachControl::Signal;
+                }
+            }
+
             // Setbacks: clear the neighbouring roads' paved edges plus a kerb fillet.
             const float fillet = node.urban ? 5.0f : 8.0f;
             const std::size_t count = approaches.size();

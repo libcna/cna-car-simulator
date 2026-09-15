@@ -956,3 +956,19 @@ test, and the static checks stay mandatory.
   `Vehicle::SetRoadWetness` takes 30 % off the peak grip, which lengthens the 100 km/h braking
   distance by about a third. The audio gains a rain hiss (louder in the cockpit, where the drops
   land on the roof) and the spray a wet road throws up under the wheels.
+- [x] `LW-014` Traffic signals. The map format gained a `signal` approach control and a node
+  `signals` plan (green, amber, all-red, offset and the groups of roads that go green together);
+  `RoadNetwork` assigns every approach to a group and `LaneGraph` carries it onto the
+  connectors. `Traffic::AspectAt` is a pure function of the plan, the group and the elapsed
+  time, so a scenario warmed up for n seconds always finds the same lights; `TrafficSystem`
+  advances one clock for the whole map. Cars stop at red and at red-and-amber, treat amber as
+  stop unless they are already too close to stop comfortably, and commit once they are within
+  12 m on green so a change never leaves one halfway across.
+- [x] `LW-015` Signal heads. `ObjectPlacement::PlaceTrafficSignals` puts a mast on the
+  right-hand kerb at the stop line of every signalised approach, facing the traffic; the mast
+  and housing are ordinary props (`signal_head`) drawn with the world, and `SignalRenderer`
+  draws the three lenses -- all of them dark in one batch, then the lit ones in their colours
+  with an additive halo that fades in as the light goes. The junction "U kaple" on the sample
+  map is signalised (main road against Zahradní and Kostelní), and the map validator checks the
+  plan: unknown roads, roads that miss the node, a road in two groups, a green under three
+  seconds and a single-group plan that would never turn red.

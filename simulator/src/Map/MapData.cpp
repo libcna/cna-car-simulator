@@ -109,6 +109,7 @@ namespace CarSim::Map
         else if (t == "right_hand" || t == "righthand" || t == "uncontrolled") out = ApproachControl::RightHandRule;
         else if (t == "yield" || t == "give_way") out = ApproachControl::Yield;
         else if (t == "stop") out = ApproachControl::Stop;
+        else if (t == "signal" || t == "signals" || t == "lights") out = ApproachControl::Signal;
         else return false;
         return true;
     }
@@ -120,6 +121,7 @@ namespace CarSim::Map
             case ApproachControl::RightHandRule: return "right_hand";
             case ApproachControl::Yield: return "yield";
             case ApproachControl::Stop: return "stop";
+            case ApproachControl::Signal: return "signal";
         }
         return "?";
     }
