@@ -51,6 +51,8 @@ namespace CarSim::Traffic
         bool committed = false;       // released by the deadlock breaker: enters without re-checking
         bool backingOff = false;      // reversing out of a junction stand-off back to the line
         float standoffTime = 0.0f;    // seconds stopped nose to nose inside a junction
+        float blockedTime = 0.0f;     // seconds standing still while already inside a junction
+        bool clearingBox = false;     // released to creep out of a junction it is wedged in
         float stunned = 0.0f;         // seconds of forced stop after a collision
         bool brakeLights = false;
         bool indicatorLeft = false;

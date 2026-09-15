@@ -28,7 +28,7 @@ TEST(SampleMap, LipovaLoadsAndIsFullyConnected)
     const auto& roads = world->Roads();
     const auto& lanes = world->Lanes();
     EXPECT_GT(roads.TotalLength(), 14000.0f);
-    EXPECT_LT(roads.TotalLength(), 24000.0f);
+    EXPECT_LT(roads.TotalLength(), 40000.0f);   // one region, not a continent
     EXPECT_GE(roads.Intersections().size(), 10u);
     for (const auto& inter : roads.Intersections()) {
         for (const auto& a : inter.approaches) {
@@ -63,11 +63,11 @@ TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)
         if (r.spec == main) road = &r;
     }
     ASSERT_NE(road, nullptr);
-    // The square is inside the built-up area; the eastern approach is not.
+    // The square is inside the built-up area; the open road east of Březí is not.
     Map::RoadHit hit;
     ASSERT_TRUE(roads.NearestRoad(Microsoft::Xna::Framework::Vector2(-100.0f, 3.0f), 10.0f, hit));
     EXPECT_FLOAT_EQ(road->SpeedLimitAt(hit.s), 50.0f);
-    ASSERT_TRUE(roads.NearestRoad(Microsoft::Xna::Framework::Vector2(1000.0f, -210.0f), 40.0f, hit));
+    ASSERT_TRUE(roads.NearestRoad(Microsoft::Xna::Framework::Vector2(1680.0f, -760.0f), 60.0f, hit));
     EXPECT_FLOAT_EQ(road->SpeedLimitAt(hit.s), 90.0f);
 }
 

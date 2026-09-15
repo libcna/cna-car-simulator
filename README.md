@@ -106,7 +106,8 @@ cna-car-simulator [options]
   --save <file> | --no-save                 save file location, or run without persistence
   --content <dir>                           content root (vehicles, maps, fonts)
   --vehicle <name> --map <name>             vehicle definition and map to load
-  --spawn <name>                            player spawn point (see the map's traffic.json)
+  --spawn <name>                            player spawn point: square, forest, fields, east,
+                                            kostel, brezi, podhaji, mesto, kamenice
   --cockpit                                 start in the cockpit camera
   --help-overlay --debug-overlay            start with an overlay open
   --benchmark [--benchmark-json <file>]     print frame-time statistics at exit (and write JSON)

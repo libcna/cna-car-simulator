@@ -256,6 +256,23 @@ namespace CarSim::Traffic
                 consider(ahead, o.lengthM, o.speed, o.id, false);
             }
         }
+        // A car that has just left our lane onto a connector is still physically in front of us,
+        // whichever way it turned. Without this a follower can drive into the back of a car that
+        // entered the junction on a different connector from the same lane.
+        if (v.link < 0 && v.lane >= 0) {
+            const Lane& lane = lanes_.LaneAt(v.lane);
+            const float toEnd = lane.length - v.s;
+            if (toEnd < 30.0f) {
+                for (const auto& o : vehicles_) {
+                    if (o.id == v.id || o.link < 0 || o.link == v.nextLink) continue;
+                    if (lanes_.LinkAt(o.link).fromLane != v.lane) continue;
+                    const float ahead = toEnd + o.s;
+                    if (ahead > 0.0f && ahead <= lookahead) {
+                        consider(ahead, o.lengthM, o.speed, o.id, true);
+                    }
+                }
+            }
+        }
         // The player: only when it drives along one of our path lanes in our direction.
         if (player.valid && playerLane_ >= 0) {
             for (const auto& seg : path) {
@@ -335,7 +352,11 @@ namespace CarSim::Traffic
                 }
             }
         }
-        // Give way to conflicting movements.
+        // Give way to conflicting movements. The gap has to cover our own crossing as well as the
+        // reaction time: a left turn across oncoming traffic takes several seconds, and a fixed
+        // headway alone lets a car commit to a turn it cannot finish.
+        const float entrySpeed = std::max(3.0f, v.speed);
+        const float crossingSeconds = std::min(6.0f, link.length / entrySpeed);
         for (const int mId : link.yieldTo) {
             const LaneLink& m = lanes_.LinkAt(mId);
             for (const auto& o : vehicles_) {
@@ -346,7 +367,7 @@ namespace CarSim::Traffic
                 if (o.link < 0 && o.lane == m.fromLane && o.nextLink == mId) {
                     const float remaining = lanes_.LaneAt(o.lane).length - o.s;
                     const float eta = remaining / std::max(1.0f, o.speed);
-                    if (remaining < 6.0f || (o.speed > 0.8f && eta < params.yieldTimeGap)) {
+                    if (remaining < 6.0f || (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds)) {
                         return false;
                     }
                 }
@@ -358,7 +379,7 @@ namespace CarSim::Traffic
                 const LanePoint lp = lane.Evaluate(playerS_);
                 const float along = Vector3::Dot(player.forward * player.speed, lp.tangent);
                 const float eta = remaining / std::max(1.0f, along);
-                if (remaining < 8.0f || (along > 0.8f && eta < params.yieldTimeGap)) {
+                if (remaining < 8.0f || (along > 0.8f && eta < params.yieldTimeGap + crossingSeconds)) {
                     return false;
                 }
             }
@@ -418,6 +439,37 @@ namespace CarSim::Traffic
         // Stand-off inside a junction: stopped nose to nose with a car on a crossing connector that
         // is stopped as well. After a while the car without right of way (or, when neither yields,
         // the one that arrived later) backs out to its line so the other can pass.
+        // Last resort inside the box: a car that has stood still on a connector for twice the
+        // deadlock time, held up by something on a crossing connector rather than by the car in
+        // front of it on its own path, creeps out of the junction. Only the lower id of a pair
+        // moves, so two cars nose to nose separate instead of driving through each other. Without
+        // this a pair that entered together can stand there for the rest of the session: the
+        // back-off below needs room behind, and there is not always any.
+        bool clearTheBox = false;
+        if (v.link >= 0) {
+            v.blockedTime = v.speed < 0.3f ? v.blockedTime + dt : 0.0f;
+            if (v.clearingBox) {
+                clearTheBox = true;
+            } else if (v.blockedTime > params.deadlockSeconds * 1.5f) {
+                // Only if nothing is queued ahead of us on our own connector: that car is a
+                // legitimate leader and creeping into it would be a collision, not a release.
+                bool queuedAhead = false;
+                int lowestBlockedId = v.id;
+                for (const auto& o : vehicles_) {
+                    if (o.id == v.id) continue;
+                    if (o.link == v.link && o.s > v.s && o.s - v.s < v.lengthM + 6.0f) queuedAhead = true;
+                    if (o.link >= 0 && o.link != v.link && o.blockedTime > params.deadlockSeconds * 2.0f &&
+                        Vector3::Distance(o.position, v.position) < 12.0f) {
+                        lowestBlockedId = std::min(lowestBlockedId, o.id);
+                    }
+                }
+                clearTheBox = !queuedAhead && lowestBlockedId == v.id;
+                v.clearingBox = clearTheBox;
+            }
+        } else {
+            v.blockedTime = 0.0f;
+            v.clearingBox = false;
+        }
         if (v.link >= 0) {
             const bool standing = v.speed < 0.05f && leader.found && leader.onConflict && leader.speed < 0.05f;
             v.standoffTime = standing ? v.standoffTime + dt : 0.0f;
@@ -544,6 +596,12 @@ namespace CarSim::Traffic
             desired = 0.0f;
         }
 
+        if (clearTheBox) {
+            desired = std::min(desired, 3.0f);
+            gap = 1e9f;
+            leaderSpeed = 0.0f;
+            v.committed = true;
+        }
         float accel = IdmAcceleration(v.speed, desired, gap, leaderSpeed, params);
         accel = std::clamp(accel, -8.0f, params.maxAccel);
         v.acceleration = accel;

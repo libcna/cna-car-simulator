@@ -12,9 +12,9 @@ tracks triangle and draw-call counts.
 | Before terrain LOD (all chunks full resolution) | 0.48 ms | 93.6 ms | 232.6 ms | 615 | 828k |
 | Terrain LOD (steps 1/2/4 at 420 m / 1000 m, cull 2300 m) | 0.43 ms | 47.0 ms | 133.1 ms | 541 | 231k |
 
-Load time on the same machine: map data 0.5 s (terrain conformance dominates), world
-geometry 3.1 s (three terrain LODs, 44k tree cards, 356 buildings), total about 4 s to the
-first frame.
+Load time on the same machine: map data 1.4 s (terrain conformance dominates), world
+geometry 5.4 s (three terrain LODs over 1920 chunks, 54k tree cards, 624 buildings), total
+about 7 s to the first frame on a 6.4 x 7.6 km map.
 
 ## Measurements (per pass, LOD and culling)
 
@@ -26,25 +26,33 @@ average includes llvmpipe's rasterisation and the swap.
 
 | Scene | draw submission | draw calls | triangles | cluster | mirror | sky | world | traffic | vehicle | hud |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Town chase (`--spawn square`, 20 traffic cars) | 124.1 ms | 1092 | 882k | 0.5 | 0 | 1.2 | 71.2 | 45.7 | 5.2 | 0.2 |
-| Town cockpit, mirror every frame | 181.8 ms | 1111 | 886k | 0.5 | 63.3 | 0.4 | 67.6 | 46.0 | 3.9 | 0.2 |
-| Town cockpit, `--mirror-every 2` | 159.6 ms | 1111 | 886k | 0.5 | 31.8 | 1.0 | 74.3 | 47.8 | 4.1 | 0.2 |
-| Forest road (`--spawn forest`) | 54.3 ms | 443 | 611k | 0.5 | 0 | 1.7 | 42.5 | 3.4 | 5.9 | 0.3 |
-| Fields (`--spawn fields`) | 26.7 ms | 451 | 363k | 0.4 | 0 | 1.2 | 19.6 | 0 | 4.9 | 0.2 |
+| Lipová chase (`--spawn square`, 20 traffic cars) | 170.4 ms | 1290 | 1242k | 0.4 | 0 | 1.2 | 106.9 | 56.5 | 5.2 | 0.2 |
+| Nové Město (`--spawn mesto`) | 103.8 ms | 718 | 417k | 0.4 | 0 | 1.7 | 33.8 | 62.4 | 5.3 | 0.2 |
+| Podhájí (`--spawn podhaji`) | 74.7 ms | 615 | 492k | 0.4 | 0 | 1.9 | 38.5 | 27.7 | 6.0 | 0.2 |
+| Forest road (`--spawn forest`) | 56.7 ms | 469 | 532k | 0.4 | 0 | 1.9 | 42.2 | 6.1 | 6.0 | 0.2 |
+| Fields (`--spawn fields`) | 46.8 ms | 493 | 547k | 0.4 | 0 | 1.7 | 37.8 | 0 | 6.3 | 0.6 |
 
-Pass columns are milliseconds per frame. Visible batches on the town chase run: 296 terrain
-chunks, 36 road batches, 280 object batches, 36 tree batches; of the 20 traffic cars 5 are
-drawn per frame on average and of the 91 parked cars 12 (the debug overlay and the benchmark
-JSON count them separately). The forest run draws 68 tree batches and 73
-object batches; the fields run 301 terrain chunks and 56 object batches.
+Pass columns are milliseconds per frame, at 13:00 with the clock frozen and the default
+scattered-cloud weather. Visible batches on the Lipová chase run: 204 terrain chunks, 77 road
+batches, 456 object batches, 33 tree batches; of the 20 traffic cars 8 are drawn per frame on
+average and of the 150 parked cars 12 (the debug overlay and the benchmark JSON count them
+separately). The Nové Město run draws 77 terrain chunks and 121 object batches, the forest run
+80 tree batches and 78 object batches, the fields run 202 terrain chunks and 154 object batches.
 
-These numbers replace an earlier table measured before the chase camera fix (the camera used
-to sit on the mirror image of its orbit, so a different part of the map was in view) and before
-the town gained a paved square, thirteen more buildings, 91 parked cars and planted gardens.
+The world roughly doubled in area with Phase 12 (6.4 x 7.6 km against 4.2 x 5.8 km, four more
+settlements, 624 buildings against 370). The terrain grid went from 4 m to 5 m to pay for it, so
+the chunk count only rose from 1518 to 1920 and the *visible* terrain chunks actually fell (204
+against 296); the extra frame time is objects, not ground -- from Lipová the neighbouring
+villages now stand on the horizon, and the object batches rose from 280 to 456. Night and rain
+each add about 2 ms and 0.4 ms respectively; the lamp and rain passes are skipped outright when
+they have nothing to draw.
 
 ### Levers in use
 
 - **Terrain LOD**: chunk steps 1/2/4 at 420 m / 1000 m, cull at 2300 m (M10).
+- **Object fog cull**: no object batch is submitted beyond the rig's `fogEnd`, where it
+  would be indistinguishable from the fog itself; detail batches keep their shorter 420 m
+  range. Worth about 7 ms of the Lipová frame now that other settlements are in view.
 - **Object detail cull**: frame, gutter, metal and reveal batches of buildings are skipped
   beyond 420 m (`ObjectBatch::cullDistance`); tree trunks beyond 700 m; tree cards beyond
   1100 m.

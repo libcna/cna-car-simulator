@@ -126,6 +126,11 @@ intersection patches with setbacks and kerb fillets, road pieces between interse
 approach controls. `LaneGraph` derives lanes per direction, connectors with turn types,
 conflicts and yield lists (priority, right-hand rule, left turn yields to oncoming), routes.
 
+The sample map is authored by two scripts under `tools/maps/`: `generate_lipova.py` wrote the
+original town (it has since been overtaken by hand edits, so re-running it would drop them), and
+`add_settlements.py` grows that map into the wider region -- it is additive and idempotent, and
+marks everything it writes with a `generated-by` key so a re-run replaces only its own output.
+
 ### objects.json
 `buildings[]` (`type` house/cottage/block/church/barn/shop/hall/chapel, `position`,
 `rotationDeg` = facade heading, `width`, `depth`, `eavesHeight`, `roofPitchDeg`, `floors`,

@@ -972,3 +972,26 @@ test, and the static checks stay mandatory.
   map is signalised (main road against Zahradní and Kostelní), and the map validator checks the
   plan: unknown roads, roads that miss the node, a road in two groups, a green under three
   seconds and a single-group plan that would never turn red.
+- [x] `LW-016` A wider region. The sample map grew from 4.2 x 5.8 km to 6.4 x 7.6 km with four
+  new places, written by `tools/maps/add_settlements.py`: **Březí**, a street village on the
+  main road east of Lipová; **Podhájí**, a village on a new southern ring road from S2 round to
+  E3; **Nové Město**, a small town in the north-east with its own square, three prefab blocks and
+  a loop off the forest road; and **Kamenice**, a hamlet at the end of a new south-western road.
+  254 more buildings, three new class III roads and three residential streets, boundary and
+  priority signs, lamps, bus stops, two tree avenues, new hills, forests and fields, and a player
+  spawn at each. The terrain grid went from 4 m to 5 m to pay for the area, so the chunk count
+  rose only from 1518 to 1920. The script is additive and idempotent: it marks everything it
+  writes with a `generated-by` key and replaces only that, so the hand-authored square, chapel,
+  filling station and parked cars survive a re-run.
+- [x] `LW-017` Traffic robustness for the bigger map. The new junctions found three real defects
+  in the traffic AI, all fixed with the soak test (thirty simulated minutes) as the regression:
+  a car turning across oncoming traffic only had to see a fixed 4.5 s gap, so it committed to
+  turns it could not finish -- the gap now has to cover its own crossing time as well; a
+  follower did not see a car that had just left its own lane onto a *different* connector, and
+  drove into the back of it; and a pair wedged inside a junction had no way out, because the
+  back-off needs room behind it and there is not always any -- a car that has stood still on a
+  connector for one and a half times the deadlock time now creeps out, the lower id of a pair
+  first.
+- [x] `LW-018` Object fog cull. No object batch is submitted beyond the rig's `fogEnd`, where it
+  is indistinguishable from the fog; worth about 7 ms of the Lipová frame now that other
+  settlements stand on the horizon.

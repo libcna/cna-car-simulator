@@ -5180,6 +5180,3816 @@
    "roofPitchDeg": 12,
    "floors": 1,
    "seed": 7810
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1084.9,
+    -260.1
+   ],
+   "rotationDeg": 157.9,
+   "width": 11.1,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 5917
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1107.4,
+    -269.2
+   ],
+   "rotationDeg": 157.9,
+   "width": 11.5,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 3091
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1130.0,
+    -278.4
+   ],
+   "rotationDeg": 157.9,
+   "width": 12.8,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4047
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1152.5,
+    -287.5
+   ],
+   "rotationDeg": 157.9,
+   "width": 12.3,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 3431
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1175.1,
+    -296.7
+   ],
+   "rotationDeg": 157.9,
+   "width": 13.4,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4918
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1197.6,
+    -305.8
+   ],
+   "rotationDeg": 157.9,
+   "width": 11.0,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 6957
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1220.2,
+    -314.9
+   ],
+   "rotationDeg": 157.9,
+   "width": 13.5,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 4863
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1242.8,
+    -324.1
+   ],
+   "rotationDeg": 157.9,
+   "width": 10.9,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1309
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1265.3,
+    -333.2
+   ],
+   "rotationDeg": 157.9,
+   "width": 11.3,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9875
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1096.9,
+    -230.4
+   ],
+   "rotationDeg": 337.9,
+   "width": 10.8,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 8831
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1119.4,
+    -239.6
+   ],
+   "rotationDeg": 337.9,
+   "width": 13.1,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5888
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1142.0,
+    -248.7
+   ],
+   "rotationDeg": 337.9,
+   "width": 12.6,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2393
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1164.6,
+    -257.9
+   ],
+   "rotationDeg": 337.9,
+   "width": 11.8,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 7042
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1187.1,
+    -267.0
+   ],
+   "rotationDeg": 337.9,
+   "width": 12.2,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 1993
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1209.7,
+    -276.1
+   ],
+   "rotationDeg": 337.9,
+   "width": 13.0,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 743
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1232.2,
+    -285.3
+   ],
+   "rotationDeg": 337.9,
+   "width": 13.2,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 9183
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1254.8,
+    -294.4
+   ],
+   "rotationDeg": 337.9,
+   "width": 13.1,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7882
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1277.3,
+    -303.6
+   ],
+   "rotationDeg": 337.9,
+   "width": 13.8,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 370
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1279.8,
+    -289.4
+   ],
+   "rotationDeg": 313.2,
+   "width": 10.7,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 492
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1265.3,
+    -274.0
+   ],
+   "rotationDeg": 313.2,
+   "width": 12.4,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6122
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1250.9,
+    -258.6
+   ],
+   "rotationDeg": 313.2,
+   "width": 11.6,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8352
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1236.5,
+    -243.2
+   ],
+   "rotationDeg": 313.2,
+   "width": 13.6,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 9513
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1222.0,
+    -227.8
+   ],
+   "rotationDeg": 313.2,
+   "width": 13.4,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9093
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1207.6,
+    -212.4
+   ],
+   "rotationDeg": 313.2,
+   "width": 12.4,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3327
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1193.1,
+    -197.0
+   ],
+   "rotationDeg": 313.2,
+   "width": 11.6,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6796
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1178.7,
+    -181.6
+   ],
+   "rotationDeg": 313.2,
+   "width": 11.8,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3161
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1260.8,
+    -307.2
+   ],
+   "rotationDeg": 133.2,
+   "width": 12.3,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3980
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1246.4,
+    -291.8
+   ],
+   "rotationDeg": 133.2,
+   "width": 13.2,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4593
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1231.9,
+    -276.4
+   ],
+   "rotationDeg": 133.2,
+   "width": 13.2,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 360
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1217.5,
+    -261.0
+   ],
+   "rotationDeg": 133.2,
+   "width": 13.6,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7446
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1203.0,
+    -245.6
+   ],
+   "rotationDeg": 133.2,
+   "width": 10.8,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 576
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1188.6,
+    -230.2
+   ],
+   "rotationDeg": 133.2,
+   "width": 13.4,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 9607
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1174.2,
+    -214.8
+   ],
+   "rotationDeg": 133.2,
+   "width": 12.5,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7372
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1159.7,
+    -199.4
+   ],
+   "rotationDeg": 133.2,
+   "width": 13.4,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6500
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1131.8,
+    -142.0
+   ],
+   "rotationDeg": 325.9,
+   "width": 13.9,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 6762
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1114.8,
+    -130.5
+   ],
+   "rotationDeg": 325.9,
+   "width": 12.0,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 2323
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1097.8,
+    -119.0
+   ],
+   "rotationDeg": 325.9,
+   "width": 12.6,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1611
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1080.8,
+    -107.5
+   ],
+   "rotationDeg": 325.9,
+   "width": 13.0,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 8606
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1063.8,
+    -96.0
+   ],
+   "rotationDeg": 325.9,
+   "width": 12.4,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 646
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1046.8,
+    -84.5
+   ],
+   "rotationDeg": 325.9,
+   "width": 10.6,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 5832
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1029.8,
+    -73.0
+   ],
+   "rotationDeg": 325.9,
+   "width": 12.7,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 3618
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1012.8,
+    -61.5
+   ],
+   "rotationDeg": 325.9,
+   "width": 13.5,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7971
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "chapel",
+   "position": [
+    1290,
+    -300
+   ],
+   "rotationDeg": 300.0,
+   "width": 5,
+   "depth": 7,
+   "eavesHeight": 4.4,
+   "floors": 1,
+   "roofPitchDeg": 50,
+   "seed": 101
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "barn",
+   "position": [
+    1060,
+    -90
+   ],
+   "rotationDeg": 140.0,
+   "width": 20,
+   "depth": 11,
+   "eavesHeight": 5.2,
+   "floors": 1,
+   "roofPitchDeg": 40,
+   "seed": 102
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    986.0,
+    900.9
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.0,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 511
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1007.9,
+    905.3
+   ],
+   "rotationDeg": 191.3,
+   "width": 12.8,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2251
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1029.7,
+    909.6
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.4,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6637
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1051.5,
+    914.0
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.8,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8603
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1073.3,
+    918.3
+   ],
+   "rotationDeg": 191.3,
+   "width": 10.5,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 4916
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1095.1,
+    922.7
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.6,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5069
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1117.0,
+    927.1
+   ],
+   "rotationDeg": 191.3,
+   "width": 13.4,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9367
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1138.8,
+    931.4
+   ],
+   "rotationDeg": 191.3,
+   "width": 12.2,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 4177
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1160.6,
+    935.8
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.2,
+   "depth": 10.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 5748
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1182.4,
+    940.2
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.2,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4616
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1204.2,
+    944.5
+   ],
+   "rotationDeg": 191.3,
+   "width": 13.0,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1147
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1226.0,
+    948.9
+   ],
+   "rotationDeg": 191.3,
+   "width": 13.7,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6041
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1247.9,
+    953.3
+   ],
+   "rotationDeg": 191.3,
+   "width": 12.5,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 3725
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1269.7,
+    957.6
+   ],
+   "rotationDeg": 191.3,
+   "width": 12.1,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6121
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1291.5,
+    962.0
+   ],
+   "rotationDeg": 191.3,
+   "width": 12.9,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1244
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1313.3,
+    966.3
+   ],
+   "rotationDeg": 191.3,
+   "width": 13.6,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3352
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1335.1,
+    970.7
+   ],
+   "rotationDeg": 191.3,
+   "width": 12.6,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 9643
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1357.0,
+    975.1
+   ],
+   "rotationDeg": 191.3,
+   "width": 13.0,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3586
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1378.8,
+    979.4
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.3,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 850
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1400.6,
+    983.8
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.1,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7161
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1422.4,
+    988.2
+   ],
+   "rotationDeg": 191.3,
+   "width": 10.8,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 5397
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1444.2,
+    992.5
+   ],
+   "rotationDeg": 191.3,
+   "width": 11.5,
+   "depth": 8.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2879
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    979.8,
+    932.3
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.6,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6749
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1001.6,
+    936.6
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.4,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9203
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1023.4,
+    941.0
+   ],
+   "rotationDeg": 11.3,
+   "width": 12.3,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 4520
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1045.2,
+    945.4
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.4,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 207
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1067.0,
+    949.7
+   ],
+   "rotationDeg": 11.3,
+   "width": 12.5,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3799
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1088.9,
+    954.1
+   ],
+   "rotationDeg": 11.3,
+   "width": 12.0,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 6119
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1110.7,
+    958.5
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.9,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6019
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1132.5,
+    962.8
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.2,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3567
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1154.3,
+    967.2
+   ],
+   "rotationDeg": 11.3,
+   "width": 12.1,
+   "depth": 8.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 8726
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1176.1,
+    971.5
+   ],
+   "rotationDeg": 11.3,
+   "width": 12.0,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6006
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1198.0,
+    975.9
+   ],
+   "rotationDeg": 11.3,
+   "width": 13.4,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2873
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1219.8,
+    980.3
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.7,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5934
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1241.6,
+    984.6
+   ],
+   "rotationDeg": 11.3,
+   "width": 12.3,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8086
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1263.4,
+    989.0
+   ],
+   "rotationDeg": 11.3,
+   "width": 10.8,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8606
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1285.2,
+    993.4
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.7,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 3299
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1307.0,
+    997.7
+   ],
+   "rotationDeg": 11.3,
+   "width": 13.2,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8363
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1328.9,
+    1002.1
+   ],
+   "rotationDeg": 11.3,
+   "width": 13.9,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 1242
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1350.7,
+    1006.5
+   ],
+   "rotationDeg": 11.3,
+   "width": 10.8,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6895
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    1372.5,
+    1010.8
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.5,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2286
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1394.3,
+    1015.2
+   ],
+   "rotationDeg": 11.3,
+   "width": 11.3,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7822
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1416.1,
+    1019.5
+   ],
+   "rotationDeg": 11.3,
+   "width": 14.0,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 4996
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1438.0,
+    1023.9
+   ],
+   "rotationDeg": 11.3,
+   "width": 13.7,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2993
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    953.7,
+    943.8
+   ],
+   "rotationDeg": 230.0,
+   "width": 13.7,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4379
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    966.7,
+    959.4
+   ],
+   "rotationDeg": 230.0,
+   "width": 13.1,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6431
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    979.8,
+    975.0
+   ],
+   "rotationDeg": 230.0,
+   "width": 13.1,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 123
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    992.8,
+    990.6
+   ],
+   "rotationDeg": 230.0,
+   "width": 12.0,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6953
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1005.9,
+    1006.2
+   ],
+   "rotationDeg": 230.0,
+   "width": 10.6,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 12
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1019.0,
+    1021.7
+   ],
+   "rotationDeg": 230.0,
+   "width": 13.7,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 5303
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1032.0,
+    1037.3
+   ],
+   "rotationDeg": 230.0,
+   "width": 14.0,
+   "depth": 8.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6169
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1045.1,
+    1052.9
+   ],
+   "rotationDeg": 230.0,
+   "width": 10.9,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9692
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1058.1,
+    1068.5
+   ],
+   "rotationDeg": 230.0,
+   "width": 12.8,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 3396
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1071.2,
+    1084.1
+   ],
+   "rotationDeg": 230.0,
+   "width": 13.6,
+   "depth": 10.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 880
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1084.2,
+    1099.6
+   ],
+   "rotationDeg": 230.0,
+   "width": 11.4,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 172
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1097.3,
+    1115.2
+   ],
+   "rotationDeg": 230.0,
+   "width": 11.0,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4718
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1110.3,
+    1130.8
+   ],
+   "rotationDeg": 230.0,
+   "width": 11.3,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9292
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1123.4,
+    1146.4
+   ],
+   "rotationDeg": 230.0,
+   "width": 10.7,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7449
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1136.4,
+    1161.9
+   ],
+   "rotationDeg": 230.0,
+   "width": 13.4,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2915
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1149.5,
+    1177.5
+   ],
+   "rotationDeg": 230.0,
+   "width": 12.4,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5170
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1162.5,
+    1193.1
+   ],
+   "rotationDeg": 230.0,
+   "width": 11.4,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1197
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1175.6,
+    1208.7
+   ],
+   "rotationDeg": 230.0,
+   "width": 12.3,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1152
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1188.6,
+    1224.3
+   ],
+   "rotationDeg": 230.0,
+   "width": 11.1,
+   "depth": 11.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 356
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1255.2,
+    1248.2
+   ],
+   "rotationDeg": 319.2,
+   "width": 13.4,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 6486
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1270.7,
+    1234.8
+   ],
+   "rotationDeg": 319.2,
+   "width": 13.6,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 2513
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1286.2,
+    1221.5
+   ],
+   "rotationDeg": 319.2,
+   "width": 13.9,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 270
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1301.6,
+    1208.2
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.3,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 3663
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1317.1,
+    1194.8
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.8,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 4991
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1332.6,
+    1181.5
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.9,
+   "depth": 8.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8019
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1348.0,
+    1168.2
+   ],
+   "rotationDeg": 319.2,
+   "width": 11.2,
+   "depth": 8.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 1811
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1363.5,
+    1154.8
+   ],
+   "rotationDeg": 319.2,
+   "width": 10.8,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8718
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1379.0,
+    1141.5
+   ],
+   "rotationDeg": 319.2,
+   "width": 10.9,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 8281
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1394.4,
+    1128.2
+   ],
+   "rotationDeg": 319.2,
+   "width": 11.3,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 1575
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1409.9,
+    1114.8
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.3,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 2377
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1425.4,
+    1101.5
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.8,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 9002
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1440.8,
+    1088.2
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.7,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 2965
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1456.3,
+    1074.8
+   ],
+   "rotationDeg": 319.2,
+   "width": 12.4,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8867
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1471.8,
+    1061.5
+   ],
+   "rotationDeg": 319.2,
+   "width": 11.3,
+   "depth": 9.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8629
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "church",
+   "position": [
+    1180,
+    960
+   ],
+   "rotationDeg": 0.0,
+   "width": 12,
+   "depth": 26,
+   "eavesHeight": 8.0,
+   "floors": 1,
+   "roofPitchDeg": 50,
+   "seed": 110
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "hall",
+   "position": [
+    1255,
+    968
+   ],
+   "rotationDeg": 0.0,
+   "width": 18,
+   "depth": 12,
+   "eavesHeight": 7.0,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 111
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "barn",
+   "position": [
+    1000,
+    1180
+   ],
+   "rotationDeg": 200.0,
+   "width": 24,
+   "depth": 12,
+   "eavesHeight": 5.4,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 112
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shed",
+   "position": [
+    1420,
+    1180
+   ],
+   "rotationDeg": 160.0,
+   "width": 8,
+   "depth": 6,
+   "eavesHeight": 2.8,
+   "floors": 1,
+   "roofPitchDeg": 30,
+   "seed": 113
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1949.7,
+    -2431.9
+   ],
+   "rotationDeg": 151.9,
+   "width": 11.3,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 1697
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1969.7,
+    -2442.6
+   ],
+   "rotationDeg": 151.9,
+   "width": 13.7,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1509
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    1989.7,
+    -2453.2
+   ],
+   "rotationDeg": 151.9,
+   "width": 11.3,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1589
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2009.7,
+    -2463.9
+   ],
+   "rotationDeg": 151.9,
+   "width": 11.6,
+   "depth": 9.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3862
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2029.7,
+    -2474.6
+   ],
+   "rotationDeg": 151.9,
+   "width": 11.6,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8785
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2049.7,
+    -2485.2
+   ],
+   "rotationDeg": 151.9,
+   "width": 12.7,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 1772
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2069.7,
+    -2495.9
+   ],
+   "rotationDeg": 151.9,
+   "width": 13.6,
+   "depth": 11.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3806
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2089.7,
+    -2506.6
+   ],
+   "rotationDeg": 151.9,
+   "width": 13.1,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8514
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2109.7,
+    -2517.2
+   ],
+   "rotationDeg": 151.9,
+   "width": 10.6,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8202
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1965.3,
+    -2402.8
+   ],
+   "rotationDeg": 331.9,
+   "width": 13.6,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8586
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    1985.3,
+    -2413.4
+   ],
+   "rotationDeg": 331.9,
+   "width": 12.7,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 6043
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2005.3,
+    -2424.1
+   ],
+   "rotationDeg": 331.9,
+   "width": 10.9,
+   "depth": 9.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3075
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2025.3,
+    -2434.8
+   ],
+   "rotationDeg": 331.9,
+   "width": 11.2,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 50
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2045.3,
+    -2445.4
+   ],
+   "rotationDeg": 331.9,
+   "width": 11.9,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 8777
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2065.3,
+    -2456.1
+   ],
+   "rotationDeg": 331.9,
+   "width": 12.7,
+   "depth": 10.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3991
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2085.3,
+    -2466.8
+   ],
+   "rotationDeg": 331.9,
+   "width": 12.6,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7608
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2105.3,
+    -2477.4
+   ],
+   "rotationDeg": 331.9,
+   "width": 11.4,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2608
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2125.3,
+    -2488.1
+   ],
+   "rotationDeg": 331.9,
+   "width": 13.2,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 478
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2197.3,
+    -2503.8
+   ],
+   "rotationDeg": 218.2,
+   "width": 11.6,
+   "depth": 8.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 922
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2215.0,
+    -2489.8
+   ],
+   "rotationDeg": 218.2,
+   "width": 12.5,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 4411
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2232.7,
+    -2475.9
+   ],
+   "rotationDeg": 218.2,
+   "width": 10.9,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 5363
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2250.4,
+    -2462.0
+   ],
+   "rotationDeg": 218.2,
+   "width": 10.8,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 1148
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2268.1,
+    -2448.0
+   ],
+   "rotationDeg": 218.2,
+   "width": 12.3,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 6295
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2285.8,
+    -2434.1
+   ],
+   "rotationDeg": 218.2,
+   "width": 12.3,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 589
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2303.6,
+    -2420.1
+   ],
+   "rotationDeg": 218.2,
+   "width": 11.7,
+   "depth": 9.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 9454
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2321.3,
+    -2406.2
+   ],
+   "rotationDeg": 218.2,
+   "width": 11.9,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3824
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2339.0,
+    -2392.2
+   ],
+   "rotationDeg": 218.2,
+   "width": 13.9,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 701
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2356.7,
+    -2378.3
+   ],
+   "rotationDeg": 218.2,
+   "width": 13.5,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 7874
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2374.4,
+    -2364.3
+   ],
+   "rotationDeg": 218.2,
+   "width": 12.8,
+   "depth": 9.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9008
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2392.1,
+    -2350.4
+   ],
+   "rotationDeg": 218.2,
+   "width": 13.7,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7354
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2409.8,
+    -2336.4
+   ],
+   "rotationDeg": 218.2,
+   "width": 10.9,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 821
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2176.9,
+    -2477.9
+   ],
+   "rotationDeg": 38.2,
+   "width": 11.5,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8038
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2194.6,
+    -2463.9
+   ],
+   "rotationDeg": 38.2,
+   "width": 11.6,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2857
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2212.3,
+    -2450.0
+   ],
+   "rotationDeg": 38.2,
+   "width": 13.8,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 1496
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2230.0,
+    -2436.0
+   ],
+   "rotationDeg": 38.2,
+   "width": 13.1,
+   "depth": 9.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9149
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2247.7,
+    -2422.1
+   ],
+   "rotationDeg": 38.2,
+   "width": 11.4,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 8607
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2265.4,
+    -2408.1
+   ],
+   "rotationDeg": 38.2,
+   "width": 13.4,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 952
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2283.1,
+    -2394.2
+   ],
+   "rotationDeg": 38.2,
+   "width": 13.3,
+   "depth": 10.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7615
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2300.9,
+    -2380.2
+   ],
+   "rotationDeg": 38.2,
+   "width": 12.2,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8318
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2318.6,
+    -2366.3
+   ],
+   "rotationDeg": 38.2,
+   "width": 12.0,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4385
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2336.3,
+    -2352.3
+   ],
+   "rotationDeg": 38.2,
+   "width": 11.4,
+   "depth": 8.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5953
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2354.0,
+    -2338.4
+   ],
+   "rotationDeg": 38.2,
+   "width": 12.7,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2770
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2371.7,
+    -2324.5
+   ],
+   "rotationDeg": 38.2,
+   "width": 13.5,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2922
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2389.4,
+    -2310.5
+   ],
+   "rotationDeg": 38.2,
+   "width": 12.9,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 7193
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2206.7,
+    -2516.0
+   ],
+   "rotationDeg": 197.2,
+   "width": 12.5,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 7711
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2225.3,
+    -2510.3
+   ],
+   "rotationDeg": 197.2,
+   "width": 12.2,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 356
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2243.9,
+    -2504.5
+   ],
+   "rotationDeg": 197.2,
+   "width": 12.5,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 1362
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2262.5,
+    -2498.7
+   ],
+   "rotationDeg": 197.2,
+   "width": 13.1,
+   "depth": 9.0,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8276
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2281.1,
+    -2492.9
+   ],
+   "rotationDeg": 197.2,
+   "width": 12.0,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 7651
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2299.7,
+    -2487.2
+   ],
+   "rotationDeg": 197.2,
+   "width": 11.5,
+   "depth": 9.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 2252
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2318.3,
+    -2481.4
+   ],
+   "rotationDeg": 197.2,
+   "width": 13.5,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 6242
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2336.9,
+    -2475.6
+   ],
+   "rotationDeg": 197.2,
+   "width": 11.3,
+   "depth": 8.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 81
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2355.5,
+    -2469.8
+   ],
+   "rotationDeg": 197.2,
+   "width": 11.8,
+   "depth": 9.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2562
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2374.1,
+    -2464.1
+   ],
+   "rotationDeg": 197.2,
+   "width": 10.9,
+   "depth": 10.2,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5066
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2392.7,
+    -2458.3
+   ],
+   "rotationDeg": 197.2,
+   "width": 10.7,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6407
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2411.3,
+    -2452.5
+   ],
+   "rotationDeg": 197.2,
+   "width": 12.6,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 6928
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2199.0,
+    -2491.2
+   ],
+   "rotationDeg": 17.2,
+   "width": 11.3,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5788
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2217.6,
+    -2485.4
+   ],
+   "rotationDeg": 17.2,
+   "width": 10.5,
+   "depth": 10.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3644
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2236.2,
+    -2479.6
+   ],
+   "rotationDeg": 17.2,
+   "width": 13.5,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3086
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2254.8,
+    -2473.9
+   ],
+   "rotationDeg": 17.2,
+   "width": 12.2,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 1885
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2273.4,
+    -2468.1
+   ],
+   "rotationDeg": 17.2,
+   "width": 11.9,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 7782
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2292.0,
+    -2462.3
+   ],
+   "rotationDeg": 17.2,
+   "width": 10.5,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3313
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2310.6,
+    -2456.5
+   ],
+   "rotationDeg": 17.2,
+   "width": 12.1,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5216
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2329.2,
+    -2450.8
+   ],
+   "rotationDeg": 17.2,
+   "width": 12.3,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 1860
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2347.8,
+    -2445.0
+   ],
+   "rotationDeg": 17.2,
+   "width": 12.0,
+   "depth": 10.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 3855
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2366.4,
+    -2439.2
+   ],
+   "rotationDeg": 17.2,
+   "width": 11.3,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4069
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2385.0,
+    -2433.4
+   ],
+   "rotationDeg": 17.2,
+   "width": 10.9,
+   "depth": 8.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 3176
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2403.6,
+    -2427.7
+   ],
+   "rotationDeg": 17.2,
+   "width": 11.2,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 5837
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2452.2,
+    -2387.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 11.8,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 284
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2462.5,
+    -2371.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 11.1,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 3908
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2472.8,
+    -2355.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 13.3,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2604
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2483.1,
+    -2339.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 12.9,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 7109
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2493.4,
+    -2323.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 13.4,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 64
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2503.6,
+    -2307.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 13.2,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3176
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2513.9,
+    -2291.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 10.8,
+   "depth": 10.4,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 6557
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2524.2,
+    -2275.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 12.2,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8636
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2534.5,
+    -2259.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 10.9,
+   "depth": 9.9,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 5330
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2544.8,
+    -2243.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 13.3,
+   "depth": 10.4,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 9663
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2555.1,
+    -2227.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 12.8,
+   "depth": 9.6,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 7423
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2565.4,
+    -2211.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 11.5,
+   "depth": 9.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 3221
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2575.6,
+    -2195.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 13.9,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8424
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    2585.9,
+    -2179.0
+   ],
+   "rotationDeg": 57.3,
+   "width": 10.6,
+   "depth": 9.3,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 5988
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "church",
+   "position": [
+    2110,
+    -2600
+   ],
+   "rotationDeg": 20.0,
+   "width": 13,
+   "depth": 28,
+   "eavesHeight": 9.0,
+   "floors": 1,
+   "roofPitchDeg": 52,
+   "seed": 120
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "hall",
+   "position": [
+    2215,
+    -2585
+   ],
+   "rotationDeg": 20.0,
+   "width": 24,
+   "depth": 13,
+   "eavesHeight": 9.0,
+   "floors": 3,
+   "roofPitchDeg": 40,
+   "seed": 121
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2095,
+    -2455
+   ],
+   "rotationDeg": 200.0,
+   "width": 17,
+   "depth": 12,
+   "eavesHeight": 7.0,
+   "floors": 2,
+   "roofPitchDeg": 36,
+   "seed": 122
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "shop",
+   "position": [
+    2175,
+    -2440
+   ],
+   "rotationDeg": 200.0,
+   "width": 15,
+   "depth": 12,
+   "eavesHeight": 7.0,
+   "floors": 2,
+   "roofPitchDeg": 36,
+   "seed": 123
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    2250,
+    -2430
+   ],
+   "rotationDeg": 200.0,
+   "width": 13,
+   "depth": 11,
+   "eavesHeight": 6.8,
+   "floors": 2,
+   "roofPitchDeg": 40,
+   "seed": 124
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "block",
+   "position": [
+    2330,
+    -2620
+   ],
+   "rotationDeg": 90.0,
+   "width": 34,
+   "depth": 12,
+   "eavesHeight": 17.5,
+   "floors": 6,
+   "roofPitchDeg": 8,
+   "seed": 130
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "block",
+   "position": [
+    2330,
+    -2560
+   ],
+   "rotationDeg": 90.0,
+   "width": 34,
+   "depth": 12,
+   "eavesHeight": 17.5,
+   "floors": 6,
+   "roofPitchDeg": 8,
+   "seed": 131
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "block",
+   "position": [
+    2330,
+    -2500
+   ],
+   "rotationDeg": 90.0,
+   "width": 34,
+   "depth": 12,
+   "eavesHeight": 17.5,
+   "floors": 6,
+   "roofPitchDeg": 8,
+   "seed": 132
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "barn",
+   "position": [
+    1900,
+    -2340
+   ],
+   "rotationDeg": 250.0,
+   "width": 22,
+   "depth": 11,
+   "eavesHeight": 5.2,
+   "floors": 1,
+   "roofPitchDeg": 40,
+   "seed": 140
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2056.6,
+    1531.5
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.7,
+   "depth": 8.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 9265
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2081.3,
+    1541.8
+   ],
+   "rotationDeg": 337.4,
+   "width": 11.9,
+   "depth": 10.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 8061
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2106.0,
+    1552.1
+   ],
+   "rotationDeg": 337.4,
+   "width": 13.8,
+   "depth": 8.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 451
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2130.7,
+    1562.4
+   ],
+   "rotationDeg": 337.4,
+   "width": 13.2,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4336
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2155.4,
+    1572.7
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.8,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 8257
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2180.1,
+    1583.0
+   ],
+   "rotationDeg": 337.4,
+   "width": 13.2,
+   "depth": 10.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 4299
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2204.8,
+    1593.3
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.1,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 7112
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2229.5,
+    1603.6
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.3,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 619
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2254.2,
+    1613.8
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.1,
+   "depth": 8.5,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 4490
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2278.9,
+    1624.1
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.0,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 8977
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2303.6,
+    1634.4
+   ],
+   "rotationDeg": 337.4,
+   "width": 13.7,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5388
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2328.3,
+    1644.7
+   ],
+   "rotationDeg": 337.4,
+   "width": 11.2,
+   "depth": 10.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 5739
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2353.1,
+    1655.0
+   ],
+   "rotationDeg": 337.4,
+   "width": 11.2,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8434
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2377.8,
+    1665.3
+   ],
+   "rotationDeg": 337.4,
+   "width": 11.8,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8323
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2402.5,
+    1675.6
+   ],
+   "rotationDeg": 337.4,
+   "width": 11.5,
+   "depth": 10.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 7789
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2427.2,
+    1685.9
+   ],
+   "rotationDeg": 337.4,
+   "width": 10.9,
+   "depth": 8.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 9462
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2451.9,
+    1696.2
+   ],
+   "rotationDeg": 337.4,
+   "width": 12.1,
+   "depth": 10.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 1316
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2068.1,
+    1503.8
+   ],
+   "rotationDeg": 157.4,
+   "width": 13.9,
+   "depth": 9.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 2011
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2092.8,
+    1514.1
+   ],
+   "rotationDeg": 157.4,
+   "width": 13.9,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 2979
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2117.5,
+    1524.4
+   ],
+   "rotationDeg": 157.4,
+   "width": 13.1,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 8202
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2142.2,
+    1534.7
+   ],
+   "rotationDeg": 157.4,
+   "width": 11.3,
+   "depth": 10.3,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 990
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2166.9,
+    1545.0
+   ],
+   "rotationDeg": 157.4,
+   "width": 13.6,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 2870
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2191.7,
+    1555.3
+   ],
+   "rotationDeg": 157.4,
+   "width": 13.3,
+   "depth": 10.5,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 9442
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2216.4,
+    1565.6
+   ],
+   "rotationDeg": 157.4,
+   "width": 13.8,
+   "depth": 10.2,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 5568
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2241.1,
+    1575.9
+   ],
+   "rotationDeg": 157.4,
+   "width": 10.7,
+   "depth": 9.7,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 45,
+   "seed": 4528
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2265.8,
+    1586.2
+   ],
+   "rotationDeg": 157.4,
+   "width": 11.1,
+   "depth": 9.0,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 35,
+   "seed": 3055
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2290.5,
+    1596.4
+   ],
+   "rotationDeg": 157.4,
+   "width": 11.1,
+   "depth": 9.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 42,
+   "seed": 2825
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2315.2,
+    1606.7
+   ],
+   "rotationDeg": 157.4,
+   "width": 10.8,
+   "depth": 10.7,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 8045
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2339.9,
+    1617.0
+   ],
+   "rotationDeg": 157.4,
+   "width": 11.5,
+   "depth": 10.1,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 38,
+   "seed": 8560
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "house",
+   "position": [
+    -2364.6,
+    1627.3
+   ],
+   "rotationDeg": 157.4,
+   "width": 12.1,
+   "depth": 10.8,
+   "eavesHeight": 6.4,
+   "floors": 2,
+   "roofPitchDeg": 35,
+   "seed": 4508
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2389.3,
+    1637.6
+   ],
+   "rotationDeg": 157.4,
+   "width": 12.6,
+   "depth": 9.6,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 3243
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2414.0,
+    1647.9
+   ],
+   "rotationDeg": 157.4,
+   "width": 10.5,
+   "depth": 10.8,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 45,
+   "seed": 4399
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2438.7,
+    1658.2
+   ],
+   "rotationDeg": 157.4,
+   "width": 12.3,
+   "depth": 10.9,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 6253
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2463.4,
+    1668.5
+   ],
+   "rotationDeg": 157.4,
+   "width": 12.9,
+   "depth": 9.1,
+   "eavesHeight": 3.6,
+   "floors": 1,
+   "roofPitchDeg": 38,
+   "seed": 3567
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "barn",
+   "position": [
+    -2520,
+    1630
+   ],
+   "rotationDeg": 120.0,
+   "width": 22,
+   "depth": 11,
+   "eavesHeight": 5.2,
+   "floors": 1,
+   "roofPitchDeg": 42,
+   "seed": 150
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "cottage",
+   "position": [
+    -2450,
+    1770
+   ],
+   "rotationDeg": 300.0,
+   "width": 10,
+   "depth": 8,
+   "eavesHeight": 3.4,
+   "floors": 1,
+   "roofPitchDeg": 46,
+   "seed": 151
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "chapel",
+   "position": [
+    -1960,
+    1420
+   ],
+   "rotationDeg": 60.0,
+   "width": 4.5,
+   "depth": 6.5,
+   "eavesHeight": 4.2,
+   "floors": 1,
+   "roofPitchDeg": 50,
+   "seed": 152
   }
  ],
  "props": [
@@ -5602,6 +9412,234 @@
     -129.7
    ],
    "rotationDeg": 0.0
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1128.4,
+    -253.6
+   ],
+   "rotationDeg": 337.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1186.4,
+    -277.1
+   ],
+   "rotationDeg": 337.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1244.4,
+    -300.6
+   ],
+   "rotationDeg": 337.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bus_stop",
+   "position": [
+    1221.6,
+    -290.1
+   ],
+   "rotationDeg": 337.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1018.7,
+    930.3
+   ],
+   "rotationDeg": 11.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1138.7,
+    954.3
+   ],
+   "rotationDeg": 11.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1258.7,
+    978.3
+   ],
+   "rotationDeg": 11.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1378.7,
+    1002.3
+   ],
+   "rotationDeg": 11.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bus_stop",
+   "position": [
+    1174.5,
+    962.6
+   ],
+   "rotationDeg": 11.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bench",
+   "position": [
+    1201.7,
+    951.7
+   ],
+   "rotationDeg": 191.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "fence",
+   "position": [
+    999.1,
+    1005.9
+   ],
+   "rotationDeg": 230.0,
+   "length": 70
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    1982.1,
+    -2423.0
+   ],
+   "rotationDeg": 331.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2027.1,
+    -2447.0
+   ],
+   "rotationDeg": 331.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2072.1,
+    -2471.0
+   ],
+   "rotationDeg": 331.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2117.1,
+    -2495.0
+   ],
+   "rotationDeg": 331.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2201.1,
+    -2488.2
+   ],
+   "rotationDeg": 218.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2248.1,
+    -2451.2
+   ],
+   "rotationDeg": 218.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2295.1,
+    -2414.2
+   ],
+   "rotationDeg": 218.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "lamp",
+   "position": [
+    2342.1,
+    -2377.2
+   ],
+   "rotationDeg": 218.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bus_stop",
+   "position": [
+    2099.5,
+    -2484.6
+   ],
+   "rotationDeg": 331.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bench",
+   "position": [
+    2193.2,
+    -2497.5
+   ],
+   "rotationDeg": 218.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bin",
+   "position": [
+    2202.6,
+    -2490.1
+   ],
+   "rotationDeg": 218.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "bus_stop",
+   "position": [
+    -2112.9,
+    1530.6
+   ],
+   "rotationDeg": 157.4
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "timber_stack",
+   "position": [
+    -2226.5,
+    1595.8
+   ],
+   "rotationDeg": 337.4,
+   "length": 10
+  },
+  {
+   "generated-by": "add_settlements",
+   "type": "fence",
+   "position": [
+    -2083.5,
+    1516.7
+   ],
+   "rotationDeg": 157.4,
+   "length": 50
   }
  ],
  "signs": [
@@ -5921,6 +9959,247 @@
     -4.2
    ],
    "headingDeg": 88.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4a",
+   "position": [
+    1055.8,
+    -224.6
+   ],
+   "headingDeg": 247.9,
+   "text": "Březí"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4b",
+   "position": [
+    1051.2,
+    -235.7
+   ],
+   "headingDeg": 67.9,
+   "text": "Březí"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "P4",
+   "position": [
+    1289.4,
+    -309.9
+   ],
+   "headingDeg": 223.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4a",
+   "position": [
+    946.8,
+    915.5
+   ],
+   "headingDeg": 281.3,
+   "text": "Podhájí"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4b",
+   "position": [
+    1453.2,
+    1004.5
+   ],
+   "headingDeg": 101.3,
+   "text": "Podhájí"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4a",
+   "position": [
+    2127.6,
+    744.5
+   ],
+   "headingDeg": 66.8,
+   "text": "Podhájí"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4b",
+   "position": [
+    1572.4,
+    995.5
+   ],
+   "headingDeg": 246.8,
+   "text": "Podhájí"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "P4",
+   "position": [
+    1474.9,
+    1049.5
+   ],
+   "headingDeg": 229.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "P4",
+   "position": [
+    102.3,
+    575.7
+   ],
+   "headingDeg": 292.5
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IS3c",
+   "position": [
+    159.7,
+    599.5
+   ],
+   "headingDeg": 292.5,
+   "text": "Podhájí 9 / Nové Město 31"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "B20a",
+   "position": [
+    958.8,
+    917.9
+   ],
+   "headingDeg": 281.3,
+   "value": 50
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4a",
+   "position": [
+    1927.8,
+    -2394.7
+   ],
+   "headingDeg": 241.9,
+   "text": "Nové Město"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4b",
+   "position": [
+    1922.2,
+    -2405.3
+   ],
+   "headingDeg": 61.9,
+   "text": "Nové Město"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4a",
+   "position": [
+    2571.8,
+    -1946.0
+   ],
+   "headingDeg": 194.9,
+   "text": "Nové Město"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4b",
+   "position": [
+    2560.2,
+    -1949.0
+   ],
+   "headingDeg": 14.9,
+   "text": "Nové Město"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "P2",
+   "position": [
+    2116.8,
+    -2495.5
+   ],
+   "headingDeg": 241.9
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "P4",
+   "position": [
+    2180.8,
+    -2516.7
+   ],
+   "headingDeg": 107.2
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "P4",
+   "position": [
+    2597.0,
+    -2174.8
+   ],
+   "headingDeg": 327.3
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IS3c",
+   "position": [
+    1369.7,
+    -1958.8
+   ],
+   "headingDeg": 226.5,
+   "text": "Nové Město 8 / Lipová 24"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "B20a",
+   "position": [
+    1950.3,
+    -2406.7
+   ],
+   "headingDeg": 241.9,
+   "value": 50
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "A14",
+   "position": [
+    1476.1,
+    -2059.6
+   ],
+   "headingDeg": 226.5
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4a",
+   "position": [
+    -2010.3,
+    1489.5
+   ],
+   "headingDeg": 67.4,
+   "text": "Kamenice"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "IZ4b",
+   "position": [
+    -2005.7,
+    1500.5
+   ],
+   "headingDeg": 247.4,
+   "text": "Kamenice"
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "A7a",
+   "position": [
+    -1481.2,
+    1120.2
+   ],
+   "headingDeg": 52.4
+  },
+  {
+   "generated-by": "add_settlements",
+   "code": "A14",
+   "position": [
+    -1351.2,
+    1020.2
+   ],
+   "headingDeg": 52.4
   }
  ],
  "trees": [
@@ -6203,6 +10482,30 @@
    "left": true,
    "right": false,
    "seed": 3
+  },
+  {
+   "generated-by": "add_settlements",
+   "road": "east_ring",
+   "fromNode": "P3",
+   "toNode": "E3",
+   "species": "linden",
+   "spacing": 22,
+   "offset": 3.2,
+   "left": true,
+   "right": true,
+   "seed": 11
+  },
+  {
+   "generated-by": "add_settlements",
+   "road": "northeast",
+   "fromNode": "M4",
+   "toNode": "E5",
+   "species": "birch",
+   "spacing": 24,
+   "offset": 3.4,
+   "left": true,
+   "right": true,
+   "seed": 12
   }
  ],
  "vehicles": [

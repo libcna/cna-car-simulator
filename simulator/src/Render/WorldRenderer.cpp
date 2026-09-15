@@ -981,7 +981,11 @@ namespace CarSim::Render
             if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
                 continue;
             }
-            if (b.cullDistance > 0.0f && Vector3::Distance(eye, b.mesh->Sphere().Center) - b.mesh->Sphere().Radius > b.cullDistance) {
+            // Nothing past the fog end can be told from the fog itself, so no batch is drawn
+            // beyond it; detail batches keep their own shorter range. Without this the buildings
+            // of a settlement three kilometres away are still submitted in full.
+            const float cull = b.cullDistance > 0.0f ? std::min(b.cullDistance, rig_.fogEnd) : rig_.fogEnd;
+            if (Vector3::Distance(eye, b.mesh->Sphere().Center) - b.mesh->Sphere().Radius > cull) {
                 continue;
             }
             roadEffect_->setTextureProperty(b.texture);

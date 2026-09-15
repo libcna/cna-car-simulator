@@ -38,6 +38,10 @@ shot dusk        --spawn square --frames 40  --view -78 9 -30 50 -6 --time 21:30
 shot night       --spawn square --frames 40  --view -66 6 25 0 -10  --time 23:00 --time-scale 0
 shot headlights  --spawn square --frames 300 --chase-yaw 90 --chase-distance 14 --lights --auto-drive 4 \
                  --time 23:00 --time-scale 0 --traffic-warmup 20
+# The other settlements of the region.
+shot brezi       --spawn brezi    --frames 120 --chase-yaw 35 --chase-distance 12 --traffic-warmup 20
+shot podhaji     --spawn podhaji  --frames 120 --chase-yaw 35 --chase-distance 12 --traffic-warmup 20
+shot mesto       --spawn mesto    --frames 120 --chase-yaw 35 --chase-distance 12 --traffic-warmup 20
 # The signalised junction "U kaple", by day and after dark.
 shot signals     --spawn kostel --frames 90 --view 302 11 18 28 -11 --time 13:00 --time-scale 0 --traffic-warmup 20
 # Weather: the same square under a lid and in the rain.
@@ -49,4 +53,5 @@ echo "captured into $OUT; convert the scene shots to JPEG before committing them
 echo "  python3 -c \"from PIL import Image; [Image.open(f'$OUT/{n}.png').convert('RGB')"
 echo "      .save(f'$OUT/{n}.jpg', quality=88, optimize=True, subsampling=1) for n in"
 echo "      ['hero','cockpit','town','traffic','square','countryside','forest','lights',"
-echo "      'dusk','night','headlights','signals','overcast','rain']]\""
+echo "      'dusk','night','headlights','signals','overcast','rain',"
+echo "      'brezi','podhaji','mesto']]\""

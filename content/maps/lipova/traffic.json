@@ -40,6 +40,38 @@
     -16.5
    ],
    "headingDeg": 85.7
+  },
+  {
+   "name": "brezi",
+   "position": [
+    1184.6,
+    -281.4
+   ],
+   "headingDeg": 67.9
+  },
+  {
+   "name": "podhaji",
+   "position": [
+    1049.7,
+    931.7
+   ],
+   "headingDeg": 101.3
+  },
+  {
+   "name": "mesto",
+   "position": [
+    1970.8,
+    -2422.5
+   ],
+   "headingDeg": 61.9
+  },
+  {
+   "name": "kamenice",
+   "position": [
+    -1706.0,
+    1298.7
+   ],
+   "headingDeg": 232.4
   }
  ],
  "densityPerKm": 1.2,

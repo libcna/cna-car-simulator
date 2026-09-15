@@ -82,7 +82,11 @@
    "position": [
     1300,
     -330
-   ]
+   ],
+   "mainRoads": [
+    "main"
+   ],
+   "urban": true
   },
   {
    "id": "E4",
@@ -96,7 +100,11 @@
    "position": [
     1820,
     -1400
-   ]
+   ],
+   "mainRoads": [
+    "main"
+   ],
+   "urban": false
   },
   {
    "id": "N1",
@@ -167,14 +175,22 @@
    "position": [
     1320,
     -1920
-   ]
+   ],
+   "mainRoads": [
+    "north"
+   ],
+   "urban": false
   },
   {
    "id": "SW1",
    "position": [
     -1250,
     950
-   ]
+   ],
+   "mainRoads": [
+    "south"
+   ],
+   "urban": false
   },
   {
    "id": "S3",
@@ -189,7 +205,10 @@
     80,
     560
    ],
-   "urban": true
+   "urban": true,
+   "mainRoads": [
+    "south"
+   ]
   },
   {
    "id": "S1",
@@ -282,6 +301,119 @@
     -100,
     -2740
    ]
+  },
+  {
+   "id": "BR1",
+   "position": [
+    1150,
+    -170
+   ],
+   "urban": true
+  },
+  {
+   "id": "BR2",
+   "position": [
+    980,
+    -55
+   ],
+   "urban": true
+  },
+  {
+   "id": "P1",
+   "position": [
+    900,
+    900
+   ],
+   "urban": true
+  },
+  {
+   "id": "P2",
+   "position": [
+    1500,
+    1020
+   ],
+   "urban": true,
+   "name": "Podhájí",
+   "mainRoads": [
+    "east_ring"
+   ]
+  },
+  {
+   "id": "P3",
+   "position": [
+    2200,
+    720
+   ]
+  },
+  {
+   "id": "PH1",
+   "position": [
+    1210,
+    1270
+   ],
+   "urban": true
+  },
+  {
+   "id": "M1",
+   "position": [
+    1700,
+    -2280
+   ],
+   "urban": true
+  },
+  {
+   "id": "M2",
+   "position": [
+    2150,
+    -2520
+   ],
+   "urban": true,
+   "name": "Nové Město",
+   "mainRoads": [
+    "northeast"
+   ]
+  },
+  {
+   "id": "M3",
+   "position": [
+    2620,
+    -2150
+   ],
+   "urban": true,
+   "mainRoads": [
+    "northeast"
+   ]
+  },
+  {
+   "id": "M4",
+   "position": [
+    2500,
+    -1700
+   ]
+  },
+  {
+   "id": "NM1",
+   "position": [
+    2440,
+    -2430
+   ],
+   "urban": true
+  },
+  {
+   "id": "K1",
+   "position": [
+    -1900,
+    1450
+   ],
+   "urban": true
+  },
+  {
+   "id": "K2",
+   "position": [
+    -2500,
+    1700
+   ],
+   "urban": true
   }
  ],
  "roads": [
@@ -512,6 +644,141 @@
    "centreLine": "none",
    "edgeLines": false,
    "cornerRadius": 15
+  },
+  {
+   "id": "r_brezi",
+   "name": "Na Vyhlídce",
+   "class": "residential",
+   "nodes": [
+    "E3",
+    "BR1",
+    "BR2"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "east_ring",
+   "name": "Podhájská",
+   "number": "III/15615",
+   "class": "III",
+   "nodes": [
+    "S2",
+    "P1",
+    "P2",
+    "P3",
+    "E3"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.25,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 90,
+   "centreLine": "dashed",
+   "edgeLines": true,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 70
+  },
+  {
+   "id": "r_podhaji",
+   "name": "Ke Hřišti",
+   "class": "residential",
+   "nodes": [
+    "P1",
+    "PH1",
+    "P2"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "northeast",
+   "name": "Novoměstská",
+   "number": "III/15616",
+   "class": "III",
+   "nodes": [
+    "F1",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "E5"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.25,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 90,
+   "centreLine": "dashed",
+   "edgeLines": true,
+   "sidewalk": {
+    "width": 1.8,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 70
+  },
+  {
+   "id": "r_mesto",
+   "name": "Zámecká",
+   "class": "residential",
+   "nodes": [
+    "M2",
+    "NM1",
+    "M3"
+   ],
+   "laneWidth": 2.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.0,
+   "speedLimitKmh": 50,
+   "centreLine": "none",
+   "edgeLines": false,
+   "sidewalk": {
+    "width": 1.6,
+    "left": true,
+    "right": true
+   },
+   "cornerRadius": 12
+  },
+  {
+   "id": "southwest",
+   "name": "Kamenická",
+   "number": "III/15617",
+   "class": "III",
+   "nodes": [
+    "SW1",
+    "K1",
+    "K2"
+   ],
+   "laneWidth": 2.5,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.5,
+   "speedLimitKmh": 70,
+   "centreLine": "none",
+   "edgeLines": false,
+   "cornerRadius": 45
   }
  ]
 }
