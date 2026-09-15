@@ -41,9 +41,18 @@ cue. `--eye dx dy dz yaw pitch` offsets and turns the eye for inspection capture
 The interior mirror renders a 768 x 200 target from `mirrorCenter` (Lipan: on the centre line,
 1.28 m up, 0.12 m ahead of the origin, so its housing hangs in the upper right of the
 windscreen and not across the driver's view of the road) looking back along the body
-(11 degree vertical field, about 40 degrees horizontal), mirrored in x. The setting
-`mirrorUpdateEvery` in the save file (or `--mirror-every <n>`) redraws it every n frames and
-keeps the previous image in between; see `docs/performance.md` for the measured cost.
+(11 degree vertical field, about 40 degrees horizontal), mirrored in x. Its far plane is 320 m
+and the world pass into it is capped at 300 m (`MirrorView::kDrawDistanceM`): in a strip 200
+pixels tall at eleven degrees nothing beyond that can be made out, and drawing it cost a quarter
+of the cockpit frame. The setting `mirrorUpdateEvery` in the save file (or `--mirror-every <n>`,
+or the graphics tier) redraws it every n frames and keeps the previous image in between; see
+`docs/performance.md` for the measured cost before and after.
+
+The **door mirrors** are not render targets -- there is one off-screen pass per frame, not three.
+They are convex glass (a 5 x 4 patch with a 14 mm bulge, aimed 0.20 rad outboard) reflecting the
+sky cube map, so the face carries sky at the top and ground at the bottom. As a flat quad it
+reflected one direction of the cube across the whole face and read as a blank grey card, which
+was the most obviously unfinished thing in the cockpit view.
 
 ## Inspection modes
 
@@ -51,3 +60,21 @@ keeps the previous image in between; see `docs/performance.md` for the measured 
 - `--view x y z heading pitch` places a fixed free camera (metres, degrees, heading 0 = north).
 - `--lockstep` runs one simulation step per drawn frame so captures on slow renderers are
   deterministic; `--auto-drive <s>` scripts a start and a gentle drive.
+
+
+## Measured stability
+
+`ChaseCamera.BothCamerasStaySmoothAlongAWholeRoute` drives the sample map's `town` route with the
+autopilot and measures the frame-to-frame change in the *change* of each camera's position
+relative to the car -- its jerk, which is what a shimmer is made of. This build:
+
+| camera | mean jerk | worst single frame |
+| --- | ---: | ---: |
+| chase | 0.044 mm/frame² | 1.7 mm |
+| cockpit | 0.042 mm/frame² | 0.6 mm |
+
+Both are well below anything visible at 60 Hz. The test's bounds sit at roughly four times these
+numbers, so measurement noise will not trip them and a change that makes either camera twitchier
+will. Note what this does *not* excuse: camera smoothing is not allowed to paper over unstable
+physics, so the vehicle's own behaviour is measured separately in
+`tests/Sim/VehicleDriveTests.cpp`.

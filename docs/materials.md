@@ -2,19 +2,20 @@
 
 Every car surface is drawn with stock XNA 4.0 effects: `BasicEffect` (lit, textured, optional
 vertex colour) and `EnvironmentMapEffect` (paint, chrome, glass, mirror glass) with the shared
-64 px sky cube map built at start-up from the lighting rig. There are no custom shaders. The
+128 px sky cube map built at start-up from the lighting rig and rebuilt when the sun has moved
+noticeably. There are no custom shaders. The
 material of a part is a `CarMaterial` slot; `VehicleRenderer` maps each slot to a *look*
 (diffuse, specular, specular power, emissive, environment amount) and a texture. All textures
 are procedural CPU images (`CarTextures.cpp`, `ProceduralTextures.cpp`) uploaded once.
 
 | Slot | Effect | Texture | Look | Where |
 | --- | --- | --- | --- | --- |
-| `Paint` | EnvironmentMap, fresnel 2.2 | paint detail (UV space: shut lines, sill/arch darkening, fuel flap, fine grain) | body colour, specular 0.7 / 48, env 0.22 | body skin, bumpers, mirror housings, handles |
-| `Glass` | EnvironmentMap from outside (env 0.45, fresnel 1.2); BasicEffect from inside | premultiplied tint with frit bands; alpha 0.62 outside, 0.20 inside | tint 0.10/0.13/0.16, specular 0.5 / 90 | windshield, side and rear glass (drawn last, `CullNone`) |
+| `Paint` | EnvironmentMap, fresnel 2.2 | paint detail (UV space: shut lines, sill/arch darkening, fuel flap, fine grain) | body colour, specular 0.7 / 48, env 0.30, glint x1.00 | body skin, bumpers, mirror housings, handles |
+| `Glass` | EnvironmentMap from outside (env 0.45, fresnel 1.2, glint x0.30); BasicEffect from inside | premultiplied tint with frit bands; alpha 0.62 outside, 0.20 inside | tint 0.10/0.13/0.16, specular 0.5 / 90 | windshield, side and rear glass (drawn last, `CullNone`) |
 | `BlackTrim` | BasicEffect | white | 0.05 grey, specular 0.12 / 10 | lower bumper skins, sills, arch liners, wipers, antenna, underbody |
 | `GlossBlack` | BasicEffect | white | 0.025 grey, specular 0.9 / 70 | B-pillars, window channels, dashboard gloss inserts |
-| `Chrome` | EnvironmentMap, fresnel 0 | white | 0.62 grey, specular 1.0 / 80, env 0.8 | badges, exhaust tips, knob caps, interior mirror frame |
-| `MirrorGlass` | EnvironmentMap, fresnel 0 | white | 0.22 grey, specular 1.0 / 90, env 0.45 | door mirror glass (dark reflective, not a white slab) |
+| `Chrome` | EnvironmentMap, fresnel 0 | white | 0.62 grey, specular 1.0 / 80, env 0.8, glint x0.75 | badges, exhaust tips, knob caps, interior mirror frame |
+| `MirrorGlass` | EnvironmentMap, fresnel 0 | white | 0.22 grey, specular 1.0 / 90, env 0.55, glint x0.35 | door mirror glass: a convex 5 x 4 patch with a 14 mm bulge, aimed 0.20 rad outboard, so it carries sky at the top and ground at the bottom instead of one flat grey |
 | `Tyre` | BasicEffect | tread (circumferential grooves, sidewall ring) | 0.95 (texture carries the tone), specular 0.06 / 8 | tyres |
 | `Rim` | BasicEffect | rim finish (machined face, dark pockets) | 0.78 grey, specular 0.9 / 44 | alloy wheels |
 | `BrakeDisc` | BasicEffect | white | 0.30 grey, specular 0.5 / 30 | brake discs, hubs (LOD 0/1 only) |
@@ -78,3 +79,24 @@ Traffic cars share `VehicleMaterials`; each of the ten style models keeps its ow
 and glass textures, and the paint colour is overridden per car from the ten-colour palette
 (`TrafficRenderer::PaintColour`). LOD 1 drops small detail parts, LOD 2 also drops chrome,
 mirror glass, gloss trim, grille, brake discs, plates, glass and the cabin block.
+
+
+## The sun glint (Phase 13)
+
+`EnvironmentMapEffect` has no specular from the scene lights: the only highlight it can produce
+comes from `EnvironmentMapSpecular` modulated by the **alpha channel of the cube map**. That
+alpha used to carry `pow(cos, 300)` -- a sun disc about four degrees across. On a 64-pixel cube
+face that lobe covered two or three texels, bilinear filtering flattened it, and the paint never
+showed a highlight from any angle. It was a flat coloured mesh.
+
+The cube's alpha now carries three terms at a 128-pixel face size:
+
+| term | what it is | weight |
+| --- | --- | --- |
+| `pow(cos, 140)` | the sun's disc | 1.00 |
+| `pow(cos, 9.4)` | the glare around it -- what a clear coat picks up along the shoulder of a wing | 0.45 |
+| `max(0, y)^2` | the sky as a soft source, so a horizontal panel is never dead | 0.10 |
+
+and each material scales how much of it it adds (`MaterialLook::envSpecular` in the table above).
+Paint takes all of it; glass takes 0.30, because at full strength a windscreen turned white;
+a wing mirror 0.35, because a mirror is a mirror and not a light; chrome 0.75.
