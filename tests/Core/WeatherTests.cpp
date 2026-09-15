@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cmath>
+#include <iostream>
 #include <vector>
 
 using namespace CarSim;
@@ -110,4 +112,79 @@ TEST(Weather, RainBringsTheLampsOnEarlier)
     noon.SetTimeOfDay(13.0f);
     noon.SetWeather(1.0f, 1.0f);
     EXPECT_FLOAT_EQ(noon.LampFactor(), 0.0f);
+}
+
+// Every transition between every pair of presets, both ways: the state has to ease, and so does
+// the lighting palette computed from it. A front that arrives in a step is the one thing that
+// makes weather look scripted rather than weather.
+TEST(Weather, EveryTransitionEasesAndNothingPops)
+{
+    const CarSim::Core::WeatherKind kinds[] = {CarSim::Core::WeatherKind::Clear, CarSim::Core::WeatherKind::FewClouds,
+                                               CarSim::Core::WeatherKind::Overcast, CarSim::Core::WeatherKind::Rain};
+    const float dt = 1.0f / 60.0f;
+    float worstCover = 0.0f;
+    float worstRain = 0.0f;
+    float worstWetness = 0.0f;
+    float worstPalette = 0.0f;
+    const char* worstPair = "";
+    float slowestSettle = 0.0f;
+    float fastestSettle = 1e9f;
+
+    for (const auto from : kinds) {
+        for (const auto to : kinds) {
+            if (from == to) continue;
+            CarSim::Core::WeatherState state;
+            state.Snap(from);
+            // Let the road dry or soak first, so the transition starts from a settled world.
+            for (int i = 0; i < 60 * 60 * 6; ++i) state.Update(dt);
+            CarSim::Render::LightingRig rig;
+            rig.SetTimeOfDay(13.0f);
+            rig.SetWeather(state.cloudCover, state.rain);
+            auto previous = state;
+            Microsoft::Xna::Framework::Vector3 previousFog = rig.fogColor;
+            Microsoft::Xna::Framework::Vector3 previousHorizon = rig.horizonColor;
+            Microsoft::Xna::Framework::Vector3 previousSun = rig.sunColor;
+
+            state.Set(to);
+            float settleSeconds = 0.0f;
+            for (int i = 0; i < 60 * 60 * 20; ++i) {   // up to twenty minutes
+                state.Update(dt);
+                rig.SetWeather(state.cloudCover, state.rain);
+                worstCover = std::max(worstCover, std::fabs(state.cloudCover - previous.cloudCover));
+                worstRain = std::max(worstRain, std::fabs(state.rain - previous.rain));
+                worstWetness = std::max(worstWetness, std::fabs(state.wetness - previous.wetness));
+                const float palette = std::max({(rig.fogColor - previousFog).Length(),
+                                                (rig.horizonColor - previousHorizon).Length(),
+                                                (rig.sunColor - previousSun).Length()});
+                if (palette > worstPalette) {
+                    worstPalette = palette;
+                    worstPair = CarSim::Core::ToString(to);
+                }
+                previous = state;
+                previousFog = rig.fogColor;
+                previousHorizon = rig.horizonColor;
+                previousSun = rig.sunColor;
+                settleSeconds += dt;
+                if (std::fabs(state.cloudCover - CarSim::Core::WeatherState::TargetCloudCover(to)) < 0.01f &&
+                    std::fabs(state.rain - CarSim::Core::WeatherState::TargetRain(to)) < 0.01f) {
+                    break;
+                }
+            }
+            slowestSettle = std::max(slowestSettle, settleSeconds);
+            fastestSettle = std::min(fastestSettle, settleSeconds);
+        }
+    }
+
+    std::cout << "  worst step per frame: cover " << worstCover << ", rain " << worstRain
+              << ", wetness " << worstWetness << ", palette " << worstPalette << " (" << worstPair << ")\n"
+              << "  transitions settle between " << fastestSettle << " s and " << slowestSettle << " s\n";
+    // Nothing may move by more than a thousandth of its range in one frame at 60 Hz: that is a
+    // fade of at least sixteen seconds end to end, which is a front arriving, not a switch.
+    EXPECT_LT(worstCover, 0.001f);
+    EXPECT_LT(worstRain, 0.001f);
+    EXPECT_LT(worstWetness, 0.001f);
+    EXPECT_LT(worstPalette, 0.002f) << "the palette pops on a " << worstPair << " transition";
+    // And a front takes a while to arrive but does arrive.
+    EXPECT_GT(fastestSettle, 20.0f) << "the weather switches rather than changing";
+    EXPECT_LT(slowestSettle, 15.0f * 60.0f) << "a front that never settles is not a front";
 }

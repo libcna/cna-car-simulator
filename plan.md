@@ -1320,3 +1320,10 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   The second test prints the shape of a day for the hours the brief lists: 06:00 sun 6.0 deg,
   09:00 34.4 deg, 13:00 60.2 deg (solar noon), 17:00 34.4 deg, 20:00 6.0 deg, 21:30 -6.2 deg
   (lamps full), 00:00 -18.9 deg.
+- [x] `RH-024` **Weather transitions audited the same way.** A test runs all twelve transitions
+  between the four presets, both directions, from a settled world, and measures the largest
+  per-frame step in cloud cover, rain, road wetness and the lighting palette computed from them.
+  Worst step at 60 Hz: cover 0.00013, rain 0.00042, wetness 0.00012, palette 0.00042 -- fades of
+  minutes, not switches. Transitions settle between **193 s and 548 s** of simulated time, which
+  is a front arriving rather than a preset changing. No pops found; no change needed. The test
+  stays as the guard.
