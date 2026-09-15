@@ -160,7 +160,12 @@ namespace CarSim::Render::CarBody
         CopyInnerShell(skin, skinMaterials, zCowl - 0.03f, zR - 0.03f, [&](int rs, float zc, float yc) -> CarPart* {
             if (rs >= Ring::kGlassBase) {
                 if (zc > zSideGlassRear + 0.3f) return &interior;
-                return yc < belt + 0.14f ? &interior : &light;
+                // The dark-to-light boundary has to follow a ring of the loft. A world-space
+                // height test cuts diagonally across the quads instead, and because whole quads
+                // are classified the join came out as a visible saw-tooth down the A-pillar.
+                // Segment 12 is the belt ring itself (the window seal, dark); everything above it
+                // is pillar and headliner, trimmed in the light cabin colour.
+                return rs <= Ring::kGlassBase ? &interior : &light;
             }
             if (rs >= Ring::kRockerTop && zc > zCowl + 0.05f) {
                 return yc < belt - 0.30f ? &mid : &interior;

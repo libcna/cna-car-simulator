@@ -29,6 +29,10 @@ namespace CarSim::Render
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
 
+    /// Cube-map face size for the paint's sky reflection. 64 was too coarse to hold a sun
+    /// highlight: the glare lobe landed inside a couple of texels and filtering flattened it away.
+    constexpr int kEnvironmentFaceSize = 128;
+
     namespace
     {
         void ApplyAll(Effect& effect, GraphicsDevice& device, const GpuMesh& mesh)
@@ -47,7 +51,8 @@ namespace CarSim::Render
             float specularPower = 16.0f;
             Vector3 emissive{0.0f, 0.0f, 0.0f};
             float alpha = 1.0f;
-            float envAmount = 0.0f;   // > 0: environment-mapped (paint, chrome)
+            float envAmount = 0.0f;      // > 0: environment-mapped (paint, chrome)
+            float envSpecular = 1.0f;    // how much of the cube's sun mask this surface adds
         };
 
         MaterialLook LookFor(const CarPart& part, const Vector3& paintColor, const Vector3& interiorColor, const Sim::VehicleState& state,
@@ -59,7 +64,7 @@ namespace CarSim::Render
                     look.diffuse = paintOverride.value_or(paintColor);
                     look.specular = Vector3(0.7f, 0.7f, 0.7f);
                     look.specularPower = 48.0f;
-                    look.envAmount = 0.22f;
+                    look.envAmount = 0.30f;   // clear coat: the sky shows along the shoulders
                     break;
                 case CarMaterial::Glass:
                     look.diffuse = Vector3(0.10f, 0.13f, 0.16f);
@@ -67,6 +72,7 @@ namespace CarSim::Render
                     look.specularPower = 90.0f;
                     look.alpha = 1.0f;   // the tint texture is premultiplied and carries the alpha
                     look.envAmount = 0.45f;   // sky reflection from outside (disabled from inside)
+                    look.envSpecular = 0.30f;   // a windscreen catches the sun, it does not become it
                     break;
                 case CarMaterial::BlackTrim:
                     look.diffuse = Vector3(0.05f, 0.05f, 0.055f);
@@ -83,13 +89,15 @@ namespace CarSim::Render
                     look.specular = Vector3(1.0f, 1.0f, 1.0f);
                     look.specularPower = 80.0f;
                     look.envAmount = 0.8f;
+                    look.envSpecular = 0.75f;
                     break;
                 case CarMaterial::MirrorGlass:
                     // Mirror glass reads dark grey with a sky reflection, not a white chrome slab.
                     look.diffuse = Vector3(0.22f, 0.23f, 0.25f);
                     look.specular = Vector3(1.0f, 1.0f, 1.0f);
                     look.specularPower = 90.0f;
-                    look.envAmount = 0.45f;
+                    look.envAmount = 0.55f;
+                    look.envSpecular = 0.35f;
                     break;
                 case CarMaterial::Tyre:
                     look.diffuse = Vector3(0.95f, 0.95f, 0.95f);   // the tread texture carries the tone
@@ -214,12 +222,13 @@ namespace CarSim::Render
         rig.Apply(*paint_);
         const Rgb zenith{rig.zenithColor.X, rig.zenithColor.Y, rig.zenithColor.Z};
         const Rgb horizon{rig.horizonColor.X, rig.horizonColor.Y, rig.horizonColor.Z};
-        environment_ = UploadCubeMap(device, Textures::SkyCubeFaces(64, zenith, horizon, {0.30f, 0.30f, 0.26f}, -rig.sunDirection, 300.0f));
+        environment_ = UploadCubeMap(device, Textures::SkyCubeFaces(kEnvironmentFaceSize, zenith, horizon, {0.30f, 0.30f, 0.26f}, -rig.sunDirection, 140.0f));
         paint_->setEnvironmentMapProperty(environment_.get());
         // Subtle, view-dependent sheen: the diffuse paint colour must stay readable head-on.
         // The cube map's alpha is a sun mask, so EnvironmentMapSpecular only adds a sun glint.
         paint_->setEnvironmentMapAmountProperty(0.22f);
-        paint_->setEnvironmentMapSpecularProperty(Vector3(0.9f, 0.86f, 0.78f));
+        sunGlint_ = Vector3(0.9f, 0.86f, 0.78f);
+        paint_->setEnvironmentMapSpecularProperty(sunGlint_);
         paint_->setFresnelFactorProperty(2.2f);
 
         // Cabin surfaces are lit by light entering through the glass from every direction:
@@ -310,7 +319,8 @@ namespace CarSim::Render
         litTextured_->setVertexColorEnabledProperty(false);
         rig.Apply(*paint_);
         paint_->setEnvironmentMapAmountProperty(0.22f);
-        paint_->setEnvironmentMapSpecularProperty(rig.sunColor * 0.9f);
+        sunGlint_ = rig.sunColor * 0.9f;
+        paint_->setEnvironmentMapSpecularProperty(sunGlint_);
         paint_->setFresnelFactorProperty(2.2f);
         // The cabin keeps its softer, flatter light, scaled by the outside light level.
         rig.Apply(*interiorLit_);
@@ -327,7 +337,7 @@ namespace CarSim::Render
             const Rgb zenith{rig.zenithColor.X, rig.zenithColor.Y, rig.zenithColor.Z};
             const Rgb horizon{rig.horizonColor.X, rig.horizonColor.Y, rig.horizonColor.Z};
             const Rgb ground{0.30f * rig.skyAmbient.Y / 0.23f, 0.30f * rig.skyAmbient.Y / 0.23f, 0.26f * rig.skyAmbient.Y / 0.23f};
-            environment_ = UploadCubeMap(device, Textures::SkyCubeFaces(64, zenith, horizon, ground, -rig.sunDirection, 300.0f));
+            environment_ = UploadCubeMap(device, Textures::SkyCubeFaces(kEnvironmentFaceSize, zenith, horizon, ground, -rig.sunDirection, 140.0f));
             paint_->setEnvironmentMapProperty(environment_.get());
         }
     }
@@ -526,6 +536,10 @@ namespace CarSim::Render
             e.setDiffuseColorProperty(look.diffuse);
             e.setEmissiveColorProperty(look.emissive);
             e.setEnvironmentMapAmountProperty(look.envAmount);
+            // The cube's alpha is the sun mask, and EnvironmentMapSpecular scales what it adds.
+            // Paint has a clear coat and takes the full glint; glass would go white with it, and
+            // a wing mirror is a mirror, not a light.
+            e.setEnvironmentMapSpecularProperty(materials_.SunGlint() * look.envSpecular);
             e.setFresnelFactorProperty(part.material == CarMaterial::Chrome || part.material == CarMaterial::MirrorGlass ? 0.0f : glass ? 1.2f : 2.2f);
             e.setAlphaProperty(1.0f);
             e.setTextureProperty(part.material == CarMaterial::Paint ? paintDetail_.get() : glass ? glassOutside_.get() : &materials_.White());

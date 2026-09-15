@@ -241,3 +241,47 @@ TEST(ProceduralCar, FogLampsFollowTheNoseInsteadOfHangingBesideIt)
     EXPECT_GE(front, noseZ) << "a fog lamp reaches further forward than the nose tip";
     EXPECT_GT(back - front, 0.03f) << "the ring should follow the curved nose, not sit in a flat plane";
 }
+
+// A wing mirror is convex. Modelled as a flat quad it reflected one direction of the sky cube
+// across its whole face and read as a blank light-grey card hanging beside the door -- one of the
+// clearest "procedural prototype" tells in the cockpit view.
+TEST(ProceduralCar, WingMirrorGlassIsConvexAndAimedOutboard)
+{
+    const Sim::VehicleDefinition definition = Sim::MakeReferenceVehicle();
+    const CarModel model = GenerateCar(definition);
+    const CarPart* glass = Find(model, "mirror_glass");
+    ASSERT_NE(glass, nullptr);
+    ASSERT_GE(glass->mesh.vertices.size(), 24u) << "a convex face needs more than one quad per side";
+
+    // Split the vertices by side and check each face fans its normals: a flat face would have
+    // every normal identical.
+    for (const float side : {-1.0f, 1.0f}) {
+        std::vector<Vector3> normals;
+        float minY = 1e9f;
+        float maxY = -1e9f;
+        for (const auto& v : glass->mesh.vertices) {
+            if (v.position.X * side <= 0.0f) continue;
+            normals.push_back(v.normal);
+            minY = std::min(minY, v.position.Y);
+            maxY = std::max(maxY, v.position.Y);
+        }
+        ASSERT_FALSE(normals.empty());
+        EXPECT_GT(maxY - minY, 0.05f) << "the mirror face should be at least 5 cm tall";
+        float widest = 0.0f;
+        for (const auto& a : normals) {
+            for (const auto& b : normals) {
+                widest = std::max(widest, 1.0f - Vector3::Dot(a, b));
+            }
+        }
+        // 0.02 is about 11 degrees between the extreme normals: enough for the reflection to
+        // sweep from sky to ground across the face.
+        EXPECT_GT(widest, 0.02f) << "the mirror face is flat, so it reflects one colour";
+
+        // Aimed outboard: the average normal leans away from the car's centreline.
+        Vector3 average(0.0f, 0.0f, 0.0f);
+        for (const auto& n : normals) average = average + n;
+        average = average * (1.0f / static_cast<float>(normals.size()));
+        EXPECT_GT(average.Z, 0.5f) << "the face should still look rearward";
+        EXPECT_GT(average.X * side, 0.05f) << "the face should be angled outboard";
+    }
+}

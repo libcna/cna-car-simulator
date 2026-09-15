@@ -47,6 +47,9 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Graphics::Texture2D& ContactTexture() { return *contactTexture_; }
         Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect& Paint() { return *paint_; }
         Microsoft::Xna::Framework::Graphics::TextureCube& Environment() { return *environment_; }
+        /// Colour of the sun glint the paint's cube map carries in its alpha. Each material scales
+        /// it: a clear coat takes all of it, glass a third, a wing mirror barely any.
+        [[nodiscard]] const Microsoft::Xna::Framework::Vector3& SunGlint() const { return sunGlint_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& White() { return *white_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& DefaultPlate() { return *defaultPlate_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& DefaultCluster() { return *defaultCluster_; }
@@ -63,6 +66,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> contactTexture_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::EnvironmentMapEffect> paint_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::TextureCube> environment_;
+        Microsoft::Xna::Framework::Vector3 sunGlint_{0.9f, 0.86f, 0.78f};
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> defaultPlate_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> defaultCluster_;

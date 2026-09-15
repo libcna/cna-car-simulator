@@ -1184,3 +1184,28 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   now over the validator's 8 cm / 6 cm thresholds. Two regression tests in
   `tests/Map/SampleMapTests.cpp` hold both properties, and a third asserts no junction patch cuts
   back towards its node.
+
+#### P1 -- how it looks and how it drives
+
+- [x] `RH-011` **The paint reads as paint.** The car was one flat shade of its colour from every
+  angle. `EnvironmentMapEffect` was already in place with a sky cube map, but the cube's alpha --
+  which is what `EnvironmentMapSpecular` modulates -- carried only `pow(cos, 300)`, a sun disc
+  about four degrees across. On a 64-pixel cube face that lobe covered two or three texels and
+  bilinear filtering flattened it away, so no highlight ever reached the bodywork. The cube now
+  carries three terms: the disc, a broad glare lobe around it, and a weak whole-sky term, at a
+  128-pixel face size. Each material scales the glint it takes (`MaterialLook::envSpecular`):
+  paint all of it, glass 0.30 (with the full glint a windscreen went white), a wing mirror 0.35,
+  chrome 0.75. Paint's environment amount went from 0.22 to 0.30. The bonnet, roof and shoulders
+  now carry a highlight that moves with the sun, and the glass reads as dark tinted glass with a
+  sheen instead of a flat grey panel.
+- [x] `RH-012` **The A-pillar no longer has a saw-tooth edge.** `CopyInnerShell` classifies whole
+  skin quads, and the cabin's dark-to-light boundary was a world-space height test
+  (`yc < belt + 0.14`) which cuts diagonally across the loft grid. Down the A-pillar, where the
+  skin turns fastest, that produced a visible serrated join -- the single most "unfinished" thing
+  in the cockpit view. The boundary now follows ring segment 12 (the belt ring itself), which is
+  a line of the loft, so it comes out clean.
+- [x] `RH-013` **The wing mirror is convex.** It was one flat quad, so it reflected a single
+  direction of the sky cube across its whole face and read as a blank light-grey card beside the
+  door. It is now a 5 x 4 patch with a 14 mm bulge and a 0.20 rad outboard aim, so the face
+  carries sky at the top and ground at the bottom. A test in `tests/Render/ProceduralCarTests.cpp`
+  holds the convexity and the aim.

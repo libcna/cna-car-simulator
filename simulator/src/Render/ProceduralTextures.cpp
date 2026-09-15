@@ -267,8 +267,14 @@ namespace CarSim::Render::Textures
                     c = Lerp(horizon, ground, Clamp01(-y * 3.0f));
                 }
                 const float cosSun = (dx * toSun.X + dy * toSun.Y + dz * toSun.Z) / len;
-                const float glint = cosSun > 0.0f ? std::pow(cosSun, sunSharpness) : 0.0f;
-                return ToColor(c, glint);
+                // Two lobes: the disc itself, and the broad glare around it that a clear coat
+                // picks up as a sheen along the shoulder of a wing. With the disc alone the
+                // highlight covered two or three texels of a cube face and never appeared on the
+                // car at all.
+                const float disc = cosSun > 0.0f ? std::pow(cosSun, sunSharpness) : 0.0f;
+                const float glare = cosSun > 0.0f ? std::pow(cosSun, sunSharpness * 0.06f + 1.0f) : 0.0f;
+                const float sky = std::max(0.0f, y);   // the whole sky is a soft source, not just the sun
+                return ToColor(c, Clamp01(disc + 0.45f * glare + 0.10f * sky * sky));
             });
             faces.push_back(std::move(img));
         }

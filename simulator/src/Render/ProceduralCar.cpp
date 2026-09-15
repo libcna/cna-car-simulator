@@ -1175,10 +1175,43 @@ namespace CarSim::Render
                 stalk.AddBox(Vector3(-0.045f, -0.012f, -0.03f), Vector3(0.045f, 0.012f, 0.03f), 1.0f);
                 stalk.Transform(Matrix::CreateTranslation(side * (xBody + 0.035f), my - 0.02f, mz));
                 trim.mesh.Append(stalk, Matrix::getIdentityProperty());
-                // Mirror glass on the rear face of the housing.
+                // Mirror glass on the rear face of the housing. A wing mirror is convex, and it
+                // has to be modelled that way: a flat quad reflects one direction of the sky cube
+                // over its whole face and reads as a blank grey card. The bulge fans the normals
+                // so the face carries sky at the top and ground at the bottom, and it is aimed a
+                // little outboard, where a driver would set it.
                 const Vector3 g = centre + Vector3(0.0f, 0.0f, 0.049f);
-                const Vector3 r(0.085f, 0, 0), u(0, 0.05f, 0);
-                mirrorGlass.mesh.AddQuad(g + r - u, g + r + u, g - r + u, g - r - u, Vector3(0, 0, 1), Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), Vector2(1, 1));
+                const float halfW = 0.085f;
+                const float halfH = 0.05f;
+                const float bulge = 0.014f;                  // sagitta across the face
+                const float aim = side * 0.20f;              // radians, outboard
+                const int cols = 5;
+                const int rows = 4;
+                std::vector<std::vector<std::uint32_t>> grid(static_cast<std::size_t>(rows) + 1);
+                for (int iy = 0; iy <= rows; ++iy) {
+                    grid[static_cast<std::size_t>(iy)].resize(static_cast<std::size_t>(cols) + 1);
+                    const float fy = static_cast<float>(iy) / static_cast<float>(rows) * 2.0f - 1.0f;
+                    for (int ix = 0; ix <= cols; ++ix) {
+                        const float fx = static_cast<float>(ix) / static_cast<float>(cols) * 2.0f - 1.0f;
+                        const float out = bulge * (1.0f - fx * fx) * (1.0f - fy * fy);
+                        Vector3 local(fx * halfW, fy * halfH, out);
+                        Vector3 normal(-fx * bulge * 2.0f / halfW, -fy * bulge * 2.0f / halfH, 1.0f);
+                        normal.Normalize();
+                        const Matrix yaw = Matrix::CreateRotationY(aim);
+                        grid[static_cast<std::size_t>(iy)][static_cast<std::size_t>(ix)] = mirrorGlass.mesh.AddVertex(
+                            g + Vector3::TransformNormal(local, yaw), Vector3::TransformNormal(normal, yaw),
+                            Vector2(0.5f + fx * 0.5f, 0.5f - fy * 0.5f), Color(255, 255, 255, 255));
+                    }
+                }
+                for (int iy = 0; iy < rows; ++iy) {
+                    for (int ix = 0; ix < cols; ++ix) {
+                        const auto a = grid[static_cast<std::size_t>(iy)][static_cast<std::size_t>(ix)];
+                        const auto b = grid[static_cast<std::size_t>(iy)][static_cast<std::size_t>(ix + 1)];
+                        const auto c = grid[static_cast<std::size_t>(iy + 1)][static_cast<std::size_t>(ix + 1)];
+                        const auto d = grid[static_cast<std::size_t>(iy + 1)][static_cast<std::size_t>(ix)];
+                        mirrorGlass.mesh.AddQuad(b, a, d, c);
+                    }
+                }
             }
             // Door handles: flush pull handles with a dark finger recess.
             for (const float side : {-1.0f, 1.0f}) {
