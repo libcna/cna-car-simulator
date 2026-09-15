@@ -1002,6 +1002,9 @@ namespace CarSim::Render
             // metres off, and never beyond the fog, where there is no road left to see.
             roadSheenEffect_->setFogStartProperty(7.0f);
             roadSheenEffect_->setFogEndProperty(std::min(150.0f, rig_.fogEnd));
+            // The road loop left the marking rasterizer state (with its depth bias) in place;
+            // the sheen is the same geometry as the surfaces, so it wants the plain one.
+            device.setRasterizerStateProperty(solid);
             device.setBlendStateProperty(BlendState::Additive);
             device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
             for (const auto& b : roadBatches_) {
