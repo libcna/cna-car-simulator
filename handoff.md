@@ -9,8 +9,9 @@ re-verify with `git log` and the ledger before acting.
 
 A small, realistic passenger-car driving simulator in a fictional Czech landscape, C++23,
 built on the **XNA 4.0-compatible public API** of the CNA framework (branch `next`) and Sharp
-Runtime (branch `next`). One car (Lipan 1.2, procedural), one map (Lipová), ambient traffic,
-cockpit with live cluster and mirror, procedural audio. No missions, no economy.
+Runtime (branch `next`). One car (Lipan 1.2, procedural), one map (a 6.4 x 7.6 km region around
+Lipová with four more settlements), ambient traffic with working signals, a day and night cycle,
+weather, cockpit with live cluster and mirror, procedural audio. No missions, no economy.
 
 Hard constraints (from the project owner; do not relax):
 
@@ -34,13 +35,14 @@ simulator/include/CarSim/<Area>/   headers      simulator/src/<Area>/   sources
   Input, Render (world/road/building/vegetation/sign/car/cockpit generators, cameras,
   cluster, mirror, sky, shadows), App (SimulatorGame, Program)
 content/     vehicles/lipan_12.json, maps/lipova/{map,roads,terrain,objects,traffic}.json, fonts/
-tests/       GoogleTest suites, registered in tests/CMakeLists.txt (151 tests at present)
+tests/       GoogleTest suites, registered in tests/CMakeLists.txt (178 tests at present)
 tools/       map generator/validator, font atlas generator, simulation tracer
 scripts/     run_headless.sh, check_xna_only.py, check_assets.py
 docs/        api-boundary, framework-findings, map-format, vehicle-physics, audio-design,
              materials, cameras, performance, renderer-conformance, real-hardware-validation,
              research/, screenshots/ (curated set, m10-baseline/, renderers/)
-plan.md      ledger; section 24 = Phase 11 (24.4 = record and final audit, 24.5 = follow-up)
+plan.md      ledger; section 24 = Phase 11, section 25 = Phase 12 (day/night, weather,
+             signals, the wider region)
 ```
 
 ## Building and testing in this environment
@@ -77,12 +79,16 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   source file and rebuild, or pass `--content content`.
 - Spawns in `content/maps/lipova/traffic.json`: `square` (east-bound in town), `forest`
   (forest edge, heading NNW), `fields` (avenue through the fields), `east` (main road east of
-  town), `kostel` (90 m west of the church junction E1, east-bound).
+  town), `kostel` (90 m west of the signalised junction E1, east-bound), and one in each of the
+  new settlements: `brezi`, `podhaji`, `mesto`, `kamenice`.
 - `--cockpit` (+ `--screenshot-cluster file`), `--chase-yaw <deg>` (positive = orbit to the
   car's right), `--chase-distance <m>` (INTEGER, `5.5` is rejected), `--view x y z heading pitch`
   (fixed camera; y is absolute, terrain is not flat, check for underground views),
   `--eye dx dy dz yaw pitch` (cockpit eye offset), `--lights`, `--benchmark`,
   `--benchmark-json file`, `--mirror-every n`, `--debug-overlay`.
+- `--time <hh:mm>` and `--time-scale <x>` fix the clock (`--time-scale 0` freezes the sky, which
+  every deterministic capture wants), `--weather clear|cloudy|overcast|rain` fixes the weather.
+  `scripts/capture_set.sh` reproduces the whole curated set in one command.
 - llvmpipe renders 0.2-0.5 s per frame in town; long captures run in the background.
   Downscale to half size before viewing to save context.
 
@@ -108,6 +114,31 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   housing only when all four of its corners are inside the lens polygon, otherwise the housing
   shows as black notches around the lens.
 
+## Day and night, weather, signals (plan.md section 25)
+
+- `LightingRig` has a clock (`SetTimeOfDay`) and weather (`SetWeather`). Everything baked -- the
+  terrain macro, the ground shadows, the road and verge vertex colours -- stays baked under
+  `LightingRig::BakeReference()` (10:30, clear) and is scaled per frame by `BakedLightingScale`.
+  `WorldRenderer` holds that reference as `bakeRig_`; baking under the live rig darkens the
+  ground twice and is the first thing to check if the ground looks wrong at an odd hour.
+- Cloud is modelled as a *redistribution*: the key light collapses and most of what it loses
+  comes back as flat ambient and sky fill. Mixing towards an absolute grey instead lights an
+  overcast midnight like an overcast noon -- there is a test for that.
+- `LightingRig::LampFactor()` drives the lit-window batches, the street lamp pools and the
+  headlamp pool. The clock and the weather are read before the renderers exist, so `LoadContent`
+  ends with an explicit `RefreshLighting(true)`.
+- Signals: `Map::SignalPlan` on a node, `Traffic::AspectAt` is a pure function of the plan, the
+  group and the elapsed time (so warmed-up scenarios are reproducible), `SignalRenderer` draws
+  the lenses. The masts are ordinary props placed by `ObjectPlacement::PlaceTrafficSignals`.
+
+## The map and its authoring scripts
+
+`tools/maps/generate_lipova.py` wrote the original town but has been overtaken by hand edits --
+**re-running it would drop the square, the chapel, the filling station and the parked cars**.
+`tools/maps/add_settlements.py` is the one to use for the wider region: it is additive and
+idempotent, marks everything it writes with a `generated-by` key, and replaces only its own
+output. Bringing the first script back in line with the shipped map is open work.
+
 ## State of the project (plan.md section 24)
 
 Phase 11 ("Realism & Production Quality") is complete and its final audit is recorded in
@@ -129,15 +160,18 @@ station with `yard` paving and exact four-corner paved outlines (`RQ-171`) and m
 
 Open / next ideas (nothing is blocking):
 
-- A fresh-clone audit of the follow-up work (the Phase 11 one covered `a1a7efd`).
-- Traffic variety: the paint palette is ten colours and there is no bus or lorry body class.
+- `tools/maps/generate_lipova.py` no longer reproduces the shipped map (see above).
+- Traffic variety: there is no bus or lorry body class, and no overtaking or lane changing.
 - The fog lamp lens is dark gloss rather than a clear lens; shop fascia signs are missing.
-- The village (north of the estate) is thinner than the town centre.
+- Baked shadow *direction* does not follow the sun, only its strength (a known limitation of
+  scaling the bake instead of re-baking).
+- Snow and fog are not modelled; the weather is clear / cloud / overcast / rain.
+- Nové Město has a square laid out in buildings but no paved `square` region of its own.
 
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,
-  record what changed in plan.md 24.4 in the same commit.
+  record what changed in the plan ledger (section 25 for Phase 12) in the same commit.
 - Every defect fix: a regression test in the matching `tests/` suite, registered in
   `tests/CMakeLists.txt`; new sources registered in `simulator/CMakeLists.txt`.
 - Keep temporary diagnostics (environment-variable switches, dumps) out of commits.

@@ -40,26 +40,32 @@ What you get today:
 - One drivable car, the fictional **Lipan 1.2** (a small four-cylinder hatchback defined in
   `content/vehicles/lipan_12.json`), with a project-owned rigid-body, suspension, tyre,
   engine, clutch, manual and automatic gearbox, fuel, thermal and electrical simulation.
-- One map, **Lipová**: a small town around a cobbled square with the church, a memorial column,
-  town houses and parked cars, a prefab estate, shops, a filling station on the eastern
-  approach, bus stops and a wayside chapel at the eastern junction; residential streets with
-  fenced and planted gardens and cars parked at the kerb; a main road with tree avenues, fields
-  and meadows, and a forest with a gravel forest track. About 17 km of roads, 13 intersections,
+- One map, a 6.4 x 7.6 km region around the town of **Lipová**: a cobbled square with the
+  church, a memorial column, town houses and parked cars, a prefab estate, shops, a filling
+  station on the eastern approach, bus stops and a wayside chapel at the signalised eastern
+  junction; residential streets with fenced and planted gardens and cars parked at the kerb.
+  Four more places on the roads out of it -- the street village of **Březí**, the village of
+  **Podhájí** on the southern ring, the small town of **Nové Město** in the north-east with its
+  own square, and the hamlet of **Kamenice** in the western hills -- plus tree avenues, fields,
+  meadows and a forest with a gravel forest track. About 27 km of roads, 22 intersections,
   Czech traffic signs and road markings.
 - Cockpit camera with a live instrument cluster, rotating steering wheel and a working
   rear-view mirror; exterior chase camera.
 - Ambient traffic with Czech registration plates that follows lanes, keeps distance, obeys
-  priority, yield, stop and the right-hand rule, and reacts to the player; cars parked on the
-  town square that are as solid as any other obstacle.
+  priority, yield, stop, the right-hand rule and working traffic signals, and reacts to the
+  player; cars parked on the town square that are as solid as any other obstacle.
+- A day and night cycle with a real solar path, street lamps, lit windows and headlamp pools
+  after dark, and weather -- clear, scattered cloud, overcast or rain, with wet roads that take
+  a third off the grip.
 - Physical collisions with buildings, street furniture, trees and traffic cars.
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
   horn, gear and impact sounds.
 - Persistent odometer, trip, transmission mode and settings; key bindings configurable in the
   save file; in-game help and debug overlays.
 
-Not included (by design or deferred, see `plan.md` sections 2 and 23): weather, day/night,
-damage, pedestrians, traffic lights, overtaking traffic, gamepad support, real-brand car
-models (no legally redistributable Škoda model was available; the car is procedural).
+Not included (by design or deferred, see `plan.md` sections 2 and 23): damage, pedestrians,
+overtaking traffic, gamepad support, real-brand car models (no legally redistributable Škoda
+model was available; the car is procedural).
 
 ## Requirements
 
