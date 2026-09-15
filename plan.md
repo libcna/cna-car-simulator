@@ -995,3 +995,9 @@ test, and the static checks stay mandatory.
 - [x] `LW-018` Object fog cull. No object batch is submitted beyond the rig's `fogEnd`, where it
   is indistinguishable from the fog; worth about 7 ms of the Lipová frame now that other
   settlements stand on the horizon.
+- [x] `LW-019` Weather transition cost. Easing a front in moves the cloud cover a little every
+  frame, and the first cut re-applied everything on every step: the car's sky cube map was
+  rebuilt over a hundred times during a two-minute transition and the 512 px cloud texture
+  twenty-five times. The cube map now follows three degrees of sun or fifteen per cent of cloud
+  (only the start-up and the manual clock keys force it), and the cloud texture ten per cent of
+  cover.

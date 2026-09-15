@@ -84,7 +84,7 @@ namespace CarSim::Render
     {
         // The cloud layer is regenerated only when the cover has moved enough to show, since it
         // is a 512 px procedural texture.
-        if (std::fabs(rig_.cloudCover - cloudTextureCover_) > 0.04f) {
+        if (std::fabs(rig_.cloudCover - cloudTextureCover_) > 0.10f) {
             cloudTexture_ = UploadTexture(device, Textures::CloudLayer(512, 77u, rig_.cloudCover), true);
             cloudTextureCover_ = rig_.cloudCover;
         }

@@ -368,7 +368,7 @@ namespace CarSim::App
         if (worldRenderer_) {
             worldRenderer_->SetWetness(weather_.wetness);
         }
-        RefreshLighting(true);
+        RefreshLighting(true, true);
         if (options_.mirrorEvery) {
             save_.settings.mirrorUpdateEvery = *options_.mirrorEvery;
         }
@@ -433,7 +433,7 @@ namespace CarSim::App
             const float step = input_.Pressed(GameAction::TimeForward) ? 1.0f : -1.0f;
             timeOfDayHours_ = std::fmod(timeOfDayHours_ + step + 24.0f, 24.0f);
             rig_.SetTimeOfDay(timeOfDayHours_);
-            RefreshLighting(true);
+            RefreshLighting(true, true);
             std::cout << "clock: " << FormatClock(timeOfDayHours_) << "\n";
         }
         if (input_.Pressed(GameAction::CycleWeather)) {
@@ -557,19 +557,23 @@ namespace CarSim::App
         }
     }
 
-    void SimulatorGame::RefreshLighting(const bool force)
+    void SimulatorGame::RefreshLighting(const bool force, const bool forceEnvironment)
     {
         // Re-applying a rig writes a handful of effect properties, so it is done whenever the sun
-        // has moved a quarter of a degree; the paint's sky cube map costs more and follows every
-        // three degrees.
+        // has moved a quarter of a degree. The paint's sky cube map costs a great deal more, so it
+        // follows every three degrees of sun or fifteen per cent of cloud -- a weather front eases
+        // in over two minutes and would otherwise rebuild it a hundred times on the way.
         const float elevation = rig_.SunElevationDeg();
         if (!force && std::fabs(elevation - lastLightingElevationDeg_) < 0.25f) {
             return;
         }
         lastLightingElevationDeg_ = elevation;
-        const bool rebuildEnvironment = force || std::fabs(elevation - lastEnvironmentElevationDeg_) > 3.0f;
+        const bool rebuildEnvironment = forceEnvironment ||
+                                        std::fabs(elevation - lastEnvironmentElevationDeg_) > 3.0f ||
+                                        std::fabs(weather_.cloudCover - lastEnvironmentCover_) > 0.15f;
         if (rebuildEnvironment) {
             lastEnvironmentElevationDeg_ = elevation;
+            lastEnvironmentCover_ = weather_.cloudCover;
         }
         if (vehicleMaterials_) {
             vehicleMaterials_->ApplyLighting(getGraphicsDeviceProperty(), rig_, rebuildEnvironment);

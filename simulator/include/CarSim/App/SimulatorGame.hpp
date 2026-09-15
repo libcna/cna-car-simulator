@@ -68,7 +68,7 @@ namespace CarSim::App
         void ApplyWeatherToWorld();
         void UpdateWeather(float dt);
         void UpdateTimeOfDay(float dt);
-        void RefreshLighting(bool force = false);
+        void RefreshLighting(bool force = false, bool forceEnvironment = false);
         void ApplyAutoDrive(Sim::DriverControls& controls);
         void UpdateTraffic(float dt);
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
@@ -112,6 +112,7 @@ namespace CarSim::App
         float lastWeatherRain_ = -1.0f;
         float lastLightingElevationDeg_ = -999.0f;
         float lastEnvironmentElevationDeg_ = -999.0f;
+        float lastEnvironmentCover_ = -999.0f;
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::RainRenderer> rain_;
         std::unique_ptr<Render::SignalRenderer> signalRenderer_;
