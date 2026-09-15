@@ -156,25 +156,6 @@ namespace CarSim::Traffic
         }
     }
 
-    std::vector<Vector3> RouteDriver::Centreline(const float spacing) const
-    {
-        std::vector<Vector3> out;
-        if (samples_.empty()) {
-            return out;
-        }
-        float next = 0.0f;
-        for (const auto& sample : samples_) {
-            if (sample.s + 1e-3f >= next) {
-                out.push_back(sample.position);
-                next = sample.s + std::max(0.5f, spacing);
-            }
-        }
-        if (out.empty() || out.back().X != samples_.back().position.X || out.back().Z != samples_.back().position.Z) {
-            out.push_back(samples_.back().position);
-        }
-        return out;
-    }
-
     float RouteDriver::TargetSpeedAt(const float s) const
     {
         // Look ahead over a braking distance and take the lowest speed the road allows there, so

@@ -33,6 +33,10 @@ town and the villages around it, the countryside and a forest, meet traffic, and
 | --- | --- | --- |
 | ![The village of Březí on the main road](docs/screenshots/brezi.jpg) | ![Podhájí on the southern ring](docs/screenshots/podhaji.jpg) | ![The small town of Nové Město](docs/screenshots/mesto.jpg) |
 
+| Wet road | Rainy night |
+| --- | --- |
+| ![The sky reflected off wet asphalt](docs/screenshots/wetroad.jpg) | ![Headlamps and rain after dark](docs/screenshots/rainynight.jpg) |
+
 All pictures are headless captures from the development container (Xvfb, Mesa llvmpipe
 software OpenGL ES 3, no multisampling); a GPU renders the same frames with sharper texture
 filtering. Older sets are kept in `docs/screenshots/m10-baseline/` (before Phase 11) and

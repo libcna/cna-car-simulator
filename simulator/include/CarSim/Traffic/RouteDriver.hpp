@@ -62,9 +62,6 @@ namespace CarSim::Traffic
 
         [[nodiscard]] const RouteProgress& Progress() const { return progress_; }
         [[nodiscard]] const std::vector<Map::RouteStep>& Route() const { return route_; }
-        /// The centreline of the planned route, sampled every `spacing` metres. Used by the
-        /// map validation drive to report where a route runs.
-        [[nodiscard]] std::vector<Microsoft::Xna::Framework::Vector3> Centreline(float spacing = 5.0f) const;
 
     private:
         struct Sample

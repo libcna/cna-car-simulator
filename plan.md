@@ -1389,3 +1389,41 @@ Recorded so the next pass does not have to rediscover the reasoning.
 - **Baked shadow direction still does not follow the sun** (only its strength). Re-baking the
   terrain macro and the road vertex colours per hour is the only real fix and costs seconds per
   change of hour; it stays a documented limitation.
+### 26.5 Against the success criteria
+
+The brief for this phase ends with a description of what it should feel like to run the simulator
+afterwards. Taken point by point, with what was actually done and what is only claimed as far as
+it was measured. **Nothing here was verified on GPU hardware**: no such machine was available in
+this session, so every "feels" claim is bounded by what a deterministic measurement can say.
+
+| the brief asks that... | what was done | how it is known |
+| --- | --- | --- |
+| the car is pleasant and believable to drive | physics unchanged; the numbers it produces were measured and bounded | 100-0 km/h in 40.1 m dry (0.98 g, the same g at 50, 90 and 100), 56.0 m wet; 0-50 in 4.8 s dry, 6.3 s wet |
+| steering does not feel artificial | not changed; the autopilot holds every route within 0.5-1.9 m of the lane centre through town, country and a forest hairpin | `RouteDriver` tests |
+| clutch and manual driving work naturally | unchanged from Phase 11, still covered | clutch, stall, gear and drive tests |
+| automatic transmission behaves sensibly | unchanged, still covered | transmission and drive tests |
+| town driving feels coherent | junction surfaces, markings and signals fixed | see below |
+| traffic behaves predictably | two soaks: 30 minutes for overlaps and stuck cars, 10 minutes at the signals | no overlaps, no stuck cars, no red-light crossings, nothing spawned within 25 m |
+| signalised junctions look and behave correctly | two behaviour defects fixed (creeping into the box, commitment surviving a stop) and the marking corrected from give-way triangles to a stop line | soak test and marking test |
+| roads look properly integrated into the world | three causes of a lip between a junction and its roads fixed | worst ground-to-surface deviation over 52.4 km of lane and 148 connectors: 0.47 m -> **0.036 m** |
+| daytime looks good | paint, glass and mirrors now read as materials | before/after captures; `docs/materials.md` |
+| sunset looks good | the key light no longer flips 180 degrees at dusk; the refresh cadence follows the sun | nothing in the palette moves more than ~5/255 between applications, at any hour, in any weather |
+| night is genuinely driveable | the beam reaches 40 m with a plateau and a soft cut-off instead of a blob at seven metres | beam shape test; night captures |
+| headlights are useful | as above, plus the right-hand kick to the near verge | `HeadlampBeamFalloff` test |
+| dashboard is readable | audited at 13:00 and 21:30; backlight follows the ignition, every reading is live state | cluster captures |
+| rain visibly changes the scene | unchanged rain, plus the wet sheen below | rain captures |
+| wet roads look convincing | a grazing-angle sky sheen from a second additive road pass | road 60 m ahead (28,30,34) -> (55,58,63); road under the car unchanged |
+| wet grip is physically noticeable | validated rather than preserved | +40 % braking distance at every speed, cornering 105 -> 90 km/h |
+| the player car no longer looks like a prototype | paint highlight, glass sheen, convex wing mirrors | hero captures before and after |
+| the cockpit no longer looks like a debug interior | the A-pillar's saw-tooth join and the blank grey mirror card are gone | cockpit captures before and after |
+| towns have meaningful visual variation | **not changed this pass** -- 624 buildings already vary facade and roof colour per seed; flat facades at middle distance remain the biggest tell | recorded as open work in 26.4 and `handoff.md` |
+| forest and countryside feel deliberate | forest edges taper instead of ending in a wall | edge trees 0.65 scale against 1.00 inside; test |
+| performance is understood and measured | eight deterministic scenes, an overlay that splits both halves of the frame, before/after on the mirror, three tiers | `docs/performance.md` |
+| the project can be regenerated, built and tested reproducibly | one map pipeline with a drift test; six ctest registrations | `map_regeneration_check`, the audit in 26.6 |
+
+The one criterion not met is the one this session could not reach: **nobody drove it on a real
+machine**. No GPU was available here, so "pleasant to drive" rests on measurements -- braking in
+metres, lateral error in metres, camera jerk in millimetres, soak tests in simulated minutes --
+and on captured frames from a software rasteriser. `docs/real-hardware-validation.md` exists so
+that the person who does have the machine can settle it in half an hour, and its results table
+is empty and says so.

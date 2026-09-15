@@ -185,6 +185,14 @@ What Phase 13 changed, in the order it matters:
   on green kept its commitment while queueing and then entered on red.
 - **The mirror costs a third less** (58.9 -> 45.5 ms) from a 300 m draw-distance cap, and three
   graphics tiers (`--quality`) trade draw distance, vegetation and mirror rate.
+- **The curated screenshot set is re-shot** at 19 frames (two new: `wetroad`, `rainynight`), and
+  `scripts/capture_set.sh` now converts them to JPEG itself instead of printing a command with a
+  scene list in it for somebody to paste -- which is how a stray `hero.png` ended up committed
+  next to `hero.jpg`.
+- **Renderer conformance re-measured** on all three renderers with `scripts/renderer_compare.sh`
+  and `scripts/renderer_sheet.py`, and `docs/renderer-conformance.md` now says per renderer which
+  of *configures / compiles / starts / renders / visually inspected / performance tested* was
+  actually done. None of the visual work introduced a renderer-specific divergence.
 
 Open / next ideas (nothing is blocking):
 

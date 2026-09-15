@@ -53,10 +53,29 @@ shot wetroad     --spawn kostel --frames 240 --auto-drive 4 --chase-distance 8 -
 shot rainynight  --spawn kostel --frames 240 --auto-drive 4 --chase-distance 8 --traffic-warmup 30 --lights \
                  --time 22:30 --time-scale 0 --weather rain
 
+# The scene pictures are committed as JPEG (the set is 19 frames at 1280 x 720; as PNG it would
+# be 25 MB in the repository). The instrument cluster stays PNG because it is a flat UI target
+# where JPEG ringing is visible on the dial markings. Converting here rather than printing a
+# command for somebody to paste means the list cannot go stale when a scene is added.
 echo
-echo "captured into $OUT; convert the scene shots to JPEG before committing them:"
-echo "  python3 -c \"from PIL import Image; [Image.open(f'$OUT/{n}.png').convert('RGB')"
-echo "      .save(f'$OUT/{n}.jpg', quality=88, optimize=True, subsampling=1) for n in"
-echo "      ['hero','cockpit','town','traffic','square','countryside','forest','lights',"
-echo "      'dusk','night','headlights','signals','overcast','rain',"
-echo "      'brezi','podhaji','mesto']]\""
+echo "converting the scene captures to JPEG"
+PY_BIN="$(command -v python3.12 || command -v python3)"
+"$PY_BIN" - "$OUT" <<'PYEOF'
+import pathlib
+import sys
+
+from PIL import Image
+
+out = pathlib.Path(sys.argv[1])
+keep_png = {"cluster"}
+converted = 0
+for png in sorted(out.glob("*.png")):
+    if png.stem in keep_png:
+        continue
+    Image.open(png).convert("RGB").save(out / f"{png.stem}.jpg", quality=88, optimize=True, subsampling=1)
+    png.unlink()
+    converted += 1
+print(f"  {converted} scene picture(s) written as JPEG, cluster.png kept as PNG")
+PYEOF
+
+echo "done: $OUT"
