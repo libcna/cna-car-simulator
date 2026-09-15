@@ -1293,3 +1293,12 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
     jerk, which is what a shimmer is. Chase **0.044 mm/frame²** mean, worst single frame 1.7 mm;
     cockpit 0.042 mm mean, worst 0.6 mm. Both are already smooth; the bounds are set at roughly
     four times the measurement so a future change that makes either twitchier fails here.
+- [x] `RH-022` **Full-map validation, computational and by hand.** `carsim-mapvalidate` now also
+  proves that the **whole lane network is reachable from every player spawn** (not just from lane
+  0 -- a settlement you can spawn in but not drive out of would have passed before) and that
+  **every named route plans from its spawn**, printing its length and step count. Together with
+  the driving-surface check (`RH-009`/`RH-010`) that covers enumeration, connectivity,
+  terrain/road alignment and spawn reachability over all 26.9 km. The part a machine cannot do --
+  driving the three routes end to end, the nine spawns, the gravel track at night, and the two
+  newest roads -- is written out as a checklist in `docs/real-hardware-validation.md` section 5b,
+  with a note that anything a `--route` run reproduces becomes a regression test the same day.

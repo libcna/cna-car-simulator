@@ -154,6 +154,41 @@ python3 scripts/benchmark_report.py build/benchmarks --against build/bench-befor
 `country`, `forest`) with the autopilot and exits at the end; `--route-stay` keeps the game
 running so you can watch it, and the keyboard still works for the camera and the overlays.
 
+## 5b. The full-map validation drive
+
+It must be hard for a broken road or junction to survive just because it is far from the main
+spawn. Most of that is automated, and runs in `ctest`:
+
+```bash
+./build/opengles3/bin/carsim-mapvalidate content/maps/lipova
+```
+
+It walks the whole network and reports:
+
+| check | what it would catch |
+| --- | --- |
+| every road produces a drivable piece; no degenerate junction patch | a road or junction that did not build |
+| every lane reachable from lane 0, and from **every player spawn** | a settlement you can spawn in but not drive out of |
+| dead-end lanes and lanes under 5 m | a road that stops in mid-air, a sliver piece |
+| max grade over every road | an impossible climb |
+| the ground under **every lane and every junction connector**, at one metre | a road or junction that does not sit on its terrain -- the lip a wheel falls off |
+| every named route plans from its spawn | a benchmark or test route that quietly stopped being drivable |
+| every spawn within 6 m of a lane | a spawn in a field |
+| signs, props, buildings and trees inside the terrain, off the carriageway | content in the road |
+
+What is *not* automated, and what a person should do on a real machine:
+
+1. `--route town`, `--route country` and `--route forest` end to end, watching for texture seams,
+   wrong markings, floating sections, hard elevation changes and odd junction geometry.
+2. Drive from each of the nine spawns (`square`, `forest`, `fields`, `east`, `kostel`, `brezi`,
+   `podhaji`, `mesto`, `kamenice`) for a couple of minutes in each direction.
+3. The gravel forest track and its turning loop, at night, with headlights.
+4. One lap of the southern ring (`east_ring`) and the north-eastern road to Nové Město, which are
+   the newest roads and the least driven.
+
+Report anything found the way section 10 describes; if a `--route` run reproduces it, it can be
+turned into a regression test in `tests/Traffic/RouteDriverTests.cpp` the same day.
+
 ## 6. Screenshots to capture
 
 Capture the curated set so the pictures line up beside the container ones in

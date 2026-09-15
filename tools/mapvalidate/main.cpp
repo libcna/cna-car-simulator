@@ -6,6 +6,7 @@
 // Exit code 0 = valid (warnings allowed), 1 = errors found or the map failed to build.
 #include "CarSim/Map/MapDocument.hpp"
 #include "CarSim/Map/MapWorld.hpp"
+#include "CarSim/Traffic/RouteDriver.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -196,11 +197,43 @@ int main(int argc, char** argv)
             ++problems;
         }
     }
+    // Spawns and routes: it must be possible to drive away from every spawn and reach the whole
+    // network from it, and every named route must plan. A settlement that can be spawned in but
+    // not driven out of, or a route that has quietly stopped being routable because a road moved,
+    // is exactly the kind of thing that survives unnoticed when only the main spawn is ever used.
     for (const auto& spawn : world->Data().traffic.playerSpawns) {
         const float heading = spawn.headingDeg * 3.14159265f / 180.0f;
         const int lane = lanes.NearestLane(spawn.position, heading, 6.0f);
         if (lane < 0) {
             std::cout << "warning: player spawn '" << spawn.name << "' is more than 6 m from any lane\n";
+            continue;
+        }
+        const auto reachable = lanes.Reachable(lane);
+        if (reachable.size() != lanes.Lanes().size()) {
+            std::cout << "error: only " << reachable.size() << " of " << lanes.Lanes().size()
+                      << " lanes can be reached from the spawn '" << spawn.name << "'\n";
+            ++problems;
+        }
+    }
+    for (const auto& route : world->Data().traffic.routes) {
+        Traffic::RouteDriver driver(lanes);
+        const Map::SpawnSpec spawn = world->PlayerSpawn(route.spawn);
+        if (spawn.name != route.spawn) {
+            std::cout << "error: route '" << route.name << "' names an unknown spawn '" << route.spawn << "'\n";
+            ++problems;
+            continue;
+        }
+        const float heading = spawn.headingDeg * 3.14159265f / 180.0f;
+        const Microsoft::Xna::Framework::Vector3 start = world->SpawnPosition(spawn);
+        if (!driver.Plan(start, heading, route.waypoints)) {
+            std::cout << "error: route '" << route.name << "' cannot be planned: " << driver.Progress().note << "\n";
+            ++problems;
+            continue;
+        }
+        if (!quiet) {
+            std::printf("route %-10s %6.0f m over %d step(s) from spawn '%s'\n", route.name.c_str(),
+                        static_cast<double>(driver.Progress().routeLengthM), driver.Progress().steps,
+                        route.spawn.c_str());
         }
     }
 
