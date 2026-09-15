@@ -6,7 +6,8 @@ framework (branch `next`) and [Sharp Runtime](https://github.com/libcna/sharp-ru
 (branch `next`).
 
 There are no jobs, missions, deliveries or economy. You start a car, drive through a Czech
-town, its outskirts, the countryside and a forest, meet traffic, and enjoy driving.
+town and the villages around it, the countryside and a forest, meet traffic, and enjoy driving
+-- at any hour and in any weather.
 
 | Hero | Cockpit | Instrument cluster |
 | --- | --- | --- |
@@ -19,6 +20,18 @@ town, its outskirts, the countryside and a forest, meet traffic, and enjoy drivi
 | Forest | Town square | Headlights |
 | --- | --- | --- |
 | ![Forest road](docs/screenshots/forest.jpg) | ![The square with the church, the memorial and parked cars](docs/screenshots/square.jpg) | ![Headlights on](docs/screenshots/lights.jpg) |
+
+| Dusk | Night | Headlamps on a village street |
+| --- | --- | --- |
+| ![The square at 21:30](docs/screenshots/dusk.jpg) | ![A lit street at 23:00](docs/screenshots/night.jpg) | ![The beam on the road at night](docs/screenshots/headlights.jpg) |
+
+| Overcast | Rain | Traffic signals |
+| --- | --- | --- |
+| ![The square under a solid lid](docs/screenshots/overcast.jpg) | ![Rain on the cobbles](docs/screenshots/rain.jpg) | ![The signalised junction U kaple](docs/screenshots/signals.jpg) |
+
+| Březí | Podhájí | Nové Město |
+| --- | --- | --- |
+| ![The village of Březí on the main road](docs/screenshots/brezi.jpg) | ![Podhájí on the southern ring](docs/screenshots/podhaji.jpg) | ![The small town of Nové Město](docs/screenshots/mesto.jpg) |
 
 All pictures are headless captures from the development container (Xvfb, Mesa llvmpipe
 software OpenGL ES 3, no multisampling); a GPU renders the same frames with sharper texture
