@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
-"""Authoring script for the sample map "Lipová" (content/maps/lipova).
+"""Stage 1 of the Lipová map pipeline: the town and its countryside.
 
-The JSON files under content/maps/lipova are the map source that the simulator loads. This
-script generates them deterministically so that repetitive content (rows of houses, tree
-avenues, sign placement) stays consistent and easy to revise. Run it from the repository root:
+This module writes a complete map from scratch -- every node, road, terrain feature, building,
+sign, prop, tree and spawn of the original town, the square, the wayside chapel and the filling
+station. It is deterministic: the same source produces the same bytes.
 
-    python3 tools/maps/generate_lipova.py
+It is the *first* stage. ``tools/maps/add_settlements.py`` runs after it and grows the region.
+Run the whole pipeline through the one entry point:
+
+    python3 tools/maps/build_map.py
+
+Running this module on its own would leave the map without the outer settlements, so it refuses
+unless ``--stage-only`` says that is what you meant.
 
 Coordinates: map plane x (east) / z (south), metres; north is -z. Headings: 0 = north,
 90 = east (clockwise).
 """
+import argparse
 import json
 import math
 import pathlib
 import random
 
-OUT = pathlib.Path(__file__).resolve().parents[2] / "content" / "maps" / "lipova"
+DEFAULT_OUT = pathlib.Path(__file__).resolve().parents[2] / "content" / "maps" / "lipova"
 
 # ----------------------------------------------------------------------------- nodes
 NODES = {
@@ -165,12 +172,29 @@ def terrain():
             {"type": "field", "crop": "maize", "polygon": [[-1750, -1350], [-850, -1250], [-750, -620], [-1550, -520]], "seed": 13},
             {"type": "field", "crop": "stubble", "polygon": [[-400, 1250], [500, 900], [700, 1500], [-200, 1700]], "seed": 14},
             {"type": "meadow", "polygon": [[850, -1100], [1500, -1400], [1650, -900], [1000, -700]]},
+            {"type": "square", "polygon": SQUARE_POLYGON},
+            {"type": "yard", "polygon": STATION_YARD},
         ],
     }
 
 
-FOREST_NORTH = [[-620, -1380], [150, -1280], [900, -1480], [1520, -1720], [1650, -2350], [700, -2500], [-250, -2560], [-720, -2050]]
+# The north forest wraps round the gravel track and its turning loop, so the track never leaves
+# the trees; the southern lobe (-260 .. -620) is what closes it behind the loop.
+FOREST_NORTH = [[-620, -1380], [150, -1280], [900, -1480], [1520, -1720], [1650, -2350],
+                [700, -2500], [120, -2700], [-260, -2840], [-620, -2760], [-780, -2300], [-720, -2050]]
 FOREST_SOUTH_EAST = [[600, 900], [1350, 700], [1450, 1350], [750, 1450]]
+
+# The town square: a paved rectangle north-west of the main-road junction, drawn with granite
+# setts. Everything on the square is positioned against these four numbers.
+SQUARE_WEST, SQUARE_EAST = -95, -18
+SQUARE_NORTH, SQUARE_SOUTH = -9, -84
+SQUARE_POLYGON = [[SQUARE_WEST, SQUARE_SOUTH], [SQUARE_EAST, SQUARE_SOUTH],
+                  [SQUARE_EAST, SQUARE_NORTH], [SQUARE_WEST, SQUARE_NORTH]]
+
+# The filling station on the eastern approach, surveyed along the main road between E2 and E3
+# (which runs at 67.9 deg). The forecourt is the quadrilateral the canopy and the shop sit on;
+# its four corners are given explicitly so the paving matches the buildings exactly.
+STATION_YARD = [[810.9, -121.0], [859.1, -140.6], [871.8, -109.0], [823.6, -89.5]]
 
 
 # ----------------------------------------------------------------------------- objects
@@ -250,6 +274,27 @@ def buildings():
     # Chapel at the forest edge and a hunting lodge at the track end.
     house((-455, -1560), 60, "chapel", width=5, depth=7, eaves=4.5, floors=1, pitch=50, seed=26)
     house((-40, -2700), 120, "cottage", width=9, depth=7, eaves=3.2, floors=1, pitch=48, seed=27)
+
+    # Town houses lining the square. Three sides are built up; the fourth (north) opens onto the
+    # main road. Floors alternate so the roofline is not a single ruled edge.
+    def frontage(positions, facing, width, seed_base, kinds, floors):
+        for i, (x, z) in enumerate(positions):
+            house((float(x), float(z)), facing, kinds[i], width=width, depth=11.5,
+                  eaves=9.9 if floors[i] == 3 else 6.7,
+                  floors=floors[i], pitch=42, seed=seed_base + i)
+
+    frontage([(-101.0, z) for z in (-72, -58, -44, -30)], 90, 13.5, 7100,
+             ["shop", "house", "shop", "house"], [3, 2, 2, 3])
+    frontage([(-12.0, z) for z in (-72, -58, -44, -30)], 270, 13.5, 7200,
+             ["house", "shop", "house", "shop"], [2, 3, 2, 3])
+    # The south side leaves a gap in the middle for the lane down to the church.
+    frontage([(x, -90.0) for x in (-88, -46, -32)], 180, 14.0, 7300,
+             ["shop", "house", "house"], [2, 3, 2])
+    house((-96.0, -20.0), 45, "house", width=12.5, depth=11.0, eaves=6.7, floors=2, pitch=42, seed=7400)
+    # Wayside chapel at the signalised junction east of the square.
+    house((352.0, -72.0), 205, "chapel", width=5, depth=7, eaves=4.2, floors=1, pitch=46, seed=7701)
+    # Filling-station shop, square to the forecourt.
+    house((845.5, -104.8), 247.9, "shop", width=11.0, depth=7.5, eaves=3.4, floors=1, pitch=12, seed=7810)
     return out
 
 
@@ -341,7 +386,56 @@ def signs_and_props():
     prop("timber_stack", "FT1", "FT2", 0.60, -1, right=6.0, length=9)
     prop("fence", "V1", "V2", 0.08, +1, right=7.0, length=60)
     prop("wall", "W1", "SQ", 0.40, -1, right=10.0, length=40)
+
+    # Square furniture. A row of benches and bins under the limes on the north side, a lamp at
+    # each corner and one against the south frontage, and the memorial column in the middle.
+    def place(kind, x, z, rot=0.0):
+        props.append({"type": kind, "position": [float(x), float(z)], "rotationDeg": float(rot)})
+
+    for x in (-79, -65, -51, -37):
+        place("bench", x, -26)
+    for x, z in ((-93, -26), (-93, -74), (-22, -26), (-22, -74), (-57, -86)):
+        place("lamp", x, z)
+    for x in (-63, -35):
+        place("bin", x, -26)
+    place("memorial", -57, -40)
+    # Filling station: canopy over two pumps, a lamp at the entry and a bin by the shop door.
+    place("fuel_canopy", 839.5, -119.7, 67.9)
+    place("fuel_pump", 835.3, -118.0, 157.9)
+    place("fuel_pump", 843.6, -121.4, 157.9)
+    place("lamp", 818.7, -117.7)
+    place("bin", 848.3, -129.7)
     return signs, props
+
+
+def square_limes():
+    """The row of limes along the north side of the square."""
+    scales = [1.25, 1.3, 1.35, 1.25, 1.3]
+    return [{"species": "linden", "position": [float(-86 + 14 * i), -22.0], "scale": scales[i], "seed": 7500 + i}
+            for i in range(5)]
+
+
+def parked_cars():
+    """Cars standing still: three bays round the square and one at the filling station.
+
+    They are scenery with collision, not traffic. The seed drives the body colour and the plate,
+    and runs on across the bays so no two cars share one.
+    """
+    bays = [
+        # (x, z, step in x, step in z, heading, bodies)
+        (-22.5, -68.0, 0.0, 2.7, 90.0, ["hatchback", "estate", "sedan", "hatchback", "suv", "van"]),
+        (-46.0, -80.5, 2.8, 0.0, 0.0, ["hatchback", "estate", "hatchback", "estate", "sedan"]),
+        (-90.5, -62.0, 0.0, 3.0, 270.0, ["hatchback", "suv", "van", "hatchback"]),
+    ]
+    out, n = [], 0
+    for bay, (x0, z0, dx, dz, rot, bodies) in enumerate(bays):
+        for i, body in enumerate(bodies):
+            out.append({"body": body,
+                        "position": [round(x0 + dx * i, 1), round(z0 + dz * i, 1)],
+                        "rotationDeg": rot, "seed": 8100 + 100 * bay + n})
+            n += 1
+    out.append({"body": "estate", "position": [856.6, -114.7], "rotationDeg": 247.9, "seed": 8400})
+    return out
 
 
 def objects():
@@ -359,7 +453,7 @@ def objects():
             {"species": "birch", "position": [140, 40], "scale": 1.0, "seed": 5},
             {"species": "linden", "position": [-1490, 300], "scale": 1.5, "seed": 6},
             {"species": "oak", "position": [-660, -1450], "scale": 1.3, "seed": 7},
-        ],
+        ] + square_limes(),
         "forests": [
             {"polygon": FOREST_NORTH, "density": 0.022, "margin": 7,
              "species": [{"species": "spruce", "weight": 0.62}, {"species": "pine", "weight": 0.2}, {"species": "beech", "weight": 0.18}], "seed": 3},
@@ -373,6 +467,7 @@ def objects():
             {"road": "south", "fromNode": "SW1", "toNode": "S3", "species": "maple", "spacing": 18, "offset": 2.8, "left": True, "right": True, "seed": 2},
             {"road": "village", "fromNode": "V2", "toNode": "V3", "species": "birch", "spacing": 16, "offset": 2.5, "left": True, "right": False, "seed": 3},
         ],
+        "vehicles": parked_cars(),
     }
 
 
@@ -389,6 +484,7 @@ def traffic():
             spawn("forest", "N3", "F4", 0.5, 1.4),
             spawn("fields", "SW1", "S3", 0.5, 1.4),
             spawn("east", "E3", "E2", 0.5, 1.5),
+            spawn("kostel", "SQ", "E1", 0.72),        # 90 m short of the signalised junction
         ],
         "densityPerKm": 1.2,
         "maxVehicles": 20,
@@ -411,16 +507,37 @@ def map_doc():
     }
 
 
-def dump(name, data):
-    path = OUT / name
-    path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"wrote {path.relative_to(OUT.parents[2])} ({path.stat().st_size} bytes)")
+def build(out_dir, log=print):
+    """Write the five map files into out_dir, replacing whatever is there."""
+    out = pathlib.Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    documents = {
+        "map.json": map_doc(),
+        "terrain.json": terrain(),
+        "roads.json": {"schemaVersion": 1, "nodes": node_list(), "roads": ROADS},
+        "objects.json": objects(),
+        "traffic.json": traffic(),
+    }
+    for name, data in documents.items():
+        path = out / name
+        path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        if log:
+            log(f"  base: {name} ({path.stat().st_size} bytes)")
+    return documents
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Stage 1 of the Lipová map pipeline.")
+    ap.add_argument("--out", default=str(DEFAULT_OUT), help="map directory to write (default: the shipped map)")
+    ap.add_argument("--stage-only", action="store_true",
+                    help="write the base map on its own, without the settlements stage that normally follows")
+    args = ap.parse_args(argv)
+    if not args.stage_only:
+        ap.error("this is stage 1 of a two-stage pipeline; run tools/maps/build_map.py, "
+                 "or pass --stage-only if you really want the base map alone")
+    build(args.out)
+    return 0
 
 
 if __name__ == "__main__":
-    OUT.mkdir(parents=True, exist_ok=True)
-    dump("map.json", map_doc())
-    dump("terrain.json", terrain())
-    dump("roads.json", {"schemaVersion": 1, "nodes": node_list(), "roads": ROADS})
-    dump("objects.json", objects())
-    dump("traffic.json", traffic())
+    raise SystemExit(main())

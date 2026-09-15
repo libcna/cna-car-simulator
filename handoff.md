@@ -133,11 +133,13 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
 
 ## The map and its authoring scripts
 
-`tools/maps/generate_lipova.py` wrote the original town but has been overtaken by hand edits --
-**re-running it would drop the square, the chapel, the filling station and the parked cars**.
-`tools/maps/add_settlements.py` is the one to use for the wider region: it is additive and
-idempotent, marks everything it writes with a `generated-by` key, and replaces only its own
-output. Bringing the first script back in line with the shipped map is open work.
+One entry point: `python3 tools/maps/build_map.py` (add `--validate` to run the map validator
+over the result). It runs stage 1 `generate_lipova.py` (the whole town, square, chapel, filling
+station, parked cars -- written from scratch) then stage 2 `add_settlements.py` (the wider
+region -- additive and idempotent). The JSON under `content/maps/lipova` is generated output
+that is committed; change a stage and commit the regenerated map with it, or the ctest
+`map_regeneration_check` (`build_map.py --check`) fails. Neither stage runs without
+`--stage-only`. Full description in `docs/map-generation.md`.
 
 ## State of the project (plan.md section 24)
 
@@ -160,7 +162,6 @@ station with `yard` paving and exact four-corner paved outlines (`RQ-171`) and m
 
 Open / next ideas (nothing is blocking):
 
-- `tools/maps/generate_lipova.py` no longer reproduces the shipped map (see above).
 - Traffic variety: there is no bus or lorry body class, and no overtaking or lane changing.
 - The fog lamp lens is dark gloss rather than a clear lens; shop fascia signs are missing.
 - Baked shadow *direction* does not follow the sun, only its strength (a known limitation of

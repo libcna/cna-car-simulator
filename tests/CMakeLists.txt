@@ -84,6 +84,15 @@ add_test(NAME map_validate_lipova
     COMMAND carsim-mapvalidate --content "${CMAKE_SOURCE_DIR}/content" --map lipova --quiet)
 set_tests_properties(map_validate_lipova PROPERTIES TIMEOUT 120 LABELS "content")
 
+# Map reproducibility: the generation pipeline must still produce the map that is shipped.
+# This is what stops the content under content/maps and the generator in tools/maps drifting
+# apart, which is how a re-run used to destroy content. See docs/map-generation.md.
+if(Python3_Interpreter_FOUND)
+    add_test(NAME map_regeneration_check
+        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/maps/build_map.py" --check --quiet)
+    set_tests_properties(map_regeneration_check PROPERTIES TIMEOUT 120 LABELS "content")
+endif()
+
 # Asset provenance: every external file listed with licence and matching SHA-256.
 add_test(NAME asset_manifest_check
     COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/scripts/check_assets.py" --root "${CMAKE_SOURCE_DIR}")

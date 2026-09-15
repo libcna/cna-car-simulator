@@ -1023,3 +1023,96 @@ submit the same 1 253 draw calls and 1.24 M triangles for the same frame, the im
 are unchanged in character (mean 3.8/255 between the two GL paths), and the comparison sheets in
 `docs/screenshots/renderers/` were regenerated. The curated screenshot set was re-shot and eight
 pictures added (dusk, night, headlamps, signals, overcast, rain and the three new settlements).
+
+## 26. Phase 13 -- Real hardware, visual realism & driving polish (`RH`)
+
+Started 2026-09-15 on top of Phase 12. The brief for this phase is explicitly *not* more
+breadth. The world, the systems and the test suite are large enough; what is missing is the
+finish that makes them read as one coherent small driving simulator rather than a growing pile
+of technical prototypes. The guiding rule for every task below:
+
+> No more breadth until the existing depth is polished.
+
+New functionality is admissible only where it fixes a defect, improves realism, visual quality,
+usability or performance, or supports meaningful testing and tooling. Explicitly out of scope
+for this phase: snow, hail, fog or storms, seasons, more weather modes, career/economy/missions,
+police, pedestrians, multiplayer, dealerships, damage economy, more vehicles, more settlements
+and more road network.
+
+The Phase 11/12 constraints are unchanged: only CNA's XNA 4.0 public API and project-owned code,
+no CNAEXT and no renderer internals, no test removed or weakened, every defect fix carries a
+regression test, and the static checks stay mandatory.
+
+### 26.1 Baseline measured at the start of the phase
+
+Verified on branch `claude/cna-car-simulator-project-scx0ij` at `dcdb587`, in this container
+(4-core x86-64, no GPU; llvmpipe software rasterisation under Xvfb):
+
+- `cmake --build build/opengles3` is up to date and clean,
+- `carsim_tests`: **178 tests in 46 suites, all passing** (35.5 s),
+- `ctest --preset opengles3`: **5 registrations**, all passing
+  (`carsim_unit_tests`, `xna_only_api_check`, `simulator_smoke`, `map_validate_lipova`,
+  `asset_manifest_check`),
+- `scripts/check_xna_only.py`: OK (178 files scanned, 544 XNA 4.0 types known),
+- `scripts/check_assets.py`: OK (5 files listed, 1 asset),
+- `carsim-mapvalidate content/maps/lipova`: OK, 0 warnings; 624 buildings, 54 186 trees, 63
+  signs, 2 832 props, 150 parked cars; load 1.40 s.
+
+### 26.2 The audit SHA discrepancy (`RH-001`)
+
+The Phase 12 report advertised `dcdb587` as the final HEAD but recorded the fresh-clone audit
+against `12fe992`. Investigated by diffing the two:
+
+```
+12fe992..dcdb587 = 1 commit, 5 files:
+  docs/renderer-conformance.md           re-measured conformance record   (documentation)
+  docs/screenshots/renderers/*.png       regenerated comparison sheets    (documentation)
+  plan.md                                the audit record itself          (documentation)
+  simulator/src/App/SimulatorGame.cpp    ApplyWeatherSettings             (CODE)
+```
+
+So the discrepancy was **not** documentation-only: `dcdb587` changed application code
+(`ApplyWeatherSettings` now reports an unreadable weather name instead of dropping the result of
+`WeatherFromName`) *after* the audit that was advertised for it. The change is small and benign,
+but the advertised commit was never the verified commit, which is exactly the ambiguity this
+task exists to remove.
+
+Rule adopted for this phase and afterwards, recorded here so it outlives the session:
+
+> **The commit advertised as final HEAD must itself be the commit verified from a fresh clone.**
+> If anything is committed after the fresh-clone audit -- documentation included -- the audit is
+> repeated on the new HEAD before any SHA is reported.
+
+- [x] `RH-001` Audit SHA discrepancy explained, the code change in the gap identified, and the
+  rule above adopted. The Phase 13 audit (section 26.6) repeats the fresh clone on whatever the
+  final commit turns out to be.
+
+### 26.3 Task ledger
+
+#### P0 -- foundation
+
+- [x] `RH-002` **One authoritative map-generation workflow.** `tools/maps/generate_lipova.py`
+  had fallen several content passes behind the shipped map: re-running it destroyed the town
+  square, the wayside chapel, the filling station, the parked cars, the extended forest and the
+  `kostel` spawn. Rather than leave a script that must not be run, the generator was brought
+  fully up to date and the two scripts were made ordered stages of one pipeline:
+  - `tools/maps/build_map.py` is now the only entry point. It runs stage 1
+    (`generate_lipova`, writes the whole map from scratch) then stage 2 (`add_settlements`,
+    additive and idempotent), and can validate the result with `carsim-mapvalidate`.
+  - Both stage modules refuse to run on their own without `--stage-only`, and point at
+    `build_map.py`; the trap is closed rather than documented.
+  - Stage 1 regained every piece of hand-edited content: the `square` and `yard` terrain
+    regions, the eleven-point north forest polygon, the fourteen square/chapel/station
+    buildings, the five limes, seventeen square and station props, all sixteen parked cars and
+    the `kostel` spawn.
+  - Stage 2 now also rewrites the map card description, measuring the road length (27 km) from
+    the roads it has just written instead of repeating a stale "About 18 km" from stage 1.
+  - `content/maps/lipova` was regenerated through the pipeline and committed. The regenerated
+    map is semantically identical to what was shipped (verified field by field with a 1e-6
+    tolerance); only key order and float formatting moved.
+  - Documented in `docs/map-generation.md`, including which stage owns which content.
+- [x] `RH-003` **Automated regeneration consistency test.** `build_map.py --check` rebuilds the
+  map into a temporary directory, asserts that running stage 2 a second time changes nothing
+  (idempotence), and diffs the result against `content/maps/lipova`, printing the offending
+  hunks on failure. Registered as the ctest test `map_regeneration_check` (the sixth
+  registration). Verified to fail on injected drift in either direction.

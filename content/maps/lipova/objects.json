@@ -4994,7 +4994,7 @@
    "rotationDeg": 90.0,
    "width": 13.5,
    "depth": 11.5,
-   "eavesHeight": 9.900000000000002,
+   "eavesHeight": 9.9,
    "floors": 3,
    "roofPitchDeg": 42,
    "seed": 7100
@@ -5036,7 +5036,7 @@
    "rotationDeg": 90.0,
    "width": 13.5,
    "depth": 11.5,
-   "eavesHeight": 9.900000000000002,
+   "eavesHeight": 9.9,
    "floors": 3,
    "roofPitchDeg": 42,
    "seed": 7103
@@ -5064,7 +5064,7 @@
    "rotationDeg": 270.0,
    "width": 13.5,
    "depth": 11.5,
-   "eavesHeight": 9.900000000000002,
+   "eavesHeight": 9.9,
    "floors": 3,
    "roofPitchDeg": 42,
    "seed": 7201
@@ -5092,7 +5092,7 @@
    "rotationDeg": 270.0,
    "width": 13.5,
    "depth": 11.5,
-   "eavesHeight": 9.900000000000002,
+   "eavesHeight": 9.9,
    "floors": 3,
    "roofPitchDeg": 42,
    "seed": 7203
@@ -5120,7 +5120,7 @@
    "rotationDeg": 180.0,
    "width": 14.0,
    "depth": 11.5,
-   "eavesHeight": 9.900000000000002,
+   "eavesHeight": 9.9,
    "floors": 3,
    "roofPitchDeg": 42,
    "seed": 7301
@@ -5160,11 +5160,11 @@
     -72.0
    ],
    "rotationDeg": 205.0,
-   "width": 5.0,
-   "depth": 7.0,
+   "width": 5,
+   "depth": 7,
    "eavesHeight": 4.2,
-   "roofPitchDeg": 46,
    "floors": 1,
+   "roofPitchDeg": 46,
    "seed": 7701
   },
   {
@@ -5177,8 +5177,8 @@
    "width": 11.0,
    "depth": 7.5,
    "eavesHeight": 3.4,
-   "roofPitchDeg": 12,
    "floors": 1,
+   "roofPitchDeg": 12,
    "seed": 7810
   },
   {

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Grows the sample map "Lipová" into a wider region with more settlements.
 
-The map under content/maps/lipova was authored first by tools/maps/generate_lipova.py and then
-extended by hand (the town square, the chapel, the filling station, parked cars). This script is
-additive and idempotent: it reads the JSON that is there, removes only what it produced on an
-earlier run, and writes the enlarged world back. Run it from the repository root:
+Stage 2 of the Lipová map pipeline. Stage 1 (tools/maps/generate_lipova.py) writes the town and
+its countryside; this stage grows that into the wider region. It is additive and idempotent: it
+reads the JSON that is there, removes only what it produced on an earlier run, and writes the
+enlarged world back, so running it twice is the same as running it once. Run the pipeline
+through its one entry point:
 
-    python3 tools/maps/add_settlements.py
+    python3 tools/maps/build_map.py
 
 What it adds, on top of the original town:
 
@@ -22,12 +23,13 @@ What it adds, on top of the original town:
 Everything it writes carries either a new id or a "generated-by" marker, which is how a re-run
 knows what to replace. Coordinates: map plane x (east) / z (south), metres; north is -z.
 """
+import argparse
 import json
 import math
 import pathlib
 import random
 
-OUT = pathlib.Path(__file__).resolve().parents[2] / "content" / "maps" / "lipova"
+DEFAULT_OUT = pathlib.Path(__file__).resolve().parents[2] / "content" / "maps" / "lipova"
 
 # ----------------------------------------------------------------------------- the wider world
 TERRAIN_SIZE = [6400, 7600]
@@ -308,17 +310,19 @@ def settlement_content():
 
 
 # ----------------------------------------------------------------------------- rewrite
-def load(name):
-    return json.loads((OUT / name).read_text(encoding="utf-8"))
+def build(out_dir, log=print):
+    """Grow the map in out_dir. Safe to run repeatedly: an earlier run's output is replaced."""
+    out = pathlib.Path(out_dir)
 
+    def load(name):
+        return json.loads((out / name).read_text(encoding="utf-8"))
 
-def dump(name, data):
-    path = OUT / name
-    path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"wrote {path.relative_to(pathlib.Path.cwd())} ({path.stat().st_size} bytes)")
+    def dump(name, data):
+        path = out / name
+        path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        if log:
+            log(f"  settlements: {name} ({path.stat().st_size} bytes)")
 
-
-def main():
     roads = load("roads.json")
     terrain = load("terrain.json")
     objects = load("objects.json")
@@ -373,13 +377,38 @@ def main():
         p = offset(along(pa, pb, spec["t"]), h, 1.7)   # right-hand lane, heading towards node_b
         traffic["playerSpawns"].append({"name": spec["name"], "position": list(p), "headingDeg": round(h, 1)})
 
+    # The map card describes the region, not just the town, and the road length is measured from
+    # what this stage has just written rather than copied from an older note.
+    km = sum(math.dist(ALL_NODES[a], ALL_NODES[b])
+             for road in roads["roads"] for a, b in zip(road["nodes"], road["nodes"][1:])) / 1000.0
+    card = load("map.json")
+    card["description"] = (
+        f"Fictional Czech region {TERRAIN_SIZE[0] / 1000:.1f} x {TERRAIN_SIZE[1] / 1000:.1f} km: the town of "
+        "Lipová (square, residential streets, prefab estate, filling station) with the villages of Březí, "
+        "Podhájí and Kamenice and the small town of Nové Město, linked by "
+        f"{km:.0f} km of roads through fields, meadows and spruce forest.")
+    dump("map.json", card)
     dump("roads.json", roads)
     dump("terrain.json", terrain)
     dump("objects.json", objects)
     dump("traffic.json", traffic)
-    print(f"settlements: {len(buildings)} buildings, {len(signs)} signs, {len(props)} props, "
-          f"{len(avenues)} avenues, {len(NEW_SPAWNS)} spawns")
+    if log:
+        log(f"  settlements: {len(buildings)} buildings, {len(signs)} signs, {len(props)} props, "
+            f"{len(avenues)} avenues, {len(NEW_SPAWNS)} spawns")
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Stage 2 of the Lipová map pipeline.")
+    ap.add_argument("--out", default=str(DEFAULT_OUT), help="map directory to grow (default: the shipped map)")
+    ap.add_argument("--stage-only", action="store_true",
+                    help="run this stage on its own, over whatever base map is already there")
+    args = ap.parse_args(argv)
+    if not args.stage_only:
+        ap.error("this is stage 2 of a two-stage pipeline; run tools/maps/build_map.py, "
+                 "or pass --stage-only to grow the map that is already in place")
+    build(args.out)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
