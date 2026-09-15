@@ -1279,3 +1279,17 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   pixels. Recorded honestly in `docs/performance.md`, which also says the tiers should do more on
   a GPU and that this is one of the things the real-hardware run is for. Nothing within close
   range of the car changes at any tier.
+- [x] `RH-021` **Driving feel and camera stability, measured rather than argued about.**
+  - Wet physics: `tests/Sim/VehicleDriveTests.cpp` now measures and prints braking from 50, 90
+    and 100 km/h dry and wet, a steady cornering hold, and 0-50 km/h. This build:
+    **10.1 / 32.5 / 40.1 m dry** (0.98 g at all three speeds, so the model is consistent), wet
+    **+40 %** at every speed (14.2 / 45.5 / 56.0 m), a steady cornering hold of 105 km/h dry
+    against 90 km/h wet, and 0-50 in 4.8 s dry against 6.3 s wet. That is the 30 % grip factor
+    doing exactly what a 30 % grip factor should: 1/0.7 = +43 % of distance. Noticeable, and not
+    ice. The test bounds dry braking to 0.6-1.1 g, the wet penalty to +20-80 %, and requires the
+    penalty to be the same at every speed.
+  - Cameras: a test drives the whole `town` route with the autopilot and measures the
+    frame-to-frame change in the *change* of each camera's position relative to the car -- its
+    jerk, which is what a shimmer is. Chase **0.044 mm/frame²** mean, worst single frame 1.7 mm;
+    cockpit 0.042 mm mean, worst 0.6 mm. Both are already smooth; the bounds are set at roughly
+    four times the measurement so a future change that makes either twitchier fails here.

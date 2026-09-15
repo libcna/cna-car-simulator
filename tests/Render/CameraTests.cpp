@@ -1,10 +1,18 @@
 // Chase camera behaviour: frame-rate independent follow, look-ahead in turns, ground clearance.
+#include "CarSim/Map/MapDocument.hpp"
+#include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Render/Camera.hpp"
 #include "CarSim/Sim/Vehicle.hpp"
+#include "CarSim/Sim/VehicleDefinition.hpp"
+#include "CarSim/Traffic/RouteDriver.hpp"
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace CarSim;
 using namespace CarSim::Render;
@@ -94,4 +102,94 @@ TEST(ChaseCamera, SitsBehindTheCarAndAimsAheadForEveryHeading)
         cam.Update(state, 10.0f);
         EXPECT_GT(Vector3::Dot(cam.Pose().position - origin, right), cam.distance * 0.9f) << "heading " << yawDeg;
     }
+}
+
+// Camera stability on a real drive. "It feels jittery" is not something to argue about in prose,
+// so this measures it: the car is driven along the sample map's town route by the autopilot, both
+// cameras are updated every step, and the frame-to-frame *change in the change* of the camera's
+// position -- its jerk -- is measured. A smooth camera glides; a jittery one snaps back and forth
+// and shows up as a spike here. The thresholds are set from what this build measures, so a change
+// that makes either camera twitchier fails rather than being noticed three passes later.
+TEST(ChaseCamera, BothCamerasStaySmoothAlongAWholeRoute)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world) << (errors.empty() ? "" : errors.front());
+    ASSERT_FALSE(world->Data().traffic.routes.empty());
+    const auto& route = world->Data().traffic.routes.front();
+
+    Sim::VehicleDefinition definition = Sim::MakeReferenceVehicle();
+    const auto loaded = Sim::LoadVehicleDefinitionFile(std::string(CARSIM_TEST_CONTENT_DIR) + "/vehicles/lipan_12.json");
+    if (loaded.ok()) definition = loaded.definition;
+    Sim::Vehicle vehicle(definition, Sim::TransmissionMode::Automatic);
+    const Map::SpawnSpec spawn = world->PlayerSpawn(route.spawn);
+    vehicle.PlaceAt(world->SpawnPosition(spawn), -spawn.headingDeg * (3.14159265f / 180.0f));
+
+    Traffic::RouteDriver driver(world->Lanes());
+    const auto start = vehicle.Snapshot();
+    const Vector3 forward = start.worldMatrix.getForwardProperty();
+    ASSERT_TRUE(driver.Plan(start.originPosition, std::atan2(forward.X, -forward.Z), route.waypoints));
+
+    ChaseCamera chase;
+    chase.groundHeight = [&](const float x, const float z) { return world->Ground().HeightAt(x, z); };
+    chase.Snap(start);
+    CockpitCamera cockpit;
+
+    const float dt = 1.0f / 60.0f;
+    Vector3 previousChase(0.0f, 0.0f, 0.0f);
+    Vector3 previousChaseStep(0.0f, 0.0f, 0.0f);
+    Vector3 previousCockpit(0.0f, 0.0f, 0.0f);
+    Vector3 previousCockpitStep(0.0f, 0.0f, 0.0f);
+    double chaseJerkSum = 0.0;
+    double cockpitJerkSum = 0.0;
+    float worstChaseJerk = 0.0f;
+    float worstCockpitJerk = 0.0f;
+    int samples = 0;
+    float topSpeed = 0.0f;
+
+    for (float t = 0.0f; t < 180.0f; t += dt) {
+        const auto state = vehicle.Snapshot();
+        vehicle.Update(driver.Update(state, dt), dt, world->Ground());
+        const auto after = vehicle.Snapshot();
+        chase.Update(after, dt);
+        cockpit.Update(after, definition, dt);
+        topSpeed = std::max(topSpeed, after.speedKmh);
+
+        // The camera relative to the car: what the *driver* sees moving, not the drive itself.
+        const Vector3 chaseLocal = chase.Pose().position - after.originPosition;
+        const Vector3 cockpitLocal = cockpit.Pose().position - after.originPosition;
+        if (t > 1.0f) {   // skip the settle from Snap
+            const Vector3 chaseStep = chaseLocal - previousChase;
+            const Vector3 cockpitStep = cockpitLocal - previousCockpit;
+            const float chaseJerk = (chaseStep - previousChaseStep).Length();
+            const float cockpitJerk = (cockpitStep - previousCockpitStep).Length();
+            chaseJerkSum += static_cast<double>(chaseJerk);
+            cockpitJerkSum += static_cast<double>(cockpitJerk);
+            worstChaseJerk = std::max(worstChaseJerk, chaseJerk);
+            worstCockpitJerk = std::max(worstCockpitJerk, cockpitJerk);
+            ++samples;
+            previousChaseStep = chaseStep;
+            previousCockpitStep = cockpitStep;
+        }
+        previousChase = chaseLocal;
+        previousCockpit = cockpitLocal;
+        if (driver.Progress().finished) break;
+    }
+
+    ASSERT_GT(samples, 3000) << "the route was too short to say anything about the cameras";
+    EXPECT_GT(topSpeed, 25.0f) << "the car never got going, so nothing was exercised";
+    const float chaseMean = static_cast<float>(chaseJerkSum / samples);
+    const float cockpitMean = static_cast<float>(cockpitJerkSum / samples);
+    std::cout << "  chase camera: mean jerk " << chaseMean * 1000.0f << " mm/frame^2, worst "
+              << worstChaseJerk * 1000.0f << " mm\n"
+              << "  cockpit camera: mean jerk " << cockpitMean * 1000.0f << " mm/frame^2, worst "
+              << worstCockpitJerk * 1000.0f << " mm\n";
+    // This build measures 0.044 mm of change-of-change per frame on both cameras, with the worst
+    // single frame at 1.7 mm (chase) and 0.6 mm (cockpit). The bounds leave about four times that
+    // headroom: noise will not trip them, a camera that starts twitching will.
+    EXPECT_LT(chaseMean, 0.0002f) << "the chase camera shimmers";
+    EXPECT_LT(cockpitMean, 0.0002f) << "the cockpit camera shimmers";
+    // And no single frame may jump: that is the snap you notice.
+    EXPECT_LT(worstChaseJerk, 0.010f) << "the chase camera snapped";
+    EXPECT_LT(worstCockpitJerk, 0.010f) << "the cockpit camera snapped";
 }
