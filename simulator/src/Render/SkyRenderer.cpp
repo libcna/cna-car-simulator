@@ -59,7 +59,8 @@ namespace CarSim::Render
                         Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
         sun_ = GpuMesh::Create(device, sunQuad, VertexLayout::PositionTexture);
 
-        cloudTexture_ = UploadTexture(device, Textures::CloudLayer(512, 77u), true);
+        cloudTexture_ = UploadTexture(device, Textures::CloudLayer(512, 77u, rig_.cloudCover), true);
+        cloudTextureCover_ = rig_.cloudCover;
         MeshData cloudQuad;
         cloudQuad.AddQuad(Vector3(-1, 0, 1), Vector3(1, 0, 1), Vector3(1, 0, -1), Vector3(-1, 0, -1),
                           Vector3(0, -1, 0), Vector2(0, 6), Vector2(6, 6), Vector2(6, 0), Vector2(0, 0));
@@ -81,6 +82,12 @@ namespace CarSim::Render
 
     void SkyRenderer::Refresh(GraphicsDevice& device)
     {
+        // The cloud layer is regenerated only when the cover has moved enough to show, since it
+        // is a 512 px procedural texture.
+        if (std::fabs(rig_.cloudCover - cloudTextureCover_) > 0.04f) {
+            cloudTexture_ = UploadTexture(device, Textures::CloudLayer(512, 77u, rig_.cloudCover), true);
+            cloudTextureCover_ = rig_.cloudCover;
+        }
         // Dome colours follow the rig: zenith to horizon, warmed towards the sun near sunrise
         // and sunset so the glow sits where the sun actually is.
         MeshData dome;
@@ -193,7 +200,9 @@ namespace CarSim::Render
         ApplyAll(*colorEffect_, device, *dome_);
 
         // Stars fade in once the sun is below the horizon and are gone by civil twilight.
-        const float starAlpha = std::clamp((-rig_.SunElevationDeg() - 2.0f) / 8.0f, 0.0f, 1.0f);
+        // Cloud hides the stars and the moon: a solid lid leaves nothing of either.
+        const float clearSky = std::clamp(1.0f - rig_.cloudCover * 1.05f, 0.0f, 1.0f);
+        const float starAlpha = std::clamp((-rig_.SunElevationDeg() - 2.0f) / 8.0f, 0.0f, 1.0f) * clearSky;
         if (stars_ && starAlpha > 0.01f) {
             device.setBlendStateProperty(BlendState::Additive);
             colorEffect_->setWorldProperty(Matrix::CreateScale(radius * 0.98f) * Matrix::CreateTranslation(camera.position));
@@ -222,17 +231,22 @@ namespace CarSim::Render
         textureEffect_->setViewProperty(view);
         textureEffect_->setProjectionProperty(projection);
         textureEffect_->setAlphaProperty(1.0f);
-        textureEffect_->setDiffuseColorProperty(night ? Vector3(0.82f, 0.85f, 0.92f) : Vector3(1.0f, 1.0f, 1.0f));
+        const Vector3 bodyColour = night ? Vector3(0.82f, 0.85f, 0.92f) * clearSky
+                                        : Vector3(1.0f, 1.0f, 1.0f) * std::clamp(1.0f - rig_.cloudCover * 1.15f, 0.0f, 1.0f);
+        textureEffect_->setDiffuseColorProperty(bodyColour);
         ApplyAll(*textureEffect_, device, *sun_);
         textureEffect_->setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
 
         device.getSamplerStatesProperty()[0] = SamplerState::LinearWrap;
         textureEffect_->setTextureProperty(cloudTexture_.get());
-        const float cloudLight = std::clamp(0.10f + 0.90f * (rig_.SunElevationDeg() + 6.0f) / 14.0f, 0.10f, 1.0f);
+        float cloudLight = std::clamp(0.10f + 0.90f * (rig_.SunElevationDeg() + 6.0f) / 14.0f, 0.10f, 1.0f);
+        cloudLight *= 1.0f - 0.35f * rig_.rainAmount;   // a raining lid is darker still
         textureEffect_->setDiffuseColorProperty(Vector3(cloudLight, cloudLight, cloudLight * 1.02f));
         const float cloudExtent = radius * 0.9f;
+        // A solid lid hangs lower, so it covers more of the sky from horizon to horizon.
+        const float cloudBase = 1600.0f - 900.0f * rig_.cloudCover;
         textureEffect_->setWorldProperty(Matrix::CreateScale(cloudExtent, 1.0f, cloudExtent) *
-                                         Matrix::CreateTranslation(camera.position.X, camera.position.Y + 1600.0f, camera.position.Z));
+                                         Matrix::CreateTranslation(camera.position.X, camera.position.Y + cloudBase, camera.position.Z));
         ApplyAll(*textureEffect_, device, *clouds_);
         textureEffect_->setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
 

@@ -88,3 +88,15 @@ TEST(CommandLine, ParsesTheClock)
         EXPECT_FALSE(result.ok()) << bad;
     }
 }
+
+TEST(CommandLine, ParsesTheWeather)
+{
+    const std::array<const char*, 3> argv{"sim", "--weather", "rain"};
+    const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+    ASSERT_TRUE(result.ok()) << result.errors.front();
+    ASSERT_TRUE(result.options.weather.has_value());
+    EXPECT_EQ(*result.options.weather, "rain");
+
+    const std::array<const char*, 3> bad{"sim", "--weather", "hurricane"};
+    EXPECT_FALSE(ParseCommandLine(static_cast<int>(bad.size()), bad.data()).ok());
+}

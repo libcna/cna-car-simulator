@@ -20,6 +20,7 @@ TEST(SaveData, RoundTripsThroughJson)
     d.settings.startInCockpit = true;
     d.settings.timeOfDayHours = 21.25f;
     d.settings.timeScale = 0.0f;
+    d.settings.weather = "overcast";
     d.bindings = {{"Throttle", "Up"}, {"Horn", "H"}};
     const std::string text = Core::SerializeSaveData(d);
     const auto parsed = Core::ParseSaveData(text);
@@ -35,6 +36,7 @@ TEST(SaveData, RoundTripsThroughJson)
     EXPECT_TRUE(parsed.data.settings.startInCockpit);
     EXPECT_NEAR(parsed.data.settings.timeOfDayHours, 21.25f, 1e-3f);
     EXPECT_FLOAT_EQ(parsed.data.settings.timeScale, 0.0f);
+    EXPECT_EQ(parsed.data.settings.weather, "overcast");
     ASSERT_EQ(parsed.data.bindings.size(), 2u);
     EXPECT_EQ(parsed.data.bindings[1].second, "H");
 }

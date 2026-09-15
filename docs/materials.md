@@ -62,6 +62,12 @@ whatever hour the game starts at. Everything baked is then scaled per frame by
 which `WorldRenderer::ApplyLighting` writes into the terrain, road and tree effects. The
 direction of the baked shadows therefore does not follow the sun; only their strength does.
 
+`LightingRig::SetWeather(cover, rain)` folds the weather into that palette. Cloud is treated as
+a redistribution rather than a colour: the key light collapses and most of what it loses comes
+back as flat, slightly cool ambient and sky fill. That is what makes an overcast midnight stay
+dark -- mixing towards an absolute grey instead would light the night like an overcast noon.
+Rain takes another third out, greys the fog and shortens the view.
+
 `LightingRig::LampFactor()` says how much artificial light the world needs: 0 above six degrees
 of sun elevation, 1 once the sun is four degrees below the horizon. It fades in the lit window
 batches (`nightEmissive`), the street lamp pools and glows, and the headlamp pool on the road.

@@ -35,6 +35,7 @@ namespace CarSim::Render
         std::unique_ptr<GpuMesh> sun_;
         std::unique_ptr<GpuMesh> clouds_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> cloudTexture_;
+        float cloudTextureCover_ = -1.0f;   // cover the cloud texture was generated for
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> sunTexture_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> colorEffect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> textureEffect_;

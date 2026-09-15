@@ -41,6 +41,9 @@ namespace CarSim::Render
     {
     public:
         /// `signFont` sets the text on road signs (town names, directions); null uses no text.
+        /// How wet the road is (0..1). Wet asphalt is darker and picks up the colour of the sky;
+        /// call before ApplyLighting, which folds it into the effects.
+        void SetWetness(float wetness) { wetness_ = wetness; }
         /// Re-applies the current rig to the world effects. The terrain macro, the road vertex
         /// colours and the tree cards carry lighting baked under `LightingRig::BakeReference()`,
         /// so they are scaled by the ratio between the two rigs instead of being re-baked.
@@ -145,6 +148,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glowTexture_;         // radial falloff
         std::vector<std::unique_ptr<GpuMesh>> lampLights_;                                    // one mesh per chunk
         float lampFactor_ = 0.0f;                                                             // 0 by day, 1 after dark
+        float wetness_ = 0.0f;                                                                // 0 dry road, 1 soaked
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> roofTextures_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> windowTexture_;

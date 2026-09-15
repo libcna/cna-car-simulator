@@ -52,6 +52,12 @@ namespace CarSim::Audio
         }
     }
 
+    void VehicleAudio::SetWeather(const float rain, const float wetness)
+    {
+        rain_ = std::clamp(rain, 0.0f, 1.0f);
+        wetness_ = std::clamp(wetness, 0.0f, 1.0f);
+    }
+
     void VehicleAudio::Trigger(const Clip& clip, const float gain)
     {
         if (voices_.size() > 16) {
@@ -137,6 +143,26 @@ namespace CarSim::Audio
         rolling.surfaceRoughness = groundedWheels > 0 ? roughness / static_cast<float>(groundedWheels) : 1.0f;
         std::vector<float> effects(static_cast<std::size_t>(kBlockFrames), 0.0f);
         rolling_.Render(effects.data(), kBlockFrames, rolling);
+        // Rain: a broadband hiss on the roof and the screen (louder inside the car, where the
+        // drops land on the metal a hand's width above your head), plus the spray a wet road
+        // throws up under the wheels, which follows speed rather than the rain itself.
+        {
+            const float roof = 0.13f * rain_ * (cockpit ? 1.6f : 1.0f);
+            const float spray = 0.16f * wetness_ * std::clamp(state.speedKmh / 70.0f, 0.0f, 1.0f) * (grounded ? 1.0f : 0.0f);
+            rainLp_.SetCutoff(3200.0f + 2600.0f * rain_, kSampleRate);
+            rainHp_.SetCutoff(420.0f, kSampleRate);
+            sprayLp_.SetCutoff(1500.0f + 12.0f * state.speedKmh, kSampleRate);
+            const float rainStep = (roof - rainGain_) / static_cast<float>(kBlockFrames);
+            const float sprayStep = (spray - sprayGain_) / static_cast<float>(kBlockFrames);
+            for (int i = 0; i < kBlockFrames; ++i) {
+                rainGain_ += rainStep;
+                sprayGain_ += sprayStep;
+                effects[static_cast<std::size_t>(i)] += rainHp_.Process(rainLp_.Process(rainNoise_.Next())) * rainGain_;
+                effects[static_cast<std::size_t>(i)] += sprayLp_.Process(sprayNoise_.Next()) * sprayGain_;
+            }
+            rainGain_ = roof;
+            sprayGain_ = spray;
+        }
         // Brake hiss: band-limited noise that grows with pedal travel and speed.
         {
             const float target = Layers::BrakeHissGain(state.brakePedal, state.speedKmh) * (grounded ? 1.0f : 0.0f);

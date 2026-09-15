@@ -137,6 +137,10 @@ namespace CarSim::Sim
         void StepPhysics(float dt, const GroundSurface& ground);
 
         void SetTransmissionMode(TransmissionMode mode);
+        /// How wet the road is (0..1). Wet asphalt loses roughly a third of its peak grip, so
+        /// the car slides earlier and takes longer to stop.
+        void SetRoadWetness(float wetness);
+        [[nodiscard]] float RoadWetness() const { return roadWetness_; }
 
         [[nodiscard]] const VehicleDefinition& Definition() const { return def_; }
         [[nodiscard]] const RigidBody& Body() const { return body_; }
@@ -209,6 +213,7 @@ namespace CarSim::Sim
         float steerAngle_ = 0.0f;           // average road-wheel angle (rad, + right)
         bool clutchLocked_ = false;
         bool startRefused_ = false;
+        float roadWetness_ = 0.0f;
         float accumulator_ = 0.0f;
         float lastSpeedMs_ = 0.0f;
     };

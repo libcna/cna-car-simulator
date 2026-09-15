@@ -170,6 +170,7 @@ namespace CarSim::App
         save_.settings.startInCockpit = cameraMode_ == Render::CameraMode::Cockpit;
         save_.settings.timeOfDayHours = timeOfDayHours_;
         save_.settings.timeScale = timeScale_;
+        save_.settings.weather = Core::ToString(weather_.kind);
         save_.bindings = input_.NamedBindings();
         std::string error;
         if (!Core::WriteSaveData(savePath_, save_, error)) {
@@ -303,11 +304,13 @@ namespace CarSim::App
         auto& device = getGraphicsDeviceProperty();
         LoadSave();
         ApplyClockSettings();
+        ApplyWeatherSettings();
         LoadMap();
         LoadVehicle();
         ApplySaveToVehicle();
 
         sky_ = std::make_unique<Render::SkyRenderer>(device, rig_);
+        rain_ = std::make_unique<Render::RainRenderer>(device);
         font_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_regular_28");
         fontBold_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/ui_bold_44");
         if (!font_) {
@@ -356,6 +359,15 @@ namespace CarSim::App
         mirror_ = std::make_unique<Render::MirrorView>(device);
         chaseCamera_.groundHeight = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
         chaseCamera_.Snap(vehicle_->Snapshot());
+        // The clock and the weather were read before the renderers existed, so hand the finished
+        // palette to them now that they do.
+        if (vehicle_) {
+            vehicle_->SetRoadWetness(weather_.wetness);
+        }
+        if (worldRenderer_) {
+            worldRenderer_->SetWetness(weather_.wetness);
+        }
+        RefreshLighting(true);
         if (options_.mirrorEvery) {
             save_.settings.mirrorUpdateEvery = *options_.mirrorEvery;
         }
@@ -423,6 +435,10 @@ namespace CarSim::App
             RefreshLighting(true);
             std::cout << "clock: " << FormatClock(timeOfDayHours_) << "\n";
         }
+        if (input_.Pressed(GameAction::CycleWeather)) {
+            weather_.Set(weather_.Next());
+            std::cout << "weather: " << Core::Describe(weather_.kind) << " moving in\n";
+        }
         if (input_.Pressed(GameAction::ToggleTimeFlow)) {
             if (timeScale_ > 0.0f) {
                 frozenTimeScale_ = timeScale_;
@@ -481,6 +497,33 @@ namespace CarSim::App
                   << "x (sun " << rig_.SunElevationDeg() << " deg)\n";
     }
 
+    void SimulatorGame::ApplyWeatherSettings()
+    {
+        Core::WeatherKind kind = Core::WeatherKind::FewClouds;
+        Core::WeatherFromName(save_.settings.weather, kind);
+        if (options_.weather) {
+            Core::WeatherFromName(*options_.weather, kind);
+        }
+        weather_.Snap(kind);   // the weather is already settled when the world appears
+        ApplyWeatherToWorld();
+        if (vehicle_) {
+            vehicle_->SetRoadWetness(weather_.wetness);
+        }
+        std::cout << "weather: " << Core::Describe(weather_.kind) << " (cover " << weather_.cloudCover
+                  << ", rain " << weather_.rain << ")\n";
+    }
+
+    void SimulatorGame::ApplyWeatherToWorld()
+    {
+        rig_.SetWeather(weather_.cloudCover, weather_.rain);
+        lastWeatherCover_ = weather_.cloudCover;
+        lastWeatherRain_ = weather_.rain;
+        if (worldRenderer_) {
+            worldRenderer_->SetWetness(weather_.wetness);
+        }
+        RefreshLighting(true);
+    }
+
     void SimulatorGame::UpdateTimeOfDay(const float dt)
     {
         if (timeScale_ > 0.0f) {
@@ -489,6 +532,28 @@ namespace CarSim::App
             rig_.SetTimeOfDay(timeOfDayHours_);
         }
         RefreshLighting(false);
+    }
+
+    void SimulatorGame::UpdateWeather(const float dt)
+    {
+        // The weather runs on the same accelerated clock as the sky, so a front passes in a few
+        // minutes of play rather than a few hours.
+        weather_.Update(dt * std::max(1.0f, timeScale_ / 60.0f));
+        if (worldRenderer_) {
+            worldRenderer_->SetWetness(weather_.wetness);
+        }
+        if (vehicle_) {
+            vehicle_->SetRoadWetness(weather_.wetness);
+        }
+        if (std::fabs(weather_.cloudCover - lastWeatherCover_) > 0.01f || std::fabs(weather_.rain - lastWeatherRain_) > 0.01f) {
+            ApplyWeatherToWorld();
+        }
+        if (rain_) {
+            rain_->Update(dt, weather_);
+        }
+        if (audio_) {
+            audio_->SetWeather(weather_.rain, weather_.wetness);
+        }
     }
 
     void SimulatorGame::RefreshLighting(const bool force)
@@ -562,6 +627,7 @@ namespace CarSim::App
             return;
         }
         UpdateTimeOfDay(dt);
+        UpdateWeather(dt);
 
         Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
         ApplyAutoDrive(controls);
@@ -698,6 +764,9 @@ namespace CarSim::App
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);
         }
+        if (rain_) {
+            rain_->Draw(device, view, projection, camera.position, rig_.fogColor);
+        }
         lap(kPassVehicle);
 
         if (hudVisible_ || showHelp_ || showDebug_) {
@@ -773,6 +842,8 @@ namespace CarSim::App
         if (timeScale_ <= 0.0f) {
             clock += " (frozen)";
         }
+        clock += "   ";
+        clock += Core::Describe(weather_.kind);
         font_->DrawShadowed(*spriteBatch_, clock, Vector2(w - 24.0f, 18.0f), Color(235, 235, 235, 190), 0.8f, Render::TextAlign::Right);
 
         std::string lamps;
@@ -846,7 +917,8 @@ namespace CarSim::App
             GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera, GameAction::ToggleMirror,
             GameAction::ToggleHud, GameAction::ToggleHelp, GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
             GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,
-            GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow, GameAction::Quit};
+            GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow,
+            GameAction::CycleWeather, GameAction::Quit};
         const int count = static_cast<int>(sizeof(rows) / sizeof(rows[0]));
         const int perColumn = (count + 1) / 2;
         const float scale = h >= 700.0f ? 0.7f : 0.6f;

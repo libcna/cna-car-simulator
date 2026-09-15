@@ -18,6 +18,10 @@ namespace CarSim::Render
         float timeOfDayHours = 10.5f;
         float latitudeDeg = 49.8f;          // Bohemia
         float sunDeclinationDeg = 20.0f;    // early summer
+        /// Weather the palette is computed under: cloud cover softens and kills the sun, rain
+        /// greys the air and shortens the view. Both are applied inside SetTimeOfDay.
+        float cloudCover = 0.0f;
+        float rainAmount = 0.0f;
 
         Vector3 sunDirection;            // unit vector pointing FROM the key light towards the scene
         float sunElevationDeg = 0.0f;    // of the sun itself, negative at night (the key light is the moon then)
@@ -49,6 +53,8 @@ namespace CarSim::Render
         /// Points the sun at the given local hour and recomputes every colour from its
         /// elevation. Hours outside 0..24 wrap.
         void SetTimeOfDay(float hours);
+        /// Sets the cloud cover and rain (0..1) and recomputes the palette at the current hour.
+        void SetWeather(float cover, float rain);
         /// Sun elevation above the horizon in degrees (negative at night).
         [[nodiscard]] float SunElevationDeg() const { return sunElevationDeg; }
         /// Sun azimuth in degrees clockwise from north (0 = north, 90 = east).
@@ -65,7 +71,11 @@ namespace CarSim::Render
         /// baked once and scaled per frame instead of being re-baked as the sun moves.
         [[nodiscard]] Vector3 BakedLightingScale(const LightingRig& reference) const;
 
-        /// The rig the baked world lighting was generated with (fixed mid-morning sun).
+        /// The rig the baked world lighting was generated with (fixed mid-morning sun, clear sky).
         [[nodiscard]] static LightingRig BakeReference();
+
+    private:
+        /// Folds `cloudCover` and `rainAmount` into the palette SetTimeOfDay has just computed.
+        void ApplyWeather(float day);
     };
 }

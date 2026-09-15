@@ -51,6 +51,7 @@ namespace CarSim::Input
             case GameAction::TimeForward: return "TimeForward";
             case GameAction::TimeBackward: return "TimeBackward";
             case GameAction::ToggleTimeFlow: return "ToggleTimeFlow";
+            case GameAction::CycleWeather: return "CycleWeather";
             case GameAction::Count: break;
         }
         return "?";
@@ -99,6 +100,7 @@ namespace CarSim::Input
             case GameAction::TimeForward: return "Clock forward one hour";
             case GameAction::TimeBackward: return "Clock back one hour";
             case GameAction::ToggleTimeFlow: return "Freeze or resume the clock";
+            case GameAction::CycleWeather: return "Next weather (clear, cloud, overcast, rain)";
             case GameAction::Count: break;
         }
         return "";
@@ -143,6 +145,7 @@ namespace CarSim::Input
             {GameAction::TimeForward, Keys::F7},
             {GameAction::TimeBackward, Keys::F6},
             {GameAction::ToggleTimeFlow, Keys::F8},
+            {GameAction::CycleWeather, Keys::F9},
         };
     }
 

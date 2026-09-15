@@ -21,7 +21,7 @@ namespace CarSim::Input
         IndicatorLeft, IndicatorRight, Hazard, Headlights, HighBeam,
         ToggleCamera, ToggleHelp, ToggleDebug, Screenshot, ResetVehicle, ResetTrip, Quit,
         VolumeUp, VolumeDown, ToggleMirror, ToggleHud,
-        TimeForward, TimeBackward, ToggleTimeFlow,
+        TimeForward, TimeBackward, ToggleTimeFlow, CycleWeather,
         Count
     };
 

@@ -5,12 +5,14 @@
 #include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Core/CommandLine.hpp"
 #include "CarSim/Core/SaveData.hpp"
+#include "CarSim/Core/Weather.hpp"
 #include "CarSim/Input/InputMapper.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/Camera.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/LightingRig.hpp"
+#include "CarSim/Render/RainRenderer.hpp"
 #include "CarSim/Render/SkyRenderer.hpp"
 #include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Render/TestGround.hpp"
@@ -61,6 +63,9 @@ namespace CarSim::App
         void HandleAppActions();
         /// Advances the clock and re-applies the lighting when the sun has moved enough.
         void ApplyClockSettings();
+        void ApplyWeatherSettings();
+        void ApplyWeatherToWorld();
+        void UpdateWeather(float dt);
         void UpdateTimeOfDay(float dt);
         void RefreshLighting(bool force = false);
         void ApplyAutoDrive(Sim::DriverControls& controls);
@@ -101,9 +106,13 @@ namespace CarSim::App
         float timeOfDayHours_ = 10.5f;
         float timeScale_ = 60.0f;
         float frozenTimeScale_ = 60.0f;   // remembered while the clock is frozen
+        Core::WeatherState weather_;
+        float lastWeatherCover_ = -1.0f;   // cover the rig was last rebuilt for
+        float lastWeatherRain_ = -1.0f;
         float lastLightingElevationDeg_ = -999.0f;
         float lastEnvironmentElevationDeg_ = -999.0f;
         std::unique_ptr<Render::SkyRenderer> sky_;
+        std::unique_ptr<Render::RainRenderer> rain_;
         std::unique_ptr<Render::TestGround> testGround_;
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;
         std::unique_ptr<Render::TrafficRenderer> trafficRenderer_;

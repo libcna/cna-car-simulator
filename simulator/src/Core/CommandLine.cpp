@@ -1,5 +1,7 @@
 #include "CarSim/Core/CommandLine.hpp"
 
+#include "CarSim/Core/Weather.hpp"
+
 #include <charconv>
 #include <cmath>
 #include <stdexcept>
@@ -172,6 +174,16 @@ namespace CarSim::Core
                                                 std::string(*value) + "'");
                     }
                 }
+            } else if (arg == "--weather") {
+                if (const auto value = takeValue(arg)) {
+                    WeatherKind kind = WeatherKind::FewClouds;
+                    if (WeatherFromName(std::string(*value), kind)) {
+                        options.weather = std::string(*value);
+                    } else {
+                        result.errors.push_back("--weather expects clear, cloudy, overcast or rain, got '" +
+                                                std::string(*value) + "'");
+                    }
+                }
             } else if (arg == "--time-scale") {
                 if (const auto value = takeValue(arg)) {
                     try {
@@ -273,6 +285,7 @@ namespace CarSim::Core
             "  --lights              Switch the headlights on at start (captures)\n"
             "  --time <hh:mm>        Clock the world starts at (also accepts decimal hours)\n"
             "  --time-scale <x>      Simulated seconds of the clock per real second (0 freezes the sky)\n"
+            "  --weather <name>      clear, cloudy, overcast or rain (the weather starts settled)\n"
             "  --help-overlay        Start with the help overlay open\n"
             "  --debug-overlay       Start with the debug overlay open\n"
             "  --content <dir>       Content root directory\n"

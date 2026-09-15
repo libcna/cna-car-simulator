@@ -107,13 +107,58 @@ namespace CarSim::Render
         // Night air is clearer but the view fades sooner in the dark.
         fogStart = Mix(Vector3(120.0f, 0.0f, 0.0f), Vector3(300.0f, 0.0f, 0.0f), day).X;
         fogEnd = Mix(Vector3(1400.0f, 0.0f, 0.0f), Vector3(2600.0f, 0.0f, 0.0f), day).X;
+
+        ApplyWeather(day);
+    }
+
+    void LightingRig::SetWeather(const float cover, const float rain)
+    {
+        cloudCover = Clamp01(cover);
+        rainAmount = Clamp01(rain);
+        SetTimeOfDay(timeOfDayHours);
+    }
+
+    void LightingRig::ApplyWeather(const float day)
+    {
+        const float cover = Clamp01(cloudCover);
+        const float rain = Clamp01(rainAmount);
+        if (cover <= 0.001f && rain <= 0.001f) {
+            return;
+        }
+        // Cloud moves the key light into the dome: the sun collapses and most of what it loses
+        // comes back as flat, slightly cool light from the whole sky. Expressing it as a
+        // redistribution rather than an absolute grey keeps it right at every hour -- an
+        // overcast midnight stays dark instead of turning into an overcast noon.
+        const float keyLoss = Clamp01(0.95f * cover);
+        const Vector3 lost = sunColor * keyLoss;
+        const float lostLuma = lost.X * 0.3f + lost.Y * 0.59f + lost.Z * 0.11f;
+        const Vector3 diffused(lostLuma * 0.97f, lostLuma * 1.00f, lostLuma * 1.07f);
+        sunColor = sunColor * (1.0f - keyLoss);
+        skyAmbient = (skyAmbient + diffused * 0.26f) * (1.0f - 0.10f * cover);
+        skyFillColor = (skyFillColor + diffused * 0.30f) * (1.0f - 0.10f * cover);
+        groundBounceColor = groundBounceColor * (1.0f - 0.45f * cover);
+        // Rain takes another third out of what is left and greys it.
+        sunColor = sunColor * (1.0f - 0.35f * rain);
+        skyAmbient = skyAmbient * (1.0f - 0.20f * rain);
+        skyFillColor = skyFillColor * (1.0f - 0.20f * rain);
+
+        // The air goes grey and the view closes in. These are sky and fog colours rather than
+        // irradiance, so they follow the daylight factor directly.
+        const Vector3 overcastFog = Mix(Vector3(0.030f, 0.034f, 0.042f), Vector3(0.66f, 0.68f, 0.71f), day);
+        fogColor = Mix(fogColor, overcastFog, cover * 0.85f);
+        fogColor = Mix(fogColor, Mix(Vector3(0.022f, 0.025f, 0.031f), Vector3(0.55f, 0.57f, 0.60f), day), rain * 0.7f);
+        zenithColor = Mix(zenithColor, Mix(Vector3(0.012f, 0.014f, 0.018f), Vector3(0.44f, 0.46f, 0.50f), day), cover * 0.92f);
+        horizonColor = Mix(horizonColor, Mix(Vector3(0.020f, 0.022f, 0.027f), Vector3(0.62f, 0.64f, 0.67f), day), cover * 0.92f);
+        fogStart *= 1.0f - 0.45f * cover - 0.35f * rain;
+        fogEnd *= 1.0f - 0.50f * cover - 0.32f * rain;
     }
 
     float LightingRig::LampFactor() const
     {
         // Lamps come on as the sun sets (they are already on below the horizon) and go off again
-        // once it is properly up.
-        return 1.0f - SmoothStep(-4.0f, 6.0f, sunElevationDeg);
+        // once it is properly up. A thick lid brings them on earlier.
+        const float effective = sunElevationDeg - 3.0f * Clamp01(cloudCover);
+        return 1.0f - SmoothStep(-4.0f, 6.0f, effective);
     }
 
     Vector3 LightingRig::BakedLightingScale(const LightingRig& reference) const

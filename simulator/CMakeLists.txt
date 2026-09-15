@@ -14,6 +14,7 @@ add_library(carsim_core STATIC
     src/Core/Noise.cpp
     src/Core/PiecewiseLinear.cpp
     src/Core/SaveData.cpp
+    src/Core/Weather.cpp
     src/Core/Version.cpp
     src/Map/LaneGraph.cpp
     src/Map/MapData.cpp
@@ -67,6 +68,7 @@ add_library(carsim_render STATIC
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralCockpit.cpp
     src/Render/ProceduralTextures.cpp
+    src/Render/RainRenderer.cpp
     src/Render/PropGenerator.cpp
     src/Render/RoadMeshBuilder.cpp
     src/Render/Screenshot.cpp

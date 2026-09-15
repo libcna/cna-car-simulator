@@ -1,5 +1,7 @@
 #include "CarSim/Core/SaveData.hpp"
 
+#include "CarSim/Core/Weather.hpp"
+
 #include "CarSim/Core/JsonReader.hpp"
 
 #include <cstdlib>
@@ -108,6 +110,13 @@ namespace CarSim::Core
             d.settings.timeOfDayHours = std::clamp(d.settings.timeOfDayHours, 0.0f, 24.0f);
             r.Float(settings, "timeScale", d.settings.timeScale, "save.settings");
             d.settings.timeScale = std::clamp(d.settings.timeScale, 0.0f, 3600.0f);
+            r.String(settings, "weather", d.settings.weather, "save.settings");
+            {
+                WeatherKind kind = WeatherKind::FewClouds;
+                if (!WeatherFromName(d.settings.weather, kind)) {
+                    d.settings.weather = "few-clouds";
+                }
+            }
             r.Bool(settings, "hudVisible", d.settings.hudVisible, "save.settings");
             r.Bool(settings, "startInCockpit", d.settings.startInCockpit, "save.settings");
         }
@@ -174,6 +183,7 @@ namespace CarSim::Core
         out << "    \"mirrorUpdateEvery\": " << data.settings.mirrorUpdateEvery << ",\n";
         out << "    \"timeOfDayHours\": " << data.settings.timeOfDayHours << ",\n";
         out << "    \"timeScale\": " << data.settings.timeScale << ",\n";
+        out << "    \"weather\": \"" << Escape(data.settings.weather) << "\",\n";
         out << "    \"hudVisible\": " << (data.settings.hudVisible ? "true" : "false") << ",\n";
         out << "    \"startInCockpit\": " << (data.settings.startInCockpit ? "true" : "false") << "\n";
         out << "  },\n";

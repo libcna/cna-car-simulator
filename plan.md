@@ -929,3 +929,30 @@ test, and the static checks stay mandatory.
   in daylight. The night floor of the palette was raised by half a stop at the same time
   (moonlight, night ambient and night sky fill) so that a moonlit street is legible without the
   lamps.
+- [x] `LW-009` Weather model. `Core::WeatherState` (project-owned, no dependencies) holds a
+  preset kind -- clear, few clouds, overcast, rain -- and the three continuous values the world
+  is drawn and driven from: cloud cover, falling rain and how wet the road is. `Set` changes the
+  preset and `Update` eases towards it, so a front moves in over a couple of minutes; the road
+  soaks in about a minute and takes ten to dry, so it still shines after a shower. `--weather
+  <name>` and the save file choose it, `F9` cycles it, and the HUD names it next to the clock.
+- [x] `LW-010` Weather lighting. `LightingRig::SetWeather(cover, rain)` folds the weather into
+  the palette the hour has just produced. Cloud moves the key light into the dome: the sun
+  collapses to a twentieth of its strength under a solid lid and most of what it loses comes
+  back as flat, slightly cool ambient and sky fill, so an overcast noon keeps about 80 % of the
+  light on a horizontal surface while a wall facing away from the sun actually gains. Expressing
+  it as a redistribution rather than an absolute grey is what keeps an overcast midnight dark.
+  Rain takes another third out and greys the fog; both shorten the view. The lamps come on about
+  three degrees of sun elevation earlier under a lid.
+- [x] `LW-011` Weather sky. The cloud layer texture is regenerated from the cover (the noise
+  threshold slides and the clouds darken as they thicken), the lid hangs lower when it is solid,
+  and the stars, the moon and the sun disc fade out as the cover closes in.
+- [x] `LW-012` Rain. `RainRenderer` keeps 900 streak cards in a 44 m slab that scrolls with the
+  wind and wraps around the camera; the drops lean along the fall direction and face the viewer,
+  and only as many of them are drawn as the rain deserves, so light rain is a subset of heavy
+  rain rather than a different pattern. It costs about 0.35 ms per frame in town on llvmpipe and
+  nothing when it is dry.
+- [x] `LW-013` Wet road. Wet asphalt is darker and picks up the colour of the sky
+  (`WorldRenderer::SetWetness`; the paint on it darkens less because it stays rough), and
+  `Vehicle::SetRoadWetness` takes 30 % off the peak grip, which lengthens the 100 km/h braking
+  distance by about a third. The audio gains a rain hiss (louder in the cockpit, where the drops
+  land on the roof) and the spray a wet road throws up under the wheels.

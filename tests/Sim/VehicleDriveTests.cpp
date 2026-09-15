@@ -177,6 +177,29 @@ TEST_F(VehicleDrive, BrakingFrom100KmhStopsWithinRealisticDistance)
     EXPECT_NEAR(v.OriginPosition().X, start.X, 1.0f) << "braking must not pull the car sideways";
 }
 
+TEST_F(VehicleDrive, AWetRoadLengthensTheBrakingDistance)
+{
+    const auto stoppingDistance = [this](const float wetness) {
+        Vehicle v(def, TransmissionMode::Automatic);
+        v.SetRoadWetness(wetness);
+        Drive(v, ground, 2.0f, [](float) { DriverControls c; c.brake = 1.0f; return c; });
+        v.ForceForwardSpeed(Units::KmhToMs(100.0f));
+        const Vector3 start = v.OriginPosition();
+        float t = 0.0f;
+        while (v.SpeedKmh() > 1.0f && t < 20.0f) {
+            DriverControls c;
+            c.brake = 1.0f;
+            v.Update(c, kFrame, ground);
+            t += kFrame;
+        }
+        return (v.OriginPosition() - start).Length();
+    };
+    const float dry = stoppingDistance(0.0f);
+    const float wet = stoppingDistance(1.0f);
+    EXPECT_GT(wet, dry * 1.20f) << "wet " << wet << " m vs dry " << dry << " m";
+    EXPECT_LT(wet, dry * 1.80f) << "wet asphalt, not ice";
+}
+
 TEST_F(VehicleDrive, TracksStraightAtHighwaySpeed)
 {
     Vehicle v(def, TransmissionMode::Automatic);

@@ -45,7 +45,9 @@ namespace CarSim::Render::Textures
     [[nodiscard]] std::vector<Image> SkyCubeFaces(int size, const Rgb& zenith, const Rgb& horizon, const Rgb& ground,
                                                   const Microsoft::Xna::Framework::Vector3& toSun, float sunSharpness = 400.0f);
     /// Cumulus cloud layer with alpha, tileable.
-    [[nodiscard]] Image CloudLayer(int size, std::uint32_t seed);
+    /// Cloud layer seen from below. `coverage` runs from 0 (a few wisps) to 1 (a solid
+    /// overcast lid); the clouds also darken as they thicken.
+    [[nodiscard]] Image CloudLayer(int size, std::uint32_t seed, float coverage = 0.4f);
     /// Car interior fabric/plastic grain.
     [[nodiscard]] Image InteriorGrain(int size, const Rgb& base, std::uint32_t seed);
 }

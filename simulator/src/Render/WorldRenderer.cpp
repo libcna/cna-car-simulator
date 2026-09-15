@@ -949,7 +949,16 @@ namespace CarSim::Render
             // Pass 0: surfaces; pass 1: markings with a depth bias.
             const bool markings = pass == 1;
             device.setRasterizerStateProperty(markings ? (mirrored ? *markingStateMirrored_ : *markingState_) : solid);
-            const Vector3 tint = markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f);
+            Vector3 tint = markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f);
+            if (wetness_ > 0.0f) {
+                // Wet asphalt swallows light and takes on the colour of the sky it reflects; the
+                // paint on it darkens less, because it stays rough.
+                const float wet = wetness_ * (markings ? 0.45f : 1.0f);
+                const Vector3 sky = rig_.horizonColor;
+                tint = Vector3(tint.X * (1.0f - 0.42f * wet) + sky.X * 0.10f * wet,
+                               tint.Y * (1.0f - 0.42f * wet) + sky.Y * 0.10f * wet,
+                               tint.Z * (1.0f - 0.40f * wet) + sky.Z * 0.13f * wet);
+            }
             roadUnlitEffect_->setDiffuseColorProperty(Vector3(tint.X * bakedScale_.X, tint.Y * bakedScale_.Y, tint.Z * bakedScale_.Z));
             for (const auto& b : roadBatches_) {
                 if ((b.surface == Surface::Marking) != markings || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) {

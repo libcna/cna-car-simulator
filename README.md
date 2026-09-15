@@ -113,6 +113,7 @@ cna-car-simulator [options]
   --mirror-every <n>                        redraw the rear-view mirror every n frames
   --time <hh:mm> --time-scale <x>           clock the world starts at, and how fast it runs
                                             (60 = a day in 24 minutes, 0 freezes the sky)
+  --weather <name>                          clear, cloudy, overcast or rain
   --frames <n> --screenshot <file>          run n frames, save the last one, exit
   --screenshot-cluster <file>               also save the instrument cluster texture
   --lockstep --traffic-warmup <s> --lights  deterministic captures: one sim step per frame,
@@ -154,6 +155,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
 | Clock back / forward an hour, freeze the clock | `F6` / `F7`, `F8` |
+| Next weather (clear, cloud, overcast, rain) | `F9` |
 | Help overlay, debug overlay, screenshot | `F1`, `F3`, `F12` |
 | Quit | `Esc` |
 

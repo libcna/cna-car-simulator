@@ -95,6 +95,11 @@ namespace CarSim::Sim
         lastSpeedMs_ = 0.0f;
     }
 
+    void Vehicle::SetRoadWetness(const float wetness)
+    {
+        roadWetness_ = std::clamp(wetness, 0.0f, 1.0f);
+    }
+
     void Vehicle::SetTransmissionMode(const TransmissionMode mode)
     {
         if (transmission_->Mode() == mode) {
@@ -429,7 +434,7 @@ namespace CarSim::Sim
         w.lateralSpeed = vLat;
 
         const float load = w.suspensionForce;
-        const float surfaceFactor = SurfaceFrictionFactor(w.hit.surface);
+        const float surfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_);
         const float lowSpeed = std::max(0.1f, def_.tyres.lowSpeedMs);
         const float vDen = std::max(std::fabs(vLong), lowSpeed);
         const float slipAngle = std::atan2(vLat, std::fabs(vLong) + 0.05f);

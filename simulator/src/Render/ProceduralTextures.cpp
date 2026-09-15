@@ -275,15 +275,21 @@ namespace CarSim::Render::Textures
         return faces;
     }
 
-    Image CloudLayer(const int size, const std::uint32_t seed)
+    Image CloudLayer(const int size, const std::uint32_t seed, const float coverage)
     {
         Image img(size, size, Color(255, 255, 255, 0));
+        const float cover = Clamp01(coverage);
+        // The threshold slides through the noise: high for a clear sky, below the noise floor
+        // for a solid lid. A thick layer is also greyer, because little light gets through it.
+        const float threshold = 0.74f - 0.52f * cover;
+        const float contrast = 3.6f - 1.9f * cover;
+        const float dark = 1.0f - 0.42f * cover;
         img.Generate([&](int, int, float u, float v) {
             const float n = Noise::Fbm(u * 5.0f, v * 5.0f, 5, 6, 0.55f, seed);
             const float detail = Noise::Fbm(u * 24.0f, v * 24.0f, 24, 3, 0.5f, seed + 3);
-            const float coverage = Clamp01((n - 0.50f) * 3.6f + (detail - 0.5f) * 0.5f);
-            const float shade = 0.78f + 0.24f * Clamp01((n - 0.48f) * 3.0f);
-            return ToColor({shade, shade, shade * 1.03f}, coverage * 0.95f);
+            const float density = Clamp01((n - threshold) * contrast + (detail - 0.5f) * 0.5f);
+            const float shade = (0.78f + 0.24f * Clamp01((n - threshold + 0.02f) * 3.0f)) * dark;
+            return ToColor({shade, shade, shade * 1.03f}, Clamp01(density * (0.95f + 0.6f * cover)));
         });
         return img;
     }

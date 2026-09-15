@@ -39,6 +39,9 @@ namespace CarSim::Audio
         void Update(const Sim::VehicleState& state, bool cockpit, const std::vector<Collision::ContactEvent>& contacts, float dt);
 
         AudioLevels levels;
+        /// Falling rain (0..1) and how wet the road is (0..1): rain hisses on the roof and the
+        /// screen, a wet road adds spray under the wheels. Set once per frame from the weather.
+        void SetWeather(float rain, float wetness);
         [[nodiscard]] bool Enabled() const { return enabled_; }
         [[nodiscard]] int BlocksSubmitted() const { return blocksSubmitted_; }
         [[nodiscard]] int Underruns() const { return underruns_; }
@@ -78,6 +81,15 @@ namespace CarSim::Audio
         float brakeGain_ = 0.0f;             // smoothed brake hiss gain
         NoiseSource brakeNoise_{4242u};
         OnePoleLowPass brakeLp_;
+        float rain_ = 0.0f;                  // falling rain, 0..1
+        float wetness_ = 0.0f;               // wet road, 0..1
+        float rainGain_ = 0.0f;              // smoothed rain hiss gain
+        float sprayGain_ = 0.0f;             // smoothed spray gain
+        NoiseSource rainNoise_{9137u};
+        NoiseSource sprayNoise_{5521u};
+        OnePoleLowPass rainLp_;
+        OnePoleHighPass rainHp_;
+        OnePoleLowPass sprayLp_;
         // Edge detection.
         bool prevLeft_ = false;
         bool prevRight_ = false;
