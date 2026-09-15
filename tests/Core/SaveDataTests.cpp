@@ -1,4 +1,5 @@
 #include "CarSim/Core/SaveData.hpp"
+#include "CarSim/Render/QualityTier.hpp"
 #include "CarSim/Input/InputMapper.hpp"
 
 #include <gtest/gtest.h>
@@ -107,4 +108,81 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     EXPECT_NE(mapper.KeysFor(Input::GameAction::Horn).find("J"), std::string::npos);
     const auto named = mapper.NamedBindings();
     EXPECT_FALSE(named.empty());
+}
+
+// A profile written before the day/night cycle and the weather existed must still load, keep the
+// player's mileage and settings, and get sensible defaults for everything it has never heard of.
+// Every phase that adds a settings field has to keep this passing, which is what stops a new
+// release quietly resetting somebody's car.
+TEST(SaveData, ProfilesFromEarlierPhasesStillLoad)
+{
+    // Exactly what a Phase 11 build wrote: no clock, no weather, no mirror rate.
+    const auto old = Core::ParseSaveData(R"({
+      "schemaVersion": 1,
+      "odometerKm": 1234.5,
+      "tripKm": 12.25,
+      "transmissionMode": "manual",
+      "vehicleId": "lipan_12",
+      "mapId": "lipova",
+      "settings": { "masterVolume": 0.6, "mirrorEnabled": false, "hudVisible": true, "startInCockpit": true }
+    })");
+    ASSERT_TRUE(old.loaded);
+    EXPECT_FALSE(old.readOnly);
+    EXPECT_TRUE(old.warnings.empty()) << (old.warnings.empty() ? "" : old.warnings.front());
+    // What was in the file is kept.
+    EXPECT_DOUBLE_EQ(old.data.odometerKm, 1234.5);
+    EXPECT_DOUBLE_EQ(old.data.tripKm, 12.25);
+    EXPECT_EQ(old.data.transmissionMode, "manual");
+    EXPECT_EQ(old.data.vehicleId, "lipan_12");
+    EXPECT_FLOAT_EQ(old.data.settings.masterVolume, 0.6f);
+    EXPECT_FALSE(old.data.settings.mirrorEnabled);
+    EXPECT_TRUE(old.data.settings.startInCockpit);
+    // What it never had gets the default, not a zero.
+    const Core::SaveSettings defaults;
+    EXPECT_FLOAT_EQ(old.data.settings.timeOfDayHours, defaults.timeOfDayHours);
+    EXPECT_FLOAT_EQ(old.data.settings.timeScale, defaults.timeScale);
+    EXPECT_EQ(old.data.settings.weather, defaults.weather);
+    EXPECT_EQ(old.data.settings.mirrorUpdateEvery, defaults.mirrorUpdateEvery);
+
+    // And writing it back produces a file this build reads identically: no silent loss.
+    const auto again = Core::ParseSaveData(Core::SerializeSaveData(old.data));
+    ASSERT_TRUE(again.loaded);
+    EXPECT_DOUBLE_EQ(again.data.odometerKm, old.data.odometerKm);
+    EXPECT_EQ(again.data.settings.weather, old.data.settings.weather);
+    EXPECT_FLOAT_EQ(again.data.settings.timeOfDayHours, old.data.settings.timeOfDayHours);
+}
+
+// The graphics tiers. Three of them, each a set of numbers chosen from measurements, and every
+// one has to be strictly cheaper than the one above it -- otherwise it is not a tier, it is a
+// slider that does nothing.
+TEST(SaveData, GraphicsTiersParseAndAreOrdered)
+{
+    Render::QualityTier tier = Render::QualityTier::High;
+    EXPECT_TRUE(Render::QualityFromName("low", tier));
+    EXPECT_EQ(tier, Render::QualityTier::Low);
+    EXPECT_TRUE(Render::QualityFromName("MEDIUM", tier));
+    EXPECT_EQ(tier, Render::QualityTier::Medium);
+    EXPECT_TRUE(Render::QualityFromName("High", tier));
+    EXPECT_EQ(tier, Render::QualityTier::High);
+    // An unreadable name leaves the caller's value alone so it can fall back.
+    tier = Render::QualityTier::Medium;
+    EXPECT_FALSE(Render::QualityFromName("ultra", tier));
+    EXPECT_EQ(tier, Render::QualityTier::Medium);
+    EXPECT_STREQ(Render::ToString(Render::QualityTier::Low), "low");
+
+    const auto low = Render::SettingsFor(Render::QualityTier::Low);
+    const auto medium = Render::SettingsFor(Render::QualityTier::Medium);
+    const auto high = Render::SettingsFor(Render::QualityTier::High);
+    EXPECT_LT(low.drawDistanceScale, medium.drawDistanceScale);
+    EXPECT_LT(medium.drawDistanceScale, high.drawDistanceScale);
+    EXPECT_LT(low.mirrorDistanceM, medium.mirrorDistanceM);
+    EXPECT_LT(medium.mirrorDistanceM, high.mirrorDistanceM);
+    EXPECT_GT(low.mirrorUpdateEvery, medium.mirrorUpdateEvery);
+    EXPECT_GT(medium.mirrorUpdateEvery, high.mirrorUpdateEvery);
+    EXPECT_LE(low.vegetationScale, medium.vegetationScale);
+    // The default tier is the one the screenshots and the performance tables were taken at.
+    const Core::SaveSettings defaults;
+    EXPECT_EQ(defaults.graphicsQuality, "high");
+    EXPECT_FLOAT_EQ(high.drawDistanceScale, 1.0f);
+    EXPECT_EQ(high.mirrorUpdateEvery, 1);
 }

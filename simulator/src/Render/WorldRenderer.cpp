@@ -919,8 +919,11 @@ namespace CarSim::Render
     {
         const RasterizerState& solid = mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise;
         // Everything this pass may draw stops here.
-        const float horizon = maxDistance > 0.0f ? std::min(maxDistance, rig_.fogEnd) : rig_.fogEnd;
-        const float terrainCull = maxDistance > 0.0f ? std::min(maxDistance, terrainCullDistanceM) : terrainCullDistanceM;
+        // The quality tier scales the main view's distances; a pass with its own cap (the mirror)
+        // takes the shorter of the two.
+        const float scale = maxDistance > 0.0f ? 1.0f : drawDistanceScale_;
+        const float horizon = maxDistance > 0.0f ? std::min(maxDistance, rig_.fogEnd) : rig_.fogEnd * scale;
+        const float terrainCull = maxDistance > 0.0f ? std::min(maxDistance, terrainCullDistanceM) : terrainCullDistanceM * scale;
         stats_.terrainChunksDrawn = 0;
         stats_.roadBatchesDrawn = 0;
         stats_.drawCalls = 0;
@@ -1048,7 +1051,7 @@ namespace CarSim::Render
 
         // Trees: alpha-tested cards, both windings present, distance culled.
         const Vector3 cameraPosition = Matrix::Invert(view).getTranslationProperty();
-        const float treeRange = maxDistance > 0.0f ? std::min(maxDistance, 1100.0f) : 1100.0f;
+        const float treeRange = maxDistance > 0.0f ? std::min(maxDistance, 1100.0f) : 1100.0f * scale * vegetationScale_;
         device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
         treeEffect_->setWorldProperty(Matrix::getIdentityProperty());
         treeEffect_->setViewProperty(view);

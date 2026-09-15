@@ -88,3 +88,85 @@ they have nothing to draw.
    per-chunk static meshes; a single-quad far LOD beyond 500 m.
 3. Mirror pass at lower resolution (the update interval exists, see above).
 4. Road strips: one buffer per surface material instead of per piece.
+
+## Phase 13: the benchmark suite, the mirror, and the quality tiers
+
+### How to reproduce any number on this page
+
+Everything below comes from the deterministic scenarios, not from a hand-driven session:
+
+```bash
+scripts/benchmark_suite.sh --label "<what machine, what renderer>"     # eight scenes
+python3 scripts/benchmark_report.py build/benchmarks --label "..."     # the tables
+python3 scripts/benchmark_report.py build/benchmarks --against build/bench-before   # a comparison
+```
+
+A scene is a fixed route driven by the autopilot over the real physics (`--route town`), a fixed
+traffic seed with a 60 s warm-up, a frozen clock and a fixed weather preset, one simulation step
+per drawn frame. Two runs on the same machine differ only by noise. `--quick` (320 x 200,
+240 frames) is what the numbers in this section were taken at, because a software rasteriser
+cannot do eight scenes at 1280 x 720 in a sensible time.
+
+**Every table on this page is the container's software rasteriser (Mesa llvmpipe, four CPU
+threads, no GPU).** They are an upper bound dominated by fill rate and say very little about a
+real machine. `docs/real-hardware-validation.md` is the procedure for producing the ones that
+matter; no run on real GPU hardware has been recorded yet.
+
+### The rear-view mirror
+
+Profiled before anything was changed, on the `town` route in the cockpit at 320 x 200, 150
+frames:
+
+| | mirror pass | frame wall | draw calls | triangles |
+| --- | ---: | ---: | ---: | ---: |
+| before (mirror far plane 1500 m, no distance cap) | 58.9 ms | 254.5 ms | 1330 | 1.25 M |
+| after (far plane 320 m, world capped at 300 m) | 45.5 ms | 244.6 ms | 1330 | 1.25 M |
+
+A quarter of the cockpit frame was a second full world pass drawn to a strip 200 pixels tall at
+eleven degrees of vertical field, where nothing past a couple of hundred metres can be made out.
+The mirror is not removed and its resolution is unchanged; the image is indistinguishable.
+
+### The quality tiers
+
+Same scene, same frames, `--quality low|medium|high`:
+
+| tier | frame wall | worst 1 % | mirror | world | terrain chunks | object batches | tree batches |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| high (default) | 240.4 ms | 282.5 ms | 45.5 ms | 100.1 ms | 203 | 495 | 33 |
+| medium | 221.4 ms | 275.9 ms | 23.0 ms | 99.3 ms | 124 | 427 | 27 |
+| low | 204.9 ms | 260.5 ms | 13.8 ms | 85.0 ms | 63 | 276 | 12 |
+
+Read this honestly: on a software rasteriser almost all of the saving is the mirror, because
+llvmpipe is fill-bound and a distant terrain chunk covers very few pixels — halving the visible
+chunk count barely moves the world pass. On a GPU the same change removes draw calls and vertex
+work, which is where a GPU frame goes, so the tiers should help more there and that is one of the
+things the real-hardware run is for. The tiers are:
+
+| | draw distance | vegetation | mirror distance | mirror rate |
+| --- | ---: | ---: | ---: | ---: |
+| low | x0.50 | x0.50 | 110 m | every 3rd frame |
+| medium | x0.75 | x0.75 | 200 m | every 2nd frame |
+| high | x1.00 | x1.00 | 300 m | every frame |
+
+Nothing within close range of the car changes at any tier: the car, the cockpit, the road under
+the wheels and the traffic beside you are the point of the project and are not traded away for a
+frame time. The tier lives in the save file as `settings.graphicsQuality` and `--quality`
+overrides it for one run; the `F3` overlay reports which one is in force.
+
+### Where the update time goes
+
+The `--benchmark` output and the overlay now split the update half the same way. On the `town`
+route with twenty traffic cars:
+
+| | vehicle physics | collision | traffic AI | audio |
+| --- | ---: | ---: | ---: | ---: |
+| clear day, exterior | 0.185 ms | 0.006 ms | 0.182 ms | 0.001 ms |
+| clear day, cockpit | 0.183 ms | 0.006 ms | 0.182 ms | 0.001 ms |
+
+The whole update is under half a millisecond and the camera does not touch it. Nothing in the
+simulation is a bottleneck at this world size; every lever that matters is in the draw half.
+
+### The wet-road sheen
+
+The extra pass costs one more submission of each non-marking road batch while the road is wet
+(77 batches on the town route, about 1.5 ms on llvmpipe) and nothing at all when it is dry.

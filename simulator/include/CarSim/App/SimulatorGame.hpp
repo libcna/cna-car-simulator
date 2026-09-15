@@ -11,6 +11,7 @@
 #include "CarSim/Render/Camera.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
+#include "CarSim/Render/QualityTier.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/RainRenderer.hpp"
 #include "CarSim/Render/SignalRenderer.hpp"
@@ -68,6 +69,9 @@ namespace CarSim::App
         void ApplyClockSettings();
         void ApplyWeatherSettings();
         void ApplyWeatherToWorld();
+        /// Reads the graphics tier from the save (or --quality) and applies its draw distances
+        /// and mirror rate. Called once the renderers exist.
+        void ApplyQualitySettings();
         void UpdateWeather(float dt);
         void UpdateTimeOfDay(float dt);
         void RefreshLighting(bool force = false, bool forceEnvironment = false);
@@ -146,6 +150,8 @@ namespace CarSim::App
         Render::ChaseCamera chaseCamera_;
         Render::CockpitCamera cockpitCamera_;
         Render::CameraMode cameraMode_ = Render::CameraMode::Chase;
+        Render::QualityTier quality_ = Render::QualityTier::High;
+        Render::QualitySettings qualitySettings_;
 
         bool showHelp_ = false;
         bool showDebug_ = false;

@@ -1263,3 +1263,19 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
      stops short of the line: having stopped, it obeys the next change like anybody else.
 
   Both soaks pass with the fixes; the thirty-minute one is unchanged.
+- [x] `RH-019` **Profiles from earlier phases still load.** A test parses exactly what a Phase 11
+  build wrote -- no clock, no weather, no mirror rate -- and asserts the mileage, transmission,
+  vehicle and settings survive, that everything the file never had gets its default rather than a
+  zero, and that writing it back and reading it again loses nothing. The save schema stays at
+  version 1: Phase 13's one new field (`settings.graphicsQuality`) is additive with a default, and
+  an older build ignores keys it does not know.
+- [x] `RH-020` **Graphics quality tiers, three of them.** `Render::QualityTier` (low / medium /
+  high) sets a world draw-distance scale, a vegetation scale, the mirror's draw distance and the
+  mirror's update interval -- the four things measurement showed are worth trading. `high` is the
+  default and is what every screenshot and every table was taken at; `--quality` overrides the
+  saved setting for one run and the `F3` overlay reports which is in force. Measured on the
+  `town` route in the cockpit: 240.4 / 221.4 / 204.9 ms wall clock for high / medium / low, almost
+  all of it the mirror, because a software rasteriser is fill-bound and distant chunks cover few
+  pixels. Recorded honestly in `docs/performance.md`, which also says the tiers should do more on
+  a GPU and that this is one of the things the real-hardware run is for. Nothing within close
+  range of the car changes at any tier.

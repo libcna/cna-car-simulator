@@ -207,6 +207,10 @@ namespace CarSim::Core
                 int seconds = 0;
                 takeInt(arg, seconds, 0);
                 options.autoDriveSeconds = static_cast<float>(seconds);
+            } else if (arg == "--quality") {
+                if (const auto value = takeValue(arg)) {
+                    options.quality = std::string(*value);
+                }
             } else if (arg == "--route") {
                 if (const auto value = takeValue(arg)) {
                     options.route = std::string(*value);
@@ -300,6 +304,7 @@ namespace CarSim::Core
             "  --spawn <name>        Player spawn point of the map (see traffic.json)\n"
             "  --cockpit             Start in the cockpit camera\n"
             "  --auto-drive <s>      Scripted drive: start the engine and accelerate for s seconds\n"
+            "  --quality <tier>      Graphics tier: low / medium / high (default: the saved setting)\n"
             "  --route <name>        Drive a named route from the map's traffic.json and exit at its end\n"
             "  --route-stay          Keep running after the route finishes\n"
             "  --chase-yaw <deg>     Rotate the exterior camera around the car (0 = behind)\n"

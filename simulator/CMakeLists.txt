@@ -72,6 +72,7 @@ add_library(carsim_render STATIC
     src/Render/ProceduralTextures.cpp
     src/Render/RainRenderer.cpp
     src/Render/PropGenerator.cpp
+    src/Render/QualityTier.cpp
     src/Render/RoadMeshBuilder.cpp
     src/Render/Screenshot.cpp
     src/Render/ShadowGeometry.cpp

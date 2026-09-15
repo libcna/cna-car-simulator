@@ -435,8 +435,9 @@ namespace CarSim::App
             worldRenderer_->SetWetness(weather_.wetness);
         }
         RefreshLighting(true, true);
+        ApplyQualitySettings();
         if (options_.mirrorEvery) {
-            save_.settings.mirrorUpdateEvery = *options_.mirrorEvery;
+            save_.settings.mirrorUpdateEvery = *options_.mirrorEvery;   // an explicit rate wins over the tier
         }
         if (traffic_ && options_.trafficWarmupSeconds > 0.0f) {
             const int steps = static_cast<int>(options_.trafficWarmupSeconds * 60.0f);
@@ -584,6 +585,28 @@ namespace CarSim::App
         }
         std::cout << "weather: " << Core::Describe(weather_.kind) << " (cover " << weather_.cloudCover
                   << ", rain " << weather_.rain << ")\n";
+    }
+
+    void SimulatorGame::ApplyQualitySettings()
+    {
+        // The save file holds the tier and the command line overrides it; an unreadable name says
+        // so and falls back rather than failing the run.
+        quality_ = Render::QualityTier::High;
+        if (!save_.settings.graphicsQuality.empty() && !Render::QualityFromName(save_.settings.graphicsQuality, quality_)) {
+            std::cerr << "save: unknown graphicsQuality '" << save_.settings.graphicsQuality << "', using "
+                      << Render::ToString(quality_) << "\n";
+        }
+        if (options_.quality && !Render::QualityFromName(*options_.quality, quality_)) {
+            std::cerr << "--quality: unknown tier '" << *options_.quality << "', using "
+                      << Render::ToString(quality_) << "\n";
+        }
+        save_.settings.graphicsQuality = Render::ToString(quality_);
+        qualitySettings_ = Render::SettingsFor(quality_);
+        save_.settings.mirrorUpdateEvery = qualitySettings_.mirrorUpdateEvery;
+        if (worldRenderer_) {
+            worldRenderer_->SetDrawDistanceScale(qualitySettings_.drawDistanceScale);
+            worldRenderer_->SetVegetationScale(qualitySettings_.vegetationScale);
+        }
     }
 
     void SimulatorGame::ApplyWeatherToWorld()
@@ -805,7 +828,7 @@ namespace CarSim::App
             sky_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, true);
             if (worldRenderer_) {
                 worldRenderer_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), true,
-                                     Render::MirrorView::kDrawDistanceM);
+                                     qualitySettings_.mirrorDistanceM);
             }
             vehicleRenderer_->SetPlateTexture(playerPlate_);
             vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
@@ -1041,6 +1064,10 @@ namespace CarSim::App
                                static_cast<double>(passMs_[kPassSky]), static_cast<double>(passMs_[kPassWorld]),
                                static_cast<double>(passMs_[kPassTraffic]), static_cast<double>(passMs_[kPassVehicle]),
                                static_cast<double>(passMs_[kPassHud])));
+        row("quality", text("%s   draw distance x%.2f   vegetation x%.2f   mirror %.0f m",
+                            Render::ToString(quality_), static_cast<double>(qualitySettings_.drawDistanceScale),
+                            static_cast<double>(qualitySettings_.vegetationScale),
+                            static_cast<double>(qualitySettings_.mirrorDistanceM)));
         row("cluster / mirror", text("%.2f / %.2f ms   mirror %s, %d x %d, every %d frame(s)",
                                      static_cast<double>(passMs_[kPassCluster]), static_cast<double>(passMs_[kPassMirror]),
                                      (cockpit && mirrorEnabled_) ? "on" : "off",

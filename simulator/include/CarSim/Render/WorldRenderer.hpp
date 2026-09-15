@@ -60,6 +60,13 @@ namespace CarSim::Render
                   const Microsoft::Xna::Framework::Matrix& projection, const Microsoft::Xna::Framework::BoundingFrustum& frustum,
                   bool mirrored = false, float maxDistance = 0.0f);
 
+        /// Scales every world draw distance in the main view (the graphics quality tier).
+        /// 1 is the distance everything in docs/performance.md was measured at.
+        void SetDrawDistanceScale(float scale) { drawDistanceScale_ = scale > 0.05f ? scale : 0.05f; }
+        /// Scales the tree draw distance on top of the above: vegetation is the cheapest thing to
+        /// pull in and the least missed far away.
+        void SetVegetationScale(float scale) { vegetationScale_ = scale > 0.05f ? scale : 0.05f; }
+
         [[nodiscard]] const WorldRenderStats& Stats() const { return stats_; }
 
     private:
@@ -172,6 +179,8 @@ namespace CarSim::Render
         float lod1DistanceM = 420.0f;
         float lod2DistanceM = 1000.0f;
         float terrainCullDistanceM = 2300.0f;
+        float drawDistanceScale_ = 1.0f;
+        float vegetationScale_ = 1.0f;
         std::vector<Batch> roadBatches_;
         std::vector<ObjectBatch> objectBatches_;
         std::vector<TreeBatch> treeBatches_;

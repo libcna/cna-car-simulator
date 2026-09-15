@@ -104,6 +104,7 @@ namespace CarSim::Core
             r.Float(settings, "engineVolume", d.settings.engineVolume, "save.settings");
             r.Float(settings, "effectsVolume", d.settings.effectsVolume, "save.settings");
             r.Bool(settings, "mirrorEnabled", d.settings.mirrorEnabled, "save.settings");
+            r.String(settings, "graphicsQuality", d.settings.graphicsQuality, "save.settings");
             r.Int(settings, "mirrorUpdateEvery", d.settings.mirrorUpdateEvery, "save.settings");
             d.settings.mirrorUpdateEvery = std::clamp(d.settings.mirrorUpdateEvery, 1, 8);
             r.Float(settings, "timeOfDayHours", d.settings.timeOfDayHours, "save.settings");
@@ -180,6 +181,7 @@ namespace CarSim::Core
         out << "    \"engineVolume\": " << data.settings.engineVolume << ",\n";
         out << "    \"effectsVolume\": " << data.settings.effectsVolume << ",\n";
         out << "    \"mirrorEnabled\": " << (data.settings.mirrorEnabled ? "true" : "false") << ",\n";
+        out << "    \"graphicsQuality\": \"" << data.settings.graphicsQuality << "\",\n";
         out << "    \"mirrorUpdateEvery\": " << data.settings.mirrorUpdateEvery << ",\n";
         out << "    \"timeOfDayHours\": " << data.settings.timeOfDayHours << ",\n";
         out << "    \"timeScale\": " << data.settings.timeScale << ",\n";
