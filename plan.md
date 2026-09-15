@@ -1427,3 +1427,53 @@ metres, lateral error in metres, camera jerk in millimetres, soak tests in simul
 and on captured frames from a software rasteriser. `docs/real-hardware-validation.md` exists so
 that the person who does have the machine can settle it in half an hour, and its results table
 is empty and says so.
+
+### 26.6 Phase 13 audit
+
+**The rule adopted in 26.2 is followed here: the commit advertised as the final HEAD is itself a
+commit verified from a fresh clone.** Two fresh clones were run, not one.
+
+**First clone — `c7d78b96c5c7f33d1631f5bdeb663f089679d185`** (the commit that re-shot the
+screenshot set; the last commit carrying code). Cloned from `origin`, checked out, configured
+Release/Ninja/OPENGLES3 against the dependency checkouts, and built from nothing:
+
+- every target builds, exit 0. 96 warnings, all of them the pre-existing `-Wdouble-promotion` in
+  the audio synthesiser, the collision world and the benchmark accumulators, plus the `__int128`
+  pedantic one from Sharp Runtime and one `nodiscard` in `BuildCrossing`. **No new warning came
+  from Phase 13**, and the one it did introduce (a shadowed local in `RouteDriver`) was fixed.
+- `ctest --preset opengles3`: **all six registrations pass** -- `carsim_unit_tests` (60.8 s),
+  `xna_only_api_check`, `simulator_smoke`, `map_validate_lipova`, `map_regeneration_check`,
+  `asset_manifest_check`.
+- `carsim_tests`: **196 tests in 47 suites, all passing** (178 in 46 at the start of the phase).
+- `scripts/check_xna_only.py`: OK, 183 files scanned, 544 XNA 4.0 types known. **No CNAEXT, no
+  renderer internals, no renderer-specific API entered the project.**
+- `scripts/check_assets.py`: OK, 5 files listed, 1 asset. No asset was added this phase.
+- `tools/maps/build_map.py --check`: OK -- the pipeline reproduces `content/maps/lipova` exactly
+  (44 nodes, 16 roads, 624 buildings, 63 signs, 77 props, 16 parked cars), and stage 2 is
+  idempotent.
+- `carsim-mapvalidate content/maps/lipova`: **OK, 0 warnings**. 624 buildings, 54 186 trees, 63
+  signs, 2 832 props, 150 parked cars placed. Worst deviation between the ground and the designed
+  road surface over every lane and connector: **+0.036 m**; worst change over one metre:
+  **0.022 m**; nothing over the 0.08 m / 0.06 m thresholds. All three routes plan from their own
+  spawns (town 1 656 m, country 994 m, forest 1 664 m) and the whole lane network is reachable
+  from every one of the nine player spawns.
+- the game runs from the clean clone: `--spawn mesto --time 21:45 --weather rain --lights
+  --cockpit` builds the world in 5.4 s and captures a frame -- cluster lit, rain falling, a street
+  lamp burning, the cockpit readable.
+- a route drives from the clean clone: `--route country` plans 993.9 m and runs 400 frames.
+
+**Second clone — the commit that adds this record.** Only `plan.md` and `handoff.md` differ from
+the first; no code, no content, no test. It was cloned fresh and re-verified the same way, and
+that is the SHA reported as final. Nothing is committed after it.
+
+Checklist from the brief, each item as verified above: map generation has one documented
+workflow; re-generation destroys nothing; generation is deterministic and the additive stage is
+idempotent; the final HEAD is known and was itself cloned fresh; the build succeeds; all tests
+succeed; the static XNA-only check succeeds; the asset manifest check succeeds; the map validator
+succeeds; the headless smoke test succeeds; both traffic soaks succeed; no CNAEXT and no renderer
+internals entered the project; the player car, both gearboxes, the cockpit, both cameras, the
+mirror, the weather, the clock, the save state, the traffic signals, the rain grip, the headlamps
+and the dashboard night state all work and are covered by tests; the real-hardware procedure is
+current; the screenshot set was re-shot on this build; every performance figure says which
+environment produced it; the renderer record says exactly what was done per renderer; `README.md`,
+`plan.md` and `handoff.md` match the repository; the branch is pushed; the working tree is clean.

@@ -152,7 +152,10 @@ that is committed; change a stage and commit the regenerated map with it, or the
 
 Phase 11 (realism and production quality), Phase 12 (day and night, weather, traffic signals,
 four more settlements) and Phase 13 (real hardware, visual realism, driving polish) are all
-complete, with their audits in sections 24.4, 25.2 and 26.6.
+complete, with their audits in sections 24.4, 25.2 and 26.6. The Phase 13 audit was run twice
+from a fresh clone, because the rule adopted in section 26.2 is that **the commit advertised as
+the final HEAD must itself be a commit verified from a fresh clone** -- the Phase 12 report
+advertised one SHA and audited another, with an application-code change in the gap.
 
 What Phase 13 changed, in the order it matters:
 
