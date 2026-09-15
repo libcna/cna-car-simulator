@@ -1232,3 +1232,13 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   whose blue channel was pinned at 255 while red and green were scaled by brightness, so every
   faint star came out a saturated blue square. Stars are now soft fans -- a bright centre and a
   dark rim, drawn additively -- with all three channels scaled and a slight warm/cool spread.
+- [x] `RH-017` **Profile and cut the rear-view mirror pass.** Measured first: on the `town` route
+  in the cockpit the mirror cost **58.9 ms of a 219.5 ms draw** -- a quarter of the frame -- because
+  it ran a second full world pass with the same 1 500 m far plane as the main view. The mirror
+  image is a 200-pixel strip at eleven degrees, where nothing beyond a couple of hundred metres
+  can be made out at all. `MirrorView`'s far plane is now 320 m and `WorldRenderer::Draw` takes a
+  `maxDistance` that caps the terrain, object and tree ranges for the pass;
+  `MirrorView::kDrawDistanceM` (300 m) is what the mirror passes. Re-measured on the same route
+  and frame count: mirror **45.5 ms**, frame 254.5 -> 244.6 ms. No visible truncation in the
+  mirror image -- traffic, trees, buildings and road all still read. The mirror is not removed and
+  its resolution is unchanged; the overlay reports both.

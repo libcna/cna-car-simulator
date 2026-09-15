@@ -915,9 +915,12 @@ namespace CarSim::Render
     }
 
     void WorldRenderer::Draw(GraphicsDevice& device, const Matrix& view, const Matrix& projection, const BoundingFrustum& frustum,
-                             const bool mirrored)
+                             const bool mirrored, const float maxDistance)
     {
         const RasterizerState& solid = mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise;
+        // Everything this pass may draw stops here.
+        const float horizon = maxDistance > 0.0f ? std::min(maxDistance, rig_.fogEnd) : rig_.fogEnd;
+        const float terrainCull = maxDistance > 0.0f ? std::min(maxDistance, terrainCullDistanceM) : terrainCullDistanceM;
         stats_.terrainChunksDrawn = 0;
         stats_.roadBatchesDrawn = 0;
         stats_.drawCalls = 0;
@@ -943,7 +946,7 @@ namespace CarSim::Render
                 continue;
             }
             const float distance = Vector3::Distance(eye, chunk.centre) - chunk.radius;
-            if (distance > terrainCullDistanceM || !frustum.Intersects(chunk.lod0->Sphere())) {
+            if (distance > terrainCull || !frustum.Intersects(chunk.lod0->Sphere())) {
                 continue;
             }
             const GpuMesh* mesh = distance < lod1DistanceM ? chunk.lod0.get() : (distance < lod2DistanceM ? chunk.lod1.get() : chunk.lod2.get());
@@ -1024,7 +1027,7 @@ namespace CarSim::Render
             // Nothing past the fog end can be told from the fog itself, so no batch is drawn
             // beyond it; detail batches keep their own shorter range. Without this the buildings
             // of a settlement three kilometres away are still submitted in full.
-            const float cull = b.cullDistance > 0.0f ? std::min(b.cullDistance, rig_.fogEnd) : rig_.fogEnd;
+            const float cull = b.cullDistance > 0.0f ? std::min(b.cullDistance, horizon) : horizon;
             if (Vector3::Distance(eye, b.mesh->Sphere().Center) - b.mesh->Sphere().Radius > cull) {
                 continue;
             }
@@ -1045,7 +1048,7 @@ namespace CarSim::Render
 
         // Trees: alpha-tested cards, both windings present, distance culled.
         const Vector3 cameraPosition = Matrix::Invert(view).getTranslationProperty();
-        const float treeRange = 1100.0f;
+        const float treeRange = maxDistance > 0.0f ? std::min(maxDistance, 1100.0f) : 1100.0f;
         device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
         treeEffect_->setWorldProperty(Matrix::getIdentityProperty());
         treeEffect_->setViewProperty(view);

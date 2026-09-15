@@ -53,9 +53,12 @@ namespace CarSim::Render
                       const BitmapFont* signFont);
 
         /// `mirrored`: the projection flips x (mirror pass), so front faces are clockwise.
+        /// `maxDistance`: caps every draw distance for this pass (0 = the rig's own horizon). The
+        /// rear-view mirror uses it: in a strip 200 pixels tall nothing beyond a couple of
+        /// hundred metres can be made out, and drawing it costs as much as the main view.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Microsoft::Xna::Framework::Matrix& view,
                   const Microsoft::Xna::Framework::Matrix& projection, const Microsoft::Xna::Framework::BoundingFrustum& frustum,
-                  bool mirrored = false);
+                  bool mirrored = false, float maxDistance = 0.0f);
 
         [[nodiscard]] const WorldRenderStats& Stats() const { return stats_; }
 

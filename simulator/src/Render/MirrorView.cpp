@@ -32,7 +32,9 @@ namespace CarSim::Render
         pose_.up = world.getUpProperty();
         pose_.fieldOfViewDeg = 11.0f;   // vertical; the wide target gives ~40 degrees horizontally
         pose_.nearPlane = 0.5f;
-        pose_.farPlane = 1500.0f;
+        // A strip 200 pixels tall at eleven degrees: nothing beyond a couple of hundred metres
+        // can be made out in it, and drawing that far costs as much as the main view does.
+        pose_.farPlane = 320.0f;
         view_ = pose_.View();
         const Matrix projection = pose_.Projection(aspect_);
         projectionMirrored_ = projection * Matrix::CreateScale(-1.0f, 1.0f, 1.0f);

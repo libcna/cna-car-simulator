@@ -19,6 +19,12 @@ namespace CarSim::Render
     class MirrorView
     {
     public:
+        /// How far the world is drawn into the mirror. The image is a 200-pixel strip at eleven
+        /// degrees: past this nothing can be made out, and drawing it costs a second full world
+        /// pass. Kept a little short of the far plane so geometry fades out rather than popping
+        /// against it.
+        static constexpr float kDrawDistanceM = 300.0f;
+
         MirrorView(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, int width = 768, int height = 200);
 
         /// Updates the mirror camera from the vehicle state (call once per frame before Begin).

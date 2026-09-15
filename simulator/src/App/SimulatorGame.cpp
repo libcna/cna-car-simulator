@@ -804,7 +804,8 @@ namespace CarSim::App
             mirror_->Begin(device);
             sky_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, true);
             if (worldRenderer_) {
-                worldRenderer_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), true);
+                worldRenderer_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), true,
+                                     Render::MirrorView::kDrawDistanceM);
             }
             vehicleRenderer_->SetPlateTexture(playerPlate_);
             vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
