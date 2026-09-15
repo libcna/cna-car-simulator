@@ -1209,3 +1209,26 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   door. It is now a 5 x 4 patch with a 14 mm bulge and a 0.20 rad outboard aim, so the face
   carries sky at the top and ground at the bottom. A test in `tests/Render/ProceduralCarTests.cpp`
   holds the convexity and the aim.
+- [x] `RH-014` **Headlamps that make night driving usable.** The pool on the road peaked seven
+  metres ahead and was gone by twenty-six: from the driver's seat it read as a bright blob under
+  the bumper with black road beyond it. The dipped beam now runs from 1.4 m to 40 m (main beam to
+  65 m), is lit from just past the bumper, holds a plateau through the working band and fades with
+  a soft cut-off, and kicks 0.16 towards the near verge as a right-hand-traffic beam does. The
+  side falloff maps the beam centre onto the bias while both edges still reach zero -- dividing by
+  one span left the right-hand edge lit, so the pool ended in a hard line across the road. The
+  shape is now a free function, `Render::HeadlampBeamFalloff`, with a test in
+  `tests/Render/NightLightingTests.cpp` covering the edges, the working band, the far cut-off and
+  the asymmetry.
+- [x] `RH-015` **Wet roads read as wet.** Wetness only darkened the asphalt and tinted it slightly
+  towards the sky, which from the driver's seat was almost invisible. Wet asphalt is dark under
+  your wheels and a mirror at the far end of the street, because the sky's reflection climbs with
+  the grazing angle -- and down a road, distance *is* the grazing angle. A `BasicEffect`'s fog is a
+  distance ramp, so the road surfaces are drawn a second time, additively, with a black diffuse
+  and the sky as the fog colour: nothing near, sky far. Markings and gravel are excluded (paint
+  and gravel stay rough when wet) and the pass runs only while the road is wet. Measured on the
+  same frame, the road 60 m ahead goes from (28, 30, 34) to (55, 58, 63) while the road under the
+  car is unchanged.
+- [x] `RH-016` **Stars are points of light, not blue squares.** Each star was a hard-edged quad
+  whose blue channel was pinned at 255 while red and green were scaled by brightness, so every
+  faint star came out a saturated blue square. Stars are now soft fans -- a bright centre and a
+  dark rim, drawn additively -- with all three channels scaled and a slight warm/cool spread.

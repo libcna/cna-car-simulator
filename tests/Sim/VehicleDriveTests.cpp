@@ -8,6 +8,8 @@
 
 #include <cmath>
 #include <functional>
+#include <iostream>
+#include <vector>
 
 using namespace CarSim::Sim;
 using Microsoft::Xna::Framework::Vector3;
@@ -403,4 +405,102 @@ TEST_F(VehicleDrive, ClimbsAnEightPercentGradeWithoutLosingMuchSpeed)
     EXPECT_GT(v.SpeedKmh(), 48.0f) << "60 kW is plenty for 8 % at 50 km/h";
     EXPECT_GT(v.OriginPosition().Y, 5.0f) << "and the car has climbed";
     EXPECT_EQ(v.GetEngine().State(), EngineState::Running);
+}
+
+// Rain does not just change the picture: it changes the numbers. The wet grip factor is a single
+// constant, so it is worth knowing what it actually buys -- these measurements are printed so the
+// table in docs/vehicle-physics.md can be checked against the model rather than remembered.
+TEST_F(VehicleDrive, WetBrakingAndCorneringAreNoticeableButControllable)
+{
+    const auto brakingDistance = [this](const float fromKmh, const float wetness) {
+        Vehicle v(def, TransmissionMode::Automatic);
+        v.SetRoadWetness(wetness);
+        Drive(v, ground, 2.0f, [](float) { DriverControls c; c.brake = 1.0f; return c; });
+        v.ForceForwardSpeed(Units::KmhToMs(fromKmh));
+        const Vector3 start = v.OriginPosition();
+        float t = 0.0f;
+        while (v.SpeedKmh() > 1.0f && t < 25.0f) {
+            DriverControls c;
+            c.brake = 1.0f;
+            v.Update(c, kFrame, ground);
+            t += kFrame;
+        }
+        return (v.OriginPosition() - start).Length();
+    };
+
+    struct Row { float kmh; float dry; float wet; };
+    std::vector<Row> rows;
+    for (const float kmh : {50.0f, 90.0f, 100.0f}) {
+        rows.push_back(Row{kmh, brakingDistance(kmh, 0.0f), brakingDistance(kmh, 1.0f)});
+    }
+    for (const auto& r : rows) {
+        const float g = Units::KmhToMs(r.kmh) * Units::KmhToMs(r.kmh) / (2.0f * r.dry) / 9.81f;
+        std::cout << "  " << r.kmh << " -> 0 km/h: dry " << r.dry << " m (" << g << " g), wet "
+                  << r.wet << " m, " << (r.wet / r.dry - 1.0f) * 100.0f << " % longer\n";
+        // A small hatchback on dry asphalt stops from 100 in about 40 m, which is a shade over
+        // 0.9 g. Anything beyond 1.1 g is a race car and anything under 0.6 g is a lorry.
+        EXPECT_GT(g, 0.60f) << r.kmh << " km/h: dry braking is too weak";
+        EXPECT_LT(g, 1.10f) << r.kmh << " km/h: dry braking is too strong for a road car";
+        // Rain has to be felt but must not be ice: a fifth longer at least, not half as far again
+        // plus a third.
+        EXPECT_GT(r.wet, r.dry * 1.20f) << r.kmh << " km/h: rain is not noticeable";
+        EXPECT_LT(r.wet, r.dry * 1.80f) << r.kmh << " km/h: wet asphalt, not ice";
+    }
+    // The proportional penalty must not depend on the speed: the same tyres, the same road.
+    const float spread = std::fabs(rows.front().wet / rows.front().dry - rows.back().wet / rows.back().dry);
+    EXPECT_LT(spread, 0.12f) << "the wet penalty should be roughly the same at every speed";
+
+    // Cornering: the fastest speed at which the car still holds a steady steering input without
+    // the front tyres ploughing. It is a comparison between dry and wet, not a skidpad figure.
+    const auto corneringSpeed = [this](const float wetness) {
+        float best = 0.0f;
+        for (float kmh = 30.0f; kmh <= 110.0f; kmh += 5.0f) {
+            Vehicle v(def, TransmissionMode::Automatic);
+            v.SetRoadWetness(wetness);
+            StartEngine(v, ground);
+            v.ForceForwardSpeed(Units::KmhToMs(kmh));
+            // Hold a constant steering angle and a trickle of throttle for three seconds.
+            float peakSlip = 0.0f;
+            Drive(v, ground, 3.0f, [&](float) {
+                DriverControls c;
+                c.steering = 0.42f;
+                c.throttle = 0.18f;
+                return c;
+            });
+            for (const auto& w : v.Snapshot().wheels) {
+                peakSlip = std::max(peakSlip, std::fabs(w.slipAngle));
+            }
+            // Still gripping (slip angle under about 11 degrees) and not scrubbed off its speed.
+            if (peakSlip < 0.20f && v.SpeedKmh() > kmh * 0.75f) best = kmh;
+        }
+        return best;
+    };
+    const float dryCorner = corneringSpeed(0.0f);
+    const float wetCorner = corneringSpeed(1.0f);
+    std::cout << "  steady cornering hold: dry " << dryCorner << " km/h, wet " << wetCorner << " km/h\n";
+    EXPECT_GT(dryCorner, 30.0f) << "the car should hold a corner on a dry road";
+    EXPECT_LE(wetCorner, dryCorner) << "rain must not make the car grip better";
+
+    // Acceleration: rain costs traction off the line but the car still gets going.
+    const auto zeroToFifty = [this](const float wetness) {
+        Vehicle v(def, TransmissionMode::Automatic);
+        v.SetRoadWetness(wetness);
+        StartEngine(v, ground);
+        float t = 0.0f;
+        DriverControls c;
+        c.throttle = 1.0f;
+        c.selector = AutomaticSelector::Drive;
+        while (v.SpeedKmh() < 50.0f && t < 30.0f) {
+            v.Update(c, kFrame, ground);
+            c.selector.reset();
+            t += kFrame;
+        }
+        return t;
+    };
+    const float dryRun = zeroToFifty(0.0f);
+    const float wetRun = zeroToFifty(1.0f);
+    std::cout << "  0 -> 50 km/h: dry " << dryRun << " s, wet " << wetRun << " s\n";
+    EXPECT_LT(dryRun, 12.0f) << "a 1.2 should reach 50 km/h inside twelve seconds";
+    EXPECT_GE(wetRun, dryRun - 0.05f) << "rain must not make the car quicker";
+    EXPECT_LT(wetRun, dryRun * 1.6f) << "rain should cost traction, not the whole launch";
 }

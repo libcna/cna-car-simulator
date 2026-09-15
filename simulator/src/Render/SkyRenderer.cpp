@@ -159,21 +159,37 @@ namespace CarSim::Render
                 Vector3 top = Vector3::Cross(centre, right);
                 top.Normalize();
                 const float brightness = 0.35f + 0.65f * rnd();
-                const Color c(static_cast<int>(235 * brightness), static_cast<int>(238 * brightness), 255, 255);
-                const Vector3 a0 = centre - right * size - top * size;
-                const Vector3 a1 = centre + right * size - top * size;
-                const Vector3 a2 = centre + right * size + top * size;
-                const Vector3 a3 = centre - right * size + top * size;
+                // Star colour: mostly white, a few warm and a few blue-white, and the blue channel
+                // dims with the rest. Leaving blue at 255 while the others dimmed turned every
+                // faint star into a saturated blue dot -- a field of blue squares on the sky.
+                const float warm = 0.85f + 0.30f * rnd();
+                const Color core(static_cast<int>(std::min(255.0f, 250.0f * brightness * warm)),
+                                 static_cast<int>(std::min(255.0f, 248.0f * brightness)),
+                                 static_cast<int>(std::min(255.0f, 255.0f * brightness / std::max(0.7f, warm))), 255);
+                // A fan with a bright centre and a dark rim: drawn additively that is a soft point
+                // of light rather than a hard-edged square.
                 const std::uint32_t base = static_cast<std::uint32_t>(field.vertices.size());
-                for (const Vector3& p : {a0, a1, a2, a3}) {
+                {
                     MeshVertex v;
-                    v.position = p;
-                    v.normal = -p;
-                    v.color = c;
+                    v.position = centre;
+                    v.normal = -centre;
+                    v.color = core;
                     field.AddVertex(v);
                 }
-                field.AddQuad(base, base + 2, base + 1, base);   // two triangles, seen from inside
-                field.AddQuad(base, base + 3, base + 2, base);
+                constexpr int kRim = 6;
+                for (int k = 0; k < kRim; ++k) {
+                    const float a = 2.0f * std::numbers::pi_v<float> * static_cast<float>(k) / static_cast<float>(kRim);
+                    MeshVertex v;
+                    v.position = centre + right * (std::cos(a) * size * 2.2f) + top * (std::sin(a) * size * 2.2f);
+                    v.normal = -v.position;
+                    v.color = Color(0, 0, 0, 255);
+                    field.AddVertex(v);
+                }
+                for (int k = 0; k < kRim; ++k) {
+                    field.indices.push_back(base);
+                    field.indices.push_back(base + 1 + static_cast<std::uint32_t>((k + 1) % kRim));
+                    field.indices.push_back(base + 1 + static_cast<std::uint32_t>(k));
+                }
             }
             stars_ = GpuMesh::Create(device, field, VertexLayout::PositionColor);
         }

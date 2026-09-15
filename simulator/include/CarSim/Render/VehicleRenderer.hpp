@@ -81,6 +81,13 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> vent_;
     };
 
+    /// Brightness of the headlamp pool on the road at a point in beam coordinates:
+    /// `along` 0 at the near edge of the pool and 1 at its far edge, `across` -1 at the left edge
+    /// and +1 at the right. A dipped beam puts a broad sheet of light on the road with the hot
+    /// band about half way out, kicked towards the near verge; a main beam is symmetric and
+    /// reaches further. Pulled out of the renderer so the shape can be tested without a device.
+    [[nodiscard]] float HeadlampBeamFalloff(float along, float across, bool highBeam);
+
     /// Ground surface queries (world x, z) used to drape shadows over roads, kerbs and terrain.
     struct GroundQuery
     {

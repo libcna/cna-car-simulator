@@ -85,6 +85,19 @@ namespace CarSim::Render
         treeEffect_->setFogStartProperty(rig.fogStart);
         treeEffect_->setFogEndProperty(rig.fogEnd);
 
+        // Wet-road sheen. Wet asphalt is dark under your wheels and a mirror at the far end of
+        // the street, because the sky's reflection climbs with the grazing angle -- and down a
+        // road, distance is the grazing angle. A BasicEffect's fog is a distance ramp, so a
+        // second additive pass over the road with a black diffuse and the sky as the fog colour
+        // puts exactly that sheen on it: nothing near, sky far. No renderer internals, no custom
+        // shader, and it costs one extra pass over the road batches only while the road is wet.
+        roadSheenEffect_ = std::make_unique<BasicEffect>(device);
+        roadSheenEffect_->setLightingEnabledProperty(false);
+        roadSheenEffect_->setTextureEnabledProperty(false);
+        roadSheenEffect_->setVertexColorEnabledProperty(false);
+        roadSheenEffect_->setDiffuseColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        roadSheenEffect_->setFogEnabledProperty(true);
+
         terrainEffect_ = std::make_unique<DualTextureEffect>(device);
         terrainEffect_->setVertexColorEnabledProperty(false);
         terrainEffect_->setDiffuseColorProperty(Vector3(1.0f, 1.0f, 1.0f));
@@ -971,6 +984,33 @@ namespace CarSim::Render
                 stats_.triangles += b.mesh->PrimitiveCount();
             }
         }
+        // Wet sheen over the road surfaces (not the markings: paint stays rough when it is wet).
+        if (wetness_ > 0.01f && roadSheenEffect_) {
+            const Vector3 sky = rig_.horizonColor;
+            const float strength = 0.95f * wetness_;
+            roadSheenEffect_->setWorldProperty(Matrix::getIdentityProperty());
+            roadSheenEffect_->setViewProperty(view);
+            roadSheenEffect_->setProjectionProperty(projection);
+            roadSheenEffect_->setFogColorProperty(Vector3(sky.X * strength, sky.Y * strength, sky.Z * strength));
+            // The ramp: nothing under the bumper, full sheen by the time the road is a hundred
+            // metres off, and never beyond the fog, where there is no road left to see.
+            roadSheenEffect_->setFogStartProperty(7.0f);
+            roadSheenEffect_->setFogEndProperty(std::min(150.0f, rig_.fogEnd));
+            device.setBlendStateProperty(BlendState::Additive);
+            device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+            for (const auto& b : roadBatches_) {
+                if (b.surface == Surface::Marking || b.surface == Surface::Gravel || !b.mesh ||
+                    !frustum.Intersects(b.mesh->Sphere())) {
+                    continue;
+                }
+                ApplyAll(*roadSheenEffect_, device, *b.mesh);
+                ++stats_.drawCalls;
+                stats_.triangles += b.mesh->PrimitiveCount();
+            }
+            device.setBlendStateProperty(BlendState::Opaque);
+            device.setDepthStencilStateProperty(DepthStencilState::Default);
+        }
+
         // Static objects: buildings, props, trunks (lit, textured).
         device.setRasterizerStateProperty(solid);
         roadEffect_->setWorldProperty(Matrix::getIdentityProperty());

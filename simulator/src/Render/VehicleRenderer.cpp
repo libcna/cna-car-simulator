@@ -29,6 +29,13 @@ namespace CarSim::Render
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
 
+    /// Smoothstep on an unclamped argument; used to shape the headlamp beam's cut-off.
+    inline float SmoothStepf(const float t)
+    {
+        const float c = t < 0.0f ? 0.0f : (t > 1.0f ? 1.0f : t);
+        return c * c * (3.0f - 2.0f * c);
+    }
+
     /// Cube-map face size for the paint's sky reflection. 64 was too coarse to hold a sun
     /// highlight: the glare lobe landed inside a couple of texels and filtering flattened it away.
     constexpr int kEnvironmentFaceSize = 128;
@@ -758,6 +765,26 @@ namespace CarSim::Render
     }
 
 
+    float HeadlampBeamFalloff(const float along, const float across, const bool highBeam)
+    {
+        // A dipped beam is not a spot on the tarmac: it puts a broad sheet of light on the road
+        // with the hot band about half way out and a soft end, and in right-hand traffic it kicks
+        // towards the near verge so the driver can see the edge line. The pool used to peak at
+        // seven metres and be gone by twenty-six, which read as a bright blob under the bumper
+        // with black road beyond it.
+        const float bias = highBeam ? 0.0f : 0.16f;                 // the kick to the right
+        // Map the beam's centre to `bias` while both edges still land on +-1, so the pool fades
+        // out on each side. Dividing by a single span left the right-hand edge lit and the pool
+        // ended in a hard vertical line across the road.
+        const float span = across > bias ? (1.0f - bias) : (1.0f + bias);
+        const float u = std::clamp((across - bias) / std::max(0.05f, span), -1.0f, 1.0f);
+        const float lateral = std::pow(std::max(0.0f, 1.0f - u * u), 1.15f);
+        const float rise = std::min(1.0f, std::max(0.0f, along) / 0.07f);   // lit from just past the bumper
+        // Plateau through the working part of the beam, then a soft cut-off.
+        const float hot = 1.0f - SmoothStepf((along - 0.42f) / 0.58f);
+        return std::clamp(lateral * rise * hot * 1.75f, 0.0f, 1.0f);
+    }
+
     void VehicleRenderer::DrawHeadlightPool(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
                                             const Matrix& projection, const GroundQuery& ground, const float intensity)
     {
@@ -767,10 +794,10 @@ namespace CarSim::Render
         // Low beam: a short, wide pool that starts just ahead of the bumper and is cut off where
         // the beam drops. High beam reaches roughly twice as far and stays brighter.
         const bool high = state.highBeam;
-        const float nearM = 2.2f;
-        const float farM = high ? 48.0f : 26.0f;
-        const float halfNear = 1.7f;
-        const float halfFar = high ? 7.5f : 8.5f;
+        const float nearM = 1.4f;
+        const float farM = high ? 65.0f : 40.0f;
+        const float halfNear = 2.2f;
+        const float halfFar = high ? 8.5f : 10.0f;
         const Vector3 origin = state.originPosition;
         Vector3 forward = state.worldMatrix.getForwardProperty();
         forward.Y = 0.0f;
@@ -786,12 +813,7 @@ namespace CarSim::Render
             const float half = halfNear + t * (halfFar - halfNear);
             const Vector3 p = origin + forward * distance + right * (u * half);
             const float y = (ground.height ? ground.height(p.X, p.Z) : origin.Y) + 0.05f;
-            // Falls off sideways and towards the end of the beam. The pool is brightest around
-            // a third of the way out, not right under the bumper, where the car hides it anyway.
-            const float lateral = std::max(0.0f, 1.0f - u * u);
-            const float rise = std::min(1.0f, t / 0.22f);
-            const float fall = std::pow(std::max(0.0f, 1.0f - t), 1.1f);
-            const float f = std::clamp(lateral * lateral * rise * fall * 1.9f * intensity, 0.0f, 1.0f);
+            const float f = std::clamp(HeadlampBeamFalloff(t, u, high) * intensity, 0.0f, 1.0f);
             const Vector3 c = warm * f;
             const Color colour(static_cast<int>(c.X * 255.0f), static_cast<int>(c.Y * 255.0f), static_cast<int>(c.Z * 255.0f), 255);
             return VertexPositionColorTexture(Vector3(p.X, y, p.Z), colour, Vector2(0.5f, 0.5f));

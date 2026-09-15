@@ -149,6 +149,7 @@ namespace CarSim::Render
         std::vector<std::unique_ptr<GpuMesh>> lampLights_;                                    // one mesh per chunk
         float lampFactor_ = 0.0f;                                                             // 0 by day, 1 after dark
         float wetness_ = 0.0f;                                                                // 0 dry road, 1 soaked
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadSheenEffect_;    // wet-road sky sheen
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> roofTextures_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> windowTexture_;

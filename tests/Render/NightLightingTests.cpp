@@ -3,6 +3,7 @@
 #include "CarSim/Map/ObjectPlacement.hpp"
 #include "CarSim/Render/BuildingGenerator.hpp"
 #include "CarSim/Render/LightingRig.hpp"
+#include "CarSim/Render/VehicleRenderer.hpp"
 
 #include <gtest/gtest.h>
 
@@ -73,4 +74,35 @@ TEST(NightLighting, TheLampFactorFollowsTheSun)
     EXPECT_LT(at(18.0f), 0.2f);                // still broad daylight in summer
     EXPECT_GT(at(21.0f), at(20.0f));           // and it comes on, never off, as the sun drops
     EXPECT_GT(at(20.0f), at(19.0f));
+}
+
+// The shape of the pool the headlamps put on the road. It used to peak seven metres ahead and be
+// gone by twenty-six, which read as a bright blob under the bumper with black road beyond it; and
+// the right-hand kick left the right edge lit, so the pool ended in a hard line across the road.
+TEST(NightLighting, TheHeadlampPoolLightsTheRoadAndFadesAtItsEdges)
+{
+    using Render::HeadlampBeamFalloff;
+    for (const bool high : {false, true}) {
+        // Both side edges go out.
+        EXPECT_NEAR(HeadlampBeamFalloff(0.5f, -1.0f, high), 0.0f, 1e-5f) << "left edge, high=" << high;
+        EXPECT_NEAR(HeadlampBeamFalloff(0.5f, 1.0f, high), 0.0f, 1e-5f) << "right edge, high=" << high;
+        // And so does the far end.
+        EXPECT_NEAR(HeadlampBeamFalloff(1.0f, 0.0f, high), 0.0f, 1e-5f) << "far end, high=" << high;
+        // The road is lit right in front of the car, not only in the distance.
+        EXPECT_GT(HeadlampBeamFalloff(0.10f, 0.0f, high), 0.6f) << "close in, high=" << high;
+        // The working band carries the light: bright from a tenth to half way out.
+        for (const float t : {0.10f, 0.20f, 0.30f, 0.42f}) {
+            EXPECT_GT(HeadlampBeamFalloff(t, 0.0f, high), 0.8f) << "t=" << t << ", high=" << high;
+        }
+        // It is still useful two thirds of the way out, and monotonically dying after the band.
+        EXPECT_GT(HeadlampBeamFalloff(0.65f, 0.0f, high), 0.25f);
+        EXPECT_GT(HeadlampBeamFalloff(0.60f, 0.0f, high), HeadlampBeamFalloff(0.80f, 0.0f, high));
+        EXPECT_GT(HeadlampBeamFalloff(0.80f, 0.0f, high), HeadlampBeamFalloff(0.95f, 0.0f, high));
+    }
+    // The dipped beam is brighter to the right of centre than to the left at the same offset:
+    // right-hand traffic, so it lights the near verge and not the oncoming driver. Compared out
+    // near the edges, where the middle of the beam is not saturated against the clamp.
+    EXPECT_GT(HeadlampBeamFalloff(0.4f, 0.80f, false), HeadlampBeamFalloff(0.4f, -0.80f, false) + 0.1f);
+    // The main beam is symmetric.
+    EXPECT_NEAR(HeadlampBeamFalloff(0.4f, 0.80f, true), HeadlampBeamFalloff(0.4f, -0.80f, true), 1e-5f);
 }
