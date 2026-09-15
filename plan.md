@@ -1342,3 +1342,27 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   counting *lone* marking triangles in the band where the line is painted -- every other marking
   is a strip of quads, so a give-way triangle is the only marking that stands on its own: 0 over
   four signalised approaches, 15 over four yield approaches.
+
+### 26.4 What was deliberately not done
+
+Recorded so the next pass does not have to rediscover the reasoning.
+
+- **No new weather, seasons, missions, economy, police, pedestrians, vehicles or settlements.**
+  The brief for this phase ruled them out and nothing here needed them.
+- **Building facades were not rebuilt.** Windows already carry a frame, a sill and a reveal
+  within 420 m, and the settlements vary facade and roof colour per seed. Flat facades remain the
+  most obvious "procedural" tell in a street scene at middle distance, but fixing it properly
+  means more geometry on 624 buildings and belongs in a pass that can measure the cost on real
+  hardware first. Listed as open work in `handoff.md`.
+- **The terrain detail texture visibly tiles** when seen from a height (a roughly 40 m grid over
+  open meadow). At driving height it is not noticeable, and breaking it up means touching the
+  terrain macro that everything else is baked against. Listed as open work.
+- **The wet sheen does not reach the paved square or the filling-station forecourt**: it runs
+  over road batches only. Both are cobbles and concrete rather than asphalt, so the miss is less
+  wrong than it would be on tarmac, but it is a gap.
+- **Traffic bodies were not changed.** Five silhouettes, two variants each and sixteen paint
+  colours give 160 combinations, which reads as varied from a driving distance in the traffic
+  and town captures. A bus or lorry class is still open work from Phase 12.
+- **Baked shadow direction still does not follow the sun** (only its strength). Re-baking the
+  terrain macro and the road vertex colours per hour is the only real fix and costs seconds per
+  change of hour; it stays a documented limitation.
