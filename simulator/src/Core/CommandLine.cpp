@@ -1,6 +1,9 @@
 #include "CarSim/Core/CommandLine.hpp"
 
 #include <charconv>
+#include <cmath>
+#include <stdexcept>
+#include <string>
 #include <string_view>
 
 namespace CarSim::Core
@@ -18,6 +21,44 @@ namespace CarSim::Core
             }
             out = value;
             return true;
+        }
+
+        /// Accepts "13", "13.5" or "hh:mm" and returns hours in [0, 24).
+        bool ParseClock(std::string_view text, float& out)
+        {
+            const std::string value(text);
+            try {
+                const auto colon = value.find(':');
+                float hours = 0.0f;
+                if (colon == std::string::npos) {
+                    size_t used = 0;
+                    hours = std::stof(value, &used);
+                    if (used != value.size()) {
+                        return false;
+                    }
+                } else {
+                    size_t used = 0;
+                    const float h = std::stof(value.substr(0, colon), &used);
+                    if (used != colon || h < 0.0f) {
+                        return false;
+                    }
+                    const std::string minutes = value.substr(colon + 1);
+                    size_t usedMinutes = 0;
+                    const float m = std::stof(minutes, &usedMinutes);
+                    if (usedMinutes != minutes.size() || m < 0.0f || m >= 60.0f) {
+                        return false;
+                    }
+                    hours = h + m / 60.0f;
+                }
+                hours = std::fmod(hours, 24.0f);
+                if (hours < 0.0f) {
+                    hours += 24.0f;
+                }
+                out = hours;
+                return true;
+            } catch (const std::exception&) {
+                return false;
+            }
         }
     }
 
@@ -121,6 +162,31 @@ namespace CarSim::Core
                 options.lockstep = true;
             } else if (arg == "--lights") {
                 options.lights = true;
+            } else if (arg == "--time") {
+                if (const auto value = takeValue(arg)) {
+                    float hours = 0.0f;
+                    if (ParseClock(*value, hours)) {
+                        options.timeOfDay = hours;
+                    } else {
+                        result.errors.push_back("--time expects hh:mm or decimal hours, got '" +
+                                                std::string(*value) + "'");
+                    }
+                }
+            } else if (arg == "--time-scale") {
+                if (const auto value = takeValue(arg)) {
+                    try {
+                        const std::string text(*value);
+                        size_t used = 0;
+                        const float scale = std::stof(text, &used);
+                        if (used != text.size() || scale < 0.0f || scale > 3600.0f) {
+                            throw std::invalid_argument("range");
+                        }
+                        options.timeScale = scale;
+                    } catch (const std::exception&) {
+                        result.errors.push_back("--time-scale expects a number in [0, 3600], got '" +
+                                                std::string(*value) + "'");
+                    }
+                }
             } else if (arg == "--traffic-warmup") {
                 int seconds = 0;
                 takeInt(arg, seconds, 0);
@@ -205,6 +271,8 @@ namespace CarSim::Core
             "  --lockstep            One simulation step per drawn frame (deterministic captures on slow renderers)\n"
             "  --traffic-warmup <s>  Simulate the traffic for s seconds before the first frame (captures)\n"
             "  --lights              Switch the headlights on at start (captures)\n"
+            "  --time <hh:mm>        Clock the world starts at (also accepts decimal hours)\n"
+            "  --time-scale <x>      Simulated seconds of the clock per real second (0 freezes the sky)\n"
             "  --help-overlay        Start with the help overlay open\n"
             "  --debug-overlay       Start with the debug overlay open\n"
             "  --content <dir>       Content root directory\n"

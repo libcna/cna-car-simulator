@@ -48,6 +48,9 @@ namespace CarSim::Input
             case GameAction::VolumeDown: return "VolumeDown";
             case GameAction::ToggleMirror: return "ToggleMirror";
             case GameAction::ToggleHud: return "ToggleHud";
+            case GameAction::TimeForward: return "TimeForward";
+            case GameAction::TimeBackward: return "TimeBackward";
+            case GameAction::ToggleTimeFlow: return "ToggleTimeFlow";
             case GameAction::Count: break;
         }
         return "?";
@@ -93,6 +96,9 @@ namespace CarSim::Input
             case GameAction::VolumeDown: return "Volume down";
             case GameAction::ToggleMirror: return "Toggle rear-view mirror";
             case GameAction::ToggleHud: return "Toggle HUD text";
+            case GameAction::TimeForward: return "Clock forward one hour";
+            case GameAction::TimeBackward: return "Clock back one hour";
+            case GameAction::ToggleTimeFlow: return "Freeze or resume the clock";
             case GameAction::Count: break;
         }
         return "";
@@ -134,6 +140,9 @@ namespace CarSim::Input
             {GameAction::VolumeDown, Keys::PageDown},
             {GameAction::ToggleMirror, Keys::M},
             {GameAction::ToggleHud, Keys::Tab},
+            {GameAction::TimeForward, Keys::F7},
+            {GameAction::TimeBackward, Keys::F6},
+            {GameAction::ToggleTimeFlow, Keys::F8},
         };
     }
 

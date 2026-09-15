@@ -31,6 +31,12 @@ namespace CarSim::Render
     public:
         VehicleMaterials(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig);
 
+        /// Re-applies a changed lighting rig (time of day, weather) to every vehicle effect.
+        /// `rebuildEnvironment` also regenerates the paint's sky cube map, which is only worth
+        /// doing when the sun has moved a noticeable amount.
+        void ApplyLighting(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig,
+                           bool rebuildEnvironment = false);
+
         Microsoft::Xna::Framework::Graphics::BasicEffect& Lit() { return *lit_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& LitTextured() { return *litTextured_; }
         Microsoft::Xna::Framework::Graphics::BasicEffect& InteriorLit() { return *interiorLit_; }

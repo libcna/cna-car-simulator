@@ -33,6 +33,20 @@
 
 namespace CarSim::App
 {
+    namespace
+    {
+        /// "13:42" from decimal hours; used by the HUD and the start-up log.
+        std::string FormatClock(const float hours)
+        {
+            const float wrapped = hours - 24.0f * std::floor(hours / 24.0f);
+            int minutes = static_cast<int>(wrapped * 60.0f + 0.5f);
+            minutes %= 24 * 60;
+            char buffer[8];
+            std::snprintf(buffer, sizeof(buffer), "%02d:%02d", minutes / 60, minutes % 60);
+            return buffer;
+        }
+    }
+
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
     using Input::GameAction;
@@ -154,6 +168,8 @@ namespace CarSim::App
         save_.settings.hudVisible = hudVisible_;
         save_.settings.mirrorEnabled = mirrorEnabled_;
         save_.settings.startInCockpit = cameraMode_ == Render::CameraMode::Cockpit;
+        save_.settings.timeOfDayHours = timeOfDayHours_;
+        save_.settings.timeScale = timeScale_;
         save_.bindings = input_.NamedBindings();
         std::string error;
         if (!Core::WriteSaveData(savePath_, save_, error)) {
@@ -286,6 +302,7 @@ namespace CarSim::App
     {
         auto& device = getGraphicsDeviceProperty();
         LoadSave();
+        ApplyClockSettings();
         LoadMap();
         LoadVehicle();
         ApplySaveToVehicle();
@@ -399,6 +416,22 @@ namespace CarSim::App
         if (input_.Pressed(GameAction::ToggleMirror)) {
             mirrorEnabled_ = !mirrorEnabled_;
         }
+        if (input_.Pressed(GameAction::TimeForward) || input_.Pressed(GameAction::TimeBackward)) {
+            const float step = input_.Pressed(GameAction::TimeForward) ? 1.0f : -1.0f;
+            timeOfDayHours_ = std::fmod(timeOfDayHours_ + step + 24.0f, 24.0f);
+            rig_.SetTimeOfDay(timeOfDayHours_);
+            RefreshLighting(true);
+            std::cout << "clock: " << FormatClock(timeOfDayHours_) << "\n";
+        }
+        if (input_.Pressed(GameAction::ToggleTimeFlow)) {
+            if (timeScale_ > 0.0f) {
+                frozenTimeScale_ = timeScale_;
+                timeScale_ = 0.0f;
+            } else {
+                timeScale_ = frozenTimeScale_ > 0.0f ? frozenTimeScale_ : 60.0f;
+            }
+            std::cout << "clock: " << (timeScale_ > 0.0f ? "running" : "frozen") << "\n";
+        }
         if (audio_ && (input_.Pressed(GameAction::VolumeUp) || input_.Pressed(GameAction::VolumeDown))) {
             const float step = input_.Pressed(GameAction::VolumeUp) ? 0.1f : -0.1f;
             audio_->levels.master = std::clamp(audio_->levels.master + step, 0.0f, 1.0f);
@@ -424,6 +457,63 @@ namespace CarSim::App
         probe.speed = vehicle_->ForwardSpeedMs();
         probe.lengthM = definition_.chassis.lengthM;
         return probe;
+    }
+
+    void SimulatorGame::ApplyClockSettings()
+    {
+        // The save file remembers where the clock stood; the command line wins over it so that
+        // captures are reproducible.
+        timeOfDayHours_ = save_.settings.timeOfDayHours;
+        timeScale_ = save_.settings.timeScale;
+        if (options_.timeOfDay) {
+            timeOfDayHours_ = *options_.timeOfDay;
+        }
+        if (options_.timeScale) {
+            timeScale_ = *options_.timeScale;
+        }
+        timeOfDayHours_ = std::fmod(timeOfDayHours_, 24.0f);
+        if (timeOfDayHours_ < 0.0f) {
+            timeOfDayHours_ += 24.0f;
+        }
+        timeScale_ = std::clamp(timeScale_, 0.0f, 3600.0f);
+        rig_.SetTimeOfDay(timeOfDayHours_);
+        std::cout << "clock: " << FormatClock(timeOfDayHours_) << ", " << timeScale_
+                  << "x (sun " << rig_.SunElevationDeg() << " deg)\n";
+    }
+
+    void SimulatorGame::UpdateTimeOfDay(const float dt)
+    {
+        if (timeScale_ > 0.0f) {
+            timeOfDayHours_ += dt * timeScale_ / 3600.0f;
+            if (timeOfDayHours_ >= 24.0f) timeOfDayHours_ -= 24.0f;
+            rig_.SetTimeOfDay(timeOfDayHours_);
+        }
+        RefreshLighting(false);
+    }
+
+    void SimulatorGame::RefreshLighting(const bool force)
+    {
+        // Re-applying a rig writes a handful of effect properties, so it is done whenever the sun
+        // has moved a quarter of a degree; the paint's sky cube map costs more and follows every
+        // three degrees.
+        const float elevation = rig_.SunElevationDeg();
+        if (!force && std::fabs(elevation - lastLightingElevationDeg_) < 0.25f) {
+            return;
+        }
+        lastLightingElevationDeg_ = elevation;
+        const bool rebuildEnvironment = force || std::fabs(elevation - lastEnvironmentElevationDeg_) > 3.0f;
+        if (rebuildEnvironment) {
+            lastEnvironmentElevationDeg_ = elevation;
+        }
+        if (vehicleMaterials_) {
+            vehicleMaterials_->ApplyLighting(getGraphicsDeviceProperty(), rig_, rebuildEnvironment);
+        }
+        if (worldRenderer_) {
+            worldRenderer_->ApplyLighting();
+        }
+        if (sky_) {
+            sky_->Refresh(getGraphicsDeviceProperty());
+        }
     }
 
     void SimulatorGame::UpdateTraffic(const float dt)
@@ -471,6 +561,7 @@ namespace CarSim::App
         if (exitRequested_) {
             return;
         }
+        UpdateTimeOfDay(dt);
 
         Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
         ApplyAutoDrive(controls);
@@ -677,6 +768,11 @@ namespace CarSim::App
             status += "  (press the clutch or select N/P to start)";
         }
         font_->DrawShadowed(*spriteBatch_, status, Vector2(w - 24.0f, h - 42.0f), Color(220, 220, 220, 200), 0.8f, Render::TextAlign::Right);
+        std::string clock = FormatClock(timeOfDayHours_);
+        if (timeScale_ <= 0.0f) {
+            clock += " (frozen)";
+        }
+        font_->DrawShadowed(*spriteBatch_, clock, Vector2(w - 24.0f, 18.0f), Color(235, 235, 235, 190), 0.8f, Render::TextAlign::Right);
 
         std::string lamps;
         if (s.leftIndicatorLit) lamps += "<  ";
@@ -748,7 +844,8 @@ namespace CarSim::App
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
             GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera, GameAction::ToggleMirror,
             GameAction::ToggleHud, GameAction::ToggleHelp, GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
-            GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown, GameAction::Quit};
+            GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,
+            GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow, GameAction::Quit};
         const int count = static_cast<int>(sizeof(rows) / sizeof(rows[0]));
         const int perColumn = (count + 1) / 2;
         const float scale = h >= 700.0f ? 0.7f : 0.6f;

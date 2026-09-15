@@ -300,6 +300,38 @@ namespace CarSim::Render
         defaultCluster_ = UploadTexture(device, cluster, true);
     }
 
+    void VehicleMaterials::ApplyLighting(GraphicsDevice& device, const LightingRig& rig, const bool rebuildEnvironment)
+    {
+        rig.Apply(*lit_);
+        lit_->setTextureEnabledProperty(true);
+        lit_->setVertexColorEnabledProperty(false);
+        rig.Apply(*litTextured_);
+        litTextured_->setTextureEnabledProperty(true);
+        litTextured_->setVertexColorEnabledProperty(false);
+        rig.Apply(*paint_);
+        paint_->setEnvironmentMapAmountProperty(0.22f);
+        paint_->setEnvironmentMapSpecularProperty(rig.sunColor * 0.9f);
+        paint_->setFresnelFactorProperty(2.2f);
+        // The cabin keeps its softer, flatter light, scaled by the outside light level.
+        rig.Apply(*interiorLit_);
+        const float level = std::clamp((rig.skyAmbient.Y + rig.skyFillColor.Y) / 0.41f, 0.10f, 1.0f);
+        interiorLit_->setAmbientLightColorProperty(Vector3(0.50f, 0.51f, 0.55f) * level);
+        interiorLit_->getDirectionalLight0Property().setDiffuseColorProperty(rig.sunColor * 0.65f);
+        interiorLit_->getDirectionalLight0Property().setSpecularColorProperty(rig.sunColor * 0.3f);
+        interiorLit_->getDirectionalLight1Property().setDiffuseColorProperty(Vector3(0.24f, 0.26f, 0.30f) * level);
+        interiorLit_->getDirectionalLight2Property().setDiffuseColorProperty(Vector3(0.16f, 0.15f, 0.13f) * level);
+        interiorLit_->setFogEnabledProperty(false);
+        interiorLit_->setTextureEnabledProperty(true);
+        interiorLit_->setVertexColorEnabledProperty(false);
+        if (rebuildEnvironment) {
+            const Rgb zenith{rig.zenithColor.X, rig.zenithColor.Y, rig.zenithColor.Z};
+            const Rgb horizon{rig.horizonColor.X, rig.horizonColor.Y, rig.horizonColor.Z};
+            const Rgb ground{0.30f * rig.skyAmbient.Y / 0.23f, 0.30f * rig.skyAmbient.Y / 0.23f, 0.26f * rig.skyAmbient.Y / 0.23f};
+            environment_ = UploadCubeMap(device, Textures::SkyCubeFaces(64, zenith, horizon, ground, -rig.sunDirection, 300.0f));
+            paint_->setEnvironmentMapProperty(environment_.get());
+        }
+    }
+
     Texture2D* VehicleMaterials::TextureFor(const CarMaterial material) const
     {
         switch (material) {

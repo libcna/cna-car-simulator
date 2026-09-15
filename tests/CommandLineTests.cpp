@@ -58,3 +58,33 @@ TEST(CommandLine, ParsesBenchmarkJsonAndMirrorRate)
     ASSERT_TRUE(result.options.mirrorEvery.has_value());
     EXPECT_EQ(*result.options.mirrorEvery, 2);
 }
+
+TEST(CommandLine, ParsesTheClock)
+{
+    {
+        const std::array<const char*, 5> argv{"sim", "--time", "21:15", "--time-scale", "0"};
+        const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+        ASSERT_TRUE(result.ok()) << result.errors.front();
+        ASSERT_TRUE(result.options.timeOfDay.has_value());
+        EXPECT_NEAR(*result.options.timeOfDay, 21.25f, 1e-4f);
+        ASSERT_TRUE(result.options.timeScale.has_value());
+        EXPECT_EQ(*result.options.timeScale, 0.0f);
+    }
+    {   // Decimal hours and wrapping past midnight.
+        const std::array<const char*, 3> argv{"sim", "--time", "25.5"};
+        const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+        ASSERT_TRUE(result.ok()) << result.errors.front();
+        ASSERT_TRUE(result.options.timeOfDay.has_value());
+        EXPECT_NEAR(*result.options.timeOfDay, 1.5f, 1e-4f);
+    }
+    for (const char* bad : {"noon", "12:75", "12:", "8:30pm"}) {
+        const std::array<const char*, 3> argv{"sim", "--time", bad};
+        const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+        EXPECT_FALSE(result.ok()) << bad;
+    }
+    for (const char* bad : {"-1", "fast", "5000"}) {
+        const std::array<const char*, 3> argv{"sim", "--time-scale", bad};
+        const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+        EXPECT_FALSE(result.ok()) << bad;
+    }
+}

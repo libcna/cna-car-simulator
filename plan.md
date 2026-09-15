@@ -499,7 +499,10 @@ logic; traffic overtaking and lane changes; traffic body variants (TRF-007); ped
 gamepad/steering-wheel hardware; multiple licensed real-car models; car body polish (UX-006);
 additional maps; batch merging and instanced trees (PERF-002 levers); renderer conformance probe
 (RND-009); normal mapping (needs custom shaders); indicator self-cancel (only with reliable
-steering heuristic); weather/day-night (explicitly excluded).
+steering heuristic).
+
+Day and night, weather, traffic signals and a larger world were deferred here until Phase 12
+(section 25) took them on at the owner's request.
 
 ---
 
@@ -866,3 +869,43 @@ committed with its own regression test and screenshot check.
   five registrations in 33 s (159 unit and scenario tests), both static checks are clean and the
   map validator reports no warnings. `scripts/capture_set.sh` reproduces the curated screenshot
   set in one command.
+
+
+---
+
+## 25. Phase 12 -- Living world (`LW`)
+
+Started 2026-09-15 on top of the Phase 11 follow-up work. Four systems the owner asked for, in
+this order: a day and night cycle, weather, working traffic signals and a larger world with more
+villages and towns. The constraints of Phase 11 are unchanged: only CNA's XNA 4.0 public API and
+project-owned code, no test may be removed or weakened, every defect fix carries a regression
+test, and the static checks stay mandatory.
+
+### 25.1 Task ledger
+
+- [x] `LW-001` Solar model. `LightingRig` gained a clock: `SetTimeOfDay(hours)` places the sun
+  for latitude 49.8 deg N and a declination of +20 deg with solar noon at 13:00 (Czech summer
+  time), and derives the whole palette from the sun's elevation -- key light colour and strength,
+  sky ambient, sky fill, ground bounce, fog colour and range, zenith and horizon colours. Below
+  -1 deg the key light becomes a dim cold moon from the opposite side of the sky. Five tests in
+  `tests/Render/LightingRigTests.cpp` cover the sun's path, day and night, the warm low sun, the
+  moonlight and the baked-lighting scale.
+- [x] `LW-002` Baked lighting follows the clock. The terrain macro texture, the ground shadows
+  and the road and verge vertex colours stay baked under a fixed reference sun
+  (`LightingRig::BakeReference()`, 10:30) -- `WorldRenderer` now holds that reference as
+  `bakeRig_` instead of baking under whatever hour the game started at, which darkened the
+  ground twice. Per frame, `LightingRig::BakedLightingScale` gives the ratio of the horizontal
+  irradiance now to the irradiance at the bake, and `WorldRenderer::ApplyLighting` multiplies it
+  into the terrain, road and tree effects. Known limitation: the direction of the baked shadows
+  does not move with the sun.
+- [x] `LW-003` Sky follows the clock. `SkyRenderer::Refresh` rebuilds the dome colours with a
+  sunset glow around the sun's bearing, fades in 420 stars below -2 deg, draws a moon opposite
+  the sun and dims the clouds as the light goes.
+- [x] `LW-004` The car follows the clock. `VehicleMaterials::ApplyLighting` re-applies the rig to
+  the lit, textured, paint and interior effects, scales the cockpit's interior light with the sky
+  and rebuilds the paint's sky cube map when the sun has moved three degrees.
+- [x] `LW-005` The clock itself. `SimulatorGame` advances `timeOfDayHours_` by `timeScale_`
+  simulated seconds per real second (default 60x, so a day takes 24 minutes), re-applies the
+  lighting when the sun has moved a quarter of a degree, and shows the time in the HUD. `--time
+  <hh:mm>` (or decimal hours) and `--time-scale <x>` set it from the command line, the save file
+  remembers both, and F6/F7 step the clock an hour back and forward while F8 freezes it.

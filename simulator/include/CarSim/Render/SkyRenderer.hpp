@@ -18,6 +18,10 @@ namespace CarSim::Render
     public:
         SkyRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig);
 
+        /// Rebuilds the dome colours from the rig; call after the time of day or the weather
+        /// changes. The star field is built once.
+        void Refresh(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+
         /// Draws the sky centred on the camera. Call first in the frame, after Clear.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const CameraPose& camera, float aspect);
         /// Draws with explicit matrices (mirror pass); `position` centres the dome.
@@ -27,6 +31,7 @@ namespace CarSim::Render
     private:
         const LightingRig& rig_;
         std::unique_ptr<GpuMesh> dome_;
+        std::unique_ptr<GpuMesh> stars_;
         std::unique_ptr<GpuMesh> sun_;
         std::unique_ptr<GpuMesh> clouds_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> cloudTexture_;

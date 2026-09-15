@@ -59,6 +59,10 @@ namespace CarSim::App
         void LoadMap();
         void LoadVehicle();
         void HandleAppActions();
+        /// Advances the clock and re-applies the lighting when the sun has moved enough.
+        void ApplyClockSettings();
+        void UpdateTimeOfDay(float dt);
+        void RefreshLighting(bool force = false);
         void ApplyAutoDrive(Sim::DriverControls& controls);
         void UpdateTraffic(float dt);
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
@@ -92,6 +96,13 @@ namespace CarSim::App
 
         // Rendering
         Render::LightingRig rig_;
+        // Clock: the sky, the light and the lamps follow it. `timeScale_` is simulated seconds
+        // per real second (0 freezes the sky).
+        float timeOfDayHours_ = 10.5f;
+        float timeScale_ = 60.0f;
+        float frozenTimeScale_ = 60.0f;   // remembered while the clock is frozen
+        float lastLightingElevationDeg_ = -999.0f;
+        float lastEnvironmentElevationDeg_ = -999.0f;
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::TestGround> testGround_;
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;

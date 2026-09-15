@@ -7,13 +7,21 @@
 
 namespace CarSim::Render
 {
-    /// Late-morning summer sun over central Europe: azimuth from the south-east, ~48 degrees
-    /// elevation, warm key light, blue-grey sky ambient and a mild haze for depth.
+    /// Summer daylight over central Europe, driven by a time of day: the sun follows a solar
+    /// path for the rig's latitude and declination, and the key light, ambient, fog and sky
+    /// colours follow its elevation from night through twilight to full day.
     struct LightingRig
     {
         using Vector3 = Microsoft::Xna::Framework::Vector3;
 
-        Vector3 sunDirection;            // unit vector pointing FROM the sun towards the scene
+        /// Local clock hour the rig was last set to (solar noon is at 13:00, as in CEST).
+        float timeOfDayHours = 10.5f;
+        float latitudeDeg = 49.8f;          // Bohemia
+        float sunDeclinationDeg = 20.0f;    // early summer
+
+        Vector3 sunDirection;            // unit vector pointing FROM the key light towards the scene
+        float sunElevationDeg = 0.0f;    // of the sun itself, negative at night (the key light is the moon then)
+        float sunAzimuthDeg = 0.0f;      // clockwise from north
         // Exposure: a sunlit horizontal surface receives about ambient + sky + sun * cos(42 deg)
         // = 1.0, so textures keep their contrast instead of clipping to white.
         Vector3 sunColor{0.98f, 0.93f, 0.84f};
@@ -37,5 +45,24 @@ namespace CarSim::Render
         /// Diffuse irradiance (RGB) of a surface with this normal under the three rig lights
         /// plus ambient, matching what BasicEffect computes; used to bake road vertex colours.
         [[nodiscard]] Vector3 Irradiance(const Vector3& normal) const;
+
+        /// Points the sun at the given local hour and recomputes every colour from its
+        /// elevation. Hours outside 0..24 wrap.
+        void SetTimeOfDay(float hours);
+        /// Sun elevation above the horizon in degrees (negative at night).
+        [[nodiscard]] float SunElevationDeg() const { return sunElevationDeg; }
+        /// Sun azimuth in degrees clockwise from north (0 = north, 90 = east).
+        [[nodiscard]] float SunAzimuthDeg() const { return sunAzimuthDeg; }
+        /// True once the sun is far enough below the horizon for headlights to matter.
+        [[nodiscard]] bool IsNight() const { return SunElevationDeg() < -1.0f; }
+
+        /// Multiplier that turns lighting baked under `reference` into lighting for this rig:
+        /// the ratio of the irradiance of a horizontal surface, tinted like the current key
+        /// light. Used for the terrain macro, road vertex colours and tree cards, which are
+        /// baked once and scaled per frame instead of being re-baked as the sun moves.
+        [[nodiscard]] Vector3 BakedLightingScale(const LightingRig& reference) const;
+
+        /// The rig the baked world lighting was generated with (fixed mid-morning sun).
+        [[nodiscard]] static LightingRig BakeReference();
     };
 }

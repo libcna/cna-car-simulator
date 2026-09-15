@@ -104,6 +104,10 @@ namespace CarSim::Core
             r.Bool(settings, "mirrorEnabled", d.settings.mirrorEnabled, "save.settings");
             r.Int(settings, "mirrorUpdateEvery", d.settings.mirrorUpdateEvery, "save.settings");
             d.settings.mirrorUpdateEvery = std::clamp(d.settings.mirrorUpdateEvery, 1, 8);
+            r.Float(settings, "timeOfDayHours", d.settings.timeOfDayHours, "save.settings");
+            d.settings.timeOfDayHours = std::clamp(d.settings.timeOfDayHours, 0.0f, 24.0f);
+            r.Float(settings, "timeScale", d.settings.timeScale, "save.settings");
+            d.settings.timeScale = std::clamp(d.settings.timeScale, 0.0f, 3600.0f);
             r.Bool(settings, "hudVisible", d.settings.hudVisible, "save.settings");
             r.Bool(settings, "startInCockpit", d.settings.startInCockpit, "save.settings");
         }
@@ -168,6 +172,8 @@ namespace CarSim::Core
         out << "    \"effectsVolume\": " << data.settings.effectsVolume << ",\n";
         out << "    \"mirrorEnabled\": " << (data.settings.mirrorEnabled ? "true" : "false") << ",\n";
         out << "    \"mirrorUpdateEvery\": " << data.settings.mirrorUpdateEvery << ",\n";
+        out << "    \"timeOfDayHours\": " << data.settings.timeOfDayHours << ",\n";
+        out << "    \"timeScale\": " << data.settings.timeScale << ",\n";
         out << "    \"hudVisible\": " << (data.settings.hudVisible ? "true" : "false") << ",\n";
         out << "    \"startInCockpit\": " << (data.settings.startInCockpit ? "true" : "false") << "\n";
         out << "  },\n";

@@ -63,7 +63,7 @@ namespace CarSim::Render
         const auto& terrain = world_.Terrain();
         const int macroW = std::min(2048, std::max(1, 2 * terrain.Columns()));
         const int macroH = std::min(2048, std::max(1, 2 * terrain.Rows()));
-        const Image shadow = GroundShadows::Bake(world_, rig.sunDirection, macroW, macroH);
+        const Image shadow = GroundShadows::Bake(world_, bakeRig_.sunDirection, macroW, macroH);
         Image tint(macroW, macroH);
         BuildMacroTexture(device, shadow, tint);
         BuildTerrain(device);
@@ -121,6 +121,37 @@ namespace CarSim::Render
         markingStateMirrored_->setSlopeScaleDepthBiasProperty(-1.0f);
     }
 
+    void WorldRenderer::ApplyLighting()
+    {
+        const Vector3 scale = rig_.BakedLightingScale(bakeRig_);
+        if (roadEffect_) {
+            rig_.Apply(*roadEffect_);
+            roadEffect_->setTextureEnabledProperty(true);
+            roadEffect_->setVertexColorEnabledProperty(false);
+            roadEffect_->setSpecularColorProperty(Vector3(0.06f, 0.06f, 0.06f));
+            roadEffect_->setSpecularPowerProperty(10.0f);
+        }
+        if (terrainEffect_) {
+            terrainEffect_->setDiffuseColorProperty(scale);
+            terrainEffect_->setFogColorProperty(rig_.fogColor);
+            terrainEffect_->setFogStartProperty(rig_.fogStart);
+            terrainEffect_->setFogEndProperty(rig_.fogEnd);
+        }
+        bakedScale_ = scale;
+        if (roadUnlitEffect_) {
+            roadUnlitEffect_->setDiffuseColorProperty(scale);
+            roadUnlitEffect_->setFogColorProperty(rig_.fogColor);
+            roadUnlitEffect_->setFogStartProperty(rig_.fogStart);
+            roadUnlitEffect_->setFogEndProperty(rig_.fogEnd);
+        }
+        if (treeEffect_) {
+            treeEffect_->setDiffuseColorProperty(scale);
+            treeEffect_->setFogColorProperty(rig_.fogColor);
+            treeEffect_->setFogStartProperty(rig_.fogStart);
+            treeEffect_->setFogEndProperty(rig_.fogEnd);
+        }
+    }
+
     void WorldRenderer::BuildMacroTexture(GraphicsDevice& device, const Image& shadow, Image& tintOut)
     {
         // Two texels per terrain cell (capped at 2048): region tint x baked sun lighting x
@@ -129,7 +160,7 @@ namespace CarSim::Render
         const int width = shadow.Width();
         const int height = shadow.Height();
         Image macro(width, height);
-        const Vector3 toSun = -rig_.sunDirection;
+        const Vector3 toSun = -bakeRig_.sunDirection;
         const float sizeX = terrain.MaxX() - terrain.MinX();
         const float sizeZ = terrain.MaxZ() - terrain.MinZ();
         for (int y = 0; y < height; ++y) {
@@ -329,7 +360,7 @@ namespace CarSim::Render
         const float sizeX = std::max(1.0f, terrain.MaxX() - terrain.MinX());
         const float sizeZ = std::max(1.0f, terrain.MaxZ() - terrain.MinZ());
         for (auto& v : mesh.vertices) {
-            const Vector3 irradiance = rig_.Irradiance(v.normal);
+            const Vector3 irradiance = bakeRig_.Irradiance(v.normal);
             const float sh = GroundShadows::Sample(shadow, world_, v.position.X, v.position.Z);
             const Rgb base{static_cast<float>(v.color.getRProperty()) / 255.0f, static_cast<float>(v.color.getGProperty()) / 255.0f,
                            static_cast<float>(v.color.getBProperty()) / 255.0f};
@@ -804,7 +835,8 @@ namespace CarSim::Render
             // Pass 0: surfaces; pass 1: markings with a depth bias.
             const bool markings = pass == 1;
             device.setRasterizerStateProperty(markings ? (mirrored ? *markingStateMirrored_ : *markingState_) : solid);
-            roadUnlitEffect_->setDiffuseColorProperty(markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f));
+            const Vector3 tint = markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f);
+            roadUnlitEffect_->setDiffuseColorProperty(Vector3(tint.X * bakedScale_.X, tint.Y * bakedScale_.Y, tint.Z * bakedScale_.Z));
             for (const auto& b : roadBatches_) {
                 if ((b.surface == Surface::Marking) != markings || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
                     continue;

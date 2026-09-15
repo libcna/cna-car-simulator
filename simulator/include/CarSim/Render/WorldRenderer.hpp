@@ -41,6 +41,11 @@ namespace CarSim::Render
     {
     public:
         /// `signFont` sets the text on road signs (town names, directions); null uses no text.
+        /// Re-applies the current rig to the world effects. The terrain macro, the road vertex
+        /// colours and the tree cards carry lighting baked under `LightingRig::BakeReference()`,
+        /// so they are scaled by the ratio between the two rigs instead of being re-baked.
+        void ApplyLighting();
+
         WorldRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world,
                       const BitmapFont* signFont);
 
@@ -104,6 +109,10 @@ namespace CarSim::Render
 
         const Map::MapWorld& world_;
         const LightingRig& rig_;
+        /// Fixed reference sun the terrain macro, the ground shadows and the road vertex colours
+        /// are baked under; `rig_` may be at any hour, so the bakes must not follow it.
+        LightingRig bakeRig_ = LightingRig::BakeReference();
+        Microsoft::Xna::Framework::Vector3 bakedScale_{1.0f, 1.0f, 1.0f};   // baked lighting -> current rig
 
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::DualTextureEffect> terrainEffect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadEffect_;        // lit: buildings, props, trunks

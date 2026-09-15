@@ -10,16 +10,111 @@ namespace CarSim::Render
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
 
+    namespace
+    {
+        constexpr float kPi = 3.14159265f;
+        constexpr float kDeg = kPi / 180.0f;
+
+        float Clamp01(const float v) { return std::clamp(v, 0.0f, 1.0f); }
+
+        float SmoothStep(const float a, const float b, const float x)
+        {
+            const float t = Clamp01((x - a) / std::max(1e-5f, b - a));
+            return t * t * (3.0f - 2.0f * t);
+        }
+
+        Vector3 Mix(const Vector3& a, const Vector3& b, const float t)
+        {
+            return Vector3::Lerp(a, b, Clamp01(t));
+        }
+    }
+
     LightingRig::LightingRig()
     {
-        // Azimuth 135 degrees (south-east; +X east, -Z north -> south-east is (+x, +z)),
-        // elevation 48 degrees. Direction points from the sun towards the scene.
-        const float azimuth = 135.0f * 3.14159265f / 180.0f;
-        const float elevation = 48.0f * 3.14159265f / 180.0f;
-        const Vector3 toSun(std::sin(azimuth) * std::cos(elevation), std::sin(elevation), std::cos(azimuth) * std::cos(elevation) * -1.0f);
+        SetTimeOfDay(timeOfDayHours);
+    }
+
+    LightingRig LightingRig::BakeReference()
+    {
+        LightingRig rig;
+        rig.SetTimeOfDay(10.5f);   // mid-morning sun: what the terrain macro and roads are baked under
+        return rig;
+    }
+
+    void LightingRig::SetTimeOfDay(const float hours)
+    {
+        timeOfDayHours = hours - 24.0f * std::floor(hours / 24.0f);
+        // Solar position for the rig's latitude: hour angle measured from solar noon at 13:00,
+        // which is where the sun culminates on Czech summer time.
+        const float hourAngle = (timeOfDayHours - 13.0f) * 15.0f * kDeg;
+        const float decl = sunDeclinationDeg * kDeg;
+        const float lat = latitudeDeg * kDeg;
+        const float sinElevation = std::clamp(std::sin(decl) * std::sin(lat) + std::cos(decl) * std::cos(lat) * std::cos(hourAngle), -1.0f, 1.0f);
+        const float elevation = std::asin(sinElevation);
+        const float cosElevation = std::max(1e-4f, std::cos(elevation));
+        float cosAzimuth = (std::sin(decl) - sinElevation * std::sin(lat)) / (cosElevation * std::cos(lat));
+        cosAzimuth = std::clamp(cosAzimuth, -1.0f, 1.0f);
+        float azimuth = std::acos(cosAzimuth);          // from north, 0..pi
+        if (hourAngle > 0.0f) azimuth = 2.0f * kPi - azimuth;   // afternoon: west of south
+        // +X east, -Z north, azimuth clockwise from north.
+        const Vector3 toSun(std::sin(azimuth) * cosElevation, sinElevation, -std::cos(azimuth) * cosElevation);
         Vector3 dir = -toSun;
         dir.Normalize();
         sunDirection = dir;
+
+        const float elevationDeg = elevation / kDeg;
+        sunElevationDeg = elevationDeg;
+        sunAzimuthDeg = azimuth / kDeg;
+        // Day factor: full daylight above 8 degrees, gone once the sun is 2 degrees down.
+        const float day = SmoothStep(-2.0f, 8.0f, elevationDeg);
+        // Civil twilight glow: strongest just around sunset and sunrise.
+        const float dusk = SmoothStep(-9.0f, 1.0f, elevationDeg) * (1.0f - SmoothStep(1.0f, 12.0f, elevationDeg));
+        const float night = 1.0f - SmoothStep(-9.0f, -2.0f, elevationDeg);
+
+        // Key light: full strength above 40 degrees, warm and weak near the horizon, off at night.
+        const float strength = Clamp01(std::max(0.0f, sinElevation) / std::sin(40.0f * kDeg));
+        const Vector3 noonSun(0.98f, 0.93f, 0.84f);
+        const Vector3 lowSun(1.00f, 0.60f, 0.32f);
+        const float warm = 1.0f - SmoothStep(2.0f, 16.0f, elevationDeg);
+        sunColor = Mix(noonSun, lowSun, warm * 0.9f) * strength;
+        if (elevationDeg < -1.0f) {
+            // Moonlight: a dim, cold key from roughly the opposite side of the sky.
+            sunColor = Vector3(0.05f, 0.06f, 0.09f) * (0.35f + 0.65f * night);
+            sunDirection = Vector3(-dir.X, -std::fabs(dir.Y) * 0.8f - 0.3f, -dir.Z);
+            sunDirection.Normalize();
+        }
+
+        const Vector3 dayAmbient(0.21f, 0.23f, 0.28f);
+        const Vector3 duskAmbient(0.17f, 0.14f, 0.15f);
+        const Vector3 nightAmbient(0.035f, 0.040f, 0.062f);
+        skyAmbient = Mix(Mix(nightAmbient, duskAmbient, 1.0f - night), dayAmbient, day);
+        skyFillColor = Mix(Vector3(0.020f, 0.024f, 0.042f), Vector3(0.15f, 0.18f, 0.24f), day) + Vector3(0.05f, 0.03f, 0.02f) * dusk;
+        groundBounceColor = Mix(Vector3(0.010f, 0.010f, 0.014f), Vector3(0.10f, 0.09f, 0.07f), day);
+
+        const Vector3 dayFog(0.76f, 0.82f, 0.90f);
+        const Vector3 duskFog(0.72f, 0.55f, 0.46f);
+        const Vector3 nightFog(0.045f, 0.055f, 0.095f);
+        fogColor = Mix(Mix(nightFog, duskFog, 1.0f - night), dayFog, day);
+        const Vector3 dayZenith(0.18f, 0.38f, 0.76f);
+        const Vector3 duskZenith(0.14f, 0.22f, 0.46f);
+        const Vector3 nightZenith(0.016f, 0.024f, 0.060f);
+        zenithColor = Mix(Mix(nightZenith, duskZenith, 1.0f - night), dayZenith, day);
+        const Vector3 dayHorizon(0.80f, 0.86f, 0.93f);
+        const Vector3 duskHorizon(0.95f, 0.58f, 0.32f);
+        const Vector3 nightHorizon(0.040f, 0.050f, 0.090f);
+        horizonColor = Mix(Mix(nightHorizon, duskHorizon, 1.0f - night), dayHorizon, day);
+        horizonColor = Mix(horizonColor, duskHorizon, dusk * 0.7f);
+        // Night air is clearer but the view fades sooner in the dark.
+        fogStart = Mix(Vector3(120.0f, 0.0f, 0.0f), Vector3(300.0f, 0.0f, 0.0f), day).X;
+        fogEnd = Mix(Vector3(1400.0f, 0.0f, 0.0f), Vector3(2600.0f, 0.0f, 0.0f), day).X;
+    }
+
+    Vector3 LightingRig::BakedLightingScale(const LightingRig& reference) const
+    {
+        const Vector3 up(0.0f, 1.0f, 0.0f);
+        const Vector3 now = Irradiance(up);
+        const Vector3 was = reference.Irradiance(up);
+        return Vector3(now.X / std::max(1e-3f, was.X), now.Y / std::max(1e-3f, was.Y), now.Z / std::max(1e-3f, was.Z));
     }
 
     void LightingRig::Apply(BasicEffect& effect) const
