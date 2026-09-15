@@ -134,11 +134,11 @@ namespace CarSim::Traffic
                 sample.curvature = std::abs(points[i].curvature);
                 if (!samples_.empty()) {
                     const Vector2 d = Flat(sample.position) - Flat(samples_.back().position);
-                    const float step = std::sqrt(d.X * d.X + d.Y * d.Y);
-                    if (step < 0.05f) {
+                    const float advance = std::sqrt(d.X * d.X + d.Y * d.Y);
+                    if (advance < 0.05f) {
                         continue;   // duplicated joint between a lane and its link
                     }
-                    s += step;
+                    s += advance;
                 }
                 sample.s = s;
                 sample.step = step;
