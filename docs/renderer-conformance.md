@@ -39,7 +39,7 @@ rasterisation; the SOFTWARE renderer rasterises inside the draw calls).
 | Town, chase camera | SOFTWARE | 1253 | 1242k | 3599 ms | 2510 | 502 | 207 | - |
 | Town, cockpit + mirror + cluster | OPENGLES3 | 1299 | 1245k | 223 ms | 117 | 61 | 5 | 39 |
 | Town, cockpit + mirror + cluster | OPENGL33 | 1299 | 1245k | 235 ms | 118 | 69 | 6 | 40 |
-| Town, cockpit + mirror + cluster | SOFTWARE | 1299 | 1243k | SOFTWARE_COCKPIT_MS | SW_WORLD | SW_TRAFFIC | SW_VEHICLE | SW_MIRROR |
+| Town, cockpit + mirror + cluster | SOFTWARE | 1299 | 1245k | 4639 ms | 2378 | 536 | 705 | 644 |
 
 Re-measured for Phase 13 with `scripts/renderer_compare.sh`, which prints the table above and
 records what was actually done per renderer (see "What 'tested' means here" below).
@@ -56,14 +56,21 @@ the frame is dominated by the world and traffic passes, which do the same work o
 
 ## Image differences
 
-Pixel comparison of the same frame (max channel difference per pixel, 1280 x 720):
+Pixel comparison of the same frame (max channel difference per pixel, 1280 x 720), re-measured
+for Phase 13 with `scripts/renderer_sheet.py`, which also builds the sheets below:
 
 | Pair | mean difference | pixels differing by > 32 | > 96 |
 | --- | --- | --- | --- |
-| OPENGL33 vs OPENGLES3, town | 3.8 / 255 | 0.36 % | 0 % |
-| SOFTWARE vs OPENGLES3, town | 5.5 / 255 | 1.7 % | 0.08 % |
-| OPENGL33 vs OPENGLES3, cockpit | 0.45 / 255 | 0 % | 0 % |
-| SOFTWARE vs OPENGLES3, cockpit | 2.3 / 255 | 1.1 % | 0.11 % |
+| OPENGL33 vs OPENGLES3, town | 3.82 / 255 | 0.36 % | 0.000 % |
+| SOFTWARE vs OPENGLES3, town | 5.49 / 255 | 1.70 % | 0.083 % |
+| OPENGL33 vs OPENGLES3, cockpit | 0.45 / 255 | 0.00 % | 0.000 % |
+| SOFTWARE vs OPENGLES3, cockpit | 2.32 / 255 | 1.04 % | 0.105 % |
+
+Unchanged in character from Phase 12 to within a hundredth of a level, which is the point: the
+visual work of Phase 13 -- the paint's sun glint, the convex wing mirrors, the headlamp beam, the
+wet-road sheen, the softened stars, the tapered forest edges -- introduced **no** renderer-specific
+divergence. Every one of them is ordinary XNA 4.0 surface (`EnvironmentMapEffect`, `BasicEffect`
+fog, vertex colours, additive blending) and all three renderers agree about it.
 | OPENGL33 vs OPENGLES3, instrument cluster target | 0.0 | 0 % | 0 % |
 | SOFTWARE vs OPENGLES3, instrument cluster target | 0.07 / 255 | 0 % | 0 % |
 

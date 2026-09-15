@@ -24,6 +24,11 @@ prints the table below and `--benchmark-json <file>` writes it as JSON; the same
 the debug overlay (`F3`). Draw submission is the CPU time to submit the frame; the wall-clock
 average includes llvmpipe's rasterisation and the swap.
 
+Measured at the end of **Phase 12** and kept for the per-scene shape; the Phase 13 section below
+re-measures the town scene and the mirror on the current build. Nothing in Phase 13 changed these
+by more than a few per cent: the wet-road sheen runs only while the road is wet, and the paint's
+cube map is rebuilt only when the sun has moved three degrees.
+
 | Scene | draw submission | draw calls | triangles | cluster | mirror | sky | world | traffic | vehicle | hud |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Lipová chase (`--spawn square`, 20 traffic cars) | 170.4 ms | 1290 | 1242k | 0.4 | 0 | 1.2 | 106.9 | 56.5 | 5.2 | 0.2 |
