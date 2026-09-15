@@ -500,10 +500,16 @@ namespace CarSim::App
 
     void SimulatorGame::ApplyWeatherSettings()
     {
+        // The save file wins over the default and the command line over both; an unreadable name
+        // falls back rather than failing the run, but it says so.
         Core::WeatherKind kind = Core::WeatherKind::FewClouds;
-        Core::WeatherFromName(save_.settings.weather, kind);
-        if (options_.weather) {
-            Core::WeatherFromName(*options_.weather, kind);
+        if (!save_.settings.weather.empty() && !Core::WeatherFromName(save_.settings.weather, kind)) {
+            std::cerr << "save: unknown weather '" << save_.settings.weather << "', using "
+                      << Core::ToString(kind) << "\n";
+        }
+        if (options_.weather && !Core::WeatherFromName(*options_.weather, kind)) {
+            std::cerr << "--weather: unknown weather '" << *options_.weather << "', using "
+                      << Core::ToString(kind) << "\n";
         }
         weather_.Snap(kind);   // the weather is already settled when the world appears
         ApplyWeatherToWorld();

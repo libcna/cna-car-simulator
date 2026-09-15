@@ -1001,3 +1001,25 @@ test, and the static checks stay mandatory.
   twenty-five times. The cube map now follows three degrees of sun or fifteen per cent of cloud
   (only the start-up and the manual clock keys force it), and the cloud texture ten per cent of
   cover.
+
+### 25.2 Phase 12 audit (2026-09-15)
+
+Commit `12fe99256d01cfc48e1d205bac13f082961256d0` cloned fresh from `origin` and built against
+the dependency checkouts (Release, Ninja, OPENGLES3):
+
+- every target builds (738 steps, no errors; the remaining warnings are the pre-existing
+  `-Wdouble-promotion` ones in the audio synthesiser, the collision world and the benchmark
+  accumulators, plus two in CNA itself),
+- `ctest --preset opengles3` passes all five registrations in 48 s, `carsim_tests` runs 178
+  unit and scenario tests in 34 s,
+- `scripts/check_xna_only.py` (178 files, 544 XNA types) and `scripts/check_assets.py` are
+  clean, and `carsim-mapvalidate content/maps/lipova` reports no warnings over 624 buildings,
+  54 186 trees, 63 signs, 2 832 props and 150 parked cars,
+- the audit binary runs the new features: `--spawn mesto --time 21:45 --weather rain` starts in
+  Nové Město after sunset in the rain and captures a frame.
+
+The renderer conformance record was re-measured on this map: OPENGLES3, OPENGL33 and SOFTWARE
+submit the same 1 253 draw calls and 1.24 M triangles for the same frame, the image differences
+are unchanged in character (mean 3.8/255 between the two GL paths), and the comparison sheets in
+`docs/screenshots/renderers/` were regenerated. The curated screenshot set was re-shot and eight
+pictures added (dusk, night, headlamps, signals, overcast, rain and the three new settlements).

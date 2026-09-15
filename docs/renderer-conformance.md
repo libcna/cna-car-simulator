@@ -26,24 +26,30 @@ renderer variable differs. `ctest` runs against the `opengles3` build (178 tests
 ## Runs
 
 Both scenes use `--no-save --no-audio --lockstep --spawn square --auto-drive 3
---traffic-warmup 20 --benchmark` so the simulated state is identical on every renderer; the
-capture is the last frame (frame 40 exterior, frame 36 cockpit). Times are CPU draw submission
+--traffic-warmup 20 --time 13:00 --time-scale 0 --weather cloudy --benchmark` so the simulated
+state, the clock and the weather are identical on every renderer; the capture is the last frame
+(frame 40 exterior, frame 36 cockpit). Times are CPU draw submission
 per frame (llvmpipe rasterises on the CPU, so for the GL renderers this includes most of the
 rasterisation; the SOFTWARE renderer rasterises inside the draw calls).
 
 | Scene | Renderer | draw calls | triangles | draw submission | world | traffic | vehicle | mirror |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Town, chase camera | OPENGLES3 | 606 | 575k | 121 ms | 76 | 31 | 11 | - |
-| Town, chase camera | OPENGL33 | 606 | 575k | 97 ms | 60 | 24 | 9 | - |
-| Town, chase camera | SOFTWARE | 606 | 575k | 1805 ms | 1264 | 95 | 158 | - |
-| Town, cockpit + mirror + cluster | OPENGLES3 | 869 | 832k | 148 ms | 64 | 25 | 4 | 51 |
-| Town, cockpit + mirror + cluster | OPENGL33 | 869 | 832k | 157 ms | 72 | 28 | 4 | 50 |
-| Town, cockpit + mirror + cluster | SOFTWARE | 869 | 832k | 2906 ms | 1326 | 182 | 530 | 580 |
+| Town, chase camera | OPENGLES3 | 1253 | 1242k | 176 ms | 111 | 58 | 6 | - |
+| Town, chase camera | OPENGL33 | 1253 | 1242k | 174 ms | 110 | 56 | 6 | - |
+| Town, chase camera | SOFTWARE | 1253 | 1242k | 3571 ms | 2485 | 500 | 207 | - |
+| Town, cockpit + mirror + cluster | OPENGLES3 | 1299 | 1245k | 240 ms | 115 | 61 | 4 | 58 |
+| Town, cockpit + mirror + cluster | OPENGL33 | 1299 | 1245k | 237 ms | 114 | 61 | 5 | 56 |
+| Town, cockpit + mirror + cluster | SOFTWARE | 1299 | 1245k | 4793 ms | 2353 | 532 | 708 | 821 |
 
 Draw calls and triangle counts are identical across renderers for the same frame, which is the
-expected result of renderer-independent culling. The SOFTWARE renderer is about fifteen times
-slower than llvmpipe on this scene (single-threaded rasterisation, per-pixel lighting of 575k
+expected result of renderer-independent culling. The SOFTWARE renderer is about twenty times
+slower than llvmpipe on this scene (single-threaded rasterisation, per-pixel lighting of 1.24 M
 triangles) and is only useful for conformance checks and for machines without any GL driver.
+
+These numbers were re-measured on the Phase 12 map (6.4 x 7.6 km, five settlements); the Phase
+11 set on the smaller map read 606 draw calls and 575k triangles for the same camera, at 121 ms
+on OPENGLES3. OPENGL33 used to be a third faster than OPENGLES3 here and is now level with it:
+the frame is dominated by the world and traffic passes, which do the same work on both.
 
 ## Image differences
 
@@ -51,10 +57,10 @@ Pixel comparison of the same frame (max channel difference per pixel, 1280 x 720
 
 | Pair | mean difference | pixels differing by > 32 | > 96 |
 | --- | --- | --- | --- |
-| OPENGL33 vs OPENGLES3, town | 4.1 / 255 | 0.7 % | 0 % |
-| SOFTWARE vs OPENGLES3, town | 6.5 / 255 | 3.4 % | 0.09 % |
-| OPENGL33 vs OPENGLES3, cockpit | 0.4 / 255 | 0 % | 0 % |
-| SOFTWARE vs OPENGLES3, cockpit | 2.3 / 255 | 1.2 % | 0.13 % |
+| OPENGL33 vs OPENGLES3, town | 3.8 / 255 | 0.36 % | 0 % |
+| SOFTWARE vs OPENGLES3, town | 5.5 / 255 | 1.7 % | 0.08 % |
+| OPENGL33 vs OPENGLES3, cockpit | 0.45 / 255 | 0 % | 0 % |
+| SOFTWARE vs OPENGLES3, cockpit | 2.3 / 255 | 1.1 % | 0.11 % |
 | OPENGL33 vs OPENGLES3, instrument cluster target | 0.0 | 0 % | 0 % |
 | SOFTWARE vs OPENGLES3, instrument cluster target | 0.07 / 255 | 0 % | 0 % |
 
