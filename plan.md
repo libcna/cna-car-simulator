@@ -1343,6 +1343,29 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   is a strip of quads, so a give-way triangle is the only marking that stands on its own: 0 over
   four signalised approaches, 15 over four yield approaches.
 
+- [x] `RH-027` **Dashboard and night interior audited; nothing needed changing.** Captured the
+  cluster target at 13:00 and 21:30 and compared them. The backlight follows the **ignition**, not
+  the clock: `Color(120)` with the ignition off, full white with it on, which is how a car's panel
+  lighting actually works and means the dial is equally legible at noon and at midnight once the
+  car is running. Over that, every reading is live simulation state -- the speed and rpm needles
+  track the drive, the fuel and coolant sub-dials track the tank and the thermal model, the gear
+  label and the "AUTO"/"MANUAL" line follow the gearbox, the odometer, trip and instant
+  consumption panel reads green like an LCD -- and the telltales (park, coolant, fuel, battery,
+  engine, indicators, low and high beam) are grey until their state is true: at 21:30 with the
+  lights on the high-beam telltale is green and, with the engine off, the battery and engine
+  telltales are lit. In the night cockpit capture the cluster is comfortably readable without
+  glaring, which is what the brief asks for; nothing here is a defect. Two taste questions were
+  considered and rejected: European panels are usually lit warm rather than white, and many cars
+  dim the panel when the headlights are on. Both would invalidate the cluster's own regression
+  picture for no measurable gain.
+- [x] `RH-028` **Street lighting audited; nothing needed changing.** At 23:00 on the square and
+  along the main street the lamps throw discrete warm pools with a visible lantern glow, about
+  40 m apart, and the pools do not merge into a uniformly lit map: the built-up areas read as lit
+  and the country roads stay dark, which is what the brief asks for. The lamp positions come from
+  `objects.props[]` and the pools from `WorldRenderer::BuildLampLights`, both scaled by
+  `LightingRig::LampFactor()`, so they come on and go off with the same clock as everything else.
+  Confirmed in `docs/screenshots/night.jpg` and `headlights.jpg`.
+
 ### 26.4 What was deliberately not done
 
 Recorded so the next pass does not have to rediscover the reasoning.

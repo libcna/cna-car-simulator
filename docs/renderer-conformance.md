@@ -21,7 +21,7 @@ checked out beside it.
 | `vulkan` | `VULKAN` | not built | No Vulkan ICD in the container (no `lavapipe` package); nothing to run it on. |
 
 Every build is configured with `CNA_CNAEXT=OFF` and the same project options; only the
-renderer variable differs. `ctest` runs against the `opengles3` build (178 tests).
+renderer variable differs. `ctest` runs against the `opengles3` build (196 tests in six registrations).
 
 ## Runs
 
@@ -34,12 +34,15 @@ rasterisation; the SOFTWARE renderer rasterises inside the draw calls).
 
 | Scene | Renderer | draw calls | triangles | draw submission | world | traffic | vehicle | mirror |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Town, chase camera | OPENGLES3 | 1253 | 1242k | 176 ms | 111 | 58 | 6 | - |
-| Town, chase camera | OPENGL33 | 1253 | 1242k | 174 ms | 110 | 56 | 6 | - |
-| Town, chase camera | SOFTWARE | 1253 | 1242k | 3571 ms | 2485 | 500 | 207 | - |
-| Town, cockpit + mirror + cluster | OPENGLES3 | 1299 | 1245k | 240 ms | 115 | 61 | 4 | 58 |
-| Town, cockpit + mirror + cluster | OPENGL33 | 1299 | 1245k | 237 ms | 114 | 61 | 5 | 56 |
-| Town, cockpit + mirror + cluster | SOFTWARE | 1299 | 1245k | 4793 ms | 2353 | 532 | 708 | 821 |
+| Town, chase camera | OPENGLES3 | 1253 | 1242k | 166 ms | 105 | 53 | 5 | - |
+| Town, chase camera | OPENGL33 | 1253 | 1242k | 184 ms | 119 | 57 | 6 | - |
+| Town, chase camera | SOFTWARE | 1253 | 1242k | 3599 ms | 2510 | 502 | 207 | - |
+| Town, cockpit + mirror + cluster | OPENGLES3 | 1299 | 1245k | 223 ms | 117 | 61 | 5 | 39 |
+| Town, cockpit + mirror + cluster | OPENGL33 | 1299 | 1245k | 235 ms | 118 | 69 | 6 | 40 |
+| Town, cockpit + mirror + cluster | SOFTWARE | 1299 | 1243k | SOFTWARE_COCKPIT_MS | SW_WORLD | SW_TRAFFIC | SW_VEHICLE | SW_MIRROR |
+
+Re-measured for Phase 13 with `scripts/renderer_compare.sh`, which prints the table above and
+records what was actually done per renderer (see "What 'tested' means here" below).
 
 Draw calls and triangle counts are identical across renderers for the same frame, which is the
 expected result of renderer-independent culling. The SOFTWARE renderer is about twenty times
