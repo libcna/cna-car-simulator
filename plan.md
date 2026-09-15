@@ -1327,3 +1327,10 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   minutes, not switches. Transitions settle between **193 s and 548 s** of simulated time, which
   is a front arriving rather than a preset changing. No pops found; no change needed. The test
   stays as the guard.
+- [x] `RH-025` **Forest edges taper.** A forest ended in a wall of full-grown timber: every road
+  that runs beside one looked at a cut-out against the sky. Trees within twenty metres of a forest
+  polygon's boundary are now scaled down to as little as 55 %, easing back to full height inside,
+  so the canopy climbs from the edge the way a real wood does. Measured on the largest forest of
+  the shipped map: the 507 trees within 8 m of the boundary average **0.65** scale against
+  **1.00** for the 37 227 well inside it, and a test holds the ratio between 0.4 and 0.85. No
+  extra geometry: the same 54 186 trees, at different heights.

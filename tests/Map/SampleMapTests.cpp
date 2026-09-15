@@ -14,6 +14,28 @@ using namespace CarSim;
 namespace
 {
     std::string LipovaDirectory() { return Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"); }
+
+    /// Shortest distance from a point to a polygon's boundary (the placement code has its own
+    /// copy of this; duplicating four lines here is cheaper than widening the map API for a test).
+    float DistanceToEdge(const Microsoft::Xna::Framework::Vector2& p,
+                         const std::vector<Microsoft::Xna::Framework::Vector2>& polygon)
+    {
+        float best = 1e30f;
+        for (std::size_t i = 0, j = polygon.size() - 1; i < polygon.size(); j = i++) {
+            const auto a = polygon[j];
+            const auto b = polygon[i];
+            const auto ab = b - a;
+            const float lengthSq = ab.X * ab.X + ab.Y * ab.Y;
+            const float t = lengthSq > 1e-9f
+                                ? std::clamp(((p.X - a.X) * ab.X + (p.Y - a.Y) * ab.Y) / lengthSq, 0.0f, 1.0f)
+                                : 0.0f;
+            const auto closest = a + ab * t;
+            const float dx = p.X - closest.X;
+            const float dy = p.Y - closest.Y;
+            best = std::min(best, std::sqrt(dx * dx + dy * dy));
+        }
+        return best;
+    }
 }
 
 TEST(SampleMap, LipovaLoadsAndIsFullyConnected)
@@ -449,4 +471,43 @@ TEST(SampleMap, JunctionFilletsNeverCutBackTowardsTheNode)
                 << " cuts " << -depth << " m back towards the node at (" << here.X << ", " << here.Y << ")";
         }
     }
+}
+
+// A forest that ends in a wall of full-grown timber reads as a cut-out against the sky from every
+// road beside it. The trees at the edge should be shorter than the ones in the middle.
+TEST(SampleMap, ForestEdgesTaperInsteadOfEndingInAWall)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world) << (errors.empty() ? "" : errors.front());
+    const auto& forests = world->Data().objects.forests;
+    ASSERT_FALSE(forests.empty());
+
+    // The biggest forest: compare the trees within 8 m of its boundary with those well inside it.
+    const auto& forest = *std::max_element(forests.begin(), forests.end(),
+                                           [](const auto& a, const auto& b) { return a.polygon.size() < b.polygon.size(); });
+    double edgeScaleSum = 0.0;
+    double coreScaleSum = 0.0;
+    int edgeCount = 0;
+    int coreCount = 0;
+    for (const auto& tree : world->Objects().Trees()) {
+        const Microsoft::Xna::Framework::Vector2 p(tree.position.X, tree.position.Z);
+        if (!Map::PointInPolygon(p, forest.polygon)) continue;
+        const float distance = DistanceToEdge(p, forest.polygon);
+        if (distance < 8.0f) {
+            edgeScaleSum += tree.scale;
+            ++edgeCount;
+        } else if (distance > 60.0f) {
+            coreScaleSum += tree.scale;
+            ++coreCount;
+        }
+    }
+    ASSERT_GT(edgeCount, 50) << "not enough trees near the forest edge to say anything";
+    ASSERT_GT(coreCount, 500) << "not enough trees inside the forest to compare against";
+    const double edgeMean = edgeScaleSum / edgeCount;
+    const double coreMean = coreScaleSum / coreCount;
+    std::cout << "  forest edge trees " << edgeMean << " vs core " << coreMean << " (" << edgeCount
+              << " / " << coreCount << " trees)\n";
+    EXPECT_LT(edgeMean, coreMean * 0.85) << "the forest edge is as tall as its middle";
+    EXPECT_GT(edgeMean, coreMean * 0.4) << "the forest edge has become scrub";
 }

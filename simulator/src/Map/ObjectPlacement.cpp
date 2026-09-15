@@ -526,7 +526,8 @@ namespace CarSim::Map
                     const float jz = Hash01(col, row, forest.seed + 17u) * 0.9f + 0.05f;
                     const Vector2 p(minX + (static_cast<float>(col) + jx) * cell, minZ + (static_cast<float>(row) + jz) * cell);
                     if (!PointInPolygon(p, forest.polygon)) continue;
-                    if (DistanceToPolygonEdge(p, forest.polygon) < forest.margin * 0.5f) continue;
+                    const float edgeDistance = DistanceToPolygonEdge(p, forest.polygon);
+                    if (edgeDistance < forest.margin * 0.5f) continue;
                     if (!ClearOfRoads(world, p, forest.margin)) continue;
                     if (InsideBuilding(p, 4.0f)) continue;
                     if (!world.Terrain().Contains(p.X, p.Y)) continue;
@@ -540,7 +541,13 @@ namespace CarSim::Map
                         pick -= w;
                         if (pick <= 0.0f) { t.species = s; break; }
                     }
-                    t.scale = 0.75f + 0.5f * Hash01(col, row, forest.seed + 53u);
+                    // A forest does not end in a wall of full-grown timber: the trees at the edge
+                    // are younger and shorter, and the canopy climbs over the first twenty metres.
+                    // Without the taper the boundary reads as a cut-out against the sky from every
+                    // road that runs beside it.
+                    const float edge = std::clamp(edgeDistance / 20.0f, 0.0f, 1.0f);
+                    const float taper = 0.55f + 0.45f * (edge * edge * (3.0f - 2.0f * edge));
+                    t.scale = (0.75f + 0.5f * Hash01(col, row, forest.seed + 53u)) * taper;
                     t.rotationRad = Hash01(col, row, forest.seed + 67u) * 2.0f * kPi;
                     t.seed = static_cast<unsigned>(col * 7919 + row * 104729) + forest.seed;
                     t.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
