@@ -1242,3 +1242,24 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   and frame count: mirror **45.5 ms**, frame 254.5 -> 244.6 ms. No visible truncation in the
   mirror image -- traffic, trees, buildings and road all still read. The mirror is not removed and
   its resolution is unchanged; the overlay reports both.
+
+#### P2 -- traffic, world and conformance
+
+- [x] `RH-018` **Two real signal defects, found by a new soak.** A second soak
+  (`tests/Traffic/TrafficSoakTests.cpp`) runs ten simulated minutes at the signalised junction
+  "U kaple" with the player parked on the verge, and watches what the thirty-minute soak does not:
+  the aspect at the moment each car *crosses the stop line*, whether any car faces the wrong way
+  along its lane, and whether anything is spawned within 25 m of the player. It failed immediately,
+  on two separate faults:
+  1. *Creeping into the box.* A car caught past the stop line when the light changed was held by
+     a virtual leader at the line, with the gap clamped to 5 cm. It did not stop -- it crept across
+     the junction at half a metre per second, sitting in the box the whole time. A car already
+     over the line now commits and clears the junction, which is what a driver does.
+  2. *Commitment that survived a stop.* A car within 12 m of a green light sets `committed` so it
+     does not stop halfway across on a change. But commitment was only cleared when the car
+     reached the connector, so a car that committed on green and then had to queue behind another
+     kept it while standing still -- and drove into the junction on red when the queue moved. This
+     was the one genuine red-light violation in ten minutes. Commitment is now dropped when a car
+     stops short of the line: having stopped, it obeys the next change like anybody else.
+
+  Both soaks pass with the fixes; the thirty-minute one is unchanged.

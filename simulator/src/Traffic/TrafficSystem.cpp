@@ -513,20 +513,32 @@ namespace CarSim::Traffic
                 aspect = AspectOf(link.intersection, link.signalGroup);
                 signalised = true;
             }
+            // Commitment survives the change of a light, but not a stop. A car that committed on
+            // green and then had to queue behind another kept its commitment while it stood
+            // there, and drove into the junction on red when the queue moved.
+            if (signalised && v.committed && v.speed < 0.4f && distanceToEnd > 1.0f + v.lengthM * 0.5f) {
+                v.committed = false;
+            }
             if (signalised && distanceToEnd < 60.0f && !v.committed) {
                 // Amber means stop unless that would mean braking harder than a normal stop, in
                 // which case the car is already too close and carries on.
                 const float comfortableStop = v.speed * v.speed / (2.0f * 3.0f) + 1.0f;
                 const bool mustStop = aspect == SignalAspect::Red || aspect == SignalAspect::RedAmber ||
                                       (aspect == SignalAspect::Amber && distanceToEnd > comfortableStop);
-                if (mustStop) {
+                const float lineGap = distanceToEnd - 1.0f - v.lengthM * 0.5f;
+                if (mustStop && lineGap < 0.0f) {
+                    // Already over the line when it changed. Holding here parked the car in the
+                    // mouth of the junction and then crept it across at walking pace, which is
+                    // both wrong and the thing that blocks a box. A driver in this position
+                    // clears the junction, so the car commits and goes.
+                    v.committed = true;
+                } else if (mustStop) {
                     signalHold = true;
                     v.waiting = true;
                     v.waitTime += dt;
                     v.stoppedAtLine = false;
-                    const float lineGap = distanceToEnd - 1.0f - v.lengthM * 0.5f;
                     if (lineGap < gap) {
-                        gap = std::max(0.05f, lineGap);
+                        gap = lineGap;
                         leaderSpeed = 0.0f;
                     }
                 } else if (distanceToEnd < 12.0f) {

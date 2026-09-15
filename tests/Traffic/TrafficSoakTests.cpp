@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -121,4 +122,110 @@ TEST(TrafficSoak, ThirtyMinutesWithoutOverlapsOrStuckCars)
     EXPECT_EQ(stuckCars, 0);
     EXPECT_GT(traffic.SpawnedTotal(), 40);
     EXPECT_EQ(plates.size(), static_cast<std::size_t>(traffic.SpawnedTotal()));
+}
+
+// A second soak, in the north-east of the enlarged map, watching the things the first one does
+// not: that nobody drives into a signalised junction against a red, that cars stay in the lane
+// they are on, and that nothing is spawned in the player's lap. Ten simulated minutes at the
+// signalised junction "U kaple", with the player parked on the verge beside it.
+TEST(TrafficSoak, TenMinutesAtTheSignalsWithoutRedLightsOrWrongLanes)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    const auto& lanes = world->Lanes();
+
+    // Find the signalised intersection and a place to park next to it.
+    int signalised = -1;
+    for (std::size_t i = 0; i < world->Roads().Intersections().size(); ++i) {
+        if (world->Roads().Intersections()[i].signals.enabled) {
+            signalised = static_cast<int>(i);
+            break;
+        }
+    }
+    ASSERT_GE(signalised, 0) << "the sample map must have a signalised junction";
+    const auto& junction = world->Roads().Intersections()[static_cast<std::size_t>(signalised)];
+
+    Traffic::TrafficSystem traffic(*world, 4242);
+    traffic.SetDensity(20);
+    Traffic::PlayerProbe player;
+    player.valid = true;
+    Vector3 parked(junction.center.X, 0.0f, junction.center.Z - 40.0f);
+    parked.Y = world->Ground().HeightAt(parked.X, parked.Z);
+    player.position = parked;
+    player.forward = Vector3(1.0f, 0.0f, 0.0f);
+
+    const float dt = 1.0f / 30.0f;
+    const int steps = 30 * 60 * 10;   // ten minutes
+    std::map<int, int> previousLink;
+    std::set<int> crossed;   // cars currently past a stop line
+    std::set<int> seen;
+    int redLightEntries = 0;
+    int wrongLaneObservations = 0;
+    int spawnedOnPlayer = 0;
+    float worstAgreement = 1.0f;
+    int signalEntries = 0;
+
+    for (int step = 0; step < steps; ++step) {
+        traffic.Update(dt, player);
+        for (const auto& c : traffic.Vehicles()) {
+            // Crossing the stop line of a signalised approach: the aspect at that moment must
+            // not be red. (Reaching the connector itself is not the test: a car that crossed on
+            // amber is still clearing the junction when the light goes red, which is correct.)
+            const int link = c.link >= 0 ? c.link : c.nextLink;
+            const auto it = previousLink.find(c.id);
+            const int before = it == previousLink.end() ? -1 : it->second;
+            if (c.link < 0 && c.lane >= 0 && c.nextLink >= 0) {
+                const auto& connector = lanes.LinkAt(c.nextLink);
+                if (connector.signalGroup >= 0) {
+                    const float toEnd = lanes.LaneAt(c.lane).length - c.s;
+                    const float stopLine = 1.0f + c.lengthM * 0.5f;
+                    const bool overTheLine = toEnd <= stopLine;
+                    const bool wasBehind = !crossed.count(c.id);
+                    if (overTheLine && wasBehind) {
+                        crossed.insert(c.id);
+                        ++signalEntries;
+                        const auto aspect = traffic.AspectOf(connector.intersection, connector.signalGroup);
+                        if (aspect == Traffic::SignalAspect::Red) {
+                            ++redLightEntries;
+                            std::printf("  RED CROSSING t=%.1f s car %d group %d speed %.2f toEnd %.2f\n",
+                                        static_cast<double>(step * dt), c.id, connector.signalGroup,
+                                        static_cast<double>(c.speed), static_cast<double>(toEnd));
+                        }
+                    }
+                } 
+            } else if (c.link < 0) {
+                crossed.erase(c.id);   // back on an open lane: ready for the next junction
+            }
+            previousLink[c.id] = link;
+
+            // A car that has just appeared must not be in the player's lap.
+            if (seen.insert(c.id).second) {
+                if (Vector3::Distance(c.position, player.position) < 25.0f) {
+                    ++spawnedOnPlayer;
+                }
+            }
+
+            // Facing the way its lane goes. Cars ride their lane's centreline by construction, so
+            // a lateral check could never fail; what can go wrong is a car pointing the wrong way
+            // down it -- the mirrored-heading class of bug this project has hit before.
+            if (step % 15 == 0 && c.lane >= 0 && c.link < 0) {
+                const auto& lane = lanes.LaneAt(c.lane);
+                const auto point = lane.Evaluate(std::clamp(c.s, 0.0f, lane.length));
+                const float agreement = point.tangent.X * c.forward.X + point.tangent.Z * c.forward.Z;
+                worstAgreement = std::min(worstAgreement, agreement);
+                if (agreement < 0.6f) {
+                    ++wrongLaneObservations;
+                }
+            }
+        }
+    }
+
+    std::printf("  signal entries %d, worst heading agreement %.2f, spawned %d\n", signalEntries,
+                static_cast<double>(worstAgreement), traffic.SpawnedTotal());
+    EXPECT_GT(signalEntries, 20) << "the soak never used the signalised junction";
+    EXPECT_EQ(redLightEntries, 0) << "cars entered the junction against a red";
+    EXPECT_EQ(wrongLaneObservations, 0) << "cars faced the wrong way along their lane (worst "
+                                        << worstAgreement << ")";
+    EXPECT_EQ(spawnedOnPlayer, 0) << "cars appeared within 25 m of the parked player";
 }
