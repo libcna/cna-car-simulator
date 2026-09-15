@@ -352,6 +352,27 @@ namespace CarSim::Map
                     t.playerSpawns.push_back(std::move(s));
                 }
             }
+            if (r.HasArray(root, "routes", arr)) {
+                std::size_t i = 0;
+                for (const auto& e : arr.EnumerateArray()) {
+                    const std::string p = "traffic.routes[" + std::to_string(i++) + "]";
+                    RouteSpec route;
+                    r.String(e, "name", route.name, p);
+                    r.String(e, "spawn", route.spawn, p);
+                    r.String(e, "description", route.description, p);
+                    JsonElement points;
+                    if (r.HasArray(e, "waypoints", points)) {
+                        std::size_t j = 0;
+                        for (const auto& point : points.EnumerateArray()) {
+                            Microsoft::Xna::Framework::Vector2 wp;
+                            if (r.Vec2Value(point, wp, p + ".waypoints[" + std::to_string(j++) + "]")) {
+                                route.waypoints.push_back(wp);
+                            }
+                        }
+                    }
+                    t.routes.push_back(std::move(route));
+                }
+            }
             r.Float(root, "densityPerKm", t.densityPerKm, "traffic");
             r.Int(root, "maxVehicles", t.maxVehicles, "traffic");
             r.StringArray(root, "vehicles", t.vehicles, "traffic");

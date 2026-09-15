@@ -486,6 +486,21 @@ def traffic():
             spawn("east", "E3", "E2", 0.5, 1.5),
             spawn("kostel", "SQ", "E1", 0.72),        # 90 m short of the signalised junction
         ],
+        # Named drives for the benchmark scenarios and the validation runs. Each one is a spawn
+        # plus waypoints on the lane graph; the autopilot routes between them, so the car is
+        # driven over the ground rather than teleported. They are short on purpose: a run has to
+        # be repeatable in a couple of minutes, including on a software rasteriser.
+        "routes": [
+            {"name": "town", "spawn": "square",
+             "description": "Lipová main street east: square, parked cars, the signalised junction E1",
+             "waypoints": [[-160, 6], [150, -12], [520, -60]]},
+            {"name": "country", "spawn": "east",
+             "description": "main road II/156 westbound: avenue, filling station, town entrance",
+             "waypoints": [[880, -142], [520, -60]]},
+            {"name": "forest", "spawn": "forest",
+             "description": "III/15612 north through the spruce forest",
+             "waypoints": [[-330, -1400], [-220, -1785]]},
+        ],
         "densityPerKm": 1.2,
         "maxVehicles": 20,
         "vehicles": ["lipan_12"],

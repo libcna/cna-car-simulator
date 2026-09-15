@@ -108,6 +108,70 @@ int main(int argc, char** argv)
     if (maxGrade > 0.12f) {
         std::cout << "warning: road '" << maxGradeRoad << "' reaches a grade of " << maxGrade * 100.0f << " %\n";
     }
+    // Driving-surface profile: walk every lane at 1 m and look for a step the wheels would fall
+    // into or launch off. A car at 90 km/h covers 25 m/s, so a 12 cm step over one metre is a
+    // thump you feel and, over a kerb-shaped discontinuity, enough to put a wheel in the air.
+    // This catches roads and junctions that do not sit on the terrain long before a screenshot
+    // does, anywhere on the network rather than just near the spawn.
+    {
+        constexpr float kStepWarnM = 0.12f;    // vertical change over one metre of lane
+        int stepWarnings = 0;
+        float worstStep = 0.0f;
+        Microsoft::Xna::Framework::Vector3 worstAt{};
+        // Every path a car can take: the lanes and the connectors that cross the junctions.
+        struct Path
+        {
+            int id;
+            float length;
+            const char* kind;
+            std::string road;
+            const Map::Lane* lane;
+            const Map::LaneLink* link;
+            [[nodiscard]] Map::LanePoint At(float s) const { return lane ? lane->Evaluate(s) : link->Evaluate(s); }
+        };
+        std::vector<Path> paths;
+        for (const auto& lane : lanes.Lanes()) {
+            paths.push_back(Path{lane.id, lane.length, "lane",
+                                 roads.Roads()[static_cast<std::size_t>(lane.road)].spec->id, &lane, nullptr});
+        }
+        for (const auto& link : lanes.Links()) {
+            paths.push_back(Path{link.id, link.length, "link",
+                                 roads.Roads()[static_cast<std::size_t>(lanes.LaneAt(link.fromLane).road)].spec->id,
+                                 nullptr, &link});
+        }
+        for (const auto& lane : paths) {
+            if (lane.length < 2.0f) continue;
+            float previous = world->Ground().HeightAt(lane.At(0.0f).position.X, lane.At(0.0f).position.Z);
+            for (float s = 1.0f; s <= lane.length; s += 1.0f) {
+                const auto point = lane.At(s);
+                const float height = world->Ground().HeightAt(point.position.X, point.position.Z);
+                const float step = std::fabs(height - previous);
+                if (step > worstStep) {
+                    worstStep = step;
+                    worstAt = point.position;
+                }
+                if (step > kStepWarnM) {
+                    if (stepWarnings < 12) {
+                        std::printf("warning: %s %d on road '%s' steps %.2f m at (%.1f, %.1f)\n", lane.kind, lane.id,
+                                    lane.road.c_str(), static_cast<double>(step), static_cast<double>(point.position.X),
+                                    static_cast<double>(point.position.Z));
+                    }
+                    ++stepWarnings;
+                }
+                previous = height;
+            }
+        }
+        if (stepWarnings > 12) {
+            std::printf("warning: ... and %d more driving-surface steps over %.2f m\n", stepWarnings - 12,
+                        static_cast<double>(kStepWarnM));
+        }
+        if (!quiet) {
+            std::printf("surface: worst driving-surface step %.3f m at (%.1f, %.1f), %d over %.2f m\n", static_cast<double>(worstStep),
+                        static_cast<double>(worstAt.X), static_cast<double>(worstAt.Z), stepWarnings,
+                        static_cast<double>(kStepWarnM));
+        }
+    }
+
     std::size_t deadEnds = 0;
     for (const auto& lane : lanes.Lanes()) {
         if (lane.outgoingLinks.empty()) {

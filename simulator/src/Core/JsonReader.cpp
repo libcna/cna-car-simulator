@@ -159,6 +159,17 @@ namespace CarSim::Core
         target = Vector2(v[0], v[1]);
     }
 
+    bool JsonReader::Vec2Value(const JsonElement& element, Vector2& target, const std::string& path) const
+    {
+        float v[2];
+        if (!IsArray(element) || element.GetArrayLength() != 2 || !NumberAt(element, 0, v[0]) || !NumberAt(element, 1, v[1])) {
+            errors_.push_back(path + ": must be an array of two numbers");
+            return false;
+        }
+        target = Vector2(v[0], v[1]);
+        return true;
+    }
+
     void JsonReader::Vec3(const JsonElement& obj, const char* key, Vector3& target, const std::string& path, const bool required) const
     {
         JsonElement e;

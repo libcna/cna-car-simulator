@@ -35,6 +35,10 @@ namespace CarSim::Render
         [[nodiscard]] const Microsoft::Xna::Framework::Matrix& Projection() const { return projectionMirrored_; }
         [[nodiscard]] const Microsoft::Xna::Framework::BoundingFrustum& Frustum() const { return frustum_; }
         [[nodiscard]] float Aspect() const { return aspect_; }
+        /// Size of the off-screen target, in pixels. The diagnostic overlay reports it because the
+        /// mirror's cost scales with it.
+        [[nodiscard]] int Width() const { return width_; }
+        [[nodiscard]] int Height() const { return height_; }
         [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* Texture() const;
 
     private:
@@ -44,5 +48,7 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Matrix projectionMirrored_;
         Microsoft::Xna::Framework::BoundingFrustum frustum_;
         float aspect_ = 3.84f;
+        int width_ = 0;
+        int height_ = 0;
     };
 }

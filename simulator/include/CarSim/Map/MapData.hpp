@@ -243,9 +243,21 @@ namespace CarSim::Map
         float headingDeg = 0.0f;          // 0 = facing -Z (north), 90 = facing +X (east)
     };
 
+    /// A named drive through the map, used by the benchmark scenarios and the validation drive.
+    /// The car starts at `spawn` and is driven along the lane graph through the waypoints in
+    /// order; nothing is teleported, so a route that cannot be driven fails loudly.
+    struct RouteSpec
+    {
+        std::string name;
+        std::string spawn;                                          // player spawn to start from
+        std::vector<Microsoft::Xna::Framework::Vector2> waypoints;   // map-plane points, in order
+        std::string description;
+    };
+
     struct TrafficSpec
     {
         std::vector<SpawnSpec> playerSpawns;
+        std::vector<RouteSpec> routes;
         float densityPerKm = 1.5f;        // AI vehicles per kilometre of lane
         int maxVehicles = 24;
         std::vector<std::string> vehicles;   // vehicle definition ids used by the traffic

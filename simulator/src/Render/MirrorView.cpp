@@ -16,6 +16,8 @@ namespace CarSim::Render
         target_ = std::make_unique<RenderTarget2D>(device, width, height, false, SurfaceFormat::Color, DepthFormat::Depth24Stencil8, 0,
                                                    RenderTargetUsage::DiscardContents);
         aspect_ = static_cast<float>(width) / static_cast<float>(height);
+        width_ = width;
+        height_ = height;
     }
 
     void MirrorView::Update(const Sim::VehicleState& state, const Sim::VehicleDefinition& definition)

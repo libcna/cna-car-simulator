@@ -61,6 +61,13 @@ namespace CarSim::Core
         /// Scripted driving for headless captures: seconds of throttle to apply after starting.
         std::optional<float> autoDriveSeconds;
 
+        /// Drive a named route from the map's traffic.json with the autopilot, then exit. The
+        /// car is driven over the ground by the ordinary physics; nothing is teleported. This is
+        /// what the benchmark scenarios and the validation drive use.
+        std::optional<std::string> route;
+        /// Keep running after the route finishes instead of exiting (for watching it).
+        bool routeLoopStay = false;
+
         /// Exterior camera framing overrides for screenshots (degrees around the car, metres).
         std::optional<float> chaseYawDeg;
         std::optional<float> chaseDistanceM;

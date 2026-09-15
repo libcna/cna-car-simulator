@@ -48,6 +48,8 @@ namespace CarSim::Core
         void Bool(const JsonElement& obj, const char* key, bool& target, const std::string& path) const;
         void String(const JsonElement& obj, const char* key, std::string& target, const std::string& path, bool required = false) const;
         void Vec2(const JsonElement& obj, const char* key, Microsoft::Xna::Framework::Vector2& target, const std::string& path, bool required = false) const;
+        /// Reads a bare `[x, z]` array element (one already pulled out of an array of points).
+        bool Vec2Value(const JsonElement& element, Microsoft::Xna::Framework::Vector2& target, const std::string& path) const;
         void Vec3(const JsonElement& obj, const char* key, Microsoft::Xna::Framework::Vector3& target, const std::string& path, bool required = false) const;
         void Curve(const JsonElement& obj, const char* key, PiecewiseLinear& target, const std::string& path) const;
         void FloatArray(const JsonElement& obj, const char* key, std::vector<float>& target, const std::string& path) const;

@@ -46,6 +46,7 @@ add_executable(carsim_tests
     Traffic/PlateTests.cpp
     Traffic/SignalTests.cpp
     Traffic/TrafficTests.cpp
+    Traffic/RouteDriverTests.cpp
     Traffic/TrafficSoakTests.cpp
     Audio/EngineSynthTests.cpp
     Audio/AudioLayersTests.cpp

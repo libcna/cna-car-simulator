@@ -74,6 +74,57 @@
    "headingDeg": 232.4
   }
  ],
+ "routes": [
+  {
+   "name": "town",
+   "spawn": "square",
+   "description": "Lipová main street east: square, parked cars, the signalised junction E1",
+   "waypoints": [
+    [
+     -160,
+     6
+    ],
+    [
+     150,
+     -12
+    ],
+    [
+     520,
+     -60
+    ]
+   ]
+  },
+  {
+   "name": "country",
+   "spawn": "east",
+   "description": "main road II/156 westbound: avenue, filling station, town entrance",
+   "waypoints": [
+    [
+     880,
+     -142
+    ],
+    [
+     520,
+     -60
+    ]
+   ]
+  },
+  {
+   "name": "forest",
+   "spawn": "forest",
+   "description": "III/15612 north through the spruce forest",
+   "waypoints": [
+    [
+     -330,
+     -1400
+    ],
+    [
+     -220,
+     -1785
+    ]
+   ]
+  }
+ ],
  "densityPerKm": 1.2,
  "maxVehicles": 20,
  "vehicles": [

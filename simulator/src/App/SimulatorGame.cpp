@@ -228,7 +228,18 @@ namespace CarSim::App
         }
         vehicle_ = std::make_unique<Sim::Vehicle>(definition_, definition_.gearbox.defaultMode);
         if (map_) {
-            const Map::SpawnSpec spawn = map_->PlayerSpawn(options_.spawn.value_or(std::string()));
+            // A route names the spawn it starts from; an explicit --spawn still wins, so a route
+            // can be driven from somewhere else on purpose.
+            std::string spawnName = options_.spawn.value_or(std::string());
+            if (spawnName.empty() && options_.route) {
+                for (const auto& r : map_->Data().traffic.routes) {
+                    if (r.name == *options_.route) {
+                        spawnName = r.spawn;
+                        break;
+                    }
+                }
+            }
+            const Map::SpawnSpec spawn = map_->PlayerSpawn(spawnName);
             // PlaceAt takes the rotation about +Y (counter-clockwise from above); map headings are clockwise from north.
             vehicle_->PlaceAt(map_->SpawnPosition(spawn), -spawn.headingDeg * (std::numbers::pi_v<float> / 180.0f));
             std::cout << "spawn: " << spawn.name << " at (" << spawn.position.X << ", " << spawn.position.Y << "), heading " << spawn.headingDeg << " deg\n";
@@ -255,6 +266,54 @@ namespace CarSim::App
             cockpitCamera_.yawOffsetDeg = options_.eyeOffset->headingDeg;
             cockpitCamera_.pitchOffsetDeg = options_.eyeOffset->pitchDeg;
         }
+    }
+
+    bool SimulatorGame::PlanRoute()
+    {
+        if (!options_.route || !map_) {
+            return false;
+        }
+        const Map::RouteSpec* spec = nullptr;
+        for (const auto& r : map_->Data().traffic.routes) {
+            if (r.name == *options_.route) {
+                spec = &r;
+                break;
+            }
+        }
+        if (spec == nullptr) {
+            std::cerr << "route: '" << *options_.route << "' is not defined in this map; known routes:";
+            for (const auto& r : map_->Data().traffic.routes) std::cerr << " " << r.name;
+            std::cerr << "\n";
+            return false;
+        }
+        routeName_ = spec->name;
+        routeDriver_ = std::make_unique<Traffic::RouteDriver>(map_->Lanes());
+        const auto state = vehicle_->Snapshot();
+        // The vehicle's yaw is counter-clockwise about +Y; the lane graph wants a compass heading.
+        const Vector3 forward = state.worldMatrix.getForwardProperty();
+        const float heading = std::atan2(forward.X, -forward.Z);
+        if (!routeDriver_->Plan(state.originPosition, heading, spec->waypoints)) {
+            std::cerr << "route: cannot drive '" << routeName_ << "': " << routeDriver_->Progress().note << "\n";
+            routeDriver_.reset();
+            return false;
+        }
+        const auto& progress = routeDriver_->Progress();
+        std::cout << "route: " << routeName_ << " -- " << spec->description << "\n"
+                  << "route: " << progress.steps << " steps, " << progress.routeLengthM << " m\n";
+        routeStartSeconds_ = elapsedSeconds_;
+        return true;
+    }
+
+    void SimulatorGame::ReportRoute() const
+    {
+        if (!routeDriver_) {
+            return;
+        }
+        const auto& progress = routeDriver_->Progress();
+        std::cout << "route: " << routeName_ << (progress.finished ? " finished" : " stopped short") << " after "
+                  << progress.distanceM << " of " << progress.routeLengthM << " m in "
+                  << (elapsedSeconds_ - routeStartSeconds_) << " s, worst lateral error "
+                  << progress.offRouteM << " m\n";
     }
 
     void SimulatorGame::ApplyAutoDrive(Sim::DriverControls& controls)
@@ -308,6 +367,13 @@ namespace CarSim::App
         LoadMap();
         LoadVehicle();
         ApplySaveToVehicle();
+        if (options_.route && !PlanRoute()) {
+            // A run that was told to drive a route and cannot is a failed run, not a free drive.
+            std::cerr << "route: refusing to continue without the requested route\n";
+            exitRequested_ = true;
+            Exit();
+            return;
+        }
 
         sky_ = std::make_unique<Render::SkyRenderer>(device, rig_);
         rain_ = std::make_unique<Render::RainRenderer>(device);
@@ -642,11 +708,35 @@ namespace CarSim::App
 
         Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
         ApplyAutoDrive(controls);
+        if (routeDriver_) {
+            // The autopilot owns the pedals and the wheel; everything else (camera, overlays,
+            // quit) still answers to the keyboard.
+            Sim::DriverControls driven = routeDriver_->Update(vehicle_->Snapshot(), dt);
+            driven.toggleHeadlights = controls.toggleHeadlights;
+            driven.toggleHighBeam = controls.toggleHighBeam;
+            controls = driven;
+            const auto& progress = routeDriver_->Progress();
+            if (progress.finished && !routeReported_) {
+                routeReported_ = true;
+                ReportRoute();
+            }
+        }
         const Sim::GroundSurface& ground = map_ ? static_cast<const Sim::GroundSurface&>(map_->Ground()) : ground_;
+        // Each stage of the update is timed separately so the overlay and the benchmark can say
+        // where the update half of a frame goes, rather than reporting one opaque number.
+        auto stageClock = std::chrono::steady_clock::now();
+        const auto stage = [&stageClock](float& out) {
+            const auto now = std::chrono::steady_clock::now();
+            out = std::chrono::duration<float, std::milli>(now - stageClock).count();
+            stageClock = now;
+        };
         vehicle_->Update(controls, dt, ground);
+        stage(vehicleMs_);
         contactEvents_.clear();
         collision_.ResolveVehicle(*vehicle_, contactEvents_);
+        stage(collisionMs_);
         UpdateTraffic(dt);
+        stage(trafficMs_);
         for (const auto& e : contactEvents_) {
             if (e.closingSpeed > 0.5f) {
                 ++collisionCount_;
@@ -657,9 +747,11 @@ namespace CarSim::App
         const auto state = vehicle_->Snapshot();
         chaseCamera_.Update(state, dt);
         cockpitCamera_.Update(state, definition_, dt);
+        stageClock = std::chrono::steady_clock::now();
         if (audio_) {
             audio_->Update(state, cameraMode_ == Render::CameraMode::Cockpit, contactEvents_, dt);
         }
+        stage(audioMs_);
         saveTimer_ += static_cast<double>(dt);
         if (saveTimer_ > 30.0) {
             saveTimer_ = 0.0;
@@ -784,8 +876,11 @@ namespace CarSim::App
         }
         lap(kPassVehicle);
 
-        if (hudVisible_ || showHelp_ || showDebug_) {
+        if (hudVisible_ || showHelp_) {
             DrawHud();
+        }
+        if (showDebug_) {
+            DrawDebugOverlay();
         }
         if (showHelp_) {
             DrawHelp();
@@ -795,6 +890,15 @@ namespace CarSim::App
         Game::Draw(gameTime);
         const auto drawEnd = std::chrono::steady_clock::now();
         drawMs_ = std::chrono::duration<float, std::milli>(drawEnd - drawStart).count();
+        // Frame pacing: the wall-clock gap between drawn frames, which includes whatever the
+        // driver and the present do outside our own timers. The first sample has no predecessor.
+        if (lastPacingSample_.time_since_epoch().count() != 0) {
+            framePacingMs_[static_cast<std::size_t>(framePacingNext_)] =
+                std::chrono::duration<float, std::milli>(drawEnd - lastPacingSample_).count();
+            framePacingNext_ = (framePacingNext_ + 1) % kFramePacingWindow;
+            framePacingCount_ = std::min(framePacingCount_ + 1, kFramePacingWindow);
+        }
+        lastPacingSample_ = drawEnd;
         if (options_.benchmark) {
             if (framesDrawn_ >= bench_.warmupFrames) {
                 ++bench_.frames;
@@ -803,8 +907,14 @@ namespace CarSim::App
                 bench_.drawSum += drawMs_;
                 bench_.drawMax = std::max(bench_.drawMax, static_cast<double>(drawMs_));
                 if (lastFrameEnd_.time_since_epoch().count() != 0) {
-                    bench_.wallSum += std::chrono::duration<double, std::milli>(drawEnd - lastFrameEnd_).count();
+                    const double gap = std::chrono::duration<double, std::milli>(drawEnd - lastFrameEnd_).count();
+                    bench_.wallSum += gap;
+                    bench_.wallSamples.push_back(static_cast<float>(gap));
                 }
+                bench_.vehicleSum += vehicleMs_;
+                bench_.collisionSum += collisionMs_;
+                bench_.trafficMsSum += trafficMs_;
+                bench_.audioSum += audioMs_;
                 if (worldRenderer_) {
                     const auto& ws = worldRenderer_->Stats();
                     bench_.drawCalls += ws.drawCalls + vehicleRenderer_->DrawCallsLastFrame();
@@ -875,45 +985,147 @@ namespace CarSim::App
             font_->DrawShadowed(*spriteBatch_, "F1 help   C camera   E engine", Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
         }
 
-        if (showDebug_) {
-            std::ostringstream dbg;
-            dbg.setf(std::ios::fixed);
-            dbg.precision(2);
-            dbg << "frame " << frameMs_ << " ms update, " << drawMs_ << " ms draw, draw calls (vehicle) " << vehicleRenderer_->DrawCallsLastFrame()
-                << "\nthrottle " << s.throttlePedal << " brake " << s.brakePedal << " clutch " << s.clutchPedal
-                << " steer " << Sim::Units::RadToDeg(s.steeringWheelAngle) << " deg" << (s.clutchLocked ? " locked" : " slipping")
-                << "\nfuel " << s.fuelLiters << " L (" << s.instantConsumptionLPerH << " L/h)  coolant " << s.coolantC
-                << " C  odo " << s.odometerKm << " km  trip " << s.tripKm << " km"
-                << "\npos " << s.originPosition.X << ", " << s.originPosition.Y << ", " << s.originPosition.Z
-                << "  collisions " << collisionCount_ << " (last " << lastImpactSpeed_ * 3.6f << " km/h)"
-                << "  traffic " << (traffic_ ? traffic_->Vehicles().size() : 0u) << " cars";
-            if (worldRenderer_) {
-                const auto& ws = worldRenderer_->Stats();
-                dbg << "\nworld: terrain " << ws.terrainChunksDrawn << "/" << ws.terrainChunksTotal << " chunks, roads " << ws.roadBatchesDrawn << "/"
-                    << ws.roadBatchesTotal << ", objects " << ws.objectBatchesDrawn << "/" << ws.objectBatchesTotal << ", trees " << ws.treeBatchesDrawn
-                    << "/" << ws.treeBatchesTotal << ", " << ws.drawCalls << " draws, " << ws.triangles / 1000 << "k tris";
+        spriteBatch_->End();
+    }
+
+    void SimulatorGame::DrawDebugOverlay()
+    {
+        // Everything here comes from project-owned instrumentation: our own timers, our own
+        // renderers' batch counters and the vehicle snapshot. No renderer internals are read.
+        auto& device = getGraphicsDeviceProperty();
+        const auto& vp = device.getViewportProperty();
+        const float w = static_cast<float>(vp.getWidthProperty());
+        const float h = static_cast<float>(vp.getHeightProperty());
+        const auto s = vehicle_->Snapshot();
+
+        // Frame pacing over the rolling window: the mean is the frame rate you feel, the worst
+        // 1 % is the stutter you notice.
+        float pacingMean = 0.0f;
+        float pacingWorst = 0.0f;
+        if (framePacingCount_ > 0) {
+            std::vector<float> window(framePacingMs_.begin(), framePacingMs_.begin() + framePacingCount_);
+            for (const float v : window) pacingMean += v;
+            pacingMean /= static_cast<float>(window.size());
+            const std::size_t rank = window.size() - 1u - window.size() / 100u;
+            std::nth_element(window.begin(), window.begin() + static_cast<std::ptrdiff_t>(rank), window.end());
+            pacingWorst = window[rank];
+        }
+        const float fps = pacingMean > 0.0001f ? 1000.0f / pacingMean : 0.0f;
+
+        const Render::WorldRenderStats world = worldRenderer_ ? worldRenderer_->Stats() : Render::WorldRenderStats{};
+        const Render::TrafficRenderStats traffic = trafficRenderer_ ? trafficRenderer_->Stats() : Render::TrafficRenderStats{};
+        const int vehicleDraws = vehicleRenderer_ ? vehicleRenderer_->DrawCallsLastFrame() : 0;
+        const int vehicleTris = vehicleRenderer_ ? vehicleRenderer_->TriangleCount() : 0;
+        const int mirrorEvery = std::max(1, save_.settings.mirrorUpdateEvery);
+        const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
+
+        const auto text = [](const char* format, auto... args) {
+            char buffer[192];
+            std::snprintf(buffer, sizeof(buffer), format, args...);
+            return std::string(buffer);
+        };
+
+        std::vector<std::pair<std::string, std::string>> rows;
+        const auto section = [&rows](const char* title) { rows.emplace_back(title, std::string()); };
+        const auto row = [&rows](std::string label, std::string value) { rows.emplace_back(std::move(label), std::move(value)); };
+
+        section("frame");
+        row("fps / frame", text("%.1f  (%.2f ms mean, %.2f ms worst 1%%)", static_cast<double>(fps),
+                                static_cast<double>(pacingMean), static_cast<double>(pacingWorst)));
+        row("cpu update / draw", text("%.2f / %.2f ms", static_cast<double>(frameMs_), static_cast<double>(drawMs_)));
+        row("update split", text("vehicle %.2f  collision %.2f  traffic %.2f  audio %.2f ms",
+                                 static_cast<double>(vehicleMs_), static_cast<double>(collisionMs_),
+                                 static_cast<double>(trafficMs_), static_cast<double>(audioMs_)));
+        row("draw split", text("sky %.2f  world %.2f  traffic %.2f  car %.2f  hud %.2f ms",
+                               static_cast<double>(passMs_[kPassSky]), static_cast<double>(passMs_[kPassWorld]),
+                               static_cast<double>(passMs_[kPassTraffic]), static_cast<double>(passMs_[kPassVehicle]),
+                               static_cast<double>(passMs_[kPassHud])));
+        row("cluster / mirror", text("%.2f / %.2f ms   mirror %s, %d x %d, every %d frame(s)",
+                                     static_cast<double>(passMs_[kPassCluster]), static_cast<double>(passMs_[kPassMirror]),
+                                     (cockpit && mirrorEnabled_) ? "on" : "off",
+                                     mirror_ ? mirror_->Width() : 0, mirror_ ? mirror_->Height() : 0, mirrorEvery));
+        row("simulated", text("%.1f s   %d frames drawn", elapsedSeconds_, framesDrawn_));
+
+        section("driving");
+        row("speed / rpm / gear", text("%.1f km/h   %.0f rpm   %s (%s)", static_cast<double>(s.speedKmh),
+                                       static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
+                                       s.transmissionMode == Sim::TransmissionMode::Automatic ? "auto" : "manual"));
+        row("pedals", text("throttle %.2f  brake %.2f  clutch %.2f (%s)%s", static_cast<double>(s.throttlePedal),
+                           static_cast<double>(s.brakePedal), static_cast<double>(s.clutchPedal),
+                           s.clutchLocked ? "locked" : "slipping", s.handbrake ? "  handbrake" : ""));
+        row("steering", text("%.1f deg wheel   front slip %+.1f deg   camera %s",
+                             static_cast<double>(Sim::Units::RadToDeg(s.steeringWheelAngle)),
+                             static_cast<double>(Sim::Units::RadToDeg(s.wheels.empty() ? 0.0f : s.wheels[0].slipAngle)),
+                             options_.freeView ? "free" : (cockpit ? "cockpit" : "chase")));
+        {
+            // FL FR RL RR in the order the vehicle defines them; slip ratio and vertical load are
+            // the two numbers that explain most handling complaints.
+            static const char* const names[] = {"FL", "FR", "RL", "RR"};
+            std::string wheels;
+            for (std::size_t i = 0; i < s.wheels.size(); ++i) {
+                const auto& wh = s.wheels[i];
+                wheels += text("%s%s%+.2f/%.1fkN  ", i < 4 ? names[i] : "?",
+                               wh.grounded ? " " : "^", static_cast<double>(wh.slipRatio),
+                               static_cast<double>(wh.load) / 1000.0);
             }
-            dbg << "\npasses ms: cluster " << passMs_[kPassCluster] << " mirror " << passMs_[kPassMirror] << " sky " << passMs_[kPassSky] << " world "
-                << passMs_[kPassWorld] << " traffic " << passMs_[kPassTraffic] << " vehicle " << passMs_[kPassVehicle] << " hud " << passMs_[kPassHud];
-            if (trafficRenderer_) {
-                const auto& ts = trafficRenderer_->Stats();
-                dbg << "\ntraffic drawn " << ts.drawn << " (lod0 " << ts.lod0 << ", lod1 " << ts.lod1 << ", lod2 " << ts.lod2 << "), parked " << ts.parkedDrawn << ", " << ts.drawCalls
-                    << " draws, mirror every " << std::max(1, save_.settings.mirrorUpdateEvery) << " frame(s)";
+            row("wheels slip/load", wheels);
+        }
+        row("driveline", text("fuel %.1f L (%.1f L/h)   coolant %.0f C   odo %.1f km   trip %.2f km",
+                              static_cast<double>(s.fuelLiters), static_cast<double>(s.instantConsumptionLPerH),
+                              static_cast<double>(s.coolantC), static_cast<double>(s.odometerKm), static_cast<double>(s.tripKm)));
+        row("position", text("%.1f, %.1f, %.1f   collisions %d (worst %.0f km/h)", static_cast<double>(s.originPosition.X),
+                             static_cast<double>(s.originPosition.Y), static_cast<double>(s.originPosition.Z), collisionCount_,
+                             static_cast<double>(lastImpactSpeed_ * 3.6f)));
+
+        section("environment");
+        row("clock / weather", text("%s%s   %s   cloud %.2f  rain %.2f  wet %.2f", FormatClock(timeOfDayHours_).c_str(),
+                                    timeScale_ <= 0.0f ? " (frozen)" : "", Core::Describe(weather_.kind),
+                                    static_cast<double>(weather_.cloudCover), static_cast<double>(weather_.rain),
+                                    static_cast<double>(weather_.wetness)));
+        row("sun / lamps", text("elevation %.1f deg   lamp factor %.2f   headlamps %s",
+                                static_cast<double>(rig_.sunElevationDeg), static_cast<double>(rig_.LampFactor()),
+                                s.lowBeam ? (s.highBeam ? "high" : "low") : "off"));
+
+        section("world");
+        row("terrain / roads", text("%d/%d chunks   %d/%d road batches (%d culled)", world.terrainChunksDrawn,
+                                    world.terrainChunksTotal, world.roadBatchesDrawn, world.roadBatchesTotal,
+                                    world.roadBatchesTotal - world.roadBatchesDrawn));
+        row("objects / trees", text("%d/%d object batches   %d/%d tree batches (%d culled)", world.objectBatchesDrawn,
+                                    world.objectBatchesTotal, world.treeBatchesDrawn, world.treeBatchesTotal,
+                                    (world.objectBatchesTotal - world.objectBatchesDrawn) +
+                                        (world.treeBatchesTotal - world.treeBatchesDrawn)));
+        row("traffic", text("%d alive, %d drawn (lod %d/%d/%d), %d parked drawn",
+                            traffic_ ? static_cast<int>(traffic_->Vehicles().size()) : 0, traffic.drawn,
+                            traffic.lod0, traffic.lod1, traffic.lod2, traffic.parkedDrawn));
+        row("submitted", text("%d draw calls, %.2f M triangles",
+                              world.drawCalls + traffic.drawCalls + vehicleDraws,
+                              static_cast<double>(world.triangles + traffic.triangles + vehicleTris) / 1.0e6));
+
+        // Layout: two columns of label/value, over a panel dark enough to read against snow-bright
+        // sky and night alike.
+        const float scale = h >= 700.0f ? 0.62f : 0.55f;
+        const float rowHeight = 19.0f * scale / 0.62f;
+        const float labelWidth = 165.0f * scale / 0.62f;
+        const float panelWidth = std::min(w - 24.0f, 620.0f + labelWidth);
+        const float panelHeight = rowHeight * static_cast<float>(rows.size()) + 20.0f;
+        const float left = 12.0f;
+        const float top = 12.0f;
+
+        spriteBatch_->Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None,
+                            &RasterizerState::CullNone);
+        spriteBatch_->Draw(vehicleMaterials_->White(),
+                           Rectangle(static_cast<int>(left), static_cast<int>(top), static_cast<int>(panelWidth),
+                                     static_cast<int>(panelHeight)),
+                           Color(0, 0, 0, 185));
+        float y = top + 10.0f;
+        for (const auto& [label, value] : rows) {
+            if (value.empty()) {
+                fontBold_->Draw(*spriteBatch_, label, Vector2(left + 12.0f, y), Color(150, 210, 255, 255), scale * 0.85f);
+            } else {
+                font_->Draw(*spriteBatch_, label, Vector2(left + 12.0f, y), Color(170, 175, 185, 245), scale);
+                font_->Draw(*spriteBatch_, value, Vector2(left + 12.0f + labelWidth, y), Color(245, 245, 245, 250), scale);
             }
-            dbg << "\nwheels";
-            for (const auto& wh : s.wheels) {
-                dbg << " [" << (wh.grounded ? "g" : "-") << " sr " << wh.slipRatio << " load " << static_cast<int>(wh.load) << "]";
-            }
-            font_->DrawShadowed(*spriteBatch_, dbg.str().substr(0, dbg.str().find('\n')), Vector2(20.0f, 20.0f), Color(255, 255, 255, 220), 0.7f);
-            std::string rest = dbg.str();
-            float y = 20.0f;
-            std::size_t pos = rest.find('\n');
-            while (pos != std::string::npos) {
-                rest = rest.substr(pos + 1);
-                y += 24.0f;
-                pos = rest.find('\n');
-                font_->DrawShadowed(*spriteBatch_, rest.substr(0, pos), Vector2(20.0f, y), Color(255, 255, 255, 220), 0.7f);
-            }
+            y += rowHeight;
         }
         spriteBatch_->End();
     }
@@ -993,7 +1205,9 @@ namespace CarSim::App
                 std::cout << "screenshot saved to " << name << "\n";
             }
         }
-        if (!options_.frames || framesDrawn_ < *options_.frames || exitRequested_) {
+        const bool routeDone = routeReported_ && !options_.routeLoopStay;
+        const bool framesDone = options_.frames && framesDrawn_ >= *options_.frames;
+        if ((!framesDone && !routeDone) || exitRequested_) {
             return;
         }
         if (options_.clusterScreenshotPath && cluster_ && cluster_->Texture()) {
@@ -1009,11 +1223,26 @@ namespace CarSim::App
         if (options_.benchmark && bench_.frames > 0) {
             const double n = static_cast<double>(bench_.frames);
             static const char* const passNames[kPassCount] = {"cluster", "mirror", "sky", "world", "traffic", "vehicle", "hud"};
+            // Worst 1 % of the wall-clock frame gaps: the number that tells you whether a run was
+            // smooth, which an average never does.
+            double wallWorst = 0.0;
+            if (!bench_.wallSamples.empty()) {
+                auto samples = bench_.wallSamples;
+                const std::size_t rank = samples.size() - 1u - samples.size() / 100u;
+                std::nth_element(samples.begin(), samples.begin() + static_cast<std::ptrdiff_t>(rank), samples.end());
+                wallWorst = samples[rank];
+            }
+            const std::string scene = FormatClock(timeOfDayHours_) + " " + Core::ToString(weather_.kind) + " " +
+                                      (options_.freeView ? "free" : (cameraMode_ == Render::CameraMode::Cockpit ? "cockpit" : "chase")) +
+                                      (options_.spawn ? " spawn=" + *options_.spawn : std::string());
             std::cout << "benchmark: " << bench_.frames << " frames after " << bench_.warmupFrames << " warm-up frames, "
-                      << viewportWidth_ << "x" << viewportHeight_ << "\n"
-                      << "  update  avg " << bench_.updateSum / n << " ms, max " << bench_.updateMax << " ms\n"
+                      << viewportWidth_ << "x" << viewportHeight_ << ", scene " << scene << "\n"
+                      << "  update  avg " << bench_.updateSum / n << " ms, max " << bench_.updateMax << " ms"
+                      << " (vehicle " << bench_.vehicleSum / n << ", collision " << bench_.collisionSum / n
+                      << ", traffic " << bench_.trafficMsSum / n << ", audio " << bench_.audioSum / n << ")\n"
                       << "  draw    avg " << bench_.drawSum / n << " ms, max " << bench_.drawMax << " ms (CPU submission)\n"
-                      << "  frame   avg " << bench_.wallSum / std::max(1.0, n - 1.0) << " ms wall clock\n"
+                      << "  frame   avg " << bench_.wallSum / std::max(1.0, n - 1.0) << " ms wall clock, worst 1% "
+                      << wallWorst << " ms\n"
                       << "  scene   avg " << static_cast<double>(bench_.drawCalls) / n << " draw calls, "
                       << static_cast<double>(bench_.triangles) / n / 1000.0 << "k triangles\n"
                       << "  passes  avg ms:";
@@ -1033,7 +1262,12 @@ namespace CarSim::App
                     json << "{\n  \"frames\": " << bench_.frames << ",\n  \"warmupFrames\": " << bench_.warmupFrames << ",\n  \"width\": " << viewportWidth_
                          << ",\n  \"height\": " << viewportHeight_ << ",\n  \"updateMsAvg\": " << bench_.updateSum / n << ",\n  \"updateMsMax\": " << bench_.updateMax
                          << ",\n  \"drawMsAvg\": " << bench_.drawSum / n << ",\n  \"drawMsMax\": " << bench_.drawMax << ",\n  \"frameMsAvg\": "
-                         << bench_.wallSum / std::max(1.0, n - 1.0) << ",\n  \"drawCallsAvg\": " << static_cast<double>(bench_.drawCalls) / n
+                         << bench_.wallSum / std::max(1.0, n - 1.0) << ",\n  \"frameMsWorst1pc\": " << wallWorst
+                         << ",\n  \"scene\": \"" << scene << "\""
+                         << ",\n  \"updateMsAvgSplit\": {\"vehicle\": " << bench_.vehicleSum / n << ", \"collision\": "
+                         << bench_.collisionSum / n << ", \"traffic\": " << bench_.trafficMsSum / n << ", \"audio\": "
+                         << bench_.audioSum / n << "}"
+                         << ",\n  \"drawCallsAvg\": " << static_cast<double>(bench_.drawCalls) / n
                          << ",\n  \"trianglesAvg\": " << static_cast<double>(bench_.triangles) / n << ",\n  \"passesMsAvg\": {";
                     for (int i = 0; i < kPassCount; ++i) json << (i ? ", " : "") << "\"" << passNames[i] << "\": " << bench_.passSum[i] / n;
                     json << "},\n  \"visibleAvg\": {\"terrainChunks\": " << static_cast<double>(bench_.terrainChunks) / n << ", \"roadBatches\": "
@@ -1048,7 +1282,7 @@ namespace CarSim::App
                 }
             }
         }
-        std::cout << "frame limit reached (" << framesDrawn_ << " frames); exiting\n";
+        std::cout << (routeDone ? "route finished (" : "frame limit reached (") << framesDrawn_ << " frames); exiting\n";
         exitRequested_ = true;
         Exit();
     }

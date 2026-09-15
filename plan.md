@@ -1116,3 +1116,48 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   (idempotence), and diffs the result against `content/maps/lipova`, printing the offending
   hunks on failure. Registered as the ctest test `map_regeneration_check` (the sixth
   registration). Verified to fail on injected drift in either direction.
+- [x] `RH-004` **Actionable diagnostic overlay.** The `F3` overlay was one run of text over the
+  scene; it is now a panelled, sectioned read-out built only from project-owned instrumentation.
+  It adds frames per second, the mean and **worst 1 %** wall-clock frame time over a 180-frame
+  window, the update half split into vehicle / collision / traffic / audio, the draw half split
+  per pass, the cluster and mirror cost with the mirror's resolution and update interval,
+  simulated time and frames drawn, per-wheel slip and load, the weather state (cloud, rain,
+  wetness), sun elevation and lamp factor, and drawn-versus-culled batch counts with the frame's
+  draw calls and triangles. `MirrorView` gained `Width()`/`Height()` so the overlay can report
+  what the mirror actually costs to fill. Toggled with `F3`, off in a normal session.
+- [x] `RH-005` **Benchmark instrumentation.** `--benchmark` now labels its output with the scene
+  it measured (clock, weather, camera, spawn), reports the worst 1 % wall-clock frame time
+  beside the average, and breaks the update average into the same four stages as the overlay.
+  The JSON gains `scene`, `frameMsWorst1pc` and `updateMsAvgSplit`.
+- [x] `RH-006` **A deterministic route to drive.** `Traffic::RouteDriver` is an autopilot over
+  the lane graph: it plans a route from a spawn through waypoints with `LaneGraph::FindRoute`,
+  follows it with pure pursuit plus a cross-track term, and holds a target speed that falls for
+  curvature and for the end of the route. It produces ordinary `DriverControls`, so the tyres,
+  the clutch, the gearbox and the collision world all behave as they do under a human driver --
+  nothing is teleported. `--route <name>` drives one and exits at its end (`--route-stay` keeps
+  going). Routes are map data (`traffic.routes[]` in `traffic.json`, written by the map
+  pipeline); the sample map defines `town` (1 656 m through the square, the parked cars and the
+  signalised junction), `country` (994 m of main road, avenue and filling station) and `forest`
+  (1 664 m of forest road). Four tests in `tests/Traffic/RouteDriverTests.cpp` drive every route
+  of the shipped map with the real vehicle and assert it finishes, stays within 2.5 m of the
+  lane centre, never puts a wheel in the air and produces identical results on a re-run.
+- [x] `RH-007` **Repeatable benchmark scenarios.** `scripts/benchmark_suite.sh` runs eight
+  scenes -- clear day, rain, clear night, rainy night, each from the exterior and the cockpit
+  camera -- over a fixed route with a fixed traffic warm-up, a frozen clock and a fixed weather
+  preset, and writes one JSON per scene. `scripts/benchmark_report.py` turns a directory of
+  those into the Markdown tables that go into `docs/performance.md`, and with `--against` prints
+  the percentage change against an earlier directory. `--quick` gives a 320x200 smoke run for a
+  software rasteriser.
+- [x] `RH-008` **Real-hardware validation procedure rewritten.**
+  `docs/real-hardware-validation.md` is now a copy-and-paste procedure for the reference machine
+  (Debian 13 / Radeon 780M) and any other PC with a GPU: what to install, how to confirm the
+  driver is not llvmpipe, build and test commands, what each overlay section means, a manual
+  driving checklist, the benchmark suite and the before/after comparison, the screenshot set, the
+  renderer comparison with the exact vocabulary to report it in, sound, and what to send back.
+  It states plainly that nothing on the page may be filled in from the container, and carries a
+  results table whose only row is the container, marked as having no GPU.
+- [x] `RH-009` **Driving-surface profile check in the map validator.** `carsim-mapvalidate` now
+  walks every lane *and every junction connector* at one-metre steps and reports any place where
+  the ground under the driving line steps more than 12 cm in a metre -- the discontinuity that
+  throws a wheel into the air. It prints the worst step and its position whatever the result, so
+  the number can be tracked. It found four real defects on the shipped map (below).

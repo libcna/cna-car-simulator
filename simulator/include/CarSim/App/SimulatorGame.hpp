@@ -23,6 +23,7 @@
 #include "CarSim/Sim/Ground.hpp"
 #include "CarSim/Sim/Vehicle.hpp"
 #include "CarSim/Sim/VehicleDefinition.hpp"
+#include "CarSim/Traffic/RouteDriver.hpp"
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include "Microsoft/Xna/Framework/Game.hpp"
@@ -30,6 +31,7 @@
 #include "Microsoft/Xna/Framework/GraphicsDeviceManager.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteBatch.hpp"
 
+#include <array>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -70,10 +72,16 @@ namespace CarSim::App
         void UpdateTimeOfDay(float dt);
         void RefreshLighting(bool force = false, bool forceEnvironment = false);
         void ApplyAutoDrive(Sim::DriverControls& controls);
+        /// Plans the route named by --route. Returns false (with a message) when it cannot be
+        /// driven, which a benchmark or validation run should treat as a failure.
+        bool PlanRoute();
+        void ReportRoute() const;
         void UpdateTraffic(float dt);
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
         void DrawHud();
         void DrawHelp();
+        /// The F3 diagnostic overlay: frame budget, simulation state, world and traffic counts.
+        void DrawDebugOverlay();
         void FinishFrame();
 
         Core::CommandLineOptions options_;
@@ -99,6 +107,11 @@ namespace CarSim::App
         int collisionCount_ = 0;
         float lastImpactSpeed_ = 0.0f;
         Input::InputMapper input_;
+        // Scripted driving over the lane graph (--route). Present only when a route was asked for.
+        std::unique_ptr<Traffic::RouteDriver> routeDriver_;
+        std::string routeName_;
+        bool routeReported_ = false;
+        double routeStartSeconds_ = 0.0;
 
         // Rendering
         Render::LightingRig rig_;
@@ -139,6 +152,20 @@ namespace CarSim::App
         double elapsedSeconds_ = 0.0;
         float frameMs_ = 0.0f;
         float drawMs_ = 0.0f;
+        // Where the update half of the frame goes. Measured every frame, shown by the overlay and
+        // summarised by --benchmark; all of it is project-owned instrumentation, no renderer
+        // internals are consulted.
+        float vehicleMs_ = 0.0f;      // vehicle physics step
+        float collisionMs_ = 0.0f;    // collision resolution against the world
+        float trafficMs_ = 0.0f;      // traffic AI and its own collision passes
+        float audioMs_ = 0.0f;        // procedural audio synthesis
+        /// Wall-clock time between the end of consecutive drawn frames, newest last. The overlay
+        /// reports the mean and the worst 1 % of this window, which is what a stutter looks like.
+        static constexpr int kFramePacingWindow = 180;
+        std::array<float, kFramePacingWindow> framePacingMs_{};
+        int framePacingCount_ = 0;
+        int framePacingNext_ = 0;
+        std::chrono::steady_clock::time_point lastPacingSample_{};
         int viewportWidth_ = 0;
         int viewportHeight_ = 0;
         enum Pass { kPassCluster = 0, kPassMirror, kPassSky, kPassWorld, kPassTraffic, kPassVehicle, kPassHud, kPassCount };
@@ -153,6 +180,9 @@ namespace CarSim::App
             long long terrainChunks = 0, roadBatches = 0, objectBatches = 0, treeBatches = 0;
             long long trafficCount = 0, trafficDrawn = 0, trafficLod0 = 0, trafficLod1 = 0, trafficLod2 = 0, parkedDrawn = 0;
             double passSum[kPassCount] = {};
+            // The update half, split the same way the overlay splits it.
+            double vehicleSum = 0.0, collisionSum = 0.0, trafficMsSum = 0.0, audioSum = 0.0;
+            std::vector<float> wallSamples;   // every wall-clock frame gap, for the worst 1 %
             int warmupFrames = 30;
         } bench_;
         std::chrono::steady_clock::time_point lastFrameEnd_{};

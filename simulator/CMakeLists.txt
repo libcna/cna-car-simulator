@@ -38,6 +38,7 @@ add_library(carsim_core STATIC
     src/Sim/Vehicle.cpp
     src/Sim/VehicleDefinition.cpp
     src/Traffic/PlateGenerator.cpp
+    src/Traffic/RouteDriver.cpp
     src/Traffic/SignalController.cpp
     src/Traffic/TrafficSystem.cpp
 )
