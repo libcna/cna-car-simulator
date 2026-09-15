@@ -77,9 +77,16 @@ namespace CarSim::Render
         const Vector3 lowSun(1.00f, 0.60f, 0.32f);
         const float warm = 1.0f - SmoothStep(2.0f, 16.0f, elevationDeg);
         sunColor = Mix(noonSun, lowSun, warm * 0.9f) * strength;
-        if (elevationDeg < -1.0f) {
-            // Moonlight: a dim, cold key from roughly the opposite side of the sky.
-            sunColor = Vector3(0.068f, 0.078f, 0.115f) * (0.35f + 0.65f * night);
+        // The key light changes hands at dusk: below the horizon the sun lights nothing and the
+        // moon takes over from roughly the opposite side of the sky. Swapping at a single
+        // elevation made the key colour jump from black to moonlight in one step *and* flipped
+        // its direction by 180 degrees at the same instant -- every shadow and highlight in the
+        // scene turned over between two frames. The hand-over happens where the sun's own key is
+        // already exactly zero (its strength is clamped at the horizon), and the moon then fades
+        // in over the following three and a half degrees, so nothing changes abruptly.
+        if (elevationDeg < -0.5f) {
+            const float moonShare = 1.0f - SmoothStep(-4.0f, -0.5f, elevationDeg);
+            sunColor = Vector3(0.068f, 0.078f, 0.115f) * (0.35f + 0.65f * night) * moonShare;
             sunDirection = Vector3(-dir.X, -std::fabs(dir.Y) * 0.8f - 0.3f, -dir.Z);
             sunDirection.Normalize();
         }
@@ -151,6 +158,14 @@ namespace CarSim::Render
         horizonColor = Mix(horizonColor, Mix(Vector3(0.020f, 0.022f, 0.027f), Vector3(0.62f, 0.64f, 0.67f), day), cover * 0.92f);
         fogStart *= 1.0f - 0.45f * cover - 0.35f * rain;
         fogEnd *= 1.0f - 0.50f * cover - 0.32f * rain;
+    }
+
+    float LightingRig::RefreshStepDeg(const float elevationDeg)
+    {
+        const float height = std::fabs(elevationDeg);
+        if (height < 8.0f) return 0.035f;   // sunrise and sunset: everything is moving
+        if (height < 18.0f) return 0.12f;   // twilight either side of it
+        return 0.25f;                       // the middle of the day, or the middle of the night
     }
 
     float LightingRig::LampFactor() const

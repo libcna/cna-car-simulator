@@ -1302,3 +1302,21 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   driving the three routes end to end, the nine spawns, the gravel track at night, and the two
   newest roads -- is written out as a checklist in `docs/real-hardware-validation.md` section 5b,
   with a note that anything a `--route` run reproduces becomes a regression test the same day.
+- [x] `RH-023` **A day that is continuous, and the key light no longer turns over in one frame.**
+  Two tests in `tests/Render/LightingRigTests.cpp` walk all twenty-four hours in all four weathers
+  and compare the palette *at the cadence the game actually re-applies it*, which is what a player
+  sees as a step. They found a real discontinuity: the key light changed hands from the sun to the
+  moon at exactly -1 deg of elevation, so the colour jumped from black to moonlight in one step
+  **and its direction flipped by 180 degrees at the same instant** -- every shadow and highlight
+  in the scene turned over between two frames, twice a day. The hand-over now happens where the
+  sun's own key is already exactly zero (its strength is clamped at the horizon) and the moon
+  fades in over the following three and a half degrees.
+  `LightingRig::RefreshStepDeg` also replaces the flat quarter-degree refresh threshold: 0.035 deg
+  within eight degrees of the horizon, 0.12 deg through twilight, 0.25 deg the rest of the time,
+  because the whole sky turns over in the twenty minutes around sunrise and sunset and barely
+  changes at noon. With both, nothing in the palette moves by more than 0.02 (about 5/255 per
+  channel) between two applications at any hour in any weather, and the lamps and the baked
+  lighting scale by no more than 0.05.
+  The second test prints the shape of a day for the hours the brief lists: 06:00 sun 6.0 deg,
+  09:00 34.4 deg, 13:00 60.2 deg (solar noon), 17:00 34.4 deg, 20:00 6.0 deg, 21:30 -6.2 deg
+  (lamps full), 00:00 -18.9 deg.

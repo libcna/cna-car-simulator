@@ -55,6 +55,12 @@ namespace CarSim::Render
         void SetTimeOfDay(float hours);
         /// Sets the cloud cover and rain (0..1) and recomputes the palette at the current hour.
         void SetWeather(float cover, float rain);
+        /// How far the sun may move before the palette has to be re-applied. The whole sky
+        /// turns over in the twenty minutes around sunrise and sunset, so near the horizon the
+        /// step is much finer than it is in the middle of the day, where an hour of sun barely
+        /// changes anything. This is what decides whether a dawn reads as a fade or as a series
+        /// of steps.
+        [[nodiscard]] static float RefreshStepDeg(float elevationDeg);
         /// Sun elevation above the horizon in degrees (negative at night).
         [[nodiscard]] float SunElevationDeg() const { return sunElevationDeg; }
         /// Sun azimuth in degrees clockwise from north (0 = north, 90 = east).

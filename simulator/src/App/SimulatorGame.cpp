@@ -655,11 +655,13 @@ namespace CarSim::App
     void SimulatorGame::RefreshLighting(const bool force, const bool forceEnvironment)
     {
         // Re-applying a rig writes a handful of effect properties, so it is done whenever the sun
-        // has moved a quarter of a degree. The paint's sky cube map costs a great deal more, so it
-        // follows every three degrees of sun or fifteen per cent of cloud -- a weather front eases
-        // in over two minutes and would otherwise rebuild it a hundred times on the way.
+        // has moved far enough to matter -- which is much less far near the horizon, where the
+        // whole sky turns over in twenty minutes, than at noon (LightingRig::RefreshStepDeg). The
+        // paint's sky cube map costs a great deal more, so it follows every three degrees of sun
+        // or fifteen per cent of cloud -- a weather front eases in over two minutes and would
+        // otherwise rebuild it a hundred times on the way.
         const float elevation = rig_.SunElevationDeg();
-        if (!force && std::fabs(elevation - lastLightingElevationDeg_) < 0.25f) {
+        if (!force && std::fabs(elevation - lastLightingElevationDeg_) < Render::LightingRig::RefreshStepDeg(elevation)) {
             return;
         }
         lastLightingElevationDeg_ = elevation;

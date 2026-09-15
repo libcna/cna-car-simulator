@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <iostream>
 
 using namespace CarSim::Render;
 using Microsoft::Xna::Framework::Vector3;
@@ -88,4 +89,132 @@ TEST(LightingRig, MoonlightReplacesTheSunAtNight)
     EXPECT_LT(night.sunDirection.Y, 0.0f);
     EXPECT_LT(night.sunColor.X, 0.12f);
     EXPECT_GT(night.sunColor.Z, night.sunColor.X);   // cold
+}
+
+// The whole day, minute by minute, in every weather. "Time interpolation should feel continuous"
+// is a property, so it is checked as one: no colour the rig produces, and nothing derived from
+// it -- the lamp factor, the baked-lighting scale, the fog -- may jump between two consecutive
+// minutes. A discontinuity here is a visible pop in the sky or a flash on the ground at some hour
+// nobody happens to screenshot.
+TEST(LightingRig, TheWholeDayIsContinuousInEveryWeather)
+{
+    struct Sample
+    {
+        Vector3 sun, ambient, fill, bounce, fog, zenith, horizon;
+        float lamp, baked, fogStart, fogEnd, elevation;
+    };
+    const LightingRig bakeReference = LightingRig::BakeReference();
+    const auto sampleAt = [&bakeReference](LightingRig& rig, const float hours) {
+        rig.SetTimeOfDay(hours);
+        Sample s;
+        s.sun = rig.sunColor;
+        s.ambient = rig.skyAmbient;
+        s.fill = rig.skyFillColor;
+        s.bounce = rig.groundBounceColor;
+        s.fog = rig.fogColor;
+        s.zenith = rig.zenithColor;
+        s.horizon = rig.horizonColor;
+        s.lamp = rig.LampFactor();
+        s.baked = rig.BakedLightingScale(bakeReference).X;
+        s.fogStart = rig.fogStart;
+        s.fogEnd = rig.fogEnd;
+        s.elevation = rig.SunElevationDeg();
+        return s;
+    };
+
+    struct Weather { const char* name; float cover; float rain; };
+    for (const Weather& weather : {Weather{"clear", 0.0f, 0.0f}, Weather{"scattered", 0.35f, 0.0f},
+                                   Weather{"overcast", 0.95f, 0.0f}, Weather{"rain", 1.0f, 1.0f}}) {
+        LightingRig rig;
+        rig.SetWeather(weather.cover, weather.rain);
+        Sample previous = sampleAt(rig, 0.0f);
+        float previousElevation = previous.elevation;
+        float worstColour = 0.0f;
+        float worstHour = 0.0f;
+        const char* worstWhat = "";
+        float worstScalar = 0.0f;
+        float worstScalarHour = 0.0f;
+        const char* worstScalarWhat = "";
+        // Sampled the way the game applies it: the palette is re-applied when the sun has moved
+        // RefreshStepDeg, so that is the step a player actually sees. Walking the clock ten times
+        // finer than that makes sure no step is missed.
+        for (int tick = 1; tick <= 24 * 60 * 10; ++tick) {
+            const float hours = static_cast<float>(tick) / 600.0f;
+            rig.SetTimeOfDay(hours);
+            if (std::fabs(rig.SunElevationDeg() - previousElevation) < LightingRig::RefreshStepDeg(rig.SunElevationDeg())) {
+                continue;
+            }
+            const Sample now = sampleAt(rig, hours);
+            previousElevation = now.elevation;
+            const auto note = [&](const float delta, const char* what) {
+                if (delta > worstColour) {
+                    worstColour = delta;
+                    worstHour = hours;
+                    worstWhat = what;
+                }
+            };
+            note((now.sun - previous.sun).Length(), "sun colour");
+            note((now.ambient - previous.ambient).Length(), "sky ambient");
+            note((now.fill - previous.fill).Length(), "sky fill");
+            note((now.bounce - previous.bounce).Length(), "ground bounce");
+            note((now.fog - previous.fog).Length(), "fog colour");
+            note((now.zenith - previous.zenith).Length(), "zenith");
+            note((now.horizon - previous.horizon).Length(), "horizon");
+            if (std::fabs(now.lamp - previous.lamp) > worstScalar) {
+                worstScalar = std::fabs(now.lamp - previous.lamp);
+                worstScalarHour = hours;
+                worstScalarWhat = "lamp factor";
+            }
+            if (std::fabs(now.baked - previous.baked) > worstScalar) {
+                worstScalar = std::fabs(now.baked - previous.baked);
+                worstScalarHour = hours;
+                worstScalarWhat = "baked scale";
+            }
+            // The fog range may move, but not teleport.
+            EXPECT_LT(std::fabs(now.fogStart - previous.fogStart), 20.0f) << weather.name << " at " << hours << " h";
+            EXPECT_LT(std::fabs(now.fogEnd - previous.fogEnd), 80.0f) << weather.name << " at " << hours << " h";
+            previous = now;
+        }
+        // 0.02 between two applications is about 5/255 per channel: below the point where a
+        // transition reads as a step rather than a fade.
+        EXPECT_LT(worstColour, 0.02f) << weather.name << ": " << worstWhat << " jumps by "
+                                      << worstColour << " at " << worstHour << " h";
+        // The two scalars sweep further than a colour does -- the lamps go the whole way from off
+        // to on across a dawn -- so they get their own, looser bound.
+        EXPECT_LT(worstScalar, 0.05f) << weather.name << ": " << worstScalarWhat << " jumps by "
+                                      << worstScalar << " at " << worstScalarHour << " h";
+    }
+}
+
+// The representative hours the brief asks for, in one place, so the shape of a day is visible in
+// the test log rather than only in a screenshot.
+TEST(LightingRig, TheShapeOfADayIsSensible)
+{
+    LightingRig rig;
+    for (const float hour : {6.0f, 9.0f, 13.0f, 17.0f, 20.0f, 21.5f, 0.0f}) {
+        rig.SetTimeOfDay(hour);
+        std::cout << "  " << hour << " h: sun " << rig.SunElevationDeg() << " deg, azimuth "
+                  << rig.SunAzimuthDeg() << " deg, lamps " << rig.LampFactor()
+                  << ", baked scale " << rig.BakedLightingScale(LightingRig::BakeReference()).X << "\n";
+    }
+    // Noon is the brightest and midnight the darkest, and the lamps are the other way round.
+    const LightingRig reference = LightingRig::BakeReference();
+    rig.SetTimeOfDay(13.0f);
+    const float noonLight = rig.BakedLightingScale(reference).X;
+    const float noonLamps = rig.LampFactor();
+    rig.SetTimeOfDay(0.0f);
+    const float midnightLight = rig.BakedLightingScale(reference).X;
+    const float midnightLamps = rig.LampFactor();
+    EXPECT_GT(noonLight, midnightLight * 8.0f);
+    EXPECT_LT(noonLamps, 0.05f);
+    EXPECT_GT(midnightLamps, 0.9f);
+    // Six in the morning and eight in the evening are both daylight with the sun low, and the
+    // sun is in the east in the morning and the west in the evening.
+    rig.SetTimeOfDay(6.0f);
+    EXPECT_GT(rig.SunElevationDeg(), 0.0f);
+    EXPECT_LT(rig.SunElevationDeg(), 25.0f);
+    EXPECT_LT(rig.SunAzimuthDeg(), 180.0f) << "the morning sun should be in the east";
+    rig.SetTimeOfDay(20.0f);
+    EXPECT_GT(rig.SunElevationDeg(), 0.0f);
+    EXPECT_GT(rig.SunAzimuthDeg(), 180.0f) << "the evening sun should be in the west";
 }
