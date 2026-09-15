@@ -43,7 +43,7 @@ shot brezi       --spawn brezi    --frames 120 --chase-yaw 35 --chase-distance 1
 shot podhaji     --spawn podhaji  --frames 120 --chase-yaw 35 --chase-distance 12 --traffic-warmup 20
 shot mesto       --spawn mesto    --frames 120 --chase-yaw 35 --chase-distance 12 --traffic-warmup 20
 # The signalised junction "U kaple", by day and after dark.
-shot signals     --spawn kostel --frames 90 --view 302 11 18 28 -11 --time 13:00 --time-scale 0 --traffic-warmup 20
+shot signals     --spawn kostel --frames 90 --view 312 7.5 -22 92 -2 --time 13:00 --time-scale 0 --traffic-warmup 20
 # Weather: the same square under a lid and in the rain.
 shot overcast    --spawn square --frames 40  --view -78 9 -30 50 -6 --time 13:00 --time-scale 0 --weather overcast
 shot rain        --spawn square --frames 40  --view -78 9 -30 50 -6 --time 13:00 --time-scale 0 --weather rain
