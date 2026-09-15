@@ -217,7 +217,11 @@ namespace CarSim::Map
                         const Vector3 right(-hit.sample.tangent.Z, 0.0f, hit.sample.tangent.X);
                         LanePoint p;
                         p.position = hit.sample.position + right * lane.lateralOffset;
-                        p.position.Y = network.SurfaceHeight(hit);
+                        // At the point the lane actually occupies, not on the centreline: near a
+                        // junction the carriageway eases onto a sloped plane, and taking the
+                        // centreline height there leaves the lane out by the plane's gradient
+                        // times the lane offset.
+                        p.position.Y = network.SurfaceHeightAt(hit, Vector2(p.position.X, p.position.Z));
                         p.tangent = forward ? hit.sample.tangent : hit.sample.tangent * -1.0f;
                         p.speedLimitKmh = road.SpeedLimitAt(s);
                         p.curvature = forward ? hit.sample.curvature : -hit.sample.curvature;

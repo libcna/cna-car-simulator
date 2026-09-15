@@ -306,6 +306,13 @@ namespace CarSim::Map
             return false;
         }
         BuildIntersections(data);
+        // Remember, per road, where it meets a junction, so the crossfall can ease out there.
+        for (std::size_t ix = 0; ix < intersections_.size(); ++ix) {
+            for (const Approach& a : intersections_[ix].approaches) {
+                roads_[static_cast<std::size_t>(a.road)].junctions.push_back(
+                    Road::JunctionRef{a.nodeS, a.setback, static_cast<int>(ix)});
+            }
+        }
         BuildHeights(data, terrainHeight);
         BuildPieces();
         BuildGrid();
@@ -540,10 +547,31 @@ namespace CarSim::Map
                     corner = x;
                 }
             }
+            // The fillet is a kerb: it rounds the corner between two arms *outward*. Where two
+            // arms leave at a sharp angle with very different setbacks, the two edge lines meet on
+            // the node side of the chord between them and the quadratic cuts a notch into the
+            // paved area. A car turning between those arms then drives over the notch: one wheel
+            // off the pavement, and -- because the terrain is flat only inside the patch -- off a
+            // step in the ground (0.47 m at Podhájí before this). Keep the fillet on or outside
+            // the chord; a straight kerb across the corner is the worst it may become.
+            const Vector2 chord = bLeft - right;
+            const float chordLength = chord.Length();
+            Vector2 outward(0.0f, 0.0f);
+            if (chordLength > 1e-5f) {
+                outward = Vector2(-chord.Y / chordLength, chord.X / chordLength);
+                if (Vector2::Dot(outward, right - c) < 0.0f) {
+                    outward = outward * -1.0f;
+                }
+            }
             for (int k = 1; k < 6; ++k) {
                 const float t = static_cast<float>(k) / 6.0f;
                 const float u = 1.0f - t;
-                poly.push_back(right * (u * u) + corner * (2.0f * u * t) + bLeft * (t * t));
+                Vector2 point = right * (u * u) + corner * (2.0f * u * t) + bLeft * (t * t);
+                const float depth = Vector2::Dot(point - right, outward);
+                if (depth < 0.0f) {
+                    point = point - outward * depth;
+                }
+                poly.push_back(point);
             }
         }
         if (PolygonArea(poly) < 0.0f) {
@@ -873,17 +901,48 @@ namespace CarSim::Map
         return result;
     }
 
+    float RoadNetwork::CrownScale(const Road& road, const float s) const
+    {
+        constexpr float kEase = 14.0f;   // the same run BuildHeights uses to ease onto the plane
+        float scale = 1.0f;
+        for (const auto& j : road.junctions) {
+            const float d = std::fabs(s - j.nodeS);
+            if (d >= j.setback + kEase) continue;
+            scale = std::min(scale, SmoothStep((d - j.setback) / kEase));
+        }
+        return scale;
+    }
+
+    float RoadNetwork::SurfaceHeightAt(const RoadHit& hit, const Vector2& point) const
+    {
+        constexpr float kEase = 14.0f;
+        const Road& road = roads_[static_cast<std::size_t>(hit.road)];
+        float y = SurfaceHeight(hit);
+        for (const auto& j : road.junctions) {
+            if (j.intersection < 0) continue;
+            const float d = std::fabs(hit.s - j.nodeS);
+            if (d >= j.setback + kEase) continue;
+            const float w = 1.0f - SmoothStep((d - j.setback) / kEase);
+            y += (intersections_[static_cast<std::size_t>(j.intersection)].PlaneHeight(point) - y) * w;
+        }
+        return y;
+    }
+
     float RoadNetwork::SurfaceHeight(const RoadHit& hit) const
     {
         const Road& road = roads_[static_cast<std::size_t>(hit.road)];
         const float hp = road.profile.HalfPavedWidth();
         const float lat = std::fabs(hit.lateral);
-        const float crown = road.profile.crownPercent * 0.01f;
+        // The junction apron is flat, so the crossfall has to be gone by the time the carriageway
+        // reaches it; otherwise the terrain steps by the crossfall where the two meet, which is a
+        // ridge a car drives over at every junction.
+        const float crown = road.profile.crownPercent * 0.01f * CrownScale(road, hit.s);
+        const float shoulder = 0.04f * CrownScale(road, hit.s);
         float y = hit.sample.position.Y;
         if (lat <= hp) {
             y -= lat * crown;
         } else {
-            y -= hp * crown + (lat - hp) * 0.04f;   // shoulder falls away a little faster
+            y -= hp * crown + (lat - hp) * shoulder;   // shoulder falls away a little faster
         }
         return y;
     }
@@ -914,7 +973,7 @@ namespace CarSim::Map
         if (lat > ht) {
             return false;
         }
-        height = SurfaceHeight(hit);
+        height = SurfaceHeightAt(hit, point);
         distanceToPavedEdge = lat - hp;
         if (lat <= hp) {
             surface = road.profile.surface;

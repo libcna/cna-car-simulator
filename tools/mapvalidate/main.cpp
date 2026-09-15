@@ -108,17 +108,19 @@ int main(int argc, char** argv)
     if (maxGrade > 0.12f) {
         std::cout << "warning: road '" << maxGradeRoad << "' reaches a grade of " << maxGrade * 100.0f << " %\n";
     }
-    // Driving-surface profile: walk every lane at 1 m and look for a step the wheels would fall
-    // into or launch off. A car at 90 km/h covers 25 m/s, so a 12 cm step over one metre is a
-    // thump you feel and, over a kerb-shaped discontinuity, enough to put a wheel in the air.
-    // This catches roads and junctions that do not sit on the terrain long before a screenshot
-    // does, anywhere on the network rather than just near the spawn.
+    // Driving-surface profile: walk every lane and every junction connector at one metre and
+    // compare the ground the wheels actually stand on with the surface the road was designed to
+    // have. A grade is legitimate -- roads climb hills -- so what is measured is the *deviation*
+    // between the two, and any sudden change in it: that is the lip a wheel falls off or launches
+    // from. This catches roads and junctions that do not sit on their terrain anywhere on the
+    // network, rather than only where somebody happened to drive.
     {
-        constexpr float kStepWarnM = 0.12f;    // vertical change over one metre of lane
-        int stepWarnings = 0;
-        float worstStep = 0.0f;
+        constexpr float kDeviationWarnM = 0.08f;   // ground away from the designed surface
+        constexpr float kJumpWarnM = 0.06f;        // change in that deviation over one metre
+        int surfaceWarnings = 0;
+        float worstDeviation = 0.0f;
+        float worstJump = 0.0f;
         Microsoft::Xna::Framework::Vector3 worstAt{};
-        // Every path a car can take: the lanes and the connectors that cross the junctions.
         struct Path
         {
             int id;
@@ -139,36 +141,39 @@ int main(int argc, char** argv)
                                  roads.Roads()[static_cast<std::size_t>(lanes.LaneAt(link.fromLane).road)].spec->id,
                                  nullptr, &link});
         }
-        for (const auto& lane : paths) {
-            if (lane.length < 2.0f) continue;
-            float previous = world->Ground().HeightAt(lane.At(0.0f).position.X, lane.At(0.0f).position.Z);
-            for (float s = 1.0f; s <= lane.length; s += 1.0f) {
-                const auto point = lane.At(s);
-                const float height = world->Ground().HeightAt(point.position.X, point.position.Z);
-                const float step = std::fabs(height - previous);
-                if (step > worstStep) {
-                    worstStep = step;
+        for (const auto& path : paths) {
+            if (path.length < 2.0f) continue;
+            float previous = 0.0f;
+            bool havePrevious = false;
+            for (float s = 0.0f; s <= path.length; s += 1.0f) {
+                const auto point = path.At(s);
+                const float deviation = world->Ground().HeightAt(point.position.X, point.position.Z) - point.position.Y;
+                const float jump = havePrevious ? std::fabs(deviation - previous) : 0.0f;
+                if (std::fabs(deviation) > std::fabs(worstDeviation)) {
+                    worstDeviation = deviation;
                     worstAt = point.position;
                 }
-                if (step > kStepWarnM) {
-                    if (stepWarnings < 12) {
-                        std::printf("warning: %s %d on road '%s' steps %.2f m at (%.1f, %.1f)\n", lane.kind, lane.id,
-                                    lane.road.c_str(), static_cast<double>(step), static_cast<double>(point.position.X),
-                                    static_cast<double>(point.position.Z));
+                worstJump = std::max(worstJump, jump);
+                if (std::fabs(deviation) > kDeviationWarnM || jump > kJumpWarnM) {
+                    if (surfaceWarnings < 12) {
+                        std::printf("warning: %s %d on road '%s' at (%.1f, %.1f): ground %+.2f m from the road surface"
+                                    ", changing %.2f m over the last metre\n", path.kind, path.id, path.road.c_str(),
+                                    static_cast<double>(point.position.X), static_cast<double>(point.position.Z),
+                                    static_cast<double>(deviation), static_cast<double>(jump));
                     }
-                    ++stepWarnings;
+                    ++surfaceWarnings;
                 }
-                previous = height;
+                previous = deviation;
+                havePrevious = true;
             }
         }
-        if (stepWarnings > 12) {
-            std::printf("warning: ... and %d more driving-surface steps over %.2f m\n", stepWarnings - 12,
-                        static_cast<double>(kStepWarnM));
+        if (surfaceWarnings > 12) {
+            std::printf("warning: ... and %d more driving-surface problems\n", surfaceWarnings - 12);
         }
         if (!quiet) {
-            std::printf("surface: worst driving-surface step %.3f m at (%.1f, %.1f), %d over %.2f m\n", static_cast<double>(worstStep),
-                        static_cast<double>(worstAt.X), static_cast<double>(worstAt.Z), stepWarnings,
-                        static_cast<double>(kStepWarnM));
+            std::printf("surface: worst deviation %+.3f m at (%.1f, %.1f), worst one-metre change %.3f m, %d place(s) over %.2f m\n",
+                        static_cast<double>(worstDeviation), static_cast<double>(worstAt.X), static_cast<double>(worstAt.Z),
+                        static_cast<double>(worstJump), surfaceWarnings, static_cast<double>(kDeviationWarnM));
         }
     }
 

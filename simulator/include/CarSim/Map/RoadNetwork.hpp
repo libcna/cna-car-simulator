@@ -123,6 +123,16 @@ namespace CarSim::Map
         RoadCurve curve;
         RoadProfile profile;
         std::vector<int> pieces;       // indices into RoadNetwork::Pieces()
+        /// Where this road meets a junction. The carriageway eases onto the junction's plane over
+        /// each of these -- both its crossfall and its height -- so the two surfaces meet without
+        /// a step. See RoadNetwork::CrownScale and RoadNetwork::SurfaceHeightAt.
+        struct JunctionRef
+        {
+            float nodeS = 0.0f;
+            float setback = 0.0f;
+            int intersection = -1;
+        };
+        std::vector<JunctionRef> junctions;
 
         [[nodiscard]] float SpeedLimitAt(float s) const;   // km/h, urban aware
     };
@@ -158,6 +168,15 @@ namespace CarSim::Map
 
         /// Surface height of a road at a signed lateral offset, including the crown.
         [[nodiscard]] float SurfaceHeight(const RoadHit& hit) const;
+        /// How much of the road's crossfall applies at `s`: 1 on the open road, easing to 0
+        /// inside a junction setback so the carriageway meets the flat junction apron without a
+        /// step. `ease` matches the height blend in BuildHeights.
+        [[nodiscard]] float CrownScale(const Road& road, float s) const;
+        /// Surface height of a road at an actual map-plane point, easing onto the junction plane
+        /// near a node. `SurfaceHeight` alone works from the centreline, so on a sloped junction
+        /// plane it is out by the plane's gradient times the lateral offset -- which is a lip a
+        /// turning car drops off at the mouth of the junction.
+        [[nodiscard]] float SurfaceHeightAt(const RoadHit& hit, const Microsoft::Xna::Framework::Vector2& point) const;
 
         /// Height/surface of the drivable road system at a point (roads and intersection patches).
         /// Returns false when the point is not on a paved or shoulder surface.

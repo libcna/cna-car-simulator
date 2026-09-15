@@ -1161,3 +1161,26 @@ Rule adopted for this phase and afterwards, recorded here so it outlives the ses
   the ground under the driving line steps more than 12 cm in a metre -- the discontinuity that
   throws a wheel into the air. It prints the worst step and its position whatever the result, so
   the number can be tracked. It found four real defects on the shipped map (below).
+- [x] `RH-010` **Junctions meet their roads without a lip.** The driving-surface check found a
+  47 cm step on a connector at Podhájí; three causes, all fixed:
+  1. *Concave kerb fillets.* `RoadNetwork::BuildPatch` rounds each corner between two arms with a
+     quadratic through the intersection of the two kerb lines. Where two arms leave at a sharp
+     angle with very different setbacks, that control point falls on the node side of the chord
+     and the fillet cut a notch into the paved area -- a turning car drove over the notch with a
+     wheel off the pavement and off the flat junction plane. The fillet is now clamped to the
+     chord: a straight kerb across the corner is the worst it may become.
+  2. *Crossfall running into a flat apron.* The carriageway kept its full crown right up to the
+     junction while the apron is planar, so the two met in a ridge of the crossfall's height.
+     `RoadNetwork::CrownScale` now eases the crown and the shoulder fall to zero across the same
+     setback-plus-ease run that `BuildHeights` already used for the centreline.
+  3. *Centreline height on a sloped plane.* `SurfaceHeight` worked from the centreline, so on a
+     junction plane with up to 10 % gradient a lane 1.4 m off centre was out by 14 cm.
+     `RoadNetwork::SurfaceHeightAt(hit, point)` eases the carriageway onto `PlaneHeight` at the
+     *actual point*; the terrain conformer, the road-surface query and the lane graph all use it.
+
+  Measured over every lane and every connector of the shipped map (26.9 km of road, 52.4 km of
+  lane, 148 connectors): the worst deviation between the ground and the designed road surface
+  fell from **0.47 m to 0.036 m**, and the worst change over one metre to **0.022 m**. Nothing is
+  now over the validator's 8 cm / 6 cm thresholds. Two regression tests in
+  `tests/Map/SampleMapTests.cpp` hold both properties, and a third asserts no junction patch cuts
+  back towards its node.

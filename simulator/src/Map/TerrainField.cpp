@@ -95,7 +95,7 @@ namespace CarSim::Map
                     const float lat = std::fabs(hit.lateral);
                     RoadHit edge = hit;
                     edge.lateral = std::clamp(hit.lateral, -ht, ht);
-                    targetHeight = network.SurfaceHeight(edge) - kRoadSink;
+                    targetHeight = network.SurfaceHeightAt(edge, p) - kRoadSink;
                     bestD = lat - ht;
                 }
                 // Intersection patches: flat at the node height.

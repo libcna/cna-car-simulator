@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 
 using namespace CarSim;
@@ -364,4 +365,88 @@ TEST(SampleMap, MeadowTreesStandInTheMeadowsClearOfTheRoadsAndBuildings)
         EXPECT_FALSE(world->Objects().InsideBuilding(Microsoft::Xna::Framework::Vector2(x, z), 4.0f));
     }
     EXPECT_GT(meadowTrees, 100) << "the meadows are planted";
+}
+
+
+// The ground a wheel stands on must be the surface the road was designed to have -- everywhere a
+// car can drive, junctions included. Before this was measured, the carriageway kept its crossfall
+// and its centreline height right up to a junction while the junction apron was a flat sloped
+// plane, so the two met in a lip: 47 cm on a connector at Podhájí, where a turning car dropped a
+// wheel off the pavement into the sunk terrain.
+TEST(SampleMap, TheGroundFollowsTheRoadSurfaceEverywhereACarCanDrive)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world) << (errors.empty() ? "" : errors.front());
+    const auto& lanes = world->Lanes();
+
+    float worstDeviation = 0.0f;
+    float worstStep = 0.0f;
+    Microsoft::Xna::Framework::Vector3 worstDeviationAt{};
+    Microsoft::Xna::Framework::Vector3 worstStepAt{};
+
+    const auto walk = [&](const auto& path, const float length) {
+        if (length < 2.0f) return;
+        float previous = 0.0f;
+        bool havePrevious = false;
+        for (float s = 0.0f; s <= length; s += 1.0f) {
+            const auto point = path.Evaluate(s);
+            const float deviation = world->Ground().HeightAt(point.position.X, point.position.Z) - point.position.Y;
+            if (std::fabs(deviation) > std::fabs(worstDeviation)) {
+                worstDeviation = deviation;
+                worstDeviationAt = point.position;
+            }
+            if (havePrevious && std::fabs(deviation - previous) > worstStep) {
+                worstStep = std::fabs(deviation - previous);
+                worstStepAt = point.position;
+            }
+            previous = deviation;
+            havePrevious = true;
+        }
+    };
+    for (const auto& lane : lanes.Lanes()) walk(lane, lane.length);
+    for (const auto& link : lanes.Links()) walk(link, link.length);
+
+    // 8 cm is a kerb's worth; the shipped map measures 3.6 cm. 6 cm of change over one metre is
+    // already a thump; the shipped map measures 2.2 cm.
+    EXPECT_LT(std::fabs(worstDeviation), 0.08f)
+        << "ground is " << worstDeviation << " m from the road surface at ("
+        << worstDeviationAt.X << ", " << worstDeviationAt.Z << ")";
+    EXPECT_LT(worstStep, 0.06f)
+        << "the ground steps " << worstStep << " m over one metre at ("
+        << worstStepAt.X << ", " << worstStepAt.Z << ")";
+}
+
+// A junction's paved area rounds its corners outward. A fillet that cuts a notch back towards the
+// node leaves the connectors that turn there partly off the pavement.
+TEST(SampleMap, JunctionFilletsNeverCutBackTowardsTheNode)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    for (const auto& inter : world->Roads().Intersections()) {
+        const Microsoft::Xna::Framework::Vector2 centre(inter.center.X, inter.center.Z);
+        const auto& patch = inter.patch;
+        ASSERT_GE(patch.size(), 3u);
+        // Every patch vertex must be at least as far from the node as the chord between the two
+        // approach-edge ends around it. Checking that the polygon is star-shaped about the node
+        // is the same statement and much simpler: walking the boundary, no vertex may lie inside
+        // the triangle formed by the node and its two neighbours.
+        for (std::size_t i = 0; i < patch.size(); ++i) {
+            const auto& previous = patch[(i + patch.size() - 1) % patch.size()];
+            const auto& here = patch[i];
+            const auto& next = patch[(i + 1) % patch.size()];
+            const auto chord = next - previous;
+            const float length = chord.Length();
+            if (length < 1e-4f) continue;
+            Microsoft::Xna::Framework::Vector2 outward(-chord.Y / length, chord.X / length);
+            if (Microsoft::Xna::Framework::Vector2::Dot(outward, previous - centre) < 0.0f) {
+                outward = outward * -1.0f;
+            }
+            const float depth = Microsoft::Xna::Framework::Vector2::Dot(here - previous, outward);
+            EXPECT_GT(depth, -0.35f)
+                << "the patch at node " << world->Data().nodes[static_cast<std::size_t>(inter.node)].id
+                << " cuts " << -depth << " m back towards the node at (" << here.X << ", " << here.Y << ")";
+        }
+    }
 }
