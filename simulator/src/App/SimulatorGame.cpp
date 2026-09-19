@@ -481,10 +481,14 @@ namespace CarSim::App
 
     void SimulatorGame::HandleAppActions()
     {
+#ifndef __EMSCRIPTEN__
+        // A browser page has nothing to quit to: there Escape leaves fullscreen or pointer lock,
+        // and ending the game loop would only freeze the canvas.
         if (input_.Pressed(GameAction::Quit)) {
             exitRequested_ = true;
             Exit();
         }
+#endif
         if (input_.Pressed(GameAction::ToggleCamera)) {
             cameraMode_ = cameraMode_ == Render::CameraMode::Chase ? Render::CameraMode::Cockpit : Render::CameraMode::Chase;
         }
@@ -1182,7 +1186,11 @@ namespace CarSim::App
             GameAction::ToggleHud, GameAction::ToggleHelp, GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
             GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,
             GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow,
-            GameAction::CycleWeather, GameAction::Quit};
+            GameAction::CycleWeather,
+#ifndef __EMSCRIPTEN__
+            GameAction::Quit,
+#endif
+        };
         const int count = static_cast<int>(sizeof(rows) / sizeof(rows[0]));
         const int perColumn = (count + 1) / 2;
         const float scale = h >= 700.0f ? 0.7f : 0.6f;
