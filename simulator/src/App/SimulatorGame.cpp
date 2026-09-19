@@ -179,6 +179,7 @@ namespace CarSim::App
         }
         hudVisible_ = save_.settings.hudVisible;
         mirrorEnabled_ = save_.settings.mirrorEnabled;
+        exhaustSmokeEnabled_ = save_.settings.exhaustSmokeEnabled;
         if (!options_.cockpit && save_.settings.startInCockpit) {
             options_.cockpit = true;
         }
@@ -233,6 +234,7 @@ namespace CarSim::App
         }
         save_.settings.hudVisible = hudVisible_;
         save_.settings.mirrorEnabled = mirrorEnabled_;
+        save_.settings.exhaustSmokeEnabled = exhaustSmokeEnabled_;
         save_.settings.startInCockpit = cameraMode_ == Render::CameraMode::Cockpit;
         save_.settings.timeOfDayHours = timeOfDayHours_;
         save_.settings.timeScale = timeScale_;
@@ -472,6 +474,8 @@ namespace CarSim::App
         }
         vehicleMaterials_ = std::make_unique<Render::VehicleMaterials>(device, rig_);
         vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
+        exhaustSmoke_ = std::make_unique<Render::ExhaustSmokeRenderer>(device, vehicleRenderer_->Model().style);
+        exhaustSmoke_->Smoke().SetEnabled(exhaustSmokeEnabled_);
         plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
         trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleMaterials_, plateFont_.get());
         {
@@ -588,6 +592,11 @@ namespace CarSim::App
         if (input_.Pressed(GameAction::ToggleMap)) {
             showMap_ = !showMap_;
         }
+        if (input_.Pressed(GameAction::ToggleExhaustSmoke)) {
+            exhaustSmokeEnabled_ = !exhaustSmokeEnabled_;
+            if (exhaustSmoke_) exhaustSmoke_->Smoke().SetEnabled(exhaustSmokeEnabled_);
+            std::cout << "exhaust smoke: " << (exhaustSmokeEnabled_ ? "on" : "off") << "\n";
+        }
         if (input_.Pressed(GameAction::TimeForward) || input_.Pressed(GameAction::TimeBackward)) {
             const float step = input_.Pressed(GameAction::TimeForward) ? 1.0f : -1.0f;
             timeOfDayHours_ = std::fmod(timeOfDayHours_ + step + 24.0f, 24.0f);
@@ -632,6 +641,17 @@ namespace CarSim::App
         probe.forward = vehicle_->Body().Forward();
         probe.speed = vehicle_->ForwardSpeedMs();
         probe.lengthM = definition_.chassis.lengthM;
+        return probe;
+    }
+
+    Traffic::PlayerProbe SimulatorGame::PedestrianProbe() const
+    {
+        Traffic::PlayerProbe probe;
+        if (!walking_) return probe;
+        probe.valid = true;
+        probe.position = walkingPosition_;
+        probe.forward = Vector3(std::sin(walkingYaw_), 0.0f, -std::cos(walkingYaw_));
+        probe.lengthM = 0.5f;
         return probe;
     }
 
@@ -780,7 +800,7 @@ namespace CarSim::App
         if (!traffic_) {
             return;
         }
-        traffic_->Update(dt, PlayerProbe());
+        traffic_->Update(dt, PlayerProbe(), PedestrianProbe());
         if (vehicle_->FlightMode()) return;
         // Player against traffic cars: the AI car acts as a moving box with mass; it stops for a
         // while after a hit.
@@ -805,8 +825,20 @@ namespace CarSim::App
         const Collision::Obb walker = Collision::Obb::FromHeading(
             position + Vector3(0.0f, 0.9f, 0.0f), Vector3(0.24f, 0.85f, 0.24f), 0.0f);
         Collision::Contact contact;
-        return !collision_.Overlaps(walker) &&
-               !Collision::IntersectObbObb(walker, Collision::CollisionWorld::VehicleBox(*vehicle_), contact);
+        if (collision_.Overlaps(walker) ||
+            Collision::IntersectObbObb(walker, Collision::CollisionWorld::VehicleBox(*vehicle_), contact)) {
+            return false;
+        }
+        if (traffic_) {
+            for (const auto& car : traffic_->Vehicles()) {
+                if (Vector3::DistanceSquared(car.position, position) > 5.0f * 5.0f) continue;
+                const Collision::Obb body = Collision::Obb::FromHeading(
+                    car.position + Vector3(0.0f, car.heightM * 0.5f, 0.0f),
+                    Vector3(car.widthM * 0.5f, car.heightM * 0.5f, car.lengthM * 0.5f), car.headingRad);
+                if (Collision::IntersectObbObb(walker, body, contact)) return false;
+            }
+        }
+        return true;
     }
 
     void SimulatorGame::ToggleWalking()
@@ -968,8 +1000,8 @@ namespace CarSim::App
         if (vehicle_->FlightMode()) collision_.ResolveFlight(*vehicle_, previousOrigin, contactEvents_);
         else collision_.ResolveVehicle(*vehicle_, contactEvents_);
         stage(collisionMs_);
-        if (walking_) UpdateWalking(dt);
         UpdateTraffic(dt);
+        if (walking_) UpdateWalking(dt);
         stage(trafficMs_);
         for (const auto& e : contactEvents_) {
             if (e.closingSpeed > 0.5f) {
@@ -979,6 +1011,12 @@ namespace CarSim::App
         }
 
         const auto state = vehicle_->Snapshot();
+        if (exhaustSmoke_) {
+            const float bearing = weather_.windFromDeg * std::numbers::pi_v<float> / 180.0f;
+            const Vector3 wind(-std::sin(bearing) * weather_.windSpeedMs, 0.0f,
+                               std::cos(bearing) * weather_.windSpeedMs);
+            exhaustSmoke_->Smoke().Update(dt, state, wind);
+        }
         chaseCamera_.distance = options_.chaseDistanceM.value_or(state.flightMode ? 14.0f : 6.2f);
         chaseCamera_.height = state.flightMode ? 5.0f : 2.0f;
         chaseCamera_.targetHeight = state.flightMode ? 0.6f : 0.9f;
@@ -1052,6 +1090,7 @@ namespace CarSim::App
             vehicleRenderer_->SetPlateTexture(playerPlate_);
             vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
             vehicleRenderer_->DrawTransparent(device, state, mirror_->View(), mirror_->Projection(), true);
+            if (exhaustSmoke_) exhaustSmoke_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position);
             if (traffic_ && trafficRenderer_) {
                 trafficRenderer_->Draw(device, *traffic_, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), mirror_->Pose().position, rig_,
                                        groundQuery, true);
@@ -1118,6 +1157,7 @@ namespace CarSim::App
         vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundQuery);
         vehicleRenderer_->DrawHeadlightPool(device, state, view, projection, groundQuery, rig_.LampFactor());
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
+        if (exhaustSmoke_) exhaustSmoke_->Draw(device, view, projection, camera.position);
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);
         }
@@ -1236,6 +1276,7 @@ namespace CarSim::App
         if (s.turboMode == Sim::TurboMode::Ultra) lamps += "ULTRA TURBO  ";
         if (s.turboMode == Sim::TurboMode::UltraUltra) lamps += "ULTRA ULTRA TURBO  ";
         if (s.flightMode) lamps += "FLIGHT  ";
+        if (!exhaustSmokeEnabled_ && !s.flightMode) lamps += "SMOKE OFF  ";
         if (s.reserveWarning) lamps += "FUEL  ";
         if (s.handbrake) lamps += "(P)  ";
         if (s.rightIndicatorLit) lamps += "  >";
@@ -1245,7 +1286,7 @@ namespace CarSim::App
 
         if (!showHelp_) {
             font_->DrawShadowed(*spriteBatch_, walking_ ? "W car   Shift run   F1 help" :
-                                "F1 help   C camera   E engine   M map   L lights   K low/high",
+                                "F1 help   C camera   E engine   M map   X smoke   L lights   K low/high",
                                 Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
         }
 
@@ -1460,7 +1501,7 @@ namespace CarSim::App
             GameAction::ToggleWalk, GameAction::ToggleRun,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
             GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera,
-            GameAction::ToggleFullscreen, GameAction::ToggleMap, GameAction::ToggleFlight, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,
+            GameAction::ToggleFullscreen, GameAction::ToggleMap, GameAction::ToggleExhaustSmoke, GameAction::ToggleFlight, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,
             GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
             GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,
             GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow,

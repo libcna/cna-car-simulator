@@ -9,6 +9,7 @@
 #include "CarSim/Input/InputMapper.hpp"
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/Camera.hpp"
+#include "CarSim/Render/ExhaustSmoke.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/QualityTier.hpp"
@@ -85,6 +86,7 @@ namespace CarSim::App
         void UpdateWalking(float dt);
         [[nodiscard]] bool WalkingCanOccupy(const Microsoft::Xna::Framework::Vector3& position) const;
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
+        [[nodiscard]] Traffic::PlayerProbe PedestrianProbe() const;
         void DrawHud();
         void DrawMap();
         void DrawHelp();
@@ -101,6 +103,7 @@ namespace CarSim::App
         bool hudVisible_ = true;
         bool mirrorEnabled_ = true;
         bool showMap_ = false;
+        bool exhaustSmokeEnabled_ = true;
         Microsoft::Xna::Framework::GraphicsDeviceManager graphics_;
         std::string contentRoot_;
 
@@ -144,6 +147,7 @@ namespace CarSim::App
         float lastEnvironmentCover_ = -999.0f;
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::RainRenderer> rain_;
+        std::unique_ptr<Render::ExhaustSmokeRenderer> exhaustSmoke_;
         std::unique_ptr<Render::SignalRenderer> signalRenderer_;
         std::unique_ptr<Render::TestGround> testGround_;
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;

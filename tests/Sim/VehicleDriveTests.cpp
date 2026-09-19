@@ -296,15 +296,19 @@ TEST_F(VehicleDrive, UltraUltraCorneringKeepsTheCarOnItsWheels)
 
 TEST_F(VehicleDrive, UltraUltraSteeringRespondsGradually)
 {
-    const auto turn = [&](const float input) {
+    const auto turn = [&](const float speed, const float input) {
         Vehicle v(def, TransmissionMode::Automatic);
         Drive(v, ground, 2.0f, [](float) { DriverControls c; c.brake = 1.0f; return c; });
         v.GetEngine().SetTurboMode(TurboMode::UltraUltra);
-        v.ForceForwardSpeed(Units::KmhToMs(250.0f));
+        v.ForceForwardSpeed(Units::KmhToMs(speed));
         Drive(v, ground, 3.0f, [input](float) { DriverControls c; c.steering = input; return c; });
         return std::fabs(Yaw(v));
     };
-    EXPECT_GT(turn(1.0f), turn(0.2f) * 2.5f);
+    const float gentle = turn(250.0f, 0.2f);
+    const float full = turn(250.0f, 1.0f);
+    EXPECT_GT(full, gentle * 2.5f);
+    EXPECT_GT(full, 0.8f) << "full steering at 250 km/h must visibly turn the car";
+    EXPECT_GT(turn(400.0f, 1.0f), 0.45f) << "turning at 400 km/h must remain usable";
 }
 
 TEST_F(VehicleDrive, UltraUltraSteeringWhileAcceleratingDoesNotFlip)

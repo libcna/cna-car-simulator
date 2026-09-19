@@ -2,6 +2,9 @@
 
 #include "Microsoft/Xna/Framework/Input/Keyboard.hpp"
 
+#include <algorithm>
+#include <array>
+
 namespace CarSim::Input
 {
     using Microsoft::Xna::Framework::Input::Keyboard;
@@ -41,6 +44,7 @@ namespace CarSim::Input
             case GameAction::ToggleCamera: return "ToggleCamera";
             case GameAction::ToggleFullscreen: return "ToggleFullscreen";
             case GameAction::ToggleMap: return "ToggleMap";
+            case GameAction::ToggleExhaustSmoke: return "ToggleExhaustSmoke";
             case GameAction::ToggleFlight: return "ToggleFlight";
             case GameAction::ToggleWalk: return "ToggleWalk";
             case GameAction::ToggleRun: return "ToggleRun";
@@ -96,6 +100,7 @@ namespace CarSim::Input
             case GameAction::ToggleCamera: return "Cockpit / exterior camera";
             case GameAction::ToggleFullscreen: return "Toggle full screen";
             case GameAction::ToggleMap: return "Show / hide map";
+            case GameAction::ToggleExhaustSmoke: return "Exhaust smoke on / off";
             case GameAction::ToggleFlight: return "Car / helicopter flight";
             case GameAction::ToggleWalk: return "Walk / return to car (engine off, stopped)";
             case GameAction::ToggleRun: return "Walk: toggle running";
@@ -147,6 +152,7 @@ namespace CarSim::Input
             {GameAction::ToggleCamera, Keys::C},
             {GameAction::ToggleFullscreen, Keys::F11},
             {GameAction::ToggleMap, Keys::M},
+            {GameAction::ToggleExhaustSmoke, Keys::X},
             {GameAction::ToggleFlight, Keys::J},
             {GameAction::ToggleWalk, Keys::W},
             {GameAction::ToggleRun, Keys::LeftShift}, {GameAction::ToggleRun, Keys::RightShift},
@@ -361,6 +367,7 @@ namespace CarSim::Input
 
     void InputMapper::ApplyOverrides(const std::vector<std::pair<std::string, std::string>>& overrides, std::vector<std::string>& warnings)
     {
+        std::array<std::size_t, static_cast<std::size_t>(GameAction::Count)> nextBinding{};
         for (const auto& [actionName, keyName] : overrides) {
             GameAction action;
             Keys key;
@@ -372,16 +379,43 @@ namespace CarSim::Input
                 warnings.push_back("bindings: unknown key '" + keyName + "' for " + actionName);
                 continue;
             }
-            // Replace the first binding of the action (keeps alternates such as arrow keys).
+            // Saved profiles contain every binding, including alternates. Apply repeated
+            // entries to successive slots; otherwise the last one overwrites the first.
+            const std::size_t slot = nextBinding[static_cast<std::size_t>(action)]++;
+            std::size_t seen = 0;
             bool replaced = false;
             for (auto& b : bindings_) {
-                if (b.action == action && !replaced) {
+                if (b.action == action && seen++ == slot) {
                     b.key = key;
                     replaced = true;
+                    break;
                 }
             }
             if (!replaced) {
                 bindings_.push_back(Binding{action, key});
+            }
+        }
+
+        // Older versions saved both alternatives as the last key (for example Right Shift /
+        // Right Shift). Restore a missing default in each duplicate slot so old profiles regain
+        // their left/right and WASD/arrow alternatives without discarding custom first keys.
+        const auto defaults = DefaultBindings();
+        for (std::size_t i = 0; i < bindings_.size(); ++i) {
+            const auto& current = bindings_[i];
+            const bool duplicate = std::any_of(bindings_.begin(), bindings_.begin() + static_cast<std::ptrdiff_t>(i),
+                                               [&](const Binding& earlier) {
+                                                   return earlier.action == current.action && earlier.key == current.key;
+                                               });
+            if (!duplicate) continue;
+            for (const auto& fallback : defaults) {
+                if (fallback.action != current.action) continue;
+                const bool used = std::any_of(bindings_.begin(), bindings_.end(), [&](const Binding& existing) {
+                    return existing.action == current.action && existing.key == fallback.key;
+                });
+                if (!used) {
+                    bindings_[i].key = fallback.key;
+                    break;
+                }
             }
         }
     }

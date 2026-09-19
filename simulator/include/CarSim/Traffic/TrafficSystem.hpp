@@ -94,8 +94,8 @@ namespace CarSim::Traffic
         void SetDensity(int maxVehicles) { maxVehicles_ = maxVehicles; }
         [[nodiscard]] int MaxVehicles() const { return maxVehicles_; }
 
-        /// Advances all cars; `player` lets the traffic follow, avoid and yield to the player.
-        void Update(float dt, const PlayerProbe& player);
+        /// Advances all cars; the parked/driven car and optional walker are separate obstacles.
+        void Update(float dt, const PlayerProbe& player, const PlayerProbe& pedestrian = {});
 
         /// The signal clock every signalised intersection on the map runs on. It advances with
         /// the traffic, so a warm-up of n seconds always leaves the lights in the same state.
@@ -129,14 +129,14 @@ namespace CarSim::Traffic
             bool found = false;
             float gap = 1e9f;          // bumper to bumper
             float speed = 0.0f;
-            int id = -1;               // traffic car id, -1 for the player or a stop line
+            int id = -1;               // traffic car id, -1 for the player, -2 for the pedestrian
             bool onConflict = false;   // the leader stands on a crossing connector, not on our path
         };
 
-        void UpdateVehicle(TrafficVehicle& v, float dt, const PlayerProbe& player);
+        void UpdateVehicle(TrafficVehicle& v, float dt, const PlayerProbe& player, const PlayerProbe& pedestrian);
         void UpdatePose(TrafficVehicle& v);
         void ChooseNextLink(TrafficVehicle& v);
-        [[nodiscard]] Leader FindLeader(const TrafficVehicle& v, const PlayerProbe& player) const;
+        [[nodiscard]] Leader FindLeader(const TrafficVehicle& v, const PlayerProbe& player, const PlayerProbe& pedestrian) const;
         [[nodiscard]] bool MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const;
         [[nodiscard]] float DesiredSpeedAhead(const TrafficVehicle& v) const;
         void SpawnAroundPlayer(const PlayerProbe& player);

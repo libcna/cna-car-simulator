@@ -103,6 +103,62 @@ TEST(TrafficSystem, FollowerNeverHitsLeader)
     EXPECT_TRUE(matchedSpeed);
 }
 
+TEST(TrafficSystem, CarsBrakeForWalkerAndContinueAfterTheRoadClears)
+{
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 42);
+    traffic.SetDensity(0);
+    const int lane = LaneOf(*world, "main", true, 0);
+    ASSERT_GE(lane, 0);
+    ASSERT_GE(traffic.SpawnOn(lane, 60.0f, 20.0f), 0);
+
+    Traffic::PlayerProbe walker;
+    walker.valid = true;
+    walker.lengthM = 0.5f;
+    walker.position = world->Lanes().LaneAt(lane).Evaluate(120.0f).position;
+    bool stopped = false;
+    float nearestGap = 1e9f;
+    for (int i = 0; i < 60 * 12; ++i) {
+        traffic.Update(1.0f / 60.0f, NoPlayer(), walker);
+        const auto& car = traffic.Vehicles().front();
+        nearestGap = std::min(nearestGap, 120.0f - car.s - car.lengthM * 0.5f - walker.lengthM * 0.5f);
+        stopped = stopped || (car.speed < 0.2f && car.s > 100.0f);
+    }
+    EXPECT_TRUE(stopped);
+    EXPECT_GT(nearestGap, 0.1f) << "traffic must not pass through the pedestrian";
+    const float stoppedAt = traffic.Vehicles().front().s;
+
+    const auto direction = world->Lanes().LaneAt(lane).Evaluate(120.0f).tangent;
+    walker.position += Vector3(-direction.Z, 0.0f, direction.X) * 8.0f;
+    for (int i = 0; i < 60 * 5; ++i) traffic.Update(1.0f / 60.0f, NoPlayer(), walker);
+    EXPECT_GT(traffic.Vehicles().front().s, stoppedAt + 10.0f);
+    EXPECT_GT(traffic.Vehicles().front().speed, 2.0f);
+}
+
+TEST(TrafficSystem, CarStopsForWalkerWhoStepsIntoItsImmediatePath)
+{
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 43);
+    traffic.SetDensity(0);
+    const int lane = LaneOf(*world, "main", true, 0);
+    ASSERT_GE(lane, 0);
+    ASSERT_GE(traffic.SpawnOn(lane, 60.0f, 20.0f), 0);
+
+    Traffic::PlayerProbe walker;
+    walker.valid = true;
+    walker.lengthM = 0.5f;
+    walker.position = world->Lanes().LaneAt(lane).Evaluate(67.0f).position;
+    for (int i = 0; i < 60; ++i) {
+        traffic.Update(1.0f / 60.0f, NoPlayer(), walker);
+        const auto& car = traffic.Vehicles().front();
+        const float gap = 67.0f - car.s - car.lengthM * 0.5f - walker.lengthM * 0.5f;
+        EXPECT_GE(gap, 0.0f);
+    }
+    EXPECT_LT(traffic.Vehicles().front().speed, 0.2f);
+}
+
 TEST(TrafficSystem, CarsProgressThroughIntersections)
 {
     auto world = CrossWorld(true);

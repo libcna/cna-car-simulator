@@ -200,10 +200,11 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Camera cockpit / exterior | `C` |
 | Toggle full screen | `F11` (or start with `--fullscreen`) |
 | Show / hide map | `M` |
+| Exhaust smoke on / off | `X` |
 | Car / helicopter | `J` |
 | Helicopter: forward / back, turn, climb / descend; short / long searchlight | `W` / `S`, `A` / `D`, `Space` / `Q`; `K` |
 | Enter walking mode from a stopped car with the engine off; return to car | `W` |
-| On foot: forward / back, turn, sidestep, toggle run | `Up` / `Down`, `Left` / `Right`, `A` / `D`, `Shift` |
+| On foot: forward / back, turn, sidestep, toggle run | `Up` / `Down`, `Left` / `Right`, `A` / `D`, either `Shift` |
 | Rear-view mirror on / off, HUD text on / off | `V`, `Tab` |
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
@@ -214,10 +215,14 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 
 Walking uses a first-person view and audible footsteps at 6 km/h; running is 16 km/h.
 The parked car must have its engine off before `W` enters walking mode. `W` cannot
-switch to walking from the helicopter.
+switch to walking from the helicopter. Cars stop for a person on their path, and
+the walker cannot move through parked or moving cars.
 
-In ultra ultra turbo, steering becomes gentler as speed rises to keep the car stable.
-Slow down before a tight corner at very high speed.
+The running car emits exhaust smoke from its tailpipe. Press `X` to hide or show it;
+the choice is saved in the profile.
+
+In ultra ultra turbo, steering remains effective at high speed while the turn
+radius widens to keep the car stable. Slow down before a tight corner at very high speed.
 
 Driving notes: the engine has to be started with `E`; the starter only engages in neutral,
 with the clutch pressed, or with the automatic selector in `P` or `N`, and it cranks for a

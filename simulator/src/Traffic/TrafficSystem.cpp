@@ -209,7 +209,8 @@ namespace CarSim::Traffic
         return desired;
     }
 
-    TrafficSystem::Leader TrafficSystem::FindLeader(const TrafficVehicle& v, const PlayerProbe& player) const
+    TrafficSystem::Leader TrafficSystem::FindLeader(const TrafficVehicle& v, const PlayerProbe& player,
+                                                    const PlayerProbe& pedestrian) const
     {
         // Path elements ahead: (isLink, id, sStart in element, offset from our position).
         struct Segment { bool isLink; int id; float sFrom; float offset; float length; };
@@ -323,6 +324,21 @@ namespace CarSim::Traffic
                 consider(ahead, player.lengthM, std::max(0.0f, along), -1, false);
             }
         }
+        if (pedestrian.valid && Vector3::DistanceSquared(v.position, pedestrian.position) < lookahead * lookahead) {
+            // Sample the road ahead, including connectors through intersections. A person
+            // anywhere across the car's swept width is a stationary obstacle until clear.
+            const float clearance = 0.5f * v.widthM + 0.55f;
+            for (float ahead = 0.0f; ahead <= lookahead; ahead += 0.5f) {
+                LanePoint point;
+                if (!PathPointAhead(v, ahead, point)) break;
+                const float dx = point.position.X - pedestrian.position.X;
+                const float dz = point.position.Z - pedestrian.position.Z;
+                if (dx * dx + dz * dz > clearance * clearance ||
+                    std::fabs(point.position.Y - pedestrian.position.Y) > 2.5f) continue;
+                consider(ahead, pedestrian.lengthM, 0.0f, -2, false);
+                break;
+            }
+        }
         return best;
     }
 
@@ -405,7 +421,8 @@ namespace CarSim::Traffic
 
     // ------------------------------------------------------------------ update
 
-    void TrafficSystem::UpdateVehicle(TrafficVehicle& v, const float dt, const PlayerProbe& player)
+    void TrafficSystem::UpdateVehicle(TrafficVehicle& v, const float dt, const PlayerProbe& player,
+                                      const PlayerProbe& pedestrian)
     {
         v.age += dt;
         if (v.backingOff) {
@@ -432,7 +449,7 @@ namespace CarSim::Traffic
         }
         const float distanceToEnd = DistanceToEnd(v);
         float desired = DesiredSpeedAhead(v);
-        Leader leader = FindLeader(v, player);
+        Leader leader = FindLeader(v, player, pedestrian);
         float gap = leader.found ? leader.gap : 1e9f;
         float leaderSpeed = leader.found ? leader.speed : 0.0f;
 
@@ -616,10 +633,20 @@ namespace CarSim::Traffic
         }
         float accel = IdmAcceleration(v.speed, desired, gap, leaderSpeed, params);
         accel = std::clamp(accel, -8.0f, params.maxAccel);
+        float newSpeed = std::max(0.0f, v.speed + accel * dt);
+        float distance = 0.5f * (v.speed + newSpeed) * dt;
+        if (leader.found && leader.id == -2) {
+            // If someone steps into the lane inside the normal braking distance, stop at
+            // their space instead of letting the kinematic car drive through them.
+            const float remaining = std::max(0.0f, leader.gap - 0.2f);
+            if (distance > remaining) {
+                distance = remaining;
+                newSpeed = 0.0f;
+                accel = -v.speed / dt;
+            }
+        }
         v.acceleration = accel;
-        const float newSpeed = std::max(0.0f, v.speed + accel * dt);
         v.brakeLights = accel < -0.6f || (v.stunned > 0.0f && v.speed > 0.1f);
-        const float distance = 0.5f * (v.speed + newSpeed) * dt;
         v.speed = newSpeed;
         v.wheelSpin += distance / kWheelRadius;
         v.s += distance;
@@ -667,7 +694,7 @@ namespace CarSim::Traffic
         return signals_.Aspect(intersections[static_cast<std::size_t>(intersection)].signals, group);
     }
 
-    void TrafficSystem::Update(const float dt, const PlayerProbe& player)
+    void TrafficSystem::Update(const float dt, const PlayerProbe& player, const PlayerProbe& pedestrian)
     {
         if (dt <= 0.0f) {
             return;
@@ -679,10 +706,11 @@ namespace CarSim::Traffic
             playerLane_ = lanes_.NearestLane(Vector2(player.position.X, player.position.Z), heading, 4.0f, &playerS_);
         }
         signals_.Update(dt);
-        Despawn(player);
-        SpawnAroundPlayer(player);
+        const PlayerProbe& focus = pedestrian.valid ? pedestrian : player;
+        Despawn(focus);
+        SpawnAroundPlayer(focus);
         for (auto& v : vehicles_) {
-            UpdateVehicle(v, dt, player);
+            UpdateVehicle(v, dt, player, pedestrian);
         }
     }
 

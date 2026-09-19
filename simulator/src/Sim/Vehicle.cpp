@@ -365,12 +365,12 @@ namespace CarSim::Sim
         const float factor = SpeedFactor();
         float allowedAngle = maxAngle * factor;
         if (engine_.TurboSetting() == TurboMode::UltraUltra) {
-            // Keyboard steering at several hundred km/h must command a broad arc, not the
-            // parking-speed wheel angle. Cap curvature by lateral acceleration to prevent an
-            // instantaneous tyre impulse from rolling the body over.
+            // Keep keyboard steering controllable at high speed while allowing a useful
+            // turning radius. The boosted mode's tyre forces are applied at the roll centre
+            // below, so cornering need not be limited to ordinary-car lateral acceleration.
             const Vector3 velocity = body_.LinearVelocity();
             const float speed = std::hypot(velocity.X, velocity.Z);
-            const float lateralLimit = 0.65f * Units::kGravity;
+            const float lateralLimit = 4.0f * Units::kGravity;
             const float safeAngle = std::atan(lateralLimit * std::max(0.5f, def_.WheelbaseM()) /
                                               std::max(speed * speed, 1.0f));
             allowedAngle = std::min(allowedAngle, safeAngle);
@@ -612,9 +612,7 @@ namespace CarSim::Sim
             }
         }
         const float kappaNew = (spin * radius - vLong) / vDen;
-        // Ultra ultra's extra grip is for putting engine torque onto the road. Applying it
-        // sideways too produces violent roll and yaw impulses on even a small steering input.
-        TyreForces forces = tyreModel_.Compute(kappaNew, slipAngle, load, baseSurfaceFactor);
+        TyreForces forces = tyreModel_.Compute(kappaNew, slipAngle, load, longitudinalSurfaceFactor);
         forces.longitudinal = longitudinalForce;
 
         // ---- Lateral: never let the lateral force reverse the contact patch's lateral velocity
@@ -622,6 +620,12 @@ namespace CarSim::Sim
         const float lateralLimit = massShare * std::fabs(vLat) / dt;
         if (std::fabs(forces.lateral) > lateralLimit) {
             forces.lateral = Sign(forces.lateral) * lateralLimit;
+        }
+        if (engine_.TurboSetting() == TurboMode::UltraUltra) {
+            // Four tyre contact patches can supply up to four g of sideways acceleration.
+            // The cap keeps short slip spikes from initiating an uncontrollable spin.
+            const float corneringCap = massShare * 4.0f * Units::kGravity;
+            forces.lateral = std::clamp(forces.lateral, -corneringCap, corneringCap);
         }
 
         w.spinVelocity = spin;
@@ -636,7 +640,15 @@ namespace CarSim::Sim
             rolling = -Sign(vLong) * def_.chassis.rollingResistance * SurfaceRollingFactor(w.hit.surface) * load;
         }
         const Vector3 force = forward * (forces.longitudinal + rolling) + right * forces.lateral;
-        body_.ApplyForce(force, w.hit.point);
+        if (engine_.TurboSetting() == TurboMode::UltraUltra) {
+            // Keep the front/rear force arms that turn the car, but lift their application
+            // to the roll centre. Otherwise the multiplied tyre grip overturns the chassis.
+            Vector3 rollCentre = w.hit.point;
+            rollCentre.Y = body_.Position().Y;
+            body_.ApplyForce(force, rollCentre);
+        } else {
+            body_.ApplyForce(force, w.hit.point);
+        }
     }
 
     void Vehicle::ResolveDriveline(const float dt)

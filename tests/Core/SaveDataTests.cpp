@@ -18,6 +18,7 @@ TEST(SaveData, RoundTripsThroughJson)
     d.mapId = "lipova";
     d.settings.masterVolume = 0.5f;
     d.settings.mirrorEnabled = false;
+    d.settings.exhaustSmokeEnabled = false;
     d.settings.startInCockpit = true;
     d.settings.timeOfDayHours = 21.25f;
     d.settings.timeScale = 0.0f;
@@ -34,6 +35,7 @@ TEST(SaveData, RoundTripsThroughJson)
     EXPECT_EQ(parsed.data.mapId, "lipova");
     EXPECT_FLOAT_EQ(parsed.data.settings.masterVolume, 0.5f);
     EXPECT_FALSE(parsed.data.settings.mirrorEnabled);
+    EXPECT_FALSE(parsed.data.settings.exhaustSmokeEnabled);
     EXPECT_TRUE(parsed.data.settings.startInCockpit);
     EXPECT_NEAR(parsed.data.settings.timeOfDayHours, 21.25f, 1e-3f);
     EXPECT_FLOAT_EQ(parsed.data.settings.timeScale, 0.0f);
@@ -106,6 +108,7 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     Input::InputMapper mapper;
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleTurbo), "O");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleMap), "M");
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleExhaustSmoke), "X");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleMirror), "V");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleFlight), "J");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleWalk), "W");
@@ -117,6 +120,38 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     EXPECT_NE(mapper.KeysFor(Input::GameAction::Horn).find("J"), std::string::npos);
     const auto named = mapper.NamedBindings();
     EXPECT_FALSE(named.empty());
+}
+
+TEST(InputBindings, SavedAlternatesKeepBothShiftKeysAndRepairOlderDuplicates)
+{
+    using Microsoft::Xna::Framework::Input::KeyboardState;
+    using Microsoft::Xna::Framework::Input::Keys;
+    Input::InputMapper original;
+    const auto saved = original.NamedBindings();
+    Input::InputMapper restored;
+    std::vector<std::string> warnings;
+    restored.ApplyOverrides(saved, warnings);
+    EXPECT_TRUE(warnings.empty());
+    EXPECT_EQ(restored.NamedBindings(), saved);
+
+    auto corrupted = saved;
+    for (auto& [action, key] : corrupted) {
+        if (action == "ToggleRun" || action == "ShiftUp") key = "Right Shift";
+        if (action == "Throttle") key = "Up";
+    }
+    Input::InputMapper repaired;
+    repaired.ApplyOverrides(corrupted, warnings);
+    repaired.Update(KeyboardState{Keys::LeftShift});
+    EXPECT_TRUE(repaired.Pressed(Input::GameAction::ToggleRun));
+    EXPECT_TRUE(repaired.Pressed(Input::GameAction::ShiftUp));
+    repaired.Update(KeyboardState{});
+    repaired.Update(KeyboardState{Keys::RightShift});
+    EXPECT_TRUE(repaired.Pressed(Input::GameAction::ToggleRun));
+    EXPECT_TRUE(repaired.Pressed(Input::GameAction::ShiftUp));
+    repaired.Update(KeyboardState{Keys::W});
+    EXPECT_TRUE(repaired.Held(Input::GameAction::Throttle));
+    repaired.Update(KeyboardState{Keys::Up});
+    EXPECT_TRUE(repaired.Held(Input::GameAction::Throttle));
 }
 
 // A profile written before the day/night cycle and the weather existed must still load, keep the

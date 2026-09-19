@@ -119,6 +119,7 @@ namespace CarSim::Core
                 }
             }
             r.Bool(settings, "hudVisible", d.settings.hudVisible, "save.settings");
+            r.Bool(settings, "exhaustSmokeEnabled", d.settings.exhaustSmokeEnabled, "save.settings");
             r.Bool(settings, "startInCockpit", d.settings.startInCockpit, "save.settings");
         }
         JsonElement bindings;
@@ -187,6 +188,7 @@ namespace CarSim::Core
         out << "    \"timeScale\": " << data.settings.timeScale << ",\n";
         out << "    \"weather\": \"" << Escape(data.settings.weather) << "\",\n";
         out << "    \"hudVisible\": " << (data.settings.hudVisible ? "true" : "false") << ",\n";
+        out << "    \"exhaustSmokeEnabled\": " << (data.settings.exhaustSmokeEnabled ? "true" : "false") << ",\n";
         out << "    \"startInCockpit\": " << (data.settings.startInCockpit ? "true" : "false") << "\n";
         out << "  },\n";
         out << "  \"bindings\": [";
