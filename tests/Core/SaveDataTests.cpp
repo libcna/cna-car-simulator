@@ -111,7 +111,10 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleExhaustSmoke), "X");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleMirror), "V");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleFlight), "J");
-    EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleWalk), "W");
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleWalk), "G");
+    mapper.Update(Microsoft::Xna::Framework::Input::KeyboardState{Microsoft::Xna::Framework::Input::Keys::W});
+    EXPECT_TRUE(mapper.Held(Input::GameAction::Throttle));
+    EXPECT_FALSE(mapper.Pressed(Input::GameAction::ToggleWalk));
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleRun), "Left Shift / Right Shift");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::SelectorDrive), "F");
     std::vector<std::string> warnings;

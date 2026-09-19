@@ -192,6 +192,10 @@ namespace CarSim::App
                 binding.second = "F";
             } else if (binding.first == "ToggleFlight" && binding.second == "F") {
                 binding.second = "J";
+            } else if (binding.first == "ToggleWalk" && binding.second == "W") {
+                // W is the accelerator. Old profiles made the first press of the throttle
+                // exit a parked car and then suppressed all of its driving controls.
+                binding.second = "G";
             }
         }
         std::vector<std::string> bindingWarnings;

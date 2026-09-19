@@ -203,7 +203,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Exhaust smoke on / off | `X` |
 | Car / helicopter | `J` |
 | Helicopter: forward / back, turn, climb / descend; short / long searchlight | `W` / `S`, `A` / `D`, `Space` / `Q`; `K` |
-| Enter walking mode from a stopped car with the engine off; return to car | `W` |
+| Enter walking mode from a stopped car with the engine off; return to car | `G` |
 | On foot: forward / back, turn, sidestep, toggle run | `Up` / `Down`, `Left` / `Right`, `A` / `D`, either `Shift` |
 | Rear-view mirror on / off, HUD text on / off | `V`, `Tab` |
 | Master volume | `Page Up` / `Page Down` |
@@ -214,7 +214,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Quit | `Esc` |
 
 Walking uses a first-person view and audible footsteps at 6 km/h; running is 16 km/h.
-The parked car must have its engine off before `W` enters walking mode. `W` cannot
+The parked car must have its engine off before `G` enters walking mode. `G` cannot
 switch to walking from the helicopter. Cars stop for a person on their path, and
 the walker cannot move through parked or moving cars.
 

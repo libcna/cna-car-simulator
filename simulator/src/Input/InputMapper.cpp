@@ -154,7 +154,7 @@ namespace CarSim::Input
             {GameAction::ToggleMap, Keys::M},
             {GameAction::ToggleExhaustSmoke, Keys::X},
             {GameAction::ToggleFlight, Keys::J},
-            {GameAction::ToggleWalk, Keys::W},
+            {GameAction::ToggleWalk, Keys::G},
             {GameAction::ToggleRun, Keys::LeftShift}, {GameAction::ToggleRun, Keys::RightShift},
             {GameAction::ToggleHelp, Keys::F1},
             {GameAction::ToggleDebug, Keys::F3},
