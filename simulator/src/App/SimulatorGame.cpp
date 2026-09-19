@@ -492,6 +492,9 @@ namespace CarSim::App
         if (input_.Pressed(GameAction::ToggleCamera)) {
             cameraMode_ = cameraMode_ == Render::CameraMode::Chase ? Render::CameraMode::Cockpit : Render::CameraMode::Chase;
         }
+        if (input_.Pressed(GameAction::ToggleFullscreen)) {
+            graphics_.ToggleFullScreen();
+        }
         if (input_.Pressed(GameAction::ToggleHelp)) {
             showHelp_ = !showHelp_;
         }
@@ -1189,8 +1192,9 @@ namespace CarSim::App
             GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
             GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleEngine,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
-            GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera, GameAction::ToggleMirror,
-            GameAction::ToggleHud, GameAction::ToggleHelp, GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
+            GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera,
+            GameAction::ToggleFullscreen, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,
+            GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
             GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,
             GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow,
             GameAction::CycleWeather,

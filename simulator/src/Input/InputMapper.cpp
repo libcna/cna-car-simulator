@@ -38,6 +38,7 @@ namespace CarSim::Input
             case GameAction::Headlights: return "Headlights";
             case GameAction::HighBeam: return "HighBeam";
             case GameAction::ToggleCamera: return "ToggleCamera";
+            case GameAction::ToggleFullscreen: return "ToggleFullscreen";
             case GameAction::ToggleHelp: return "ToggleHelp";
             case GameAction::ToggleDebug: return "ToggleDebug";
             case GameAction::Screenshot: return "Screenshot";
@@ -87,6 +88,7 @@ namespace CarSim::Input
             case GameAction::Headlights: return "Headlights";
             case GameAction::HighBeam: return "High beam";
             case GameAction::ToggleCamera: return "Cockpit / exterior camera";
+            case GameAction::ToggleFullscreen: return "Toggle full screen";
             case GameAction::ToggleHelp: return "Help";
             case GameAction::ToggleDebug: return "Debug overlay";
             case GameAction::Screenshot: return "Screenshot";
@@ -132,6 +134,7 @@ namespace CarSim::Input
             {GameAction::Headlights, Keys::L},
             {GameAction::HighBeam, Keys::K},
             {GameAction::ToggleCamera, Keys::C},
+            {GameAction::ToggleFullscreen, Keys::F11},
             {GameAction::ToggleHelp, Keys::F1},
             {GameAction::ToggleDebug, Keys::F3},
             {GameAction::Screenshot, Keys::F12},

@@ -197,6 +197,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Headlights, high beam | `L`, `K` |
 | Horn | `B` |
 | Camera cockpit / exterior | `C` |
+| Toggle full screen | `F11` (or start with `--fullscreen`) |
 | Rear-view mirror on / off, HUD text on / off | `M`, `Tab` |
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
@@ -245,7 +246,7 @@ Action names are the `GameAction` enumerators (`Throttle`, `Brake`, `SteerLeft`,
 `SteerRight`, `Clutch`, `Handbrake`, `Horn`, `ToggleEngine`, `ShiftUp`, `ShiftDown`,
 `GearNeutral`, `GearReverse`, `Gear1` .. `Gear6`, `SelectorPark`, `SelectorDrive`,
 `ToggleTransmission`, `IndicatorLeft`, `IndicatorRight`, `Hazard`, `Headlights`, `HighBeam`,
-`ToggleCamera`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
+`ToggleCamera`, `ToggleFullscreen`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
 `Quit`, `VolumeUp`, `VolumeDown`, `ToggleMirror`, `ToggleHud`); key names are the ones the
 help overlay prints (`A`..`Z`, `0`..`9`, `F1`..`F12`, `Space`, `Left Shift`, `Page Up`, ...).
 Unknown names are reported as warnings and ignored. An override replaces the default keys of
