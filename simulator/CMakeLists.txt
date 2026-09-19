@@ -100,6 +100,11 @@ target_link_libraries(cna-car-simulator PRIVATE carsim_render carsim_core CNA)
 if(TARGET SDL3::SDL3main)
     target_link_libraries(cna-car-simulator PRIVATE SDL3::SDL3main)
 endif()
+if(TARGET CNA::EmscriptenAsyncify)
+    # Game::Run() blocks on CNA_WaitForAnimationFrame() every frame; without Asyncify that
+    # EM_ASYNC_JS call aborts at runtime with "Asyncify is not defined".
+    target_link_libraries(cna-car-simulator PRIVATE CNA::EmscriptenAsyncify)
+endif()
 carsim_apply_warnings(cna-car-simulator)
 
 # The content root is copied next to the executable so relative paths resolve
@@ -117,4 +122,31 @@ endif()
 
 if(WIN32 AND COMMAND cna_copy_sdl_runtime)
     cna_copy_sdl_runtime(cna-car-simulator)
+endif()
+
+# -----------------------------------------------------------------------------
+# Emscripten: package content/ into the virtual filesystem the browser sees at
+# "/content" (ResolveContentRoot()'s "content" candidate resolves against the
+# wasm module's cwd, so this lines up without any code change), grow the heap
+# on demand instead of the small fixed default (the terrain/collision data
+# alone runs into the hundreds of MB), and emit a browsable .html shell.
+# -----------------------------------------------------------------------------
+if(EMSCRIPTEN)
+    set_target_properties(cna-car-simulator PROPERTIES SUFFIX ".html")
+    # EasyGL emits GLSL ES 3.00 for WEBGL2/OPENGLES3; accepting Emscripten's WebGL 1
+    # default silently downgrades the context and every ES 3.00 shader then fails to
+    # compile. CNA's own examples pin this via cna_apply_emscripten_renderer_link_contract()
+    # (cmake/RendererSelection.cmake), but that helper is never called for this target, so
+    # pin the same two flags here directly.
+    if(CNA_GRAPHICS_RENDERER STREQUAL "WEBGL2")
+        target_link_options(cna-car-simulator PRIVATE "SHELL:-sMIN_WEBGL_VERSION=2" "SHELL:-sMAX_WEBGL_VERSION=2")
+    elseif(CNA_GRAPHICS_RENDERER STREQUAL "WEBGL1")
+        target_link_options(cna-car-simulator PRIVATE "SHELL:-sMIN_WEBGL_VERSION=1" "SHELL:-sMAX_WEBGL_VERSION=1")
+    endif()
+    target_link_options(cna-car-simulator PRIVATE
+        "SHELL:--preload-file \"${CARSIM_CONTENT_SOURCE_DIR}\"@/content"
+        "SHELL:-sALLOW_MEMORY_GROWTH=1"
+        "SHELL:-sINITIAL_MEMORY=268435456"
+        "SHELL:-sSTACK_SIZE=8388608"
+    )
 endif()
