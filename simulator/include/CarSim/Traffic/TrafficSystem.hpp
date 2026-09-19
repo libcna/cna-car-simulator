@@ -70,6 +70,7 @@ namespace CarSim::Traffic
         float speed = 0.0f;           // signed forward speed m/s
         float lengthM = 4.05f;
         bool valid = false;
+        bool blocksTraffic = true;    // false for a flying helicopter, still valid as a spawn focus
     };
 
     struct TrafficParams

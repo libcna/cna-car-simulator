@@ -298,3 +298,64 @@ TEST(CollisionWorld, UltraUltraHelicopterDoesNotPassThroughThinWall)
     EXPECT_GT(helicopter.OriginPosition().Z, -4.5f);
     EXPECT_FALSE(events.empty());
 }
+
+TEST(CollisionWorld, HelicopterCannotSweepThroughACarButCanFlyAboveIt)
+{
+    Sim::FlatGround ground(0.0f);
+    const Obb car = Obb::FromHeading(Vector3(0.0f, 0.75f, -9.0f),
+                                     Vector3(0.9f, 0.75f, 2.1f), 0.0f);
+    const auto helicopterAt = [&](const float height) {
+        Sim::Vehicle helicopter(Sim::MakeReferenceVehicle(), Sim::TransmissionMode::Automatic);
+        helicopter.PlaceAt(Vector3(0.0f, height, 0.0f), 0.0f);
+        Sim::DriverControls controls;
+        controls.toggleFlight = true;
+        helicopter.Update(controls, 1.0f / 60.0f, ground);
+        return helicopter;
+    };
+
+    CollisionWorld world;
+    auto low = helicopterAt(0.0f);
+    low.Body().SetPosition(low.Body().Position() + Vector3(0.0f, -1.1f, 0.0f));
+    const Vector3 lowPrevious = low.OriginPosition();
+    low.Body().SetPosition(low.Body().Position() + Vector3(0.0f, 0.0f, -18.0f));
+    low.Body().SetLinearVelocity(Vector3(0.0f, 0.0f, -120.0f));
+    std::vector<ContactEvent> events;
+    EXPECT_TRUE(world.ResolveFlightAgainstBox(low, lowPrevious, car, Vector3(0.0f, 0.0f, 0.0f), events));
+    EXPECT_GT(low.OriginPosition().Z, -6.0f);
+    ASSERT_FALSE(events.empty());
+    EXPECT_EQ(events.front().kind, ColliderKind::Vehicle);
+
+    CollisionWorld parkedWorld;
+    StaticCollider parked;
+    parked.kind = ColliderKind::Vehicle;
+    parked.box = car;
+    parked.centre = car.centre;
+    parked.boundingRadius = car.BoundingRadius();
+    parkedWorld.AddStatic(parked);
+    parkedWorld.Finish();
+    auto parkedLow = helicopterAt(0.0f);
+    parkedLow.Body().SetPosition(parkedLow.Body().Position() + Vector3(0.0f, -1.1f, 0.0f));
+    const Vector3 parkedPrevious = parkedLow.OriginPosition();
+    parkedLow.Body().SetPosition(parkedLow.Body().Position() + Vector3(0.0f, 0.0f, -18.0f));
+    parkedLow.Body().SetLinearVelocity(Vector3(0.0f, 0.0f, -120.0f));
+    events.clear();
+    parkedWorld.ResolveFlight(parkedLow, parkedPrevious, events);
+    EXPECT_GT(parkedLow.OriginPosition().Z, -6.0f);
+    ASSERT_FALSE(events.empty());
+    EXPECT_EQ(events.front().kind, ColliderKind::Vehicle);
+
+    auto hovering = helicopterAt(0.0f);
+    const Vector3 hoverPosition = hovering.OriginPosition();
+    const Obb carUnderneath = Obb::FromHeading(Vector3(0.0f, 0.75f, hoverPosition.Z),
+                                               Vector3(0.9f, 0.75f, 2.1f), 0.0f);
+    events.clear();
+    EXPECT_FALSE(world.ResolveFlightAgainstBox(hovering, hoverPosition, carUnderneath,
+                                               Vector3(0.0f, 0.0f, 0.0f), events));
+
+    auto high = helicopterAt(8.0f);
+    const Vector3 highPrevious = high.OriginPosition();
+    high.Body().SetPosition(high.Body().Position() + Vector3(0.0f, 0.0f, -18.0f));
+    events.clear();
+    EXPECT_FALSE(world.ResolveFlightAgainstBox(high, highPrevious, car, Vector3(0.0f, 0.0f, 0.0f), events));
+    EXPECT_LT(high.OriginPosition().Z, -17.0f);
+}

@@ -63,7 +63,7 @@ namespace CarSim::Collision
             return right * local.X + Vector3(0.0f, local.Y, 0.0f) + fwd * local.Z;
         }
 
-        std::array<Obb, 3> FlightBoxes(const Sim::Vehicle& vehicle, const Vector3& origin)
+        std::array<Obb, 5> FlightBoxes(const Sim::Vehicle& vehicle, const Vector3& origin)
         {
             const Sim::RigidBody& body = vehicle.Body();
             const auto part = [&](const Vector3& localCentre, const Vector3& half) {
@@ -73,7 +73,25 @@ namespace CarSim::Collision
                 part(Vector3(0.0f, 0.05f, -0.1f), Vector3(0.85f, 1.05f, 2.0f)),
                 part(Vector3(0.0f, 0.18f, 2.9f), Vector3(0.25f, 0.48f, 1.65f)),
                 part(Vector3(0.0f, 1.55f, -0.25f), Vector3(3.4f, 0.08f, 3.4f)),
+                part(Vector3(-0.82f, -1.02f, 0.05f), Vector3(0.08f, 0.08f, 1.75f)),
+                part(Vector3(0.82f, -1.02f, 0.05f), Vector3(0.08f, 0.08f, 1.75f)),
             };
+        }
+
+        void StopFlightAtContact(Sim::Vehicle& vehicle, const Vector3& previousOrigin, const Vector3& currentOrigin,
+                                 const Vector3& displacement, const int step, const int steps, const Contact& contact,
+                                 const Vector3& otherVelocity, const ColliderKind kind, std::vector<ContactEvent>& events)
+        {
+            const Vector3 safe = step > 0 ? previousOrigin + displacement * (static_cast<float>(step - 1) / static_cast<float>(steps))
+                                          : previousOrigin + contact.normal * (contact.penetration + 0.03f);
+            vehicle.Body().SetPosition(vehicle.Body().Position() + safe - currentOrigin);
+            Vector3 velocity = vehicle.Body().LinearVelocity();
+            const float inward = std::min(0.0f, Vector3::Dot(velocity - otherVelocity, contact.normal));
+            velocity -= contact.normal * inward;
+            vehicle.Body().SetLinearVelocity(velocity);
+            if (inward < -0.1f) {
+                events.push_back({contact.point, contact.normal, -inward * vehicle.Body().Mass(), -inward, kind});
+            }
         }
     }
 
@@ -350,22 +368,43 @@ namespace CarSim::Collision
                 for (const Obb& box : boxes) {
                     Contact contact;
                     const bool hit = c.isBox ? IntersectObbObb(box, c.box, contact) : IntersectObbCylinder(box, c.cylinder, contact);
-                    if (!hit) continue;
+                    if (!hit || contact.penetration <= 0.01f) continue;
 
-                    Vector3 safe = step > 0 ? previousOrigin + displacement * (static_cast<float>(step - 1) / static_cast<float>(steps))
-                                            : previousOrigin + contact.normal * (contact.penetration + 0.03f);
-                    vehicle.Body().SetPosition(vehicle.Body().Position() + safe - currentOrigin);
-                    Vector3 velocity = vehicle.Body().LinearVelocity();
-                    const float inward = std::min(0.0f, Vector3::Dot(velocity, contact.normal));
-                    velocity = velocity - contact.normal * inward;
-                    vehicle.Body().SetLinearVelocity(velocity);
-                    if (inward < -0.1f) {
-                        events.push_back({contact.point, contact.normal, -inward * vehicle.Body().Mass(), -inward, c.kind});
-                    }
+                    StopFlightAtContact(vehicle, previousOrigin, currentOrigin, displacement, step, steps,
+                                        contact, Vector3(0.0f, 0.0f, 0.0f), c.kind, events);
                     return;
                 }
             }
         }
+    }
+
+    bool CollisionWorld::ResolveFlightAgainstBox(Sim::Vehicle& vehicle, const Vector3& previousOrigin,
+                                                 const Obb& other, const Vector3& otherVelocity,
+                                                 std::vector<ContactEvent>& events) const
+    {
+        if (!vehicle.FlightMode()) return false;
+        const Vector3 currentOrigin = vehicle.OriginPosition();
+        const Vector3 displacement = currentOrigin - previousOrigin;
+        const float reach = 6.0f + other.BoundingRadius();
+        const float along = displacement.LengthSquared() > 1e-6f
+                                ? std::clamp(Vector3::Dot(other.centre - previousOrigin, displacement) /
+                                                 displacement.LengthSquared(),
+                                             0.0f, 1.0f)
+                                : 0.0f;
+        const Vector3 closest = previousOrigin + displacement * along;
+        if (Vector3::DistanceSquared(other.centre, closest) > reach * reach) return false;
+        const int steps = std::max(1, static_cast<int>(std::ceil(displacement.Length() / 0.35f)));
+        for (int step = 0; step <= steps; ++step) {
+            const Vector3 sample = previousOrigin + displacement * (static_cast<float>(step) / static_cast<float>(steps));
+            for (const Obb& box : FlightBoxes(vehicle, sample)) {
+                Contact contact;
+                if (!IntersectObbObb(box, other, contact) || contact.penetration <= 0.01f) continue;
+                StopFlightAtContact(vehicle, previousOrigin, currentOrigin, displacement, step, steps,
+                                    contact, otherVelocity, ColliderKind::Vehicle, events);
+                return true;
+            }
+        }
+        return false;
     }
 
     void CollisionWorld::ResolveVehiclePair(Sim::Vehicle& a, Sim::Vehicle& b, std::vector<ContactEvent>& events) const

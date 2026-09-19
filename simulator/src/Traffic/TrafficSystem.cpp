@@ -275,7 +275,7 @@ namespace CarSim::Traffic
             }
         }
         // The player: only when it drives along one of our path lanes in our direction.
-        if (player.valid && playerLane_ >= 0) {
+        if (player.valid && player.blocksTraffic && playerLane_ >= 0) {
             for (const auto& seg : path) {
                 if (seg.isLink || seg.id != playerLane_) continue;
                 if (playerS_ < seg.sFrom - 0.5f) continue;
@@ -310,7 +310,7 @@ namespace CarSim::Traffic
             }
         }
         // Also treat the player as an obstacle when it physically sits on our path (any heading).
-        if (player.valid) {
+        if (player.valid && player.blocksTraffic) {
             for (const auto& seg : path) {
                 if (seg.isLink) continue;
                 const Lane& lane = lanes_.LaneAt(seg.id);
@@ -389,7 +389,7 @@ namespace CarSim::Traffic
                 }
             }
             // The player approaching on the conflicting lane, or already inside the junction.
-            if (player.valid && playerLane_ == m.fromLane) {
+            if (player.valid && player.blocksTraffic && playerLane_ == m.fromLane) {
                 const Lane& lane = lanes_.LaneAt(playerLane_);
                 const float remaining = lane.length - playerS_;
                 const LanePoint lp = lane.Evaluate(playerS_);
@@ -401,7 +401,7 @@ namespace CarSim::Traffic
             }
         }
         // Priority movements still avoid a player standing in the junction on a crossing path.
-        if (player.valid && link.intersection >= 0) {
+        if (player.valid && player.blocksTraffic && link.intersection >= 0) {
             const auto& inter = world_.Roads().Intersections()[static_cast<std::size_t>(link.intersection)];
             const float d = Vector2::Distance(Vector2(player.position.X, player.position.Z), Vector2(inter.center.X, inter.center.Z));
             if (d < inter.radius + 1.0f && std::fabs(player.speed) < 1.0f) {
@@ -701,7 +701,7 @@ namespace CarSim::Traffic
         }
         // Project the player onto the lane graph once per update.
         playerLane_ = -1;
-        if (player.valid) {
+        if (player.valid && player.blocksTraffic) {
             const float heading = std::atan2(player.forward.X, -player.forward.Z);
             playerLane_ = lanes_.NearestLane(Vector2(player.position.X, player.position.Z), heading, 4.0f, &playerS_);
         }

@@ -641,6 +641,7 @@ namespace CarSim::App
         probe.forward = vehicle_->Body().Forward();
         probe.speed = vehicle_->ForwardSpeedMs();
         probe.lengthM = definition_.chassis.lengthM;
+        probe.blocksTraffic = !vehicle_->FlightMode();
         return probe;
     }
 
@@ -795,22 +796,35 @@ namespace CarSim::App
         }
     }
 
-    void SimulatorGame::UpdateTraffic(const float dt)
+    void SimulatorGame::UpdateTraffic(const float dt, const Vector3& previousVehicleOrigin)
     {
         if (!traffic_) {
             return;
         }
         traffic_->Update(dt, PlayerProbe(), PedestrianProbe());
-        if (vehicle_->FlightMode()) return;
-        // Player against traffic cars: the AI car acts as a moving box with mass; it stops for a
-        // while after a hit.
+        // Resolve actual contact with traffic cars after they move. In flight the entire
+        // swept helicopter body is checked, including when it crosses a car in one frame.
         const Vector3 playerPosition = vehicle_->OriginPosition();
+        const bool flight = vehicle_->FlightMode();
+        const Vector3 travelled = playerPosition - previousVehicleOrigin;
         for (auto& car : traffic_->Vehicles()) {
-            if (Vector3::DistanceSquared(car.position, playerPosition) > 15.0f * 15.0f) {
+            float along = 1.0f;
+            if (flight && travelled.LengthSquared() > 1e-6f) {
+                along = std::clamp(Vector3::Dot(car.position - previousVehicleOrigin, travelled) /
+                                       travelled.LengthSquared(), 0.0f, 1.0f);
+            }
+            const Vector3 nearest = previousVehicleOrigin + travelled * along;
+            if (Vector3::DistanceSquared(car.position, nearest) > 15.0f * 15.0f) {
                 continue;
             }
             const Collision::Obb box = Collision::Obb::FromHeading(car.position + Vector3(0.0f, car.heightM * 0.5f, 0.0f),
                                                                     Vector3(car.widthM * 0.5f, car.heightM * 0.5f, car.lengthM * 0.5f), car.headingRad);
+            if (flight) {
+                if (collision_.ResolveFlightAgainstBox(*vehicle_, previousVehicleOrigin, box, car.Velocity(), contactEvents_)) {
+                    traffic_->NotifyCollision(car.id, 4.0f);
+                }
+                continue;
+            }
             const Vector3 impulse = collision_.ResolveVehicleAgainstBox(*vehicle_, box, car.massKg, car.Velocity(), contactEvents_);
             if (impulse.LengthSquared() > 1.0f) {
                 traffic_->NotifyCollision(car.id, 4.0f);
@@ -1000,7 +1014,7 @@ namespace CarSim::App
         if (vehicle_->FlightMode()) collision_.ResolveFlight(*vehicle_, previousOrigin, contactEvents_);
         else collision_.ResolveVehicle(*vehicle_, contactEvents_);
         stage(collisionMs_);
-        UpdateTraffic(dt);
+        UpdateTraffic(dt, previousOrigin);
         if (walking_) UpdateWalking(dt);
         stage(trafficMs_);
         for (const auto& e : contactEvents_) {

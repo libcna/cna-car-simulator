@@ -81,7 +81,7 @@ namespace CarSim::App
         /// driven, which a benchmark or validation run should treat as a failure.
         bool PlanRoute();
         void ReportRoute() const;
-        void UpdateTraffic(float dt);
+        void UpdateTraffic(float dt, const Microsoft::Xna::Framework::Vector3& previousVehicleOrigin);
         void ToggleWalking();
         void UpdateWalking(float dt);
         [[nodiscard]] bool WalkingCanOccupy(const Microsoft::Xna::Framework::Vector3& position) const;

@@ -159,6 +159,25 @@ TEST(TrafficSystem, CarStopsForWalkerWhoStepsIntoItsImmediatePath)
     EXPECT_LT(traffic.Vehicles().front().speed, 0.2f);
 }
 
+TEST(TrafficSystem, CarsKeepDrivingBeneathAnAirborneHelicopter)
+{
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 44);
+    traffic.SetDensity(0);
+    const int lane = LaneOf(*world, "main", true, 0);
+    ASSERT_GE(lane, 0);
+    ASSERT_GE(traffic.SpawnOn(lane, 60.0f, 20.0f), 0);
+
+    Traffic::PlayerProbe helicopter;
+    helicopter.valid = true;
+    helicopter.blocksTraffic = false;
+    helicopter.position = world->Lanes().LaneAt(lane).Evaluate(120.0f).position + Vector3(0.0f, 3.0f, 0.0f);
+    for (int i = 0; i < 60 * 8; ++i) traffic.Update(1.0f / 60.0f, helicopter);
+    EXPECT_GT(traffic.Vehicles().front().s, 150.0f);
+    EXPECT_GT(traffic.Vehicles().front().speed, 2.0f);
+}
+
 TEST(TrafficSystem, CarsProgressThroughIntersections)
 {
     auto world = CrossWorld(true);

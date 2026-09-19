@@ -356,6 +356,9 @@ out to its line. Plates come from a generator that follows the Czech `1A2 3456` 
 regional letter weights (`docs/research/czech-plates.md`). A traffic car queues behind a
 player who stops in the lane; it does not overtake.
 
+Traffic continues beneath an airborne helicopter; the helicopter still collides with car
+bodies when it actually touches them.
+
 ## Testing
 
 ```bash

@@ -183,7 +183,9 @@ namespace CarSim::Sim
             flightMode_ = !flightMode_;
             if (flightMode_) {
                 const Vector3 origin = OriginPosition();
-                const float lift = std::max(2.5f, ground.HeightAt(origin.X, origin.Z) + 2.5f - origin.Y);
+                // Start high enough for road cars to pass under the skids. The pilot can still
+                // descend later, at which point real hull/car contact is resolved.
+                const float lift = std::max(3.0f, ground.HeightAt(origin.X, origin.Z) + 3.0f - origin.Y);
                 body_.SetPosition(body_.Position() + Vector3(0.0f, lift, 0.0f));
                 body_.SetLinearVelocity(Vector3(0.0f, 0.0f, 0.0f));
                 body_.SetAngularVelocity(Vector3(0.0f, 0.0f, 0.0f));
