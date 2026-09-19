@@ -62,9 +62,15 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
 
 ## Rolling noise, wind, horn, one-shots (`Audio::SoundSynth`)
 
-- Tyres: low-passed white noise, cutoff rising with speed, amplitude proportional to the square
-  of speed (capped), scaled by surface roughness and muted in the air.
-- Wind: band-passed noise (250-1400 Hz) with cubic speed growth above about 60 km/h.
+- Tyres: white noise through two low-pass poles at 250 + 6 x km/h Hz (a roar, not a hiss),
+  amplitude growing with speed to the power 1.5 up to its cap at 100 km/h, scaled by surface
+  roughness and muted in the air.
+- Wind: noise high-passed at 250 Hz and low-passed twice at 1400 Hz, growing with the cube of
+  speed up to its cap at 130 km/h.
+- `carsim-simtrace engine-sound` reports each layer's level and its share of energy above 2 and
+  5 kHz. Tyres and wind at 50 km/h: RMS 0.013 with 1.5 % above 2 kHz (the engine at a light
+  cruise is about 0.10). They used to reach full level by 38 and 60 km/h, at 0.077 RMS with 38 %
+  above 2 kHz, which made driving through town sound like hiss.
 - Horn: two tones (420 and 505 Hz) with five harmonics and a 12 ms gate.
 - Clips synthesised at start-up: indicator tick and tock (relay clicks on lamp on/off edges),
   gear clunk (70 Hz thud plus click; quieter in automatic), collision impact (four strengths:

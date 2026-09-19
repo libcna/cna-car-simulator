@@ -1,4 +1,6 @@
 // carsim-simtrace: run a named scenario headlessly and print a trace of the vehicle state.
+#include "CarSim/Audio/EngineSynth.hpp"
+#include "CarSim/Audio/SoundSynth.hpp"
 #include "CarSim/Map/MapDocument.hpp"
 #include "CarSim/Map/MapWorld.hpp"
 #include "CarSim/Sim/Ground.hpp"
@@ -211,6 +213,92 @@ namespace
                     yawRate > 1e-3f ? 2.0f * std::fabs(Speed(v)) / yawRate + def.FrontTrackM() : 0.0f);
     }
 
+    // ---------------------------------------------------------------------------------------
+    // "engine-sound": how much of the synthesised sound sits where a listener hears hiss.
+
+    struct SpectrumShare
+    {
+        float rms = 0.0f;
+        float above2k = 0.0f;
+        float above5k = 0.0f;
+    };
+
+    // Energy shares from a plain Hann-windowed DFT of the last 8192 samples.
+    SpectrumShare Analyse(const std::vector<float>& signal, float sampleRate)
+    {
+        constexpr std::size_t n = 8192;
+        const std::size_t from = signal.size() - n;
+        std::vector<float> w(n);
+        double sumSq = 0.0;
+        for (std::size_t i = 0; i < n; ++i) {
+            const float hann = 0.5f - 0.5f * std::cos(2.0f * std::numbers::pi_v<float> * static_cast<float>(i) / (n - 1));
+            w[i] = signal[from + i] * hann;
+            sumSq += static_cast<double>(signal[from + i]) * signal[from + i];
+        }
+        double total = 0.0, over2 = 0.0, over5 = 0.0;
+        for (std::size_t k = 1; k < n / 2; ++k) {
+            double re = 0.0, im = 0.0;
+            const double step = 2.0 * std::numbers::pi * static_cast<double>(k) / n;
+            for (std::size_t i = 0; i < n; ++i) {
+                re += w[i] * std::cos(step * static_cast<double>(i));
+                im -= w[i] * std::sin(step * static_cast<double>(i));
+            }
+            const double power = re * re + im * im;
+            const double hz = static_cast<double>(k) * sampleRate / n;
+            total += power;
+            if (hz > 2000.0) over2 += power;
+            if (hz > 5000.0) over5 += power;
+        }
+        SpectrumShare r;
+        r.rms = static_cast<float>(std::sqrt(sumSq / n));
+        r.above2k = total > 0.0 ? static_cast<float>(over2 / total) : 0.0f;
+        r.above5k = total > 0.0 ? static_cast<float>(over5 / total) : 0.0f;
+        return r;
+    }
+
+    void RunEngineSound()
+    {
+        using CarSim::Audio::EngineSoundInput;
+        using CarSim::Audio::EngineSoundState;
+        constexpr int kRate = 44100;
+        struct Case { const char* name; float rpm; float load; float throttle; };
+        const Case cases[] = {
+            {"idle", 850.0f, 0.05f, 0.0f},
+            {"light cruise 2200 rpm", 2200.0f, 0.25f, 0.25f},
+            {"full throttle 3000 rpm", 3000.0f, 1.0f, 1.0f},
+            {"full throttle 5500 rpm", 5500.0f, 1.0f, 1.0f},
+            {"overrun 3000 rpm", 3000.0f, 0.0f, 0.0f},
+        };
+        std::printf("engine synth (mono, before the mix)     rms   >2 kHz  >5 kHz\n");
+        for (const Case& c : cases) {
+            CarSim::Audio::EngineSynth synth(kRate);
+            EngineSoundInput in;
+            in.rpm = c.rpm;
+            in.load = c.load;
+            in.throttle = c.throttle;
+            in.state = EngineSoundState::Running;
+            std::vector<float> signal(kRate * 2);
+            for (std::size_t at = 0; at < signal.size(); at += 1024) {
+                synth.Render(signal.data() + at, static_cast<int>(std::min<std::size_t>(1024, signal.size() - at)), in);
+            }
+            const SpectrumShare r = Analyse(signal, kRate);
+            std::printf("  %-36s %5.3f  %5.1f %%  %5.1f %%\n", c.name, r.rms, r.above2k * 100.0f, r.above5k * 100.0f);
+        }
+        std::printf("tyres and wind (asphalt)                 rms   >2 kHz  >5 kHz\n");
+        for (const float kmh : {50.0f, 90.0f, 130.0f}) {
+            CarSim::Audio::RollingNoise rolling(kRate);
+            CarSim::Audio::RollingNoise::Input in;
+            in.speedKmh = kmh;
+            std::vector<float> signal(kRate * 2, 0.0f);
+            for (std::size_t at = 0; at < signal.size(); at += 1024) {
+                rolling.Render(signal.data() + at, static_cast<int>(std::min<std::size_t>(1024, signal.size() - at)), in);
+            }
+            const SpectrumShare r = Analyse(signal, kRate);
+            std::printf("  %3.0f km/h                               %5.3f  %5.1f %%  %5.1f %%\n", kmh, r.rms,
+                        r.above2k * 100.0f, r.above5k * 100.0f);
+        }
+    }
+
     void RunMetrics(const VehicleDefinition& def)
     {
         FlatGround ground(0.0f);
@@ -245,6 +333,10 @@ int main(int argc, char* argv[])
     FlatGround ground(0.0f);
     if (scenario == "metrics") {
         RunMetrics(def);
+        return 0;
+    }
+    if (scenario == "engine-sound") {
+        RunEngineSound();
         return 0;
     }
     if (scenario == "route") {

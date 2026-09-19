@@ -77,9 +77,12 @@ namespace CarSim::Audio
     private:
         int sampleRate_;
         NoiseSource noise_{777u};
+        // Two poles each: a single one left enough energy above 2 kHz to hiss.
         OnePoleLowPass tyreLp_;
+        OnePoleLowPass tyreLp2_;
         OnePoleHighPass windHp_;
         OnePoleLowPass windLp_;
+        OnePoleLowPass windLp2_;
         Input previous_{};
         bool primed_ = false;
     };

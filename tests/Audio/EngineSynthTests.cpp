@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 #include <vector>
@@ -126,4 +127,43 @@ TEST(SoundSynth, ClipsAreBoundedAndShort)
     rolling.Render(fast.data(), 2048, in);
     rolling.Render(fast.data(), 2048, in);
     EXPECT_GT(Rms(fast, 0), Rms(slow, 0) * 2.0f);
+}
+
+namespace
+{
+    /// Mean DFT power per probe over [lo, hi], probed every `step` Hz.
+    float BandPower(const std::vector<float>& s, float lo, float hi, float step, std::size_t from)
+    {
+        double sum = 0.0;
+        int probes = 0;
+        for (float f = lo; f <= hi; f += step, ++probes) {
+            const float m = Magnitude(s, f, from);
+            sum += static_cast<double>(m) * m;
+        }
+        return static_cast<float>(sum / std::max(1, probes));
+    }
+}
+
+TEST(RollingNoise, IsARoadRoarNotAHissAndStaysBelowTheEngineInTown)
+{
+    // Tyre and wind noise used to reach full level by 38 and 60 km/h -- as loud as the engine,
+    // with over a third of its energy above 2 kHz -- so driving through town sounded like hiss.
+    const auto render = [](float kmh) {
+        RollingNoise rolling(kRate);
+        RollingNoise::Input in;
+        in.speedKmh = kmh;
+        std::vector<float> s(static_cast<std::size_t>(kRate), 0.0f);
+        for (std::size_t at = 0; at < s.size(); at += 1024) {
+            rolling.Render(s.data() + at, static_cast<int>(std::min<std::size_t>(1024, s.size() - at)), in);
+        }
+        return s;
+    };
+    const auto town = render(50.0f);
+    const auto road = render(90.0f);
+    const std::size_t from = town.size() / 2;
+    EXPECT_LT(Rms(town, from), 0.03f) << "tyre roar at 50 km/h should sit well below the engine";
+    EXPECT_GT(Rms(road, from), Rms(town, from) * 2.0f) << "and still grow clearly with speed";
+    const float roar = BandPower(town, 200.0f, 500.0f, 25.0f, from);
+    const float hiss = BandPower(town, 3000.0f, 6000.0f, 100.0f, from);
+    EXPECT_LT(hiss, roar * 0.01f) << "the 3-6 kHz hiss band must sit at least 20 dB under the roar";
 }

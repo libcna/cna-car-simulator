@@ -144,8 +144,10 @@ namespace CarSim::Audio
     RollingNoise::RollingNoise(const int sampleRate) : sampleRate_(sampleRate)
     {
         tyreLp_.SetCutoff(700.0f, sampleRate_);
+        tyreLp2_.SetCutoff(700.0f, sampleRate_);
         windHp_.SetCutoff(250.0f, sampleRate_);
         windLp_.SetCutoff(1400.0f, sampleRate_);
+        windLp2_.SetCutoff(1400.0f, sampleRate_);
     }
 
     void RollingNoise::Render(float* out, const int frames, const Input& target)
@@ -159,11 +161,17 @@ namespace CarSim::Audio
             const float v = std::max(0.0f, previous_.speedKmh + (target.speedKmh - previous_.speedKmh) * t);
             const float rough = previous_.surfaceRoughness + (target.surfaceRoughness - previous_.surfaceRoughness) * t;
             if ((i & 63) == 0) {
-                tyreLp_.SetCutoff(500.0f + 9.0f * v, sampleRate_);
+                tyreLp_.SetCutoff(250.0f + 6.0f * v, sampleRate_);
+                tyreLp2_.SetCutoff(250.0f + 6.0f * v, sampleRate_);
             }
+            // Tyre roar grows with speed to the power 1.5 up to 100 km/h and wind with its cube up to
+            // 130 km/h. Both used to reach full level at town speeds (38 and 60 km/h), where they
+            // were as loud as the engine and made driving sound like hiss.
             const float n = noise_.Next();
-            const float tyre = tyreLp_.Process(n) * std::min(0.45f, (v / 32.0f) * (v / 32.0f) * 0.32f) * rough * (target.grounded ? 1.0f : 0.2f);
-            const float wind = windLp_.Process(windHp_.Process(noise_.Next())) * std::min(0.35f, std::pow(v / 60.0f, 3.0f) * 0.35f);
+            const float tyreGain = std::min(0.45f, std::pow(v / 100.0f, 1.5f) * 0.45f);
+            const float tyre = tyreLp2_.Process(tyreLp_.Process(n)) * tyreGain * rough * (target.grounded ? 1.0f : 0.2f);
+            const float windGain = std::min(0.25f, std::pow(v / 130.0f, 3.0f) * 0.25f);
+            const float wind = windLp2_.Process(windLp_.Process(windHp_.Process(noise_.Next()))) * windGain;
             out[i] += tyre + wind;
         }
         previous_ = target;
