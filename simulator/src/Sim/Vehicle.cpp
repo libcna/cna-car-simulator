@@ -363,7 +363,19 @@ namespace CarSim::Sim
     {
         const float maxAngle = Units::DegToRad(def_.steering.maxWheelAngleDeg);
         const float factor = SpeedFactor();
-        const float target = steerInput_ * maxAngle * factor;
+        float allowedAngle = maxAngle * factor;
+        if (engine_.TurboSetting() == TurboMode::UltraUltra) {
+            // Keyboard steering at several hundred km/h must command a broad arc, not the
+            // parking-speed wheel angle. Cap curvature by lateral acceleration to prevent an
+            // instantaneous tyre impulse from rolling the body over.
+            const Vector3 velocity = body_.LinearVelocity();
+            const float speed = std::hypot(velocity.X, velocity.Z);
+            const float lateralLimit = 0.65f * Units::kGravity;
+            const float safeAngle = std::atan(lateralLimit * std::max(0.5f, def_.WheelbaseM()) /
+                                              std::max(speed * speed, 1.0f));
+            allowedAngle = std::min(allowedAngle, safeAngle);
+        }
+        const float target = steerInput_ * allowedAngle;
         const float rate = Units::DegToRad(def_.steering.wheelTurnRateDegPerSec) * (0.6f + 0.4f * factor);
         const bool returning = std::fabs(target) < std::fabs(steerAngle_);
         steerAngle_ = MoveToward(steerAngle_, target, rate * (returning ? 1.6f : 1.0f) * dt);
@@ -523,8 +535,9 @@ namespace CarSim::Sim
         const float load = w.suspensionForce;
         // The boosted driveline needs matching tyre traction to turn its extra torque into
         // acceleration instead of permanent wheelspin.
+        const float baseSurfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_);
         const float ultraUltraGrip = engine_.TurboSetting() == TurboMode::UltraUltra ? 8.0f : 1.0f;
-        const float surfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_) * ultraUltraGrip;
+        const float longitudinalSurfaceFactor = baseSurfaceFactor * ultraUltraGrip;
         const float lowSpeed = std::max(0.1f, def_.tyres.lowSpeedMs);
         const float vDen = std::max(std::fabs(vLong), lowSpeed);
         const float slipAngle = std::atan2(vLat, std::fabs(vLong) + 0.05f);
@@ -538,8 +551,8 @@ namespace CarSim::Sim
         // stable at low speed where the slip gain is enormous.
         const float uOld = w.spinVelocity * radius - vLong;
         const float kappaOld = uOld / vDen;
-        const TyreForces f0 = tyreModel_.Compute(kappaOld, slipAngle, load, surfaceFactor);
-        const float originStiffness = tyreModel_.LongitudinalStiffness(load, surfaceFactor) / vDen;   // N per m/s
+        const TyreForces f0 = tyreModel_.Compute(kappaOld, slipAngle, load, longitudinalSurfaceFactor);
+        const float originStiffness = tyreModel_.LongitudinalStiffness(load, longitudinalSurfaceFactor) / vDen;   // N per m/s
         float secant = std::fabs(uOld) > 1e-4f ? std::fabs(f0.longitudinal / uOld) : originStiffness;
         secant = std::clamp(secant, 0.02f * originStiffness, originStiffness);
         const float compliance = radius * radius / inertia + 1.0f / massShare;
@@ -599,7 +612,9 @@ namespace CarSim::Sim
             }
         }
         const float kappaNew = (spin * radius - vLong) / vDen;
-        TyreForces forces = tyreModel_.Compute(kappaNew, slipAngle, load, surfaceFactor);
+        // Ultra ultra's extra grip is for putting engine torque onto the road. Applying it
+        // sideways too produces violent roll and yaw impulses on even a small steering input.
+        TyreForces forces = tyreModel_.Compute(kappaNew, slipAngle, load, baseSurfaceFactor);
         forces.longitudinal = longitudinalForce;
 
         // ---- Lateral: never let the lateral force reverse the contact patch's lateral velocity

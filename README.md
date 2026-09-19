@@ -212,9 +212,12 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Help overlay, debug overlay, screenshot | `F1`, `F3`, `F12` |
 | Quit | `Esc` |
 
-Walking uses a first-person view and audible footsteps at 4 km/h; running is 8 km/h.
+Walking uses a first-person view and audible footsteps at 6 km/h; running is 16 km/h.
 The parked car must have its engine off before `W` enters walking mode. `W` cannot
 switch to walking from the helicopter.
+
+In ultra ultra turbo, steering becomes gentler as speed rises to keep the car stable.
+Slow down before a tight corner at very high speed.
 
 Driving notes: the engine has to be started with `E`; the starter only engages in neutral,
 with the clutch pressed, or with the automatic selector in `P` or `N`, and it cranks for a

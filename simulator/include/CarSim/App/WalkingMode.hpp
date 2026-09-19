@@ -4,8 +4,8 @@
 
 namespace CarSim::App
 {
-    inline constexpr float kWalkingSpeedKmh = 4.0f;
-    inline constexpr float kRunningSpeedKmh = 8.0f;
+    inline constexpr float kWalkingSpeedKmh = 6.0f;
+    inline constexpr float kRunningSpeedKmh = 16.0f;
 
     [[nodiscard]] inline bool CanEnterWalking(const Sim::VehicleState& car)
     {

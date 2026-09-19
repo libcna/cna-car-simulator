@@ -24,7 +24,8 @@ TEST(WalkingMode, RequiresStoppedCarWithEngineOffAndRejectsHelicopter)
     car.engineState = Sim::EngineState::Off;
     car.flightMode = true;
     EXPECT_FALSE(App::CanEnterWalking(car));
-    EXPECT_FLOAT_EQ(App::kWalkingSpeedKmh, 4.0f);
+    EXPECT_FLOAT_EQ(App::kWalkingSpeedKmh, 6.0f);
+    EXPECT_FLOAT_EQ(App::kRunningSpeedKmh, 16.0f);
 }
 
 TEST(WalkingMode, FootstepHasAudibleShortImpact)

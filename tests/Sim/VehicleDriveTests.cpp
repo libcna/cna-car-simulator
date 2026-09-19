@@ -274,6 +274,66 @@ TEST_F(VehicleDrive, UltraUltraTurboAcceleratesFasterAndReachesAbout500Kmh)
     EXPECT_LE(ultraUltra.SpeedKmh(), 515.0f);
 }
 
+TEST_F(VehicleDrive, UltraUltraCorneringKeepsTheCarOnItsWheels)
+{
+    for (const float speed : {100.0f, 250.0f, 400.0f, 500.0f}) {
+        Vehicle v(def, TransmissionMode::Automatic);
+        Drive(v, ground, 2.0f, [](float) { DriverControls c; c.brake = 1.0f; return c; });
+        v.GetEngine().SetTurboMode(TurboMode::UltraUltra);
+        v.ForceForwardSpeed(Units::KmhToMs(speed));
+        float minUp = 1.0f;
+        Drive(v, ground, 3.0f, [&](float) {
+            minUp = std::min(minUp, v.Body().Up().Y);
+            DriverControls c;
+            c.steering = 1.0f;
+            return c;
+        });
+        EXPECT_GT(minUp, 0.95f) << "at " << speed << " km/h";
+        EXPECT_NEAR(v.OriginPosition().Y, 0.0f, 0.1f) << "at " << speed << " km/h";
+        EXPECT_TRUE(std::isfinite(v.SpeedKmh()));
+    }
+}
+
+TEST_F(VehicleDrive, UltraUltraSteeringRespondsGradually)
+{
+    const auto turn = [&](const float input) {
+        Vehicle v(def, TransmissionMode::Automatic);
+        Drive(v, ground, 2.0f, [](float) { DriverControls c; c.brake = 1.0f; return c; });
+        v.GetEngine().SetTurboMode(TurboMode::UltraUltra);
+        v.ForceForwardSpeed(Units::KmhToMs(250.0f));
+        Drive(v, ground, 3.0f, [input](float) { DriverControls c; c.steering = input; return c; });
+        return std::fabs(Yaw(v));
+    };
+    EXPECT_GT(turn(1.0f), turn(0.2f) * 2.5f);
+}
+
+TEST_F(VehicleDrive, UltraUltraSteeringWhileAcceleratingDoesNotFlip)
+{
+    Vehicle v(def, TransmissionMode::Automatic);
+    DriverControls c;
+    c.brake = 1.0f;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = true;
+    v.Update(c, kFrame, ground);
+    c.toggleEngine = false;
+    Drive(v, ground, 3.0f, [c](float) { return c; });
+    c.selector = AutomaticSelector::Drive;
+    v.Update(c, kFrame, ground);
+    v.GetEngine().SetTurboMode(TurboMode::UltraUltra);
+    Drive(v, ground, 22.0f, [](float) { DriverControls k; k.throttle = 1.0f; return k; });
+    ASSERT_GT(v.SpeedKmh(), 250.0f);
+    float minUp = 1.0f;
+    Drive(v, ground, 2.0f, [&](float) {
+        minUp = std::min(minUp, v.Body().Up().Y);
+        DriverControls k;
+        k.throttle = 1.0f;
+        k.steering = 0.5f;
+        return k;
+    });
+    EXPECT_GT(minUp, 0.95f);
+    EXPECT_NEAR(v.OriginPosition().Y, 0.0f, 0.1f);
+}
+
 TEST_F(VehicleDrive, HelicopterClimbsMovesAndCyclesTurboModes)
 {
     Vehicle v(def, TransmissionMode::Automatic);
