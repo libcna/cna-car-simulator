@@ -83,6 +83,7 @@ namespace CarSim::App
         void UpdateTraffic(float dt);
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
         void DrawHud();
+        void DrawMap();
         void DrawHelp();
         /// The F3 diagnostic overlay: frame budget, simulation state, world and traffic counts.
         void DrawDebugOverlay();
@@ -96,6 +97,7 @@ namespace CarSim::App
         double saveTimer_ = 0.0;
         bool hudVisible_ = true;
         bool mirrorEnabled_ = true;
+        bool showMap_ = false;
         Microsoft::Xna::Framework::GraphicsDeviceManager graphics_;
         std::string contentRoot_;
 
@@ -142,6 +144,7 @@ namespace CarSim::App
         std::unique_ptr<Render::VehicleMaterials> vehicleMaterials_;
         std::unique_ptr<Render::VehicleRenderer> vehicleRenderer_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::SpriteBatch> spriteBatch_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> mapTexture_;
         std::unique_ptr<Render::BitmapFont> font_;
         std::unique_ptr<Render::BitmapFont> fontBold_;
         std::unique_ptr<Render::BitmapFont> gaugeFont_;

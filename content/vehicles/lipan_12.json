@@ -34,7 +34,7 @@
    "width": 0.185,
    "steered": true,
    "driven": true,
-   "brakeTorque": 1500,
+   "brakeTorque": 1900,
    "handbrakeTorque": 0
   },
   {
@@ -48,7 +48,7 @@
    "width": 0.185,
    "steered": true,
    "driven": true,
-   "brakeTorque": 1500,
+   "brakeTorque": 1900,
    "handbrakeTorque": 0
   },
   {
@@ -62,7 +62,7 @@
    "width": 0.185,
    "steered": false,
    "driven": false,
-   "brakeTorque": 700,
+   "brakeTorque": 1000,
    "handbrakeTorque": 900
   },
   {
@@ -76,7 +76,7 @@
    "width": 0.185,
    "steered": false,
    "driven": false,
-   "brakeTorque": 700,
+   "brakeTorque": 1000,
    "handbrakeTorque": 900
   }
  ],
@@ -89,7 +89,7 @@
   "antiRollStiffness": 12000
  },
  "tyres": {
-  "peakFriction": 1.08,
+  "peakFriction": 1.12,
   "peakSlipRatio": 0.12,
   "peakSlipAngleDeg": 6.0,
   "shapeFactor": 1.6,
@@ -303,7 +303,7 @@
   "plate": "3S4 7182"
  },
  "dashboard": {
-  "speedometerMaxKmh": 260,
+  "speedometerMaxKmh": 420,
   "tachometerMaxRpm": 7000,
   "temperatureMinC": 50,
   "temperatureMaxC": 130

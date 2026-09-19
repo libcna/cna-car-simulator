@@ -167,3 +167,17 @@ TEST(RollingNoise, IsARoadRoarNotAHissAndStaysBelowTheEngineInTown)
     const float hiss = BandPower(town, 3000.0f, 6000.0f, 100.0f, from);
     EXPECT_LT(hiss, roar * 0.01f) << "the 3-6 kHz hiss band must sit at least 20 dB under the roar";
 }
+
+TEST(EngineSynth, IdleHasNoContinuousHighFrequencyHiss)
+{
+    EngineSynth synth(kRate);
+    EngineSoundInput idle;
+    idle.state = EngineSoundState::Running;
+    idle.rpm = 850.0f;
+    idle.load = 0.1f;
+    const auto sound = RenderSeconds(synth, idle, 1.0f);
+    const std::size_t from = sound.size() / 2;
+    const float engineBand = BandPower(sound, 30.0f, 300.0f, 10.0f, from);
+    const float hissBand = BandPower(sound, 3000.0f, 6000.0f, 100.0f, from);
+    EXPECT_LT(hissBand, engineBand * 0.01f);
+}

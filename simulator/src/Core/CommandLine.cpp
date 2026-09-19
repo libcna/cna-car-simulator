@@ -140,6 +140,10 @@ namespace CarSim::Core
                 options.showHelpOverlay = true;
             } else if (arg == "--debug-overlay") {
                 options.showDebugOverlay = true;
+            } else if (arg == "--map-overlay") {
+                options.showMapOverlay = true;
+            } else if (arg == "--flight") {
+                options.startFlight = true;
             } else if (arg == "--no-save") {
                 options.noSave = true;
             } else if (arg == "--save") {
@@ -298,6 +302,8 @@ namespace CarSim::Core
             "  --weather <name>      clear, cloudy, overcast or rain (the weather starts settled)\n"
             "  --help-overlay        Start with the help overlay open\n"
             "  --debug-overlay       Start with the debug overlay open\n"
+            "  --map-overlay         Start with the M map open\n"
+            "  --flight              Start in helicopter mode\n"
             "  --content <dir>       Content root directory\n"
             "  --vehicle <name>      Vehicle definition to drive\n"
             "  --map <name>          Map to load\n"

@@ -204,7 +204,9 @@ namespace CarSim::Render
     {
         CameraPose camera;
         camera.position = position;
-        const float radius = camera.farPlane * 0.85f;
+        // The mirror has a 320 m far plane. A full-size sky dome sits behind that plane and
+        // leaves its daytime-blue clear colour showing through at night.
+        const float radius = mirrored ? 260.0f : camera.farPlane * 0.85f;
 
         device.setDepthStencilStateProperty(DepthStencilState::None);
         device.setRasterizerStateProperty(RasterizerState::CullNone);

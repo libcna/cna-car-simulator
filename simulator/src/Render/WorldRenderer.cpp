@@ -85,6 +85,23 @@ namespace CarSim::Render
         treeEffect_->setFogStartProperty(rig.fogStart);
         treeEffect_->setFogEndProperty(rig.fogEnd);
 
+        headlightObjectEffect_ = std::make_unique<BasicEffect>(device);
+        headlightObjectEffect_->setLightingEnabledProperty(true);
+        headlightObjectEffect_->setTextureEnabledProperty(true);
+        headlightObjectEffect_->setVertexColorEnabledProperty(false);
+        headlightObjectEffect_->setAmbientLightColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        headlightObjectEffect_->getDirectionalLight0Property().setEnabledProperty(true);
+        headlightObjectEffect_->getDirectionalLight1Property().setEnabledProperty(false);
+        headlightObjectEffect_->getDirectionalLight2Property().setEnabledProperty(false);
+        headlightObjectEffect_->setFogEnabledProperty(true);
+        headlightObjectEffect_->setFogColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        headlightTreeEffect_ = std::make_unique<AlphaTestEffect>(device);
+        headlightTreeEffect_->setAlphaFunctionProperty(CompareFunction::Greater);
+        headlightTreeEffect_->setReferenceAlphaProperty(110);
+        headlightTreeEffect_->setVertexColorEnabledProperty(true);
+        headlightTreeEffect_->setFogEnabledProperty(true);
+        headlightTreeEffect_->setFogColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+
         // Wet-road sheen. Wet asphalt is dark under your wheels and a mirror at the far end of
         // the street, because the sky's reflection climbs with the grazing angle -- and down a
         // road, distance is the grazing angle. A BasicEffect's fog is a distance ramp, so a
@@ -165,6 +182,17 @@ namespace CarSim::Render
             treeEffect_->setFogStartProperty(rig_.fogStart);
             treeEffect_->setFogEndProperty(rig_.fogEnd);
         }
+    }
+
+    void WorldRenderer::SetHeadlights(const Vector3& position, const Vector3& forward,
+                                      const float intensity, const bool highBeam)
+    {
+        headlightPosition_ = position;
+        headlightForward_ = forward;
+        headlightForward_.Y = 0.0f;
+        if (headlightForward_.LengthSquared() > 1e-6f) headlightForward_.Normalize();
+        headlightIntensity_ = std::clamp(intensity, 0.0f, 1.0f);
+        headlightHighBeam_ = highBeam;
     }
 
     void WorldRenderer::BuildMacroTexture(GraphicsDevice& device, const Image& shadow, Image& tintOut)
@@ -900,6 +928,76 @@ namespace CarSim::Render
         }
     }
 
+    void WorldRenderer::DrawHeadlightFill(GraphicsDevice& device, const Matrix& view, const Matrix& projection,
+                                          const BoundingFrustum& frustum)
+    {
+        if (headlightIntensity_ <= 0.01f) return;
+        const float range = headlightHighBeam_ ? 275.0f : 165.0f;
+        const auto inBeam = [&](const BoundingSphere& sphere) {
+            const Vector3 delta = sphere.Center - headlightPosition_;
+            const float along = Vector3::Dot(delta, headlightForward_);
+            if (along + sphere.Radius < 0.0f || along - sphere.Radius > range) return false;
+            const float sideways = std::sqrt(std::max(0.0f, delta.X * delta.X + delta.Z * delta.Z - along * along));
+            return sideways < sphere.Radius + 5.0f + std::max(0.0f, along) * (headlightHighBeam_ ? 0.15f : 0.22f);
+        };
+        device.setBlendStateProperty(BlendState::Additive);
+        device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+
+        auto& object = *headlightObjectEffect_;
+        object.setWorldProperty(Matrix::getIdentityProperty());
+        object.setViewProperty(view);
+        object.setProjectionProperty(projection);
+        object.setFogStartProperty(10.0f);
+        object.setFogEndProperty(range);
+        object.setSpecularColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        auto& light = object.getDirectionalLight0Property();
+        light.setDirectionProperty(headlightForward_);
+        light.setDiffuseColorProperty((headlightHighBeam_ ? Vector3(0.72f, 0.70f, 0.63f) :
+                                                           Vector3(0.61f, 0.57f, 0.49f)) * headlightIntensity_);
+        light.setSpecularColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        for (const auto& batch : objectBatches_) {
+            if (!batch.mesh || !frustum.Intersects(batch.mesh->Sphere()) || !inBeam(batch.mesh->Sphere())) continue;
+            object.setTextureProperty(batch.texture);
+            object.setDiffuseColorProperty(batch.diffuse);
+            ApplyAll(object, device, *batch.mesh);
+            ++stats_.drawCalls;
+            stats_.triangles += batch.mesh->PrimitiveCount();
+        }
+
+        auto& trees = *headlightTreeEffect_;
+        trees.setWorldProperty(Matrix::getIdentityProperty());
+        trees.setViewProperty(view);
+        trees.setProjectionProperty(projection);
+        trees.setFogStartProperty(6.0f);
+        trees.setFogEndProperty(range);
+        trees.setDiffuseColorProperty((headlightHighBeam_ ? Vector3(0.40f, 0.39f, 0.34f) :
+                                                           Vector3(0.32f, 0.30f, 0.26f)) * headlightIntensity_);
+        device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        for (const auto& batch : treeBatches_) {
+            if (!batch.mesh || !frustum.Intersects(batch.mesh->Sphere()) || !inBeam(batch.mesh->Sphere())) continue;
+            trees.setTextureProperty(batch.texture);
+            ApplyAll(trees, device, *batch.mesh);
+            ++stats_.drawCalls;
+            stats_.triangles += batch.mesh->PrimitiveCount();
+        }
+        trees.setDiffuseColorProperty((headlightHighBeam_ ? Vector3(0.59f, 0.56f, 0.48f) :
+                                                           Vector3(0.50f, 0.46f, 0.39f)) * headlightIntensity_);
+        for (const auto& batch : signBatches_) {
+            if (!batch.mesh || !frustum.Intersects(batch.mesh->Sphere()) || !inBeam(batch.mesh->Sphere())) continue;
+            trees.setTextureProperty(batch.texture);
+            ApplyAll(trees, device, *batch.mesh);
+            ++stats_.drawCalls;
+            stats_.triangles += batch.mesh->PrimitiveCount();
+        }
+
+        device.setBlendStateProperty(BlendState::Opaque);
+        device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
+        device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+    }
+
     Texture2D* WorldRenderer::TextureFor(const Surface s) const
     {
         switch (s) {
@@ -1088,6 +1186,7 @@ namespace CarSim::Render
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
 
+        if (!mirrored) DrawHeadlightFill(device, view, projection, frustum);
         // Street lamp light last, so it adds on top of everything the pass has drawn.
         DrawLampLights(device, view, projection, frustum);
     }

@@ -18,6 +18,7 @@ namespace CarSim::Sim
         float clutchPedal = 0.0f;     // 1 = fully pressed (manual only)
         bool engineRunning = false;
         bool brakePressed = false;
+        float topGearRatioFactor = 1.0f; // gameplay boost stretches the highest ratio
     };
 
     enum class AutomaticSelector

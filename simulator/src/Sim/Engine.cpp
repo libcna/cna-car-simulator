@@ -18,6 +18,35 @@ namespace CarSim::Sim
         return "?";
     }
 
+    const char* ToString(const TurboMode mode)
+    {
+        switch (mode) {
+            case TurboMode::Off: return "Off";
+            case TurboMode::Turbo: return "Turbo";
+            case TurboMode::Ultra: return "Ultra turbo";
+        }
+        return "?";
+    }
+
+    void Engine::CycleTurboMode()
+    {
+        switch (turboMode_) {
+            case TurboMode::Off: turboMode_ = TurboMode::Turbo; break;
+            case TurboMode::Turbo: turboMode_ = TurboMode::Ultra; break;
+            case TurboMode::Ultra: turboMode_ = TurboMode::Off; break;
+        }
+    }
+
+    float Engine::PowerMultiplier() const
+    {
+        switch (turboMode_) {
+            case TurboMode::Off: return 1.0f;
+            case TurboMode::Turbo: return 2.0f;
+            case TurboMode::Ultra: return 5.0f;
+        }
+        return 1.0f;
+    }
+
     Engine::Engine(const EngineDefinition& definition)
         : def_(definition),
           crankSecondsTarget_(definition.starter.crankSeconds)
@@ -91,7 +120,7 @@ namespace CarSim::Sim
 
     float Engine::MaxTorqueAtCurrentRpm() const
     {
-        return std::max(0.0f, def_.torqueCurve.Evaluate(Rpm())) * (turboEnabled_ ? 2.0f : 1.0f);
+        return std::max(0.0f, def_.torqueCurve.Evaluate(Rpm())) * PowerMultiplier();
     }
 
     float Engine::CombustionTorque(const float effectiveThrottle) const

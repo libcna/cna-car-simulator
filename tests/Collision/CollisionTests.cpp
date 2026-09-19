@@ -224,3 +224,76 @@ TEST(CollisionWorld, VehicleStopsAgainstAParkedCar)
     ASSERT_FALSE(rig.events.empty());
     EXPECT_EQ(rig.events.front().kind, ColliderKind::Vehicle);
 }
+
+TEST(CollisionWorld, HelicopterStopsAtBuildingButCanFlyAboveIt)
+{
+    Sim::VehicleDefinition def = Sim::MakeReferenceVehicle();
+    Sim::FlatGround ground(0.0f);
+    CollisionWorld world;
+    StaticCollider house;
+    house.kind = ColliderKind::Building;
+    house.box = Obb::FromHeading(Vector3(0.0f, 4.0f, -12.0f), Vector3(4.0f, 4.0f, 2.0f), 0.0f);
+    house.centre = house.box.centre;
+    house.boundingRadius = house.box.BoundingRadius();
+    world.AddStatic(house);
+    world.Finish();
+
+    const auto fly = [&](const float startHeight) {
+        Sim::Vehicle helicopter(def, Sim::TransmissionMode::Automatic);
+        helicopter.PlaceAt(Vector3(0.0f, startHeight, 0.0f), 0.0f);
+        Sim::DriverControls controls;
+        controls.toggleFlight = true;
+        helicopter.Update(controls, 1.0f / 60.0f, ground);
+        controls.toggleFlight = false;
+        controls.throttle = 1.0f;
+        std::vector<ContactEvent> events;
+        for (int frame = 0; frame < 240; ++frame) {
+            const Vector3 previous = helicopter.OriginPosition();
+            helicopter.Update(controls, 1.0f / 60.0f, ground);
+            world.ResolveFlight(helicopter, previous, events);
+        }
+        return std::pair{helicopter.OriginPosition(), events};
+    };
+
+    const auto [blocked, contacts] = fly(0.0f);
+    EXPECT_GT(blocked.Z, -6.6f);
+    ASSERT_FALSE(contacts.empty());
+    EXPECT_EQ(contacts.front().kind, ColliderKind::Building);
+
+    const auto [above, overheadContacts] = fly(14.0f);
+    EXPECT_LT(above.Z, -20.0f);
+    EXPECT_TRUE(overheadContacts.empty());
+}
+
+TEST(CollisionWorld, UltraHelicopterDoesNotPassThroughThinWall)
+{
+    Sim::Vehicle helicopter(Sim::MakeReferenceVehicle(), Sim::TransmissionMode::Automatic);
+    Sim::FlatGround ground(0.0f);
+    CollisionWorld world;
+    StaticCollider wall;
+    wall.kind = ColliderKind::Wall;
+    wall.box = Obb::FromHeading(Vector3(0.0f, 4.0f, -8.0f), Vector3(5.0f, 4.0f, 0.08f), 0.0f);
+    wall.centre = wall.box.centre;
+    wall.boundingRadius = wall.box.BoundingRadius();
+    world.AddStatic(wall);
+    world.Finish();
+    helicopter.PlaceAt(Vector3(0.0f, 0.0f, 0.0f), 0.0f);
+    Sim::DriverControls controls;
+    controls.toggleFlight = true;
+    helicopter.Update(controls, 1.0f / 60.0f, ground);
+    controls.toggleFlight = false;
+    controls.toggleTurbo = true;
+    helicopter.Update(controls, 1.0f / 60.0f, ground);
+    helicopter.Update(controls, 1.0f / 60.0f, ground);
+    controls.toggleTurbo = false;
+    controls.throttle = 1.0f;
+    helicopter.Body().SetLinearVelocity(Vector3(0.0f, 0.0f, -111.0f));
+    std::vector<ContactEvent> events;
+    for (int frame = 0; frame < 12; ++frame) {
+        const Vector3 previous = helicopter.OriginPosition();
+        helicopter.Update(controls, 1.0f / 60.0f, ground);
+        world.ResolveFlight(helicopter, previous, events);
+    }
+    EXPECT_GT(helicopter.OriginPosition().Z, -4.5f);
+    EXPECT_FALSE(events.empty());
+}

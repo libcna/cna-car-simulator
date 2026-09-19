@@ -40,6 +40,8 @@ namespace CarSim::Input
             case GameAction::HighBeam: return "HighBeam";
             case GameAction::ToggleCamera: return "ToggleCamera";
             case GameAction::ToggleFullscreen: return "ToggleFullscreen";
+            case GameAction::ToggleMap: return "ToggleMap";
+            case GameAction::ToggleFlight: return "ToggleFlight";
             case GameAction::ToggleHelp: return "ToggleHelp";
             case GameAction::ToggleDebug: return "ToggleDebug";
             case GameAction::Screenshot: return "Screenshot";
@@ -70,7 +72,7 @@ namespace CarSim::Input
             case GameAction::Handbrake: return "Handbrake";
             case GameAction::Horn: return "Horn";
             case GameAction::ToggleEngine: return "Start / stop engine";
-            case GameAction::ToggleTurbo: return "Toggle turbo (2x power)";
+            case GameAction::ToggleTurbo: return "Cycle turbo: off / turbo / ultra";
             case GameAction::ShiftUp: return "Gear up / selector up";
             case GameAction::ShiftDown: return "Gear down / selector down";
             case GameAction::GearNeutral: return "Neutral";
@@ -88,9 +90,11 @@ namespace CarSim::Input
             case GameAction::IndicatorRight: return "Right indicator";
             case GameAction::Hazard: return "Hazard lights";
             case GameAction::Headlights: return "Headlights";
-            case GameAction::HighBeam: return "High beam";
+            case GameAction::HighBeam: return "Low / high beam";
             case GameAction::ToggleCamera: return "Cockpit / exterior camera";
             case GameAction::ToggleFullscreen: return "Toggle full screen";
+            case GameAction::ToggleMap: return "Show / hide map";
+            case GameAction::ToggleFlight: return "Car / helicopter flight";
             case GameAction::ToggleHelp: return "Help";
             case GameAction::ToggleDebug: return "Debug overlay";
             case GameAction::Screenshot: return "Screenshot";
@@ -129,7 +133,7 @@ namespace CarSim::Input
             {GameAction::Gear1, Keys::D1}, {GameAction::Gear2, Keys::D2}, {GameAction::Gear3, Keys::D3},
             {GameAction::Gear4, Keys::D4}, {GameAction::Gear5, Keys::D5}, {GameAction::Gear6, Keys::D6},
             {GameAction::SelectorPark, Keys::P},
-            {GameAction::SelectorDrive, Keys::F},
+            {GameAction::SelectorDrive, Keys::G},
             {GameAction::ToggleTransmission, Keys::T},
             {GameAction::IndicatorLeft, Keys::OemComma},
             {GameAction::IndicatorRight, Keys::OemPeriod},
@@ -138,6 +142,8 @@ namespace CarSim::Input
             {GameAction::HighBeam, Keys::K},
             {GameAction::ToggleCamera, Keys::C},
             {GameAction::ToggleFullscreen, Keys::F11},
+            {GameAction::ToggleMap, Keys::M},
+            {GameAction::ToggleFlight, Keys::F},
             {GameAction::ToggleHelp, Keys::F1},
             {GameAction::ToggleDebug, Keys::F3},
             {GameAction::Screenshot, Keys::F12},
@@ -146,7 +152,7 @@ namespace CarSim::Input
             {GameAction::Quit, Keys::Escape},
             {GameAction::VolumeUp, Keys::PageUp},
             {GameAction::VolumeDown, Keys::PageDown},
-            {GameAction::ToggleMirror, Keys::M},
+            {GameAction::ToggleMirror, Keys::V},
             {GameAction::ToggleHud, Keys::Tab},
             {GameAction::TimeForward, Keys::F7},
             {GameAction::TimeBackward, Keys::F6},
@@ -207,6 +213,9 @@ namespace CarSim::Input
         c.horn = Held(GameAction::Horn);
         c.toggleEngine = Pressed(GameAction::ToggleEngine);
         c.toggleTurbo = Pressed(GameAction::ToggleTurbo);
+        c.toggleFlight = Pressed(GameAction::ToggleFlight);
+        c.flightClimb = Held(GameAction::Handbrake);
+        c.flightDescend = Held(GameAction::Clutch);
         c.shiftUp = Pressed(GameAction::ShiftUp);
         c.shiftDown = Pressed(GameAction::ShiftDown);
         c.toggleTransmissionMode = Pressed(GameAction::ToggleTransmission);

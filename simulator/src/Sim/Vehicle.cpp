@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 
 namespace CarSim::Sim
 {
@@ -156,23 +157,78 @@ namespace CarSim::Sim
 
     void Vehicle::Update(const DriverControls& controls, const float frameDt, const GroundSurface& ground)
     {
+        if (controls.toggleFlight) {
+            flightMode_ = !flightMode_;
+            if (flightMode_) {
+                const Vector3 origin = OriginPosition();
+                const float lift = std::max(2.5f, ground.HeightAt(origin.X, origin.Z) + 2.5f - origin.Y);
+                body_.SetPosition(body_.Position() + Vector3(0.0f, lift, 0.0f));
+                body_.SetLinearVelocity(Vector3(0.0f, 0.0f, 0.0f));
+                body_.SetAngularVelocity(Vector3(0.0f, 0.0f, 0.0f));
+                body_.ClearAccumulators();
+                flightYaw_ = std::atan2(-body_.Forward().X, -body_.Forward().Z);
+                for (auto& wheel : wheels_) wheel.grounded = false;
+            } else {
+                const Vector3 origin = OriginPosition();
+                PlaceAt(Vector3(origin.X, ground.HeightAt(origin.X, origin.Z), origin.Z), flightYaw_);
+            }
+        }
         ApplyDiscreteControls(controls);
         const float clamped = std::clamp(frameDt, 0.0f, 0.25f);
         accumulator_ += clamped;
         int steps = 0;
         while (accumulator_ >= kPhysicsStepSeconds && steps < 30) {
-            UpdatePedals(controls, kPhysicsStepSeconds);
-            StepPhysics(kPhysicsStepSeconds, ground);
+            if (flightMode_) {
+                StepFlight(controls, kPhysicsStepSeconds, ground);
+            } else {
+                UpdatePedals(controls, kPhysicsStepSeconds);
+                StepPhysics(kPhysicsStepSeconds, ground);
+            }
             accumulator_ -= kPhysicsStepSeconds;
             ++steps;
         }
+    }
+
+    void Vehicle::StepFlight(const DriverControls& controls, const float dt, const GroundSurface& ground)
+    {
+        const TurboMode mode = engine_.TurboSetting();
+        const float maxSpeed = mode == TurboMode::Ultra ? 111.0f : mode == TurboMode::Turbo ? 69.0f : 36.0f;
+        const float acceleration = mode == TurboMode::Ultra ? 42.0f : mode == TurboMode::Turbo ? 22.0f : 10.0f;
+        const float climbSpeed = mode == TurboMode::Ultra ? 35.0f : mode == TurboMode::Turbo ? 20.0f : 10.0f;
+        flightYaw_ -= std::clamp(controls.steering, -1.0f, 1.0f) * 1.4f * dt;
+        body_.SetOrientation(Quaternion::CreateFromAxisAngle(Vector3::Up, flightYaw_));
+        const Vector3 desired = body_.Forward() * ((std::clamp(controls.throttle, 0.0f, 1.0f) -
+                                                     std::clamp(controls.brake, 0.0f, 1.0f)) * maxSpeed);
+        Vector3 velocity = body_.LinearVelocity();
+        Vector3 horizontal(velocity.X, 0.0f, velocity.Z);
+        Vector3 change = desired - horizontal;
+        const float changeLength = change.Length();
+        if (changeLength > acceleration * dt) change = change * (acceleration * dt / changeLength);
+        horizontal = horizontal + change;
+        const float verticalTarget = (controls.flightClimb ? climbSpeed : 0.0f) -
+                                     (controls.flightDescend ? climbSpeed : 0.0f);
+        velocity = Vector3(horizontal.X, std::clamp(verticalTarget - velocity.Y, -acceleration * dt, acceleration * dt) + velocity.Y,
+                           horizontal.Z);
+        Vector3 position = body_.Position() + velocity * dt;
+        const Vector3 origin = OriginPosition();
+        const float floor = ground.HeightAt(origin.X, origin.Z) + 1.8f;
+        const float originHeight = origin.Y + velocity.Y * dt;
+        if (originHeight < floor) {
+            position.Y += floor - originHeight;
+            velocity.Y = std::max(0.0f, velocity.Y);
+        }
+        body_.SetPosition(position);
+        body_.SetLinearVelocity(velocity);
+        rotorAngle_ = std::fmod(rotorAngle_ + dt * (mode == TurboMode::Ultra ? 43.0f : mode == TurboMode::Turbo ? 33.0f : 25.0f),
+                                2.0f * std::numbers::pi_v<float>);
+        lastSpeedMs_ = Vector3::Dot(velocity, body_.Forward());
     }
 
     void Vehicle::ApplyDiscreteControls(const DriverControls& controls)
     {
         startRefused_ = false;
         if (controls.toggleTurbo) {
-            engine_.SetTurboEnabled(!engine_.TurboEnabled());
+            engine_.CycleTurboMode();
         }
         if (controls.toggleTransmissionMode) {
             SetTransmissionMode(transmission_->Mode() == TransmissionMode::Manual ? TransmissionMode::Automatic
@@ -245,7 +301,7 @@ namespace CarSim::Sim
         const float throttleTarget = std::clamp(controls.throttle, 0.0f, 1.0f);
         throttlePedal_ = MoveToward(throttlePedal_, throttleTarget, (throttleTarget > throttlePedal_ ? 4.0f : 8.0f) * dt);
         const float brakeTarget = std::clamp(controls.brake, 0.0f, 1.0f);
-        brakePedal_ = MoveToward(brakePedal_, brakeTarget, (brakeTarget > brakePedal_ ? 10.0f : 8.0f) * dt);
+        brakePedal_ = MoveToward(brakePedal_, brakeTarget, (brakeTarget > brakePedal_ ? 16.0f : 8.0f) * dt);
         // Clutch: pressed quickly; released quickly down to the bite point, then eased through
         // the engagement band the way a driver's foot does: the release slows to a trickle while
         // the clutch would demand more torque than the engine can give, and resumes once the
@@ -261,7 +317,7 @@ namespace CarSim::Sim
                     // Do not let the clutch demand more than the engine can deliver: release
                     // down to the bite point for the available torque, then only trickle.
                     const float available = std::max(0.0f, engine_.NetTorque(throttlePedal_));
-                    const float floor = clutch_.PedalForCapacity(available * 0.9f / (engine_.TurboEnabled() ? 2.0f : 1.0f));
+                    const float floor = clutch_.PedalForCapacity(available * 0.9f / engine_.PowerMultiplier());
                     if (clutchPedal_ - clutchRate * dt <= floor) {
                         clutchRate = engine_.Rpm() > def_.engine.idleRpm + 300.0f ? 0.01f : 0.0f;
                     }
@@ -382,7 +438,7 @@ namespace CarSim::Sim
 
     float Vehicle::CouplingCapacity() const
     {
-        const float multiplier = engine_.TurboEnabled() ? 2.0f : 1.0f;
+        const float multiplier = engine_.PowerMultiplier();
         if (transmission_->Mode() == TransmissionMode::Manual) {
             return clutch_.Capacity(clutchPedal_) * multiplier;
         }
@@ -461,7 +517,14 @@ namespace CarSim::Sim
 
         // Brake torque opposes rotation; when the wheel is (nearly) stopped it opposes the
         // torque that would start it turning (static friction).
-        float torque = driveTorque;
+        // Ultra turbo overwhelms the driven tyres in the lower gears. Its traction controller
+        // trims delivered wheel torque near the available grip so the added engine power becomes
+        // acceleration instead of sustained wheelspin.
+        const float tractionCap = load * f0.friction * radius * 0.93f;
+        const float usableDriveTorque = engine_.TurboSetting() == TurboMode::Ultra && driveTorque > tractionCap
+                                            ? tractionCap : driveTorque;
+        w.driveTorque = usableDriveTorque;
+        float torque = usableDriveTorque;
         float brakeApplied = 0.0f;
         if (brakeTorqueMax > 0.0f) {
             const float direction = std::fabs(w.spinVelocity) > 0.05f ? Sign(w.spinVelocity) : Sign(driveTorque + vLong);
@@ -538,10 +601,13 @@ namespace CarSim::Sim
             transmission_->Mode() == TransmissionMode::Automatic && transmission_->IsShifting();
         const float driverThrottle = automaticShift ? 0.0f : throttlePedal_;
         const bool fuel = fuel_.HasFuel();
-        // Turbo adds a taller top gear so the doubled output can reach 250 km/h before the
-        // stock engine's limiter. Lower gears retain their launch and overtaking leverage.
-        const bool turboTopGear = engine_.TurboEnabled() && transmission_->Gear() == transmission_->ForwardGearCount();
-        const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio() * (turboTopGear ? 0.88f : 1.0f);
+        // Taller top gearing lets the extra output reach the requested speeds before the
+        // stock engine's limiter. Lower gears keep their launch and overtaking leverage.
+        const bool topGear = transmission_->Gear() == transmission_->ForwardGearCount();
+        const float topGearFactor = !topGear ? 1.0f :
+            engine_.TurboSetting() == TurboMode::Ultra ? 0.53f :
+            engine_.TurboSetting() == TurboMode::Turbo ? 0.88f : 1.0f;
+        const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio() * topGearFactor;
         const bool engaged = std::fabs(ratio) > 1e-3f && !drivenWheels_.empty();
         const float capacity = engaged ? CouplingCapacity() : 0.0f;
         const float efficiency = def_.gearbox.efficiency;
@@ -616,9 +682,10 @@ namespace CarSim::Sim
         const Vector3 v = body_.LinearVelocity();
         const float speed = v.Length();
         if (speed > 0.01f) {
-            // The turbo gameplay mode also trims aerodynamic drag, which otherwise limits this
-            // small hatchback well below 250 km/h even with twice the engine output.
-            const float drag = c.dragCoefficient * (engine_.TurboEnabled() ? 0.65f : 1.0f);
+            // These gameplay modes trim drag so the extra power reaches their target speeds.
+            const float dragFactor = engine_.TurboSetting() == TurboMode::Ultra ? 0.40f :
+                                     engine_.TurboSetting() == TurboMode::Turbo ? 0.65f : 1.0f;
+            const float drag = c.dragCoefficient * dragFactor;
             const float dragMagnitude = 0.5f * Units::kAirDensity * drag * c.frontalAreaM2 * speed * speed;
             body_.ApplyCentralForce(v * (-dragMagnitude / speed));
         }
@@ -656,6 +723,8 @@ namespace CarSim::Sim
         context.clutchPedal = clutchPedal_;
         context.engineRunning = engine_.IsRunning();
         context.brakePressed = brakePedal_ > 0.1f;
+        context.topGearRatioFactor = engine_.TurboSetting() == TurboMode::Ultra ? 0.53f :
+                                     engine_.TurboSetting() == TurboMode::Turbo ? 0.88f : 1.0f;
         transmission_->Step(context);
 
         ResolveDriveline(dt);
@@ -685,13 +754,15 @@ namespace CarSim::Sim
         s.engineLoad = std::clamp(engine_.LoadFraction(), 0.0f, 1.0f);
         s.engineState = engine_.State();
         s.ignitionOn = engine_.IgnitionOn();
-        s.turboEnabled = engine_.TurboEnabled();
+        s.turboMode = engine_.TurboSetting();
+        s.flightMode = flightMode_;
+        s.rotorAngle = rotorAngle_;
         s.throttlePedal = throttlePedal_;
         s.brakePedal = brakePedal_;
         s.clutchPedal = clutchPedal_;
         s.handbrake = handbrake_;
         s.steeringWheelAngle = SteeringWheelAngle();
-        s.gearLabel = transmission_->DisplayLabel();
+        s.gearLabel = flightMode_ ? "FLIGHT" : transmission_->DisplayLabel();
         s.gear = transmission_->Gear();
         s.transmissionMode = transmission_->Mode();
         s.fuelLiters = fuel_.Liters();
@@ -705,8 +776,8 @@ namespace CarSim::Sim
         s.leftIndicatorLit = electrics_.LeftIndicatorLit();
         s.rightIndicatorLit = electrics_.RightIndicatorLit();
         s.indicatorMode = electrics_.Indicator();
-        s.lowBeam = electrics_.LowBeamOn();
-        s.highBeam = electrics_.HighBeamOn();
+        s.lowBeam = flightMode_ || electrics_.LowBeamOn();
+        s.highBeam = flightMode_ ? electrics_.Headlights() == HeadlightMode::High : electrics_.HighBeamOn();
         s.brakeLights = engine_.IgnitionOn() && brakePedal_ > 0.05f;
         s.reverseLights = engine_.IgnitionOn() && (transmission_->IsShifting() ? transmission_->TargetGear() : transmission_->Gear()) < 0;
         s.horn = electrics_.Horn();

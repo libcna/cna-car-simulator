@@ -42,6 +42,8 @@ namespace CarSim::Core
         std::optional<std::string> quality;  // graphics tier: low / medium / high
         bool showHelpOverlay = false;   // start with the F1 help overlay open (captures)
         bool showDebugOverlay = false;  // start with the F3 debug overlay open
+        bool showMapOverlay = false;    // start with the M map open (captures)
+        bool startFlight = false;       // start as a helicopter (captures)
 
         /// Save file override; empty = DefaultSavePath(). `--no-save` disables loading and saving.
         std::string savePath;

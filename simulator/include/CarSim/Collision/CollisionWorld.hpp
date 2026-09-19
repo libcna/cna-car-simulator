@@ -74,6 +74,11 @@ namespace CarSim::Collision
         /// Resolves the vehicle against every static collider it touches. Appends events.
         void ResolveVehicle(Sim::Vehicle& vehicle, std::vector<ContactEvent>& events) const;
 
+        /// Sweeps the helicopter hull, tail and rotor from the previous origin to the current
+        /// one, stopping at static geometry. This also prevents fast flight from crossing walls.
+        void ResolveFlight(Sim::Vehicle& vehicle, const Microsoft::Xna::Framework::Vector3& previousOrigin,
+                           std::vector<ContactEvent>& events) const;
+
         /// Resolves two physics vehicles against each other.
         void ResolveVehiclePair(Sim::Vehicle& a, Sim::Vehicle& b, std::vector<ContactEvent>& events) const;
 

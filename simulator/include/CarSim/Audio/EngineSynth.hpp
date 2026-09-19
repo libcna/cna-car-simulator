@@ -1,5 +1,5 @@
 // Procedural engine sound: phase-continuous harmonic bank driven by engine speed and load,
-// exhaust pulse train at the firing frequency, intake hiss, valve-train whine and the starter.
+// exhaust pulse train at the firing frequency, valve-train whine and the starter.
 // Pure DSP (no audio device); rendered into float buffers by the vehicle audio mixer.
 #pragma once
 
@@ -56,7 +56,6 @@ namespace CarSim::Audio
         std::array<Pulse, 6> pulses_{};
         int nextPulse_ = 0;
         std::uint32_t noiseState_ = 0x9E3779B9u;
-        float hissLp_ = 0.0f;
         float rumbleLp_ = 0.0f;
         float gain_ = 0.0f;            // master fade for off/stalled
         EngineSoundInput previous_{};

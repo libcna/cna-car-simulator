@@ -48,6 +48,9 @@ namespace CarSim::Render
         /// colours and the tree cards carry lighting baked under `LightingRig::BakeReference()`,
         /// so they are scaled by the ratio between the two rigs instead of being re-baked.
         void ApplyLighting();
+        /// Positions the player's headlamp fill on nearby vertical scenery for the next draw.
+        void SetHeadlights(const Microsoft::Xna::Framework::Vector3& position,
+                           const Microsoft::Xna::Framework::Vector3& forward, float intensity, bool highBeam);
 
         WorldRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world,
                       const BitmapFont* signFont);
@@ -113,6 +116,10 @@ namespace CarSim::Render
                             const Microsoft::Xna::Framework::Matrix& view,
                             const Microsoft::Xna::Framework::Matrix& projection,
                             const Microsoft::Xna::Framework::BoundingFrustum& frustum);
+        void DrawHeadlightFill(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
+                               const Microsoft::Xna::Framework::Matrix& view,
+                               const Microsoft::Xna::Framework::Matrix& projection,
+                               const Microsoft::Xna::Framework::BoundingFrustum& frustum);
         void BuildSigns(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const BitmapFont* font);
         void BuildTrees(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
         void BuildTerrain(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
@@ -154,6 +161,12 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
 
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::AlphaTestEffect> treeEffect_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> headlightObjectEffect_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::AlphaTestEffect> headlightTreeEffect_;
+        Microsoft::Xna::Framework::Vector3 headlightPosition_{};
+        Microsoft::Xna::Framework::Vector3 headlightForward_{0.0f, 0.0f, -1.0f};
+        float headlightIntensity_ = 0.0f;
+        bool headlightHighBeam_ = false;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> glowEffect_;        // unlit, additive: street lamp light
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> glowTexture_;         // radial falloff
         std::vector<std::unique_ptr<GpuMesh>> lampLights_;                                    // one mesh per chunk

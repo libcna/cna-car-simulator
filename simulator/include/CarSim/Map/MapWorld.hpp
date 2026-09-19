@@ -31,7 +31,7 @@ namespace CarSim::Map
         MapGround(const RoadNetwork& roads, const TerrainField& terrain) : roads_(roads), terrain_(terrain) {}
 
         [[nodiscard]] SurfaceSample Sample(float x, float z) const;
-        [[nodiscard]] float HeightAt(float x, float z) const { return Sample(x, z).height; }
+        [[nodiscard]] float HeightAt(float x, float z) const override { return Sample(x, z).height; }
         [[nodiscard]] Microsoft::Xna::Framework::Vector3 NormalAt(float x, float z) const;
 
         [[nodiscard]] bool Raycast(const Microsoft::Xna::Framework::Vector3& origin,

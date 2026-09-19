@@ -81,11 +81,8 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> vent_;
     };
 
-    /// Brightness of the headlamp pool on the road at a point in beam coordinates:
-    /// `along` 0 at the near edge of the pool and 1 at its far edge, `across` -1 at the left edge
-    /// and +1 at the right. A dipped beam puts a broad sheet of light on the road with the hot
-    /// band about half way out, kicked towards the near verge; a main beam is symmetric and
-    /// reaches further. Pulled out of the renderer so the shape can be tested without a device.
+    /// Brightness of one headlamp beam in normalized ground coordinates. Dipped beams have a
+    /// rightward kick and a soft cutoff; main beams are symmetric. Kept separate for tests.
     [[nodiscard]] float HeadlampBeamFalloff(float along, float across, bool highBeam);
 
     /// Ground surface queries (world x, z) used to drape shadows over roads, kerbs and terrain.
@@ -166,6 +163,10 @@ namespace CarSim::Render
         };
 
         void Upload(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        void UploadHelicopter(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
+        void DrawHelicopter(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
+                            const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
+                            bool mirrored);
         [[nodiscard]] Microsoft::Xna::Framework::Matrix PartWorld(const CarPart& part, const Sim::VehicleState& state,
                                                                   const GaugePose& gauges) const;
         [[nodiscard]] static bool IsInteriorPart(const CarPart& part);
@@ -180,12 +181,19 @@ namespace CarSim::Render
         static constexpr int kShadowVertexCapacity = 1536;   // 48 contact + up to 165 hull vertices x 9
 
         std::vector<GpuPart> parts_;
+        struct HelicopterPart
+        {
+            std::unique_ptr<GpuMesh> mesh;
+            Microsoft::Xna::Framework::Vector3 color{1.0f, 1.0f, 1.0f};
+            int rotor = 0; // 0 static, 1 main rotor, 2 tail rotor
+        };
+        std::vector<HelicopterPart> helicopterParts_;
         std::vector<ShadowCaster> casters_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> shadowVertices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> shadowIndices_;
-        static constexpr int kPoolCellsAlong = 12;
-        static constexpr int kPoolCellsAcross = 10;
-        static constexpr int kPoolVertexCapacity = kPoolCellsAlong * kPoolCellsAcross * 6;
+        static constexpr int kPoolCellsAlong = 24;
+        static constexpr int kPoolCellsAcross = 14;
+        static constexpr int kPoolVertexCapacity = 2 * kPoolCellsAlong * kPoolCellsAcross * 6;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> poolVertices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> poolIndices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> paintDetail_;

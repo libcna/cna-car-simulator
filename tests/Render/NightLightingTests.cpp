@@ -96,7 +96,8 @@ TEST(NightLighting, TheHeadlampPoolLightsTheRoadAndFadesAtItsEdges)
         }
         // It is still useful two thirds of the way out, and monotonically dying after the band.
         EXPECT_GT(HeadlampBeamFalloff(0.65f, 0.0f, high), 0.25f);
-        EXPECT_GT(HeadlampBeamFalloff(0.60f, 0.0f, high), HeadlampBeamFalloff(0.80f, 0.0f, high));
+        EXPECT_GT(HeadlampBeamFalloff(high ? 0.84f : 0.60f, 0.0f, high),
+                  HeadlampBeamFalloff(high ? 0.92f : 0.80f, 0.0f, high));
         EXPECT_GT(HeadlampBeamFalloff(0.80f, 0.0f, high), HeadlampBeamFalloff(0.95f, 0.0f, high));
     }
     // The dipped beam is brighter to the right of centre than to the left at the same offset:

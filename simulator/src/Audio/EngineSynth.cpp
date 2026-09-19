@@ -32,7 +32,7 @@ namespace CarSim::Audio
         crankPhase_ = whinePhase_ = starterPhase_ = resonancePhase_ = 0.0;
         for (auto& p : pulses_) p.age = 1e9f;
         gain_ = 0.0f;
-        hissLp_ = rumbleLp_ = 0.0f;
+        rumbleLp_ = 0.0f;
         primed_ = false;
     }
 
@@ -61,8 +61,6 @@ namespace CarSim::Audio
         const float loadPrev = std::clamp(previous_.load, 0.0f, 1.0f);
         const float rpmPrev = std::max(0.0f, previous_.rpm);
         const float rpmTarget = std::max(0.0f, target.rpm);
-        const float thrPrev = std::clamp(previous_.throttle, 0.0f, 1.0f);
-        const float thrTarget = std::clamp(target.throttle, 0.0f, 1.0f);
         const int cylinders = std::max(1, target.cylinders);
         const float firePerRev = static_cast<float>(cylinders) * 0.5f;
         const float nyquist = 0.45f * static_cast<float>(sampleRate_);
@@ -71,7 +69,6 @@ namespace CarSim::Audio
             const float t = frames > 1 ? static_cast<float>(i) / static_cast<float>(frames - 1) : 1.0f;
             const float rpm = rpmPrev + (rpmTarget - rpmPrev) * t;
             const float load = loadPrev + (loadTarget - loadPrev) * t;
-            const float throttle = thrPrev + (thrTarget - thrPrev) * t;
             gain_ += std::clamp(targetGain - gain_, -gainRate, gainRate);
 
             const double f0 = static_cast<double>(rpm) / 60.0;
@@ -107,19 +104,18 @@ namespace CarSim::Audio
             for (auto& p : pulses_) {
                 if (p.age < 4.0f * tau) {
                     const float env = std::exp(-p.age / tau);
-                    pulses += env * (0.55f * NextNoise() + 0.8f * std::sin(static_cast<float>(resonancePhase_) * kTwoPi + p.age * 40.0f));
+                    pulses += env * (0.24f * NextNoise() + 0.8f * std::sin(static_cast<float>(resonancePhase_) * kTwoPi + p.age * 40.0f));
                 }
                 p.age += dt;
             }
             pulses *= 0.25f + 0.75f * load;
 
-            // Intake hiss grows with throttle; valve-train whine with speed.
-            hissLp_ += (NextNoise() - hissLp_) * std::min(1.0f, kTwoPi * 2200.0f * dt);
-            const float hiss = hissLp_ * (0.03f + 0.10f * throttle);
+            // The former continuous broadband intake layer hissed even at idle. The exhaust
+            // pulses already provide the irregular texture; keep the sustained engine tonal.
             whinePhase_ += f0 * 7.5 * dt;
             const float whine = 0.045f * std::min(1.0f, rpm / 6000.0f) * std::sin(static_cast<float>(std::fmod(whinePhase_, 1.0)) * kTwoPi);
 
-            float sample = harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.22f + hiss + whine;
+            float sample = harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.22f + whine;
 
             // Starter motor: whine with a slow wobble while cranking.
             if (target.state == EngineSoundState::Starting) {

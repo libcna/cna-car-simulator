@@ -58,4 +58,9 @@ TEST(Electrics, HeadlightModesNeedIgnition)
     e.ToggleHeadlights();
     e.Step(0.01f, true);
     EXPECT_FALSE(e.LowBeamOn());
+    e.ToggleHighBeam();
+    EXPECT_TRUE(e.HighBeamOn());
+    e.ToggleHighBeam();
+    EXPECT_TRUE(e.LowBeamOn());
+    EXPECT_FALSE(e.HighBeamOn());
 }

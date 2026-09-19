@@ -5,6 +5,7 @@
 #include "CarSim/Map/MapWorld.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <unordered_set>
@@ -61,6 +62,19 @@ namespace CarSim::Collision
             const Vector3 right(-fwd.Z, 0.0f, fwd.X);
             return right * local.X + Vector3(0.0f, local.Y, 0.0f) + fwd * local.Z;
         }
+
+        std::array<Obb, 3> FlightBoxes(const Sim::Vehicle& vehicle, const Vector3& origin)
+        {
+            const Sim::RigidBody& body = vehicle.Body();
+            const auto part = [&](const Vector3& localCentre, const Vector3& half) {
+                return Obb::FromRotation(origin + body.ToWorldDirection(localCentre), body.Rotation(), half);
+            };
+            return {
+                part(Vector3(0.0f, 0.05f, -0.1f), Vector3(0.85f, 1.05f, 2.0f)),
+                part(Vector3(0.0f, 0.18f, 2.9f), Vector3(0.25f, 0.48f, 1.65f)),
+                part(Vector3(0.0f, 1.55f, -0.25f), Vector3(3.4f, 0.08f, 3.4f)),
+            };
+        }
     }
 
     void CollisionWorld::Clear()
@@ -99,7 +113,7 @@ namespace CarSim::Collision
         Clear();
         const auto& objects = world.Objects();
         for (const auto& b : objects.Buildings()) {
-            const float top = b.height + b.roofHeight * 0.6f;
+            const float top = b.height + b.roofHeight;
             const float bottom = -b.foundationDrop;
             const Vector3 centre = b.position + Vector3(0.0f, 0.5f * (top + bottom), 0.0f);
             // The generator's local +z is the facade; FromHeading uses the same convention.
@@ -130,6 +144,8 @@ namespace CarSim::Collision
                             AddStatic(CylinderCollider(ColliderKind::Post, p.position + Offset(p.headingRad, Vector3(cx, -0.1f, cz)), 0.26f, 4.6f));
                         }
                     }
+                    AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 4.85f, 0.0f),
+                                          Vector3(7.1f, 0.28f, 5.1f), p.headingRad));
                     break;
                 case PropType::FuelPump:
                     AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 0.9f, 0.0f), Vector3(0.55f, 0.95f, 0.32f), p.headingRad));
@@ -161,6 +177,24 @@ namespace CarSim::Collision
                     break;
                 case PropType::Bin:
                     AddStatic(CylinderCollider(ColliderKind::Post, p.position - Vector3(0.0f, 0.2f, 0.0f), 0.22f, 1.3f));
+                    break;
+                case PropType::WireFence:
+                    AddStatic(BoxCollider(ColliderKind::Wall, p.position + Vector3(0.0f, 0.72f, 0.0f),
+                                          Vector3(std::max(1.0f, p.length * 0.5f), 0.8f, 0.035f), p.headingRad));
+                    break;
+                case PropType::Hedge:
+                    AddStatic(BoxCollider(ColliderKind::Wall, p.position + Vector3(0.0f, 0.7f, 0.0f),
+                                          Vector3(std::max(0.75f, p.length * 0.5f), 0.8f, 0.38f), p.headingRad));
+                    break;
+                case PropType::Shed:
+                    AddStatic(BoxCollider(ColliderKind::Building, p.position + Vector3(0.0f, 1.05f, 0.0f),
+                                          Vector3(1.45f, 1.25f, 1.2f), p.headingRad));
+                    break;
+                case PropType::UtilityPole:
+                    AddStatic(CylinderCollider(ColliderKind::Post, p.position - Vector3(0.0f, 0.3f, 0.0f), 0.13f, 8.3f));
+                    break;
+                case PropType::SignalHead:
+                    AddStatic(CylinderCollider(ColliderKind::Post, p.position - Vector3(0.0f, 0.15f, 0.0f), 0.19f, 3.7f));
                     break;
                 case PropType::Delineator:   // flexible plastic: no collision
                 case PropType::Unknown:
@@ -286,6 +320,50 @@ namespace CarSim::Collision
             }
             if (!any) {
                 break;
+            }
+        }
+    }
+
+    void CollisionWorld::ResolveFlight(Sim::Vehicle& vehicle, const Vector3& previousOrigin,
+                                       std::vector<ContactEvent>& events) const
+    {
+        if (statics_.empty() || !vehicle.FlightMode()) return;
+        const Vector3 currentOrigin = vehicle.OriginPosition();
+        const Vector3 displacement = currentOrigin - previousOrigin;
+        constexpr float reach = 6.0f;  // tail and main rotor reach beyond the fuselage
+        std::vector<std::int32_t> ids;
+        grid_.QueryUnique(std::min(previousOrigin.X, currentOrigin.X) - reach,
+                          std::min(previousOrigin.Z, currentOrigin.Z) - reach,
+                          std::max(previousOrigin.X, currentOrigin.X) + reach,
+                          std::max(previousOrigin.Z, currentOrigin.Z) + reach, ids);
+        if (ids.empty()) return;
+
+        // Sampling the swept path every 35 cm catches a thin wall even at ultra-turbo speed.
+        const int steps = std::max(1, static_cast<int>(std::ceil(displacement.Length() / 0.35f)));
+        for (int step = 0; step <= steps; ++step) {
+            const float t = static_cast<float>(step) / static_cast<float>(steps);
+            const Vector3 sample = previousOrigin + displacement * t;
+            const auto boxes = FlightBoxes(vehicle, sample);
+            for (const std::int32_t id : ids) {
+                const StaticCollider& c = statics_[static_cast<std::size_t>(id)];
+                if (Vector3::DistanceSquared(c.centre, sample) > (c.boundingRadius + reach) * (c.boundingRadius + reach)) continue;
+                for (const Obb& box : boxes) {
+                    Contact contact;
+                    const bool hit = c.isBox ? IntersectObbObb(box, c.box, contact) : IntersectObbCylinder(box, c.cylinder, contact);
+                    if (!hit) continue;
+
+                    Vector3 safe = step > 0 ? previousOrigin + displacement * (static_cast<float>(step - 1) / static_cast<float>(steps))
+                                            : previousOrigin + contact.normal * (contact.penetration + 0.03f);
+                    vehicle.Body().SetPosition(vehicle.Body().Position() + safe - currentOrigin);
+                    Vector3 velocity = vehicle.Body().LinearVelocity();
+                    const float inward = std::min(0.0f, Vector3::Dot(velocity, contact.normal));
+                    velocity = velocity - contact.normal * inward;
+                    vehicle.Body().SetLinearVelocity(velocity);
+                    if (inward < -0.1f) {
+                        events.push_back({contact.point, contact.normal, -inward * vehicle.Body().Mass(), -inward, c.kind});
+                    }
+                    return;
+                }
             }
         }
     }

@@ -59,6 +59,15 @@ TEST(CommandLine, ParsesBenchmarkJsonAndMirrorRate)
     EXPECT_EQ(*result.options.mirrorEvery, 2);
 }
 
+TEST(CommandLine, StartsMapAndHelicopterForCaptures)
+{
+    const std::array<const char*, 3> argv{"sim", "--map-overlay", "--flight"};
+    const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+    ASSERT_TRUE(result.ok());
+    EXPECT_TRUE(result.options.showMapOverlay);
+    EXPECT_TRUE(result.options.startFlight);
+}
+
 TEST(CommandLine, ParsesTheClock)
 {
     {

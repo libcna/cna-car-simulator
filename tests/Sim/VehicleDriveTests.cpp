@@ -183,7 +183,7 @@ TEST_F(VehicleDrive, TurboAcceleratesFasterAndReachesAbout250Kmh)
     Vehicle boosted(def, TransmissionMode::Automatic);
     launch(normal, false);
     launch(boosted, true);
-    EXPECT_TRUE(boosted.Snapshot().turboEnabled);
+    EXPECT_EQ(boosted.Snapshot().turboMode, TurboMode::Turbo);
     Drive(normal, ground, 15.0f, [](float) { DriverControls c; c.throttle = 1.0f; return c; });
     Drive(boosted, ground, 15.0f, [](float) { DriverControls c; c.throttle = 1.0f; return c; });
     EXPECT_GT(boosted.SpeedKmh(), normal.SpeedKmh() + 15.0f);
@@ -195,7 +195,96 @@ TEST_F(VehicleDrive, TurboAcceleratesFasterAndReachesAbout250Kmh)
     DriverControls off;
     off.toggleTurbo = true;
     boosted.Update(off, kFrame, ground);
-    EXPECT_FALSE(boosted.Snapshot().turboEnabled);
+    EXPECT_EQ(boosted.Snapshot().turboMode, TurboMode::Ultra);
+    boosted.Update(off, kFrame, ground);
+    EXPECT_EQ(boosted.Snapshot().turboMode, TurboMode::Off);
+}
+
+TEST_F(VehicleDrive, UltraTurboAcceleratesBeyondTurboAndReachesAbout400Kmh)
+{
+    Vehicle turbo(def, TransmissionMode::Automatic);
+    Vehicle ultra(def, TransmissionMode::Automatic);
+    const auto launch = [this](Vehicle& v) {
+        DriverControls c;
+        c.brake = 1.0f;
+        v.Update(c, kFrame, ground);
+        c.toggleEngine = true;
+        c.toggleTurbo = true;
+        v.Update(c, kFrame, ground);
+        c.toggleEngine = false;
+        c.toggleTurbo = false;
+        Drive(v, ground, 3.0f, [c](float) { return c; });
+        EXPECT_EQ(v.GetEngine().State(), EngineState::Running);
+        c.selector = AutomaticSelector::Drive;
+        v.Update(c, kFrame, ground);
+        c.selector.reset();
+        Drive(v, ground, 1.0f, [c](float) { return c; });
+    };
+    launch(turbo);
+    launch(ultra);
+    DriverControls next;
+    next.toggleTurbo = true;
+    ultra.Update(next, kFrame, ground);
+    ASSERT_EQ(ultra.Snapshot().turboMode, TurboMode::Ultra);
+
+    const auto fullThrottle = [](float) { DriverControls c; c.throttle = 1.0f; return c; };
+    Drive(turbo, ground, 15.0f, fullThrottle);
+    Drive(ultra, ground, 15.0f, fullThrottle);
+    EXPECT_GT(ultra.SpeedKmh(), turbo.SpeedKmh() + 20.0f);
+    Drive(ultra, ground, 120.0f, fullThrottle);
+    EXPECT_GE(ultra.SpeedKmh(), 390.0f) << "rpm=" << ultra.GetEngine().Rpm()
+                                           << " gear=" << ultra.GetTransmission().Gear()
+                                           << " mode=" << ToString(ultra.GetEngine().TurboSetting())
+                                           << " engine=" << ToString(ultra.GetEngine().State())
+                                           << " fuel=" << ultra.Snapshot().fuelLiters
+                                           << " temp=" << ultra.Snapshot().coolantC;
+    EXPECT_LT(ultra.SpeedKmh(), 415.0f);
+}
+
+TEST_F(VehicleDrive, HelicopterClimbsMovesAndCyclesTurboModes)
+{
+    Vehicle v(def, TransmissionMode::Automatic);
+    DriverControls controls;
+    controls.toggleFlight = true;
+    v.Update(controls, kFrame, ground);
+    ASSERT_TRUE(v.Snapshot().flightMode);
+    EXPECT_TRUE(v.Snapshot().lowBeam);
+    EXPECT_FALSE(v.Snapshot().highBeam);
+    controls.toggleFlight = false;
+    controls.toggleHighBeam = true;
+    v.Update(controls, kFrame, ground);
+    EXPECT_TRUE(v.Snapshot().highBeam);
+    controls.toggleHighBeam = false;
+    const float takeoffHeight = v.OriginPosition().Y;
+    EXPECT_GT(takeoffHeight, 2.0f);
+
+    controls.flightClimb = true;
+    Drive(v, ground, 2.0f, [controls](float) { return controls; });
+    EXPECT_GT(v.OriginPosition().Y, takeoffHeight + 8.0f);
+
+    controls.flightClimb = false;
+    controls.throttle = 1.0f;
+    Drive(v, ground, 5.0f, [controls](float) { return controls; });
+    EXPECT_GT(v.SpeedKmh(), 100.0f);
+    controls.toggleTurbo = true;
+    v.Update(controls, kFrame, ground);
+    EXPECT_EQ(v.Snapshot().turboMode, TurboMode::Turbo);
+    v.Update(controls, kFrame, ground);
+    EXPECT_EQ(v.Snapshot().turboMode, TurboMode::Ultra);
+    controls.toggleTurbo = false;
+    Drive(v, ground, 5.0f, [controls](float) { return controls; });
+    EXPECT_GE(v.SpeedKmh(), 390.0f);
+    EXPECT_LE(v.SpeedKmh(), 405.0f);
+
+    controls.throttle = 0.0f;
+    controls.flightDescend = true;
+    Drive(v, ground, 3.0f, [controls](float) { return controls; });
+    EXPECT_GE(v.OriginPosition().Y, 1.8f);
+    controls.toggleFlight = true;
+    controls.flightDescend = false;
+    v.Update(controls, kFrame, ground);
+    EXPECT_FALSE(v.Snapshot().flightMode);
+    EXPECT_NEAR(v.OriginPosition().Y, 0.0f, 0.1f);
 }
 
 TEST_F(VehicleDrive, BrakingFrom100KmhStopsWithinRealisticDistance)
@@ -212,8 +301,8 @@ TEST_F(VehicleDrive, BrakingFrom100KmhStopsWithinRealisticDistance)
         t += kFrame;
     }
     const float distance = (v.OriginPosition() - start).Length();
-    EXPECT_GT(distance, 36.0f);
-    EXPECT_LT(distance, 60.0f);
+    EXPECT_GT(distance, 32.0f);
+    EXPECT_LT(distance, 42.0f);
     EXPECT_LT(t, 6.0f);
     EXPECT_NEAR(v.OriginPosition().X, start.X, 1.0f) << "braking must not pull the car sideways";
 }

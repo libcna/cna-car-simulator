@@ -189,17 +189,20 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Clutch (manual mode) | `Q` |
 | Handbrake | `Space` |
 | Engine start / stop (one press; the starter cranks until the engine catches) | `E` |
-| Turbo on / off (double engine output, up to about 250 km/h) | `O` |
+| Cycle off / turbo / ultra turbo (about 250 / 400 km/h) | `O` |
 | Gear up / selector up, gear down / selector down | `Left Shift` / `Left Ctrl` (also right-hand keys) |
 | Manual gears | `1` .. `6`, `N` neutral, `R` reverse |
-| Automatic selector | `P` park, `R` reverse, `N` neutral, `F` drive |
+| Automatic selector | `P` park, `R` reverse, `N` neutral, `G` drive |
 | Toggle automatic / manual | `T` |
 | Indicators left / right, hazard | `,` / `.` / `H` |
-| Headlights, high beam | `L`, `K` |
+| Headlights on / off; switch low / high beam | `L`; `K` (also turns on high beam directly) |
 | Horn | `B` |
 | Camera cockpit / exterior | `C` |
 | Toggle full screen | `F11` (or start with `--fullscreen`) |
-| Rear-view mirror on / off, HUD text on / off | `M`, `Tab` |
+| Show / hide map | `M` |
+| Car / helicopter | `F` |
+| Helicopter: forward / back, turn, climb / descend; short / long searchlight | `W` / `S`, `A` / `D`, `Space` / `Q`; `K` |
+| Rear-view mirror on / off, HUD text on / off | `V`, `Tab` |
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
 | Clock back / forward an hour, freeze the clock | `F6` / `F7`, `F8` |
@@ -247,7 +250,7 @@ Action names are the `GameAction` enumerators (`Throttle`, `Brake`, `SteerLeft`,
 `SteerRight`, `Clutch`, `Handbrake`, `Horn`, `ToggleEngine`, `ToggleTurbo`, `ShiftUp`, `ShiftDown`,
 `GearNeutral`, `GearReverse`, `Gear1` .. `Gear6`, `SelectorPark`, `SelectorDrive`,
 `ToggleTransmission`, `IndicatorLeft`, `IndicatorRight`, `Hazard`, `Headlights`, `HighBeam`,
-`ToggleCamera`, `ToggleFullscreen`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
+`ToggleCamera`, `ToggleFullscreen`, `ToggleMap`, `ToggleFlight`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
 `Quit`, `VolumeUp`, `VolumeDown`, `ToggleMirror`, `ToggleHud`); key names are the ones the
 help overlay prints (`A`..`Z`, `0`..`9`, `F1`..`F12`, `Space`, `Left Shift`, `Page Up`, ...).
 Unknown names are reported as warnings and ignored. An override replaces the default keys of

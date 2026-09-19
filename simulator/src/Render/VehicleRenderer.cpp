@@ -23,6 +23,7 @@
 #include <cmath>
 #include <cstdint>
 #include <optional>
+#include <tuple>
 
 namespace CarSim::Render
 {
@@ -377,6 +378,7 @@ namespace CarSim::Render
           model_(GenerateCar(definition))
     {
         Upload(device);
+        UploadHelicopter(device);
     }
 
     VehicleRenderer::VehicleRenderer(GraphicsDevice& device, VehicleMaterials& materials, const CarStyle& style,
@@ -445,6 +447,91 @@ namespace CarSim::Render
         for (std::size_t i = 0; i < poolIdentity.size(); ++i) poolIdentity[i] = static_cast<std::uint32_t>(i);
         poolIndices_ = std::make_unique<IndexBuffer>(device, IndexElementSize::ThirtyTwoBits, kPoolVertexCapacity, BufferUsage::WriteOnly);
         poolIndices_->SetData(poolIdentity.data(), kPoolVertexCapacity);
+    }
+
+    void VehicleRenderer::UploadHelicopter(GraphicsDevice& device)
+    {
+        const auto add = [&](MeshData mesh, const Vector3& color, const int rotor = 0) {
+            auto gpu = GpuMesh::Create(device, mesh, VertexLayout::PositionNormalTexture);
+            if (gpu) helicopterParts_.push_back({std::move(gpu), color, rotor});
+        };
+        const auto hull = [](const std::vector<std::tuple<float, float, float, float>>& sections) {
+            MeshData mesh;
+            std::vector<std::vector<Vector3>> rings;
+            for (const auto& [z, cx, ry, rx] : sections) {
+                std::vector<Vector3> ring;
+                for (int i = 0; i < 16; ++i) {
+                    const float a = static_cast<float>(i) * 6.2831853f / 16.0f;
+                    ring.emplace_back(std::cos(a) * rx, cx + std::sin(a) * ry, z);
+                }
+                rings.push_back(std::move(ring));
+            }
+            mesh.AddLoft(rings, true);
+            mesh.ComputeSmoothNormals();
+            mesh.OrientOutward();
+            return mesh;
+        };
+        add(hull({{-2.0f, 0.1f, 0.04f, 0.04f}, {-1.7f, 0.1f, 0.45f, 0.45f},
+                  {-1.0f, 0.1f, 0.70f, 0.75f}, {0.5f, 0.1f, 0.70f, 0.78f},
+                  {1.4f, 0.1f, 0.45f, 0.50f}, {1.75f, 0.1f, 0.05f, 0.05f}}),
+            Vector3(0.75f, 0.19f, 0.11f));
+        add(hull({{-1.88f, 0.30f, 0.02f, 0.02f}, {-1.55f, 0.35f, 0.40f, 0.48f},
+                  {-0.85f, 0.42f, 0.52f, 0.77f}, {-0.10f, 0.42f, 0.46f, 0.80f},
+                  {0.25f, 0.38f, 0.02f, 0.03f}}), Vector3(0.09f, 0.29f, 0.37f));
+        MeshData boom;
+        boom.AddCylinder(Vector3(0.0f, 0.14f, 1.4f), Vector3(0.0f, 0.0f, 1.0f), 0.17f, 3.0f, 12, true);
+        boom.AddBox(Vector3(-0.06f, 0.13f, 4.05f), Vector3(0.06f, 1.15f, 4.45f));
+        boom.AddBox(Vector3(-0.55f, 0.06f, 3.96f), Vector3(0.55f, 0.13f, 4.50f));
+        add(std::move(boom), Vector3(0.69f, 0.18f, 0.12f));
+        MeshData skids;
+        for (const float x : {-0.82f, 0.82f}) {
+            skids.AddCylinder(Vector3(x, -1.02f, -1.7f), Vector3(0.0f, 0.0f, 1.0f), 0.07f, 3.5f, 10, true);
+            for (const float z : {-0.95f, 0.95f}) {
+                skids.AddCylinder(Vector3(x, -0.96f, z), Vector3(0.0f, 1.0f, 0.0f), 0.055f, 0.75f, 8, true);
+            }
+        }
+        skids.AddCylinder(Vector3(0.0f, 0.75f, -0.25f), Vector3(0.0f, 1.0f, 0.0f), 0.12f, 0.75f, 12, true);
+        add(std::move(skids), Vector3(0.30f, 0.34f, 0.35f));
+        MeshData landingLamp;
+        landingLamp.AddBox(Vector3(-0.19f, -0.55f, -1.87f), Vector3(0.19f, -0.30f, -1.60f));
+        add(std::move(landingLamp), Vector3(0.86f, 0.83f, 0.69f));
+        MeshData mainRotor;
+        mainRotor.AddBox(Vector3(-3.4f, -0.025f, -0.11f), Vector3(3.4f, 0.025f, 0.11f));
+        mainRotor.AddBox(Vector3(-0.11f, -0.025f, -3.4f), Vector3(0.11f, 0.025f, 3.4f));
+        add(std::move(mainRotor), Vector3(0.14f, 0.18f, 0.19f), 1);
+        MeshData tailRotor;
+        tailRotor.AddBox(Vector3(-0.025f, -0.58f, -0.055f), Vector3(0.025f, 0.58f, 0.055f));
+        tailRotor.AddBox(Vector3(-0.025f, -0.055f, -0.58f), Vector3(0.025f, 0.055f, 0.58f));
+        add(std::move(tailRotor), Vector3(0.15f, 0.17f, 0.17f), 2);
+    }
+
+    void VehicleRenderer::DrawHelicopter(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
+                                         const Matrix& projection, const bool mirrored)
+    {
+        device.setBlendStateProperty(BlendState::Opaque);
+        device.setDepthStencilStateProperty(DepthStencilState::Default);
+        device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
+        auto& effect = materials_.Lit();
+        effect.setViewProperty(view);
+        effect.setProjectionProperty(projection);
+        effect.setTextureProperty(&materials_.White());
+        effect.setSpecularColorProperty(Vector3(0.25f, 0.25f, 0.25f));
+        effect.setSpecularPowerProperty(20.0f);
+        for (const auto& part : helicopterParts_) {
+            Matrix local = Matrix::getIdentityProperty();
+            if (part.rotor == 1) {
+                local = Matrix::CreateRotationY(state.rotorAngle) * Matrix::CreateTranslation(0.0f, 1.55f, -0.25f);
+            } else if (part.rotor == 2) {
+                local = Matrix::CreateRotationX(state.rotorAngle * 2.7f) * Matrix::CreateTranslation(-0.10f, 0.55f, 4.40f);
+            }
+            effect.setWorldProperty(local * state.worldMatrix);
+            effect.setDiffuseColorProperty(part.color);
+            effect.setEmissiveColorProperty(Vector3(0.03f, 0.03f, 0.03f));
+            ApplyAll(effect, device, *part.mesh);
+            ++drawCalls_;
+        }
+        effect.setEmissiveColorProperty(Vector3(0.0f, 0.0f, 0.0f));
+        device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
     }
 
     Matrix VehicleRenderer::PartWorld(const CarPart& part, const Sim::VehicleState& state, const GaugePose& gauges) const
@@ -592,6 +679,10 @@ namespace CarSim::Render
                                      const Matrix& projection, const bool drawInterior, const GaugePose& gauges, const bool mirrored, const int lod)
     {
         drawCalls_ = 0;
+        if (state.flightMode && !helicopterParts_.empty()) {
+            DrawHelicopter(device, state, view, projection, mirrored);
+            return;
+        }
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
         device.setRasterizerStateProperty(mirrored ? RasterizerState::CullClockwise : RasterizerState::CullCounterClockwise);
@@ -618,6 +709,7 @@ namespace CarSim::Render
     void VehicleRenderer::DrawShadow(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection,
                                      const Vector3& sunDirection, const GroundQuery& ground)
     {
+        if (state.flightMode) return;
         using namespace ShadowGeometry;
         if (casters_.empty()) {
             return;
@@ -767,68 +859,76 @@ namespace CarSim::Render
 
     float HeadlampBeamFalloff(const float along, const float across, const bool highBeam)
     {
-        // A dipped beam is not a spot on the tarmac: it puts a broad sheet of light on the road
-        // with the hot band about half way out and a soft end, and in right-hand traffic it kicks
-        // towards the near verge so the driver can see the edge line. The pool used to peak at
-        // seven metres and be gone by twenty-six, which read as a bright blob under the bumper
-        // with black road beyond it.
-        const float bias = highBeam ? 0.0f : 0.16f;                 // the kick to the right
-        // Map the beam's centre to `bias` while both edges still land on +-1, so the pool fades
-        // out on each side. Dividing by a single span left the right-hand edge lit and the pool
-        // ended in a hard vertical line across the road.
+        const float bias = highBeam ? 0.0f : 0.20f;
         const float span = across > bias ? (1.0f - bias) : (1.0f + bias);
         const float u = std::clamp((across - bias) / std::max(0.05f, span), -1.0f, 1.0f);
-        const float lateral = std::pow(std::max(0.0f, 1.0f - u * u), 1.15f);
-        const float rise = std::min(1.0f, std::max(0.0f, along) / 0.07f);   // lit from just past the bumper
-        // Plateau through the working part of the beam, then a soft cut-off.
-        const float hot = 1.0f - SmoothStepf((along - 0.42f) / 0.58f);
-        return std::clamp(lateral * rise * hot * 1.75f, 0.0f, 1.0f);
+        const float lateral = std::max(0.0f, 1.0f - u * u);
+        const float rise = SmoothStepf(along / 0.025f);
+        const float cutoff = 1.0f - SmoothStepf((along - (highBeam ? 0.83f : 0.75f)) /
+                                                  (highBeam ? 0.17f : 0.25f));
+        return (highBeam ? lateral * lateral : lateral) * rise * cutoff;
     }
 
     void VehicleRenderer::DrawHeadlightPool(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
                                             const Matrix& projection, const GroundQuery& ground, const float intensity)
     {
-        if (!poolVertices_ || !poolIndices_ || !state.lowBeam || intensity <= 0.01f) {
+        if (!poolVertices_ || !poolIndices_ || (!state.flightMode && !state.lowBeam) || intensity <= 0.01f) {
             return;
         }
-        // From the cockpit, the bonnet hides much of the first 20 metres. Carry the dipped beam
-        // far enough past it to reveal the road ahead; main beam reaches farther still.
+        // Two separate emitters spread from the headlamp positions. The left dipped beam cuts
+        // off sooner to spare oncoming traffic; the right one carries light onto the verge.
+        // Their smooth overlap avoids the flat white trapezoid of the former single ground pool.
         const bool high = state.highBeam;
-        const float nearM = 1.4f;
-        const float farM = high ? 160.0f : 95.0f;
-        const float halfNear = 2.2f;
-        const float halfFar = 10.0f;
+        const bool flight = state.flightMode;
+        const float nearM = flight ? -2.0f : 1.2f;
         const Vector3 origin = state.originPosition;
         Vector3 forward = state.worldMatrix.getForwardProperty();
         forward.Y = 0.0f;
         if (forward.LengthSquared() < 1e-6f) return;
         forward.Normalize();
         const Vector3 right(-forward.Z, 0.0f, forward.X);
-        const Vector3 warm = high ? Vector3(0.90f, 0.90f, 0.84f) : Vector3(0.75f, 0.73f, 0.66f);
-
-        const auto sample = [&](const int j, const int i) {
-            const float t = static_cast<float>(j) / kPoolCellsAlong;            // 0 near, 1 far
-            const float u = static_cast<float>(i) / kPoolCellsAcross * 2.0f - 1.0f;   // -1..1 across
-            const float distance = nearM + t * (farM - nearM);
-            const float half = halfNear + t * (halfFar - halfNear);
-            const Vector3 p = origin + forward * distance + right * (u * half);
-            const float y = (ground.height ? ground.height(p.X, p.Z) : origin.Y) + 0.05f;
-            const float f = std::clamp(HeadlampBeamFalloff(t, u, high) * intensity, 0.0f, 1.0f);
-            const Vector3 c = warm * f;
-            const Color colour(static_cast<int>(c.X * 255.0f), static_cast<int>(c.Y * 255.0f), static_cast<int>(c.Z * 255.0f), 255);
-            return VertexPositionColorTexture(Vector3(p.X, y, p.Z), colour, Vector2(0.5f, 0.5f));
-        };
+        const Vector3 warm = flight ? Vector3(0.43f, 0.44f, 0.42f) :
+                             high ? Vector3(0.46f, 0.46f, 0.43f) : Vector3(0.31f, 0.30f, 0.27f);
 
         std::vector<VertexPositionColorTexture> verts;
         verts.reserve(static_cast<std::size_t>(kPoolVertexCapacity));
-        for (int j = 0; j < kPoolCellsAlong; ++j) {
-            for (int i = 0; i < kPoolCellsAcross; ++i) {
-                const auto a = sample(j, i);
-                const auto b = sample(j, i + 1);
-                const auto c = sample(j + 1, i + 1);
-                const auto d = sample(j + 1, i);
-                verts.push_back(a); verts.push_back(b); verts.push_back(c);
-                verts.push_back(a); verts.push_back(c); verts.push_back(d);
+        for (int lamp = 0; lamp < (flight ? 1 : 2); ++lamp) {
+            const float farM = flight ? (high ? 300.0f : 190.0f) : high ? 280.0f : lamp == 0 ? 130.0f : 175.0f;
+            const float lampX = flight ? 0.0f : lamp == 0 ? -0.60f : 0.60f;
+            const auto sample = [&](const int j, const int i) {
+                const float t = static_cast<float>(j) / kPoolCellsAlong;
+                const float u = static_cast<float>(i) / kPoolCellsAcross * 2.0f - 1.0f;
+                const float distance = nearM + t * (farM - nearM);
+                const float halfWidth = flight ? 2.5f + std::max(0.0f, distance) * (high ? 0.12f : 0.18f) :
+                                        1.0f + distance * (high ? 0.095f : 0.14f);
+                const float kick = high || flight ? 0.0f : distance * 0.008f;
+                const Vector3 p = origin + forward * distance + right * (lampX + kick + u * halfWidth);
+                const float y = (ground.height ? ground.height(p.X, p.Z) : origin.Y) + 0.05f;
+                const float lateral = std::max(0.0f, 1.0f - u * u);
+                const float flightFalloff = lateral * lateral *
+                    (1.0f - SmoothStepf((t - 0.82f) / 0.18f)) * SmoothStepf(t / 0.04f);
+                const float f = (flight ? flightFalloff : HeadlampBeamFalloff(t, u, high)) * intensity;
+                const Vector3 c = warm * f;
+                const Color colour(static_cast<int>(c.X * 255.0f), static_cast<int>(c.Y * 255.0f), static_cast<int>(c.Z * 255.0f), 255);
+                return VertexPositionColorTexture(Vector3(p.X, y, p.Z), colour, Vector2(0.5f, 0.5f));
+            };
+            std::vector<VertexPositionColorTexture> grid;
+            grid.reserve(static_cast<std::size_t>((kPoolCellsAlong + 1) * (kPoolCellsAcross + 1)));
+            for (int j = 0; j <= kPoolCellsAlong; ++j) {
+                for (int i = 0; i <= kPoolCellsAcross; ++i) grid.push_back(sample(j, i));
+            }
+            const auto at = [&](const int j, const int i) -> const VertexPositionColorTexture& {
+                return grid[static_cast<std::size_t>(j * (kPoolCellsAcross + 1) + i)];
+            };
+            for (int j = 0; j < kPoolCellsAlong; ++j) {
+                for (int i = 0; i < kPoolCellsAcross; ++i) {
+                    const auto& a = at(j, i);
+                    const auto& b = at(j, i + 1);
+                    const auto& c = at(j + 1, i + 1);
+                    const auto& d = at(j + 1, i);
+                    verts.push_back(a); verts.push_back(b); verts.push_back(c);
+                    verts.push_back(a); verts.push_back(c); verts.push_back(d);
+                }
             }
         }
         poolVertices_->SetData(verts.data(), static_cast<int>(verts.size()));
@@ -862,7 +962,7 @@ namespace CarSim::Render
 
     void VehicleRenderer::DrawLampGlows(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view, const Matrix& projection)
     {
-        if (!glowQuad_ || model_.lamps.empty()) {
+        if (!glowQuad_ || (!state.flightMode && model_.lamps.empty())) {
             return;
         }
         const Vector3 camera = Matrix::Invert(view).getTranslationProperty();
@@ -874,42 +974,58 @@ namespace CarSim::Render
         device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
         device.setRasterizerStateProperty(RasterizerState::CullNone);
         device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
-        for (const auto& lamp : model_.lamps) {
-            Vector3 colour(0, 0, 0);
-            float size = 0.0f;
-            switch (lamp.kind) {
-                case CarMaterial::LampHead:
-                    if (state.lowBeam) { colour = state.highBeam ? Vector3(0.55f, 0.55f, 0.50f) : Vector3(0.30f, 0.30f, 0.27f); size = 0.55f; }
-                    break;
-                case CarMaterial::LampTail:
-                    if (state.brakeLights) { colour = Vector3(0.55f, 0.04f, 0.02f); size = 0.45f; }
-                    else if (state.lowBeam) { colour = Vector3(0.18f, 0.01f, 0.01f); size = 0.32f; }
-                    break;
-                case CarMaterial::LampIndicator:
-                    if (lamp.left ? state.leftIndicatorLit : state.rightIndicatorLit) { colour = Vector3(0.55f, 0.28f, 0.03f); size = 0.30f; }
-                    break;
-                case CarMaterial::LampReverse:
-                    if (state.reverseLights) { colour = Vector3(0.40f, 0.40f, 0.36f); size = 0.30f; }
-                    break;
-                default:
-                    break;
+        if (state.flightMode) {
+            const auto glow = [&](const Vector3& position, const Vector3& colour, const float size) {
+                const Vector3 worldPos = Vector3::Transform(position, state.worldMatrix);
+                const Matrix billboard = Matrix::CreateBillboard(worldPos, camera, Vector3(0, 1, 0), std::nullopt);
+                e.setWorldProperty(Matrix::CreateScale(size) * billboard);
+                e.setDiffuseColorProperty(colour);
+                e.setAlphaProperty(1.0f);
+                ApplyAll(e, device, *glowQuad_);
+                ++drawCalls_;
+            };
+            glow(Vector3(-0.88f, 0.23f, 0.10f), Vector3(0.72f, 0.035f, 0.015f), 0.27f);
+            glow(Vector3(0.88f, 0.23f, 0.10f), Vector3(0.02f, 0.68f, 0.12f), 0.27f);
+            glow(Vector3(0.0f, 0.90f, 4.46f), Vector3(0.62f, 0.63f, 0.58f), 0.32f);
+            glow(Vector3(0.0f, -0.50f, -1.84f), Vector3(0.75f, 0.74f, 0.64f), 0.48f);
+        } else {
+            for (const auto& lamp : model_.lamps) {
+                Vector3 colour(0, 0, 0);
+                float size = 0.0f;
+                switch (lamp.kind) {
+                    case CarMaterial::LampHead:
+                        if (state.lowBeam) { colour = state.highBeam ? Vector3(0.55f, 0.55f, 0.50f) : Vector3(0.30f, 0.30f, 0.27f); size = 0.55f; }
+                        break;
+                    case CarMaterial::LampTail:
+                        if (state.brakeLights) { colour = Vector3(0.55f, 0.04f, 0.02f); size = 0.45f; }
+                        else if (state.lowBeam) { colour = Vector3(0.18f, 0.01f, 0.01f); size = 0.32f; }
+                        break;
+                    case CarMaterial::LampIndicator:
+                        if (lamp.left ? state.leftIndicatorLit : state.rightIndicatorLit) { colour = Vector3(0.55f, 0.28f, 0.03f); size = 0.30f; }
+                        break;
+                    case CarMaterial::LampReverse:
+                        if (state.reverseLights) { colour = Vector3(0.40f, 0.40f, 0.36f); size = 0.30f; }
+                        break;
+                    default:
+                        break;
+                }
+                if (size <= 0.0f) continue;
+                const Vector3 worldPos = Vector3::Transform(lamp.position, state.worldMatrix);
+                const Vector3 worldNormal = Vector3::TransformNormal(lamp.normal, state.worldMatrix);
+                Vector3 toCamera = camera - worldPos;
+                const float distance = toCamera.Length();
+                if (distance < 1e-3f) continue;
+                toCamera = toCamera * (1.0f / distance);
+                const float facing = Vector3::Dot(worldNormal, toCamera);
+                if (facing < -0.15f) continue;
+                const float fade = std::clamp((facing + 0.15f) / 0.5f, 0.0f, 1.0f) * std::clamp(distance / 2.0f, 0.3f, 1.0f);
+                const Matrix billboard = Matrix::CreateBillboard(worldPos + worldNormal * 0.04f, camera, Vector3(0, 1, 0), std::nullopt);
+                e.setWorldProperty(Matrix::CreateScale(size) * billboard);
+                e.setDiffuseColorProperty(colour * fade);
+                e.setAlphaProperty(1.0f);
+                ApplyAll(e, device, *glowQuad_);
+                ++drawCalls_;
             }
-            if (size <= 0.0f) continue;
-            const Vector3 worldPos = Vector3::Transform(lamp.position, state.worldMatrix);
-            const Vector3 worldNormal = Vector3::TransformNormal(lamp.normal, state.worldMatrix);
-            Vector3 toCamera = camera - worldPos;
-            const float distance = toCamera.Length();
-            if (distance < 1e-3f) continue;
-            toCamera = toCamera * (1.0f / distance);
-            const float facing = Vector3::Dot(worldNormal, toCamera);
-            if (facing < -0.15f) continue;
-            const float fade = std::clamp((facing + 0.15f) / 0.5f, 0.0f, 1.0f) * std::clamp(distance / 2.0f, 0.3f, 1.0f);
-            const Matrix billboard = Matrix::CreateBillboard(worldPos + worldNormal * 0.04f, camera, Vector3(0, 1, 0), std::nullopt);
-            e.setWorldProperty(Matrix::CreateScale(size) * billboard);
-            e.setDiffuseColorProperty(colour * fade);
-            e.setAlphaProperty(1.0f);
-            ApplyAll(e, device, *glowQuad_);
-            ++drawCalls_;
         }
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);
@@ -920,6 +1036,7 @@ namespace CarSim::Render
     void VehicleRenderer::DrawTransparent(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
                                           const Matrix& projection, const bool mirrored, const bool fromInside)
     {
+        if (state.flightMode) return;
         glassFromInside_ = fromInside;
         device.setBlendStateProperty(BlendState::AlphaBlend);
         device.setDepthStencilStateProperty(DepthStencilState::DepthRead);

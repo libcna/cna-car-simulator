@@ -75,7 +75,9 @@ namespace CarSim::Sim
         float engineLoad = 0.0f;             // delivered torque fraction 0..1 (0 on overrun)
         EngineState engineState = EngineState::Off;
         bool ignitionOn = false;
-        bool turboEnabled = false;
+        TurboMode turboMode = TurboMode::Off;
+        bool flightMode = false;
+        float rotorAngle = 0.0f;
         float throttlePedal = 0.0f;
         float brakePedal = 0.0f;
         float clutchPedal = 0.0f;
@@ -169,6 +171,7 @@ namespace CarSim::Sim
         [[nodiscard]] float SteeringWheelAngle() const;
         [[nodiscard]] bool ClutchLocked() const { return clutchLocked_; }
         [[nodiscard]] bool StartRefused() const { return startRefused_; }
+        [[nodiscard]] bool FlightMode() const { return flightMode_; }
 
         /// Direct pedal override (tests and scripted drives); values are clamped to 0..1.
         void ForcePedals(float throttle, float brake, float clutch);
@@ -181,6 +184,7 @@ namespace CarSim::Sim
 
     private:
         void ApplyDiscreteControls(const DriverControls& controls);
+        void StepFlight(const DriverControls& controls, float dt, const GroundSurface& ground);
         void UpdatePedals(const DriverControls& controls, float dt);
         void UpdateSteering(float dt);
         void UpdateSuspension(float dt, const GroundSurface& ground);
@@ -217,5 +221,8 @@ namespace CarSim::Sim
         float roadWetness_ = 0.0f;
         float accumulator_ = 0.0f;
         float lastSpeedMs_ = 0.0f;
+        bool flightMode_ = false;
+        float flightYaw_ = 0.0f;
+        float rotorAngle_ = 0.0f;
     };
 }

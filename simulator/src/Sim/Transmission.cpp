@@ -226,8 +226,9 @@ namespace CarSim::Sim
         }
         if (current > 1 && context.engineRpm < down) {
             // The lower gear must not land so high that the box would immediately shift back up.
-            const float after = context.engineRpm * ratios[static_cast<std::size_t>(current - 2)] /
-                                ratios[static_cast<std::size_t>(current - 1)];
+            const float currentRatio = ratios[static_cast<std::size_t>(current - 1)] *
+                                       (current == top ? context.topGearRatioFactor : 1.0f);
+            const float after = context.engineRpm * ratios[static_cast<std::size_t>(current - 2)] / currentRatio;
             if (after < up - 300.0f) {
                 return current - 1;
             }

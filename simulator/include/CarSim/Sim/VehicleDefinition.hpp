@@ -190,7 +190,7 @@ namespace CarSim::Sim
 
     struct DashboardDefinition
     {
-        float speedometerMaxKmh = 260.0f;
+        float speedometerMaxKmh = 420.0f;
         float tachometerMaxRpm = 7000.0f;
         float temperatureMinC = 50.0f;
         float temperatureMaxC = 130.0f;

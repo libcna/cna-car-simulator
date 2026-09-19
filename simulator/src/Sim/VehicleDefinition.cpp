@@ -204,14 +204,14 @@ namespace CarSim::Sim
         const float wheelbase = 2.56f;
         const float radius = 0.302f;   // 185/60 R15
         def.wheels = {
-            {"FL", Vector3(-track * 0.5f, radius, -wheelbase * 0.5f), radius, 0.185f, true, true, 1500.0f, 0.0f},
-            {"FR", Vector3(track * 0.5f, radius, -wheelbase * 0.5f), radius, 0.185f, true, true, 1500.0f, 0.0f},
-            {"RL", Vector3(-track * 0.5f, radius, wheelbase * 0.5f), radius, 0.185f, false, false, 700.0f, 900.0f},
-            {"RR", Vector3(track * 0.5f, radius, wheelbase * 0.5f), radius, 0.185f, false, false, 700.0f, 900.0f},
+            {"FL", Vector3(-track * 0.5f, radius, -wheelbase * 0.5f), radius, 0.185f, true, true, 1900.0f, 0.0f},
+            {"FR", Vector3(track * 0.5f, radius, -wheelbase * 0.5f), radius, 0.185f, true, true, 1900.0f, 0.0f},
+            {"RL", Vector3(-track * 0.5f, radius, wheelbase * 0.5f), radius, 0.185f, false, false, 1000.0f, 900.0f},
+            {"RR", Vector3(track * 0.5f, radius, wheelbase * 0.5f), radius, 0.185f, false, false, 1000.0f, 900.0f},
         };
 
         def.suspension = {0.36f, 0.22f, 26000.0f, 2200.0f, 3200.0f, 12000.0f};
-        def.tyres = {1.08f, 0.12f, 6.0f, 1.6f, 0.97f, 0.12f, 3000.0f, 1.1f, 0.8f};
+        def.tyres = {1.12f, 0.12f, 6.0f, 1.6f, 0.97f, 0.12f, 3000.0f, 1.1f, 0.8f};
         def.steering = {34.0f, 15.5f, 100.0f, 0.5f, 130.0f, 0.8f};
 
         def.engine.idleRpm = 850.0f;
@@ -249,7 +249,7 @@ namespace CarSim::Sim
 
         def.fuel = {45.0f, 7.0f, 0.5f, 1.0f, 30.0f};
         def.electrics = {0.75f};
-        def.dashboard = {220.0f, 7000.0f, 50.0f, 130.0f};
+        def.dashboard = {420.0f, 7000.0f, 50.0f, 130.0f};
         return def;
     }
 

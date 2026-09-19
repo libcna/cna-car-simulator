@@ -3,6 +3,7 @@
 #include "CarSim/Map/MapDocument.hpp"
 
 #include "CarSim/Core/Version.hpp"
+#include "CarSim/Render/Image.hpp"
 #include "CarSim/Render/Screenshot.hpp"
 #include "CarSim/Sim/Units.hpp"
 
@@ -50,6 +51,50 @@ namespace CarSim::App
     using namespace Microsoft::Xna::Framework;
     using namespace Microsoft::Xna::Framework::Graphics;
     using Input::GameAction;
+
+    namespace
+    {
+        std::unique_ptr<Texture2D> BuildMapTexture(GraphicsDevice& device, const Map::MapWorld& world)
+        {
+            constexpr int size = 768;
+            const auto& terrain = world.Terrain();
+            const float minX = terrain.MinX(), minZ = terrain.MinZ();
+            const float sizeX = terrain.MaxX() - minX, sizeZ = terrain.MaxZ() - minZ;
+            Render::Image image(size, size);
+            image.Generate([&](int, int, const float u, const float v) {
+                const auto region = terrain.RegionAt(minX + u * sizeX, minZ + v * sizeZ);
+                switch (region) {
+                    case Map::RegionType::Forest: return Color(32, 54, 49, 255);
+                    case Map::RegionType::Field: return Color(69, 72, 49, 255);
+                    case Map::RegionType::Town: return Color(65, 69, 74, 255);
+                    case Map::RegionType::Square: return Color(88, 86, 77, 255);
+                    case Map::RegionType::Yard: return Color(71, 75, 75, 255);
+                    case Map::RegionType::Orchard: return Color(48, 68, 48, 255);
+                    case Map::RegionType::Meadow: return Color(51, 70, 52, 255);
+                }
+                return Color(51, 70, 52, 255);
+            });
+            const auto pixel = [&](const Vector3& p) {
+                return Vector2((p.X - minX) / sizeX * size, (p.Z - minZ) / sizeZ * size);
+            };
+            for (const auto& road : world.Roads().Roads()) {
+                const auto& samples = road.curve.Samples();
+                const bool track = road.spec && road.spec->roadClass == Map::RoadClass::Track;
+                const bool main = road.spec && (road.spec->roadClass == Map::RoadClass::ClassI ||
+                                                road.spec->roadClass == Map::RoadClass::ClassII);
+                const Color surface = track ? Color(171, 145, 98, 255) :
+                                      main ? Color(232, 218, 173, 255) : Color(202, 211, 199, 255);
+                const float width = track ? 2.0f : main ? 5.0f : 3.3f;
+                for (std::size_t i = 1; i < samples.size(); ++i) {
+                    const Vector2 a = pixel(samples[i - 1].position);
+                    const Vector2 b = pixel(samples[i].position);
+                    image.DrawLine(a.X, a.Y, b.X, b.Y, width + 2.0f, Color(25, 35, 36, 255));
+                    image.DrawLine(a.X, a.Y, b.X, b.Y, width, surface);
+                }
+            }
+            return Render::UploadTexture(device, image, true);
+        }
+    }
 
     SimulatorGame::SimulatorGame(Core::CommandLineOptions options)
         : options_(std::move(options)),
@@ -133,6 +178,17 @@ namespace CarSim::App
         mirrorEnabled_ = save_.settings.mirrorEnabled;
         if (!options_.cockpit && save_.settings.startInCockpit) {
             options_.cockpit = true;
+        }
+        // Old profiles stored the former default M for the mirror. Reserve M for the map and
+        // migrate that old binding to V so one press cannot toggle both overlays.
+        for (auto& binding : save_.bindings) {
+            if (binding.first == "ToggleMirror" && binding.second == "M") {
+                binding.second = "V";
+            } else if (binding.first == "SelectorDrive" && binding.second == "F") {
+                binding.second = "G";
+            } else if (binding.first == "ToggleFlight" && binding.second == "J") {
+                binding.second = "F";
+            }
         }
         std::vector<std::string> bindingWarnings;
         input_.ApplyOverrides(save_.bindings, bindingWarnings);
@@ -262,6 +318,7 @@ namespace CarSim::App
         cameraMode_ = options_.cockpit ? Render::CameraMode::Cockpit : Render::CameraMode::Chase;
         showHelp_ = options_.showHelpOverlay;
         showDebug_ = options_.showDebugOverlay;
+        showMap_ = options_.showMapOverlay;
         if (options_.chaseYawDeg) {
             chaseCamera_.yawOffset = *options_.chaseYawDeg * (std::numbers::pi_v<float> / 180.0f);
         }
@@ -374,6 +431,13 @@ namespace CarSim::App
         LoadMap();
         LoadVehicle();
         ApplySaveToVehicle();
+        if (options_.startFlight) {
+            Sim::DriverControls controls;
+            controls.toggleFlight = true;
+            const Sim::GroundSurface& ground = map_ ? static_cast<const Sim::GroundSurface&>(map_->Ground()) : ground_;
+            vehicle_->Update(controls, 1.0f / 60.0f, ground);
+            cameraMode_ = Render::CameraMode::Chase;
+        }
         if (options_.route && !PlanRoute()) {
             // A run that was told to drive a route and cannot is a failed run, not a free drive.
             std::cerr << "route: refusing to continue without the requested route\n";
@@ -424,6 +488,9 @@ namespace CarSim::App
             }
         }
         spriteBatch_ = std::make_unique<SpriteBatch>(device);
+        if (map_) {
+            mapTexture_ = BuildMapTexture(device, *map_);
+        }
 
         gaugeFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/gauge_condensed_96");
         if (!gaugeFont_) {
@@ -432,6 +499,11 @@ namespace CarSim::App
         cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
         mirror_ = std::make_unique<Render::MirrorView>(device);
         chaseCamera_.groundHeight = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
+        if (vehicle_->FlightMode()) {
+            chaseCamera_.distance = options_.chaseDistanceM.value_or(14.0f);
+            chaseCamera_.height = 5.0f;
+            chaseCamera_.targetHeight = 0.6f;
+        }
         chaseCamera_.Snap(vehicle_->Snapshot());
         // The clock and the weather were read before the renderers existed, so hand the finished
         // palette to them now that they do.
@@ -509,6 +581,9 @@ namespace CarSim::App
         }
         if (input_.Pressed(GameAction::ToggleMirror)) {
             mirrorEnabled_ = !mirrorEnabled_;
+        }
+        if (input_.Pressed(GameAction::ToggleMap)) {
+            showMap_ = !showMap_;
         }
         if (input_.Pressed(GameAction::TimeForward) || input_.Pressed(GameAction::TimeBackward)) {
             const float step = input_.Pressed(GameAction::TimeForward) ? 1.0f : -1.0f;
@@ -703,6 +778,7 @@ namespace CarSim::App
             return;
         }
         traffic_->Update(dt, PlayerProbe());
+        if (vehicle_->FlightMode()) return;
         // Player against traffic cars: the AI car acts as a moving box with mass; it stops for a
         // while after a hit.
         const Vector3 playerPosition = vehicle_->OriginPosition();
@@ -747,13 +823,16 @@ namespace CarSim::App
 
         Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
         ApplyAutoDrive(controls);
-        if (routeDriver_) {
+        if (routeDriver_ && !vehicle_->FlightMode()) {
             // The autopilot owns the pedals and the wheel; everything else (camera, overlays,
             // quit) still answers to the keyboard.
             Sim::DriverControls driven = routeDriver_->Update(vehicle_->Snapshot(), dt);
             driven.toggleHeadlights = controls.toggleHeadlights;
             driven.toggleHighBeam = controls.toggleHighBeam;
             driven.toggleTurbo = controls.toggleTurbo;
+            driven.toggleFlight = controls.toggleFlight;
+            driven.flightClimb = controls.flightClimb;
+            driven.flightDescend = controls.flightDescend;
             controls = driven;
             const auto& progress = routeDriver_->Progress();
             if (progress.finished && !routeReported_) {
@@ -770,11 +849,14 @@ namespace CarSim::App
             out = std::chrono::duration<float, std::milli>(now - stageClock).count();
             stageClock = now;
         };
+        const Vector3 previousOrigin = vehicle_->OriginPosition();
         vehicle_->Update(controls, dt, ground);
+        if (vehicle_->FlightMode()) cameraMode_ = Render::CameraMode::Chase;
         startRefusedHintSeconds_ = vehicle_->StartRefused() ? 4.0f : std::max(0.0f, startRefusedHintSeconds_ - dt);
         stage(vehicleMs_);
         contactEvents_.clear();
-        collision_.ResolveVehicle(*vehicle_, contactEvents_);
+        if (vehicle_->FlightMode()) collision_.ResolveFlight(*vehicle_, previousOrigin, contactEvents_);
+        else collision_.ResolveVehicle(*vehicle_, contactEvents_);
         stage(collisionMs_);
         UpdateTraffic(dt);
         stage(trafficMs_);
@@ -786,6 +868,10 @@ namespace CarSim::App
         }
 
         const auto state = vehicle_->Snapshot();
+        chaseCamera_.distance = options_.chaseDistanceM.value_or(state.flightMode ? 14.0f : 6.2f);
+        chaseCamera_.height = state.flightMode ? 5.0f : 2.0f;
+        chaseCamera_.targetHeight = state.flightMode ? 0.6f : 0.9f;
+        if (controls.toggleFlight) chaseCamera_.Snap(state);
         chaseCamera_.Update(state, dt);
         cockpitCamera_.Update(state, definition_, dt);
         stageClock = std::chrono::steady_clock::now();
@@ -814,6 +900,10 @@ namespace CarSim::App
         viewportHeight_ = viewport.getHeightProperty();
 
         const auto state = vehicle_->Snapshot();
+        if (worldRenderer_) {
+            worldRenderer_->SetHeadlights(state.originPosition, state.worldMatrix.getForwardProperty(),
+                                           state.lowBeam || state.flightMode ? rig_.LampFactor() : 0.0f, state.highBeam);
+        }
         Render::GaugePose gauges;
         gauges.speed = state.speedKmh / definition_.dashboard.speedometerMaxKmh;
         gauges.rpm = state.engineRpm / definition_.dashboard.tachometerMaxRpm;
@@ -921,6 +1011,9 @@ namespace CarSim::App
         if (hudVisible_ || showHelp_) {
             DrawHud();
         }
+        if (showMap_) {
+            DrawMap();
+        }
         if (showDebug_) {
             DrawDebugOverlay();
         }
@@ -1000,7 +1093,8 @@ namespace CarSim::App
         std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
                       s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
         font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
-        std::string status = std::string("Engine: ") + Sim::ToString(s.engineState);
+        std::string status = s.flightMode ? "Helicopter  Space climb  Q descend  F car" :
+                            std::string("Engine: ") + Sim::ToString(s.engineState);
         if (startRefusedHintSeconds_ > 0.0f) {
             status += s.transmissionMode == Sim::TransmissionMode::Automatic
                           ? "  (select P or N with the P / N key, then press E)"
@@ -1018,7 +1112,9 @@ namespace CarSim::App
         std::string lamps;
         if (s.leftIndicatorLit) lamps += "<  ";
         if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
-        if (s.turboEnabled) lamps += "TURBO  ";
+        if (s.turboMode == Sim::TurboMode::Turbo) lamps += "TURBO  ";
+        if (s.turboMode == Sim::TurboMode::Ultra) lamps += "ULTRA TURBO  ";
+        if (s.flightMode) lamps += "FLIGHT  ";
         if (s.reserveWarning) lamps += "FUEL  ";
         if (s.handbrake) lamps += "(P)  ";
         if (s.rightIndicatorLit) lamps += "  >";
@@ -1027,9 +1123,53 @@ namespace CarSim::App
         }
 
         if (!showHelp_) {
-            font_->DrawShadowed(*spriteBatch_, "F1 help   C camera   E engine", Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
+            font_->DrawShadowed(*spriteBatch_, "F1 help   C camera   E engine   M map   L lights   K low/high",
+                                Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
         }
 
+        spriteBatch_->End();
+    }
+
+    void SimulatorGame::DrawMap()
+    {
+        auto& device = getGraphicsDeviceProperty();
+        const auto& vp = device.getViewportProperty();
+        const int side = std::max(80, std::min({vp.getWidthProperty() - 48, vp.getHeightProperty() - 100, 650}));
+        const int left = (vp.getWidthProperty() - side - 32) / 2;
+        const int top = (vp.getHeightProperty() - side - 68) / 2;
+        const int mapX = left + 16, mapY = top + 48;
+        const auto& white = vehicleMaterials_->White();
+
+        spriteBatch_->Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None,
+                            &RasterizerState::CullNone);
+        spriteBatch_->Draw(white, Rectangle(left, top, side + 32, side + 68), Color(7, 14, 20, 235));
+        spriteBatch_->Draw(white, Rectangle(mapX - 2, mapY - 2, side + 4, side + 4), Color(185, 201, 194, 255));
+        if (mapTexture_ && map_) {
+            spriteBatch_->Draw(*mapTexture_, Rectangle(mapX, mapY, side, side), Color(255, 255, 255, 255));
+            const auto& terrain = map_->Terrain();
+            const auto position = vehicle_->Snapshot().originPosition;
+            const float u = std::clamp((position.X - terrain.MinX()) / (terrain.MaxX() - terrain.MinX()), 0.0f, 1.0f);
+            const float v = std::clamp((position.Z - terrain.MinZ()) / (terrain.MaxZ() - terrain.MinZ()), 0.0f, 1.0f);
+            const int x = mapX + static_cast<int>(u * side);
+            const int y = mapY + static_cast<int>(v * side);
+            spriteBatch_->Draw(white, Rectangle(x - 8, y - 8, 16, 16), Color(9, 19, 25, 255));
+            spriteBatch_->Draw(white, Rectangle(x - 5, y - 5, 10, 10), Color(255, 203, 62, 255));
+            Vector3 forward = vehicle_->Snapshot().worldMatrix.getForwardProperty();
+            const float angle = std::atan2(forward.Z, forward.X);
+            spriteBatch_->Draw(white, Rectangle(x, y, 22, 4), std::nullopt, Color(255, 203, 62, 255),
+                                angle, Vector2(0.0f, 0.5f), SpriteEffects::None, 0.0f);
+            fontBold_->Draw(*spriteBatch_, "MAP", Vector2(static_cast<float>(left + 16), static_cast<float>(top + 8)),
+                            Color(245, 245, 235, 255), 0.58f);
+            font_->Draw(*spriteBatch_, map_->Data().info.displayName,
+                        Vector2(static_cast<float>(left + 110), static_cast<float>(top + 15)), Color(205, 220, 210, 255), 0.7f);
+            font_->Draw(*spriteBatch_, "N", Vector2(static_cast<float>(mapX + side - 25), static_cast<float>(mapY + 8)),
+                        Color(255, 255, 255, 240), 0.75f);
+        } else {
+            fontBold_->Draw(*spriteBatch_, "No map loaded", Vector2(static_cast<float>(mapX + 20), static_cast<float>(mapY + 20)),
+                            Color(240, 240, 240, 255), 0.5f);
+        }
+        font_->Draw(*spriteBatch_, "M close", Vector2(static_cast<float>(left + side - 70), static_cast<float>(top + 15)),
+                    Color(215, 225, 215, 255), 0.7f);
         spriteBatch_->End();
     }
 
@@ -1196,7 +1336,7 @@ namespace CarSim::App
             GameAction::ToggleTurbo,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
             GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera,
-            GameAction::ToggleFullscreen, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,
+            GameAction::ToggleFullscreen, GameAction::ToggleMap, GameAction::ToggleFlight, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,
             GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
             GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,
             GameAction::TimeBackward, GameAction::TimeForward, GameAction::ToggleTimeFlow,

@@ -37,7 +37,7 @@ namespace CarSim::Sim
 
     void Electrics::ToggleHighBeam()
     {
-        if (headlights_ == HeadlightMode::Low) {
+        if (headlights_ == HeadlightMode::Off || headlights_ == HeadlightMode::Low) {
             headlights_ = HeadlightMode::High;
         } else if (headlights_ == HeadlightMode::High) {
             headlights_ = HeadlightMode::Low;

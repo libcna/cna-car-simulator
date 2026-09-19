@@ -35,6 +35,8 @@ namespace CarSim::Sim
     public:
         virtual ~GroundSurface() = default;
 
+        [[nodiscard]] virtual float HeightAt(float x, float z) const = 0;
+
         /// Casts a ray; returns true and fills `hit` when the surface is hit within maxDistance.
         [[nodiscard]] virtual bool Raycast(const Microsoft::Xna::Framework::Vector3& origin,
                                            const Microsoft::Xna::Framework::Vector3& direction,
@@ -47,6 +49,8 @@ namespace CarSim::Sim
     public:
         explicit FlatGround(float height = 0.0f, SurfaceType surface = SurfaceType::Asphalt)
             : height_(height), surface_(surface) {}
+
+        [[nodiscard]] float HeightAt(float, float) const override { return height_; }
 
         [[nodiscard]] bool Raycast(const Microsoft::Xna::Framework::Vector3& origin,
                                    const Microsoft::Xna::Framework::Vector3& direction,
@@ -65,6 +69,8 @@ namespace CarSim::Sim
 
         explicit FunctionGround(HeightFunction height, SurfaceType surface = SurfaceType::Asphalt)
             : height_(std::move(height)), surface_(surface) {}
+
+        [[nodiscard]] float HeightAt(float x, float z) const override { return height_(x, z); }
 
         [[nodiscard]] bool Raycast(const Microsoft::Xna::Framework::Vector3& origin,
                                    const Microsoft::Xna::Framework::Vector3& direction,

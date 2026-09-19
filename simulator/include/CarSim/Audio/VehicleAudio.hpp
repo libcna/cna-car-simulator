@@ -82,6 +82,8 @@ namespace CarSim::Audio
         int blocksSubmitted_ = 0;
         int underruns_ = 0;
         float cockpitBlend_ = 0.0f;
+        double rotorPhase_ = 0.0;
+        float rotorGain_ = 0.0f;
         bool hornPressed_ = false;
         unsigned blockIndex_ = 0;            // for the overrun burble gate
         float secondsSinceShift_ = 1e9f;     // gear-change dip envelope

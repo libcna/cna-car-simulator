@@ -80,9 +80,11 @@ TEST_F(EngineTest, TurboDoublesRunningCombustionTorqueAndCanBeTurnedOff)
     engine.SetAngularVelocity(Units::RpmToRadS(3500.0f));
     const float normal = engine.CombustionTorque(1.0f);
     ASSERT_GT(normal, 0.0f);
-    engine.SetTurboEnabled(true);
+    engine.SetTurboMode(TurboMode::Turbo);
     EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal * 2.0f);
-    engine.SetTurboEnabled(false);
+    engine.SetTurboMode(TurboMode::Ultra);
+    EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal * 5.0f);
+    engine.SetTurboMode(TurboMode::Off);
     EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal);
 }
 
