@@ -189,6 +189,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Clutch (manual mode) | `Q` |
 | Handbrake | `Space` |
 | Engine start / stop (one press; the starter cranks until the engine catches) | `E` |
+| Turbo on / off (double engine output, up to about 250 km/h) | `O` |
 | Gear up / selector up, gear down / selector down | `Left Shift` / `Left Ctrl` (also right-hand keys) |
 | Manual gears | `1` .. `6`, `N` neutral, `R` reverse |
 | Automatic selector | `P` park, `R` reverse, `N` neutral, `F` drive |
@@ -243,7 +244,7 @@ nothing is lost. Settings and bindings can be edited by hand:
 ```
 
 Action names are the `GameAction` enumerators (`Throttle`, `Brake`, `SteerLeft`,
-`SteerRight`, `Clutch`, `Handbrake`, `Horn`, `ToggleEngine`, `ShiftUp`, `ShiftDown`,
+`SteerRight`, `Clutch`, `Handbrake`, `Horn`, `ToggleEngine`, `ToggleTurbo`, `ShiftUp`, `ShiftDown`,
 `GearNeutral`, `GearReverse`, `Gear1` .. `Gear6`, `SelectorPark`, `SelectorDrive`,
 `ToggleTransmission`, `IndicatorLeft`, `IndicatorRight`, `Hazard`, `Headlights`, `HighBeam`,
 `ToggleCamera`, `ToggleFullscreen`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,

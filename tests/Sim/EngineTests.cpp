@@ -1,4 +1,5 @@
 #include "CarSim/Sim/Engine.hpp"
+#include "CarSim/Sim/Units.hpp"
 #include "CarSim/Sim/VehicleDefinition.hpp"
 
 #include <gtest/gtest.h>
@@ -69,6 +70,20 @@ TEST_F(EngineTest, RevLimiterCapsFreeRevving)
     EXPECT_LE(engine.Rpm(), def.engine.limiterRpm + 50.0f);
     EXPECT_GE(engine.Rpm(), def.engine.limiterRpm - 400.0f);
     EXPECT_TRUE(engine.LimiterActive());
+}
+
+TEST_F(EngineTest, TurboDoublesRunningCombustionTorqueAndCanBeTurnedOff)
+{
+    engine.RequestStart();
+    RunFree(engine, 2.0f, 0.0f);
+    ASSERT_EQ(engine.State(), EngineState::Running);
+    engine.SetAngularVelocity(Units::RpmToRadS(3500.0f));
+    const float normal = engine.CombustionTorque(1.0f);
+    ASSERT_GT(normal, 0.0f);
+    engine.SetTurboEnabled(true);
+    EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal * 2.0f);
+    engine.SetTurboEnabled(false);
+    EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal);
 }
 
 TEST_F(EngineTest, StopTurnsOffAndSpinsDown)

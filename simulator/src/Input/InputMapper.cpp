@@ -19,6 +19,7 @@ namespace CarSim::Input
             case GameAction::Handbrake: return "Handbrake";
             case GameAction::Horn: return "Horn";
             case GameAction::ToggleEngine: return "ToggleEngine";
+            case GameAction::ToggleTurbo: return "ToggleTurbo";
             case GameAction::ShiftUp: return "ShiftUp";
             case GameAction::ShiftDown: return "ShiftDown";
             case GameAction::GearNeutral: return "GearNeutral";
@@ -69,6 +70,7 @@ namespace CarSim::Input
             case GameAction::Handbrake: return "Handbrake";
             case GameAction::Horn: return "Horn";
             case GameAction::ToggleEngine: return "Start / stop engine";
+            case GameAction::ToggleTurbo: return "Toggle turbo (2x power)";
             case GameAction::ShiftUp: return "Gear up / selector up";
             case GameAction::ShiftDown: return "Gear down / selector down";
             case GameAction::GearNeutral: return "Neutral";
@@ -119,6 +121,7 @@ namespace CarSim::Input
             {GameAction::Handbrake, Keys::Space},
             {GameAction::Horn, Keys::B},
             {GameAction::ToggleEngine, Keys::E},
+            {GameAction::ToggleTurbo, Keys::O},
             {GameAction::ShiftUp, Keys::LeftShift}, {GameAction::ShiftUp, Keys::RightShift},
             {GameAction::ShiftDown, Keys::LeftControl}, {GameAction::ShiftDown, Keys::RightControl},
             {GameAction::GearNeutral, Keys::N},
@@ -203,6 +206,7 @@ namespace CarSim::Input
         c.handbrake = Held(GameAction::Handbrake);
         c.horn = Held(GameAction::Horn);
         c.toggleEngine = Pressed(GameAction::ToggleEngine);
+        c.toggleTurbo = Pressed(GameAction::ToggleTurbo);
         c.shiftUp = Pressed(GameAction::ShiftUp);
         c.shiftDown = Pressed(GameAction::ShiftDown);
         c.toggleTransmissionMode = Pressed(GameAction::ToggleTransmission);

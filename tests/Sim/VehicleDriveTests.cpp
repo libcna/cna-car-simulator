@@ -160,6 +160,44 @@ TEST_F(VehicleDrive, AutomaticFullThrottleAccelerationIsPlausible)
     EXPECT_NEAR(s.originPosition.X, 0.0f, 1.0f) << "full-throttle launch should track straight";
 }
 
+TEST_F(VehicleDrive, TurboAcceleratesFasterAndReachesAbout250Kmh)
+{
+    const auto launch = [this](Vehicle& v, const bool turbo) {
+        DriverControls c;
+        c.brake = 1.0f;
+        v.Update(c, kFrame, ground);
+        c.toggleEngine = true;
+        c.toggleTurbo = turbo;
+        v.Update(c, kFrame, ground);
+        c.toggleEngine = false;
+        c.toggleTurbo = false;
+        Drive(v, ground, 3.0f, [c](float) { return c; });
+        EXPECT_EQ(v.GetEngine().State(), EngineState::Running);
+        c.selector = AutomaticSelector::Drive;
+        v.Update(c, kFrame, ground);
+        c.selector.reset();
+        Drive(v, ground, 1.0f, [c](float) { return c; });
+    };
+
+    Vehicle normal(def, TransmissionMode::Automatic);
+    Vehicle boosted(def, TransmissionMode::Automatic);
+    launch(normal, false);
+    launch(boosted, true);
+    EXPECT_TRUE(boosted.Snapshot().turboEnabled);
+    Drive(normal, ground, 15.0f, [](float) { DriverControls c; c.throttle = 1.0f; return c; });
+    Drive(boosted, ground, 15.0f, [](float) { DriverControls c; c.throttle = 1.0f; return c; });
+    EXPECT_GT(boosted.SpeedKmh(), normal.SpeedKmh() + 15.0f);
+
+    Drive(boosted, ground, 75.0f, [](float) { DriverControls c; c.throttle = 1.0f; return c; });
+    EXPECT_GE(boosted.SpeedKmh(), 245.0f);
+    EXPECT_LT(boosted.SpeedKmh(), 255.0f);
+
+    DriverControls off;
+    off.toggleTurbo = true;
+    boosted.Update(off, kFrame, ground);
+    EXPECT_FALSE(boosted.Snapshot().turboEnabled);
+}
+
 TEST_F(VehicleDrive, BrakingFrom100KmhStopsWithinRealisticDistance)
 {
     Vehicle v(def, TransmissionMode::Automatic);

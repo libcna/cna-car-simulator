@@ -303,7 +303,7 @@
   "plate": "3S4 7182"
  },
  "dashboard": {
-  "speedometerMaxKmh": 220,
+  "speedometerMaxKmh": 260,
   "tachometerMaxRpm": 7000,
   "temperatureMinC": 50,
   "temperatureMaxC": 130

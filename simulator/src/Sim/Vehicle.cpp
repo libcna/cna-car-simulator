@@ -171,6 +171,9 @@ namespace CarSim::Sim
     void Vehicle::ApplyDiscreteControls(const DriverControls& controls)
     {
         startRefused_ = false;
+        if (controls.toggleTurbo) {
+            engine_.SetTurboEnabled(!engine_.TurboEnabled());
+        }
         if (controls.toggleTransmissionMode) {
             SetTransmissionMode(transmission_->Mode() == TransmissionMode::Manual ? TransmissionMode::Automatic
                                                                                   : TransmissionMode::Manual);
@@ -258,7 +261,7 @@ namespace CarSim::Sim
                     // Do not let the clutch demand more than the engine can deliver: release
                     // down to the bite point for the available torque, then only trickle.
                     const float available = std::max(0.0f, engine_.NetTorque(throttlePedal_));
-                    const float floor = clutch_.PedalForCapacity(available * 0.9f);
+                    const float floor = clutch_.PedalForCapacity(available * 0.9f / (engine_.TurboEnabled() ? 2.0f : 1.0f));
                     if (clutchPedal_ - clutchRate * dt <= floor) {
                         clutchRate = engine_.Rpm() > def_.engine.idleRpm + 300.0f ? 0.01f : 0.0f;
                     }
@@ -379,11 +382,12 @@ namespace CarSim::Sim
 
     float Vehicle::CouplingCapacity() const
     {
+        const float multiplier = engine_.TurboEnabled() ? 2.0f : 1.0f;
         if (transmission_->Mode() == TransmissionMode::Manual) {
-            return clutch_.Capacity(clutchPedal_);
+            return clutch_.Capacity(clutchPedal_) * multiplier;
         }
         const auto* automatic = static_cast<const AutomaticTransmission*>(transmission_.get());
-        return automatic->CouplingCapacity(engine_.Rpm(), def_.engine.idleRpm, def_.clutch.maxTorqueNm);
+        return automatic->CouplingCapacity(engine_.Rpm(), def_.engine.idleRpm, def_.clutch.maxTorqueNm * multiplier);
     }
 
     void Vehicle::IntegrateWheel(WheelRuntime& w, const float dt, const float driveTorque, const float extraInertia)
@@ -534,7 +538,10 @@ namespace CarSim::Sim
             transmission_->Mode() == TransmissionMode::Automatic && transmission_->IsShifting();
         const float driverThrottle = automaticShift ? 0.0f : throttlePedal_;
         const bool fuel = fuel_.HasFuel();
-        const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio();
+        // Turbo adds a taller top gear so the doubled output can reach 250 km/h before the
+        // stock engine's limiter. Lower gears retain their launch and overtaking leverage.
+        const bool turboTopGear = engine_.TurboEnabled() && transmission_->Gear() == transmission_->ForwardGearCount();
+        const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio() * (turboTopGear ? 0.88f : 1.0f);
         const bool engaged = std::fabs(ratio) > 1e-3f && !drivenWheels_.empty();
         const float capacity = engaged ? CouplingCapacity() : 0.0f;
         const float efficiency = def_.gearbox.efficiency;
@@ -609,7 +616,10 @@ namespace CarSim::Sim
         const Vector3 v = body_.LinearVelocity();
         const float speed = v.Length();
         if (speed > 0.01f) {
-            const float dragMagnitude = 0.5f * Units::kAirDensity * c.dragCoefficient * c.frontalAreaM2 * speed * speed;
+            // The turbo gameplay mode also trims aerodynamic drag, which otherwise limits this
+            // small hatchback well below 250 km/h even with twice the engine output.
+            const float drag = c.dragCoefficient * (engine_.TurboEnabled() ? 0.65f : 1.0f);
+            const float dragMagnitude = 0.5f * Units::kAirDensity * drag * c.frontalAreaM2 * speed * speed;
             body_.ApplyCentralForce(v * (-dragMagnitude / speed));
         }
     }
@@ -675,6 +685,7 @@ namespace CarSim::Sim
         s.engineLoad = std::clamp(engine_.LoadFraction(), 0.0f, 1.0f);
         s.engineState = engine_.State();
         s.ignitionOn = engine_.IgnitionOn();
+        s.turboEnabled = engine_.TurboEnabled();
         s.throttlePedal = throttlePedal_;
         s.brakePedal = brakePedal_;
         s.clutchPedal = clutchPedal_;

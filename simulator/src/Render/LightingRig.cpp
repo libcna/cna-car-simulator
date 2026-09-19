@@ -86,17 +86,17 @@ namespace CarSim::Render
         // in over the following three and a half degrees, so nothing changes abruptly.
         if (elevationDeg < -0.5f) {
             const float moonShare = 1.0f - SmoothStep(-4.0f, -0.5f, elevationDeg);
-            sunColor = Vector3(0.068f, 0.078f, 0.115f) * (0.35f + 0.65f * night) * moonShare;
+            sunColor = Vector3(0.078f, 0.088f, 0.125f) * (0.35f + 0.65f * night) * moonShare;
             sunDirection = Vector3(-dir.X, -std::fabs(dir.Y) * 0.8f - 0.3f, -dir.Z);
             sunDirection.Normalize();
         }
 
         const Vector3 dayAmbient(0.21f, 0.23f, 0.28f);
         const Vector3 duskAmbient(0.17f, 0.14f, 0.15f);
-        const Vector3 nightAmbient(0.050f, 0.056f, 0.080f);
+        const Vector3 nightAmbient(0.067f, 0.075f, 0.100f);
         skyAmbient = Mix(Mix(nightAmbient, duskAmbient, 1.0f - night), dayAmbient, day);
-        skyFillColor = Mix(Vector3(0.027f, 0.032f, 0.052f), Vector3(0.15f, 0.18f, 0.24f), day) + Vector3(0.05f, 0.03f, 0.02f) * dusk;
-        groundBounceColor = Mix(Vector3(0.010f, 0.010f, 0.014f), Vector3(0.10f, 0.09f, 0.07f), day);
+        skyFillColor = Mix(Vector3(0.040f, 0.046f, 0.065f), Vector3(0.15f, 0.18f, 0.24f), day) + Vector3(0.05f, 0.03f, 0.02f) * dusk;
+        groundBounceColor = Mix(Vector3(0.013f, 0.014f, 0.020f), Vector3(0.10f, 0.09f, 0.07f), day);
 
         const Vector3 dayFog(0.76f, 0.82f, 0.90f);
         const Vector3 duskFog(0.72f, 0.55f, 0.46f);

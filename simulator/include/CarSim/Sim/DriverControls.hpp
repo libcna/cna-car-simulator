@@ -28,6 +28,7 @@ namespace CarSim::Sim
 
         // Discrete requests, consumed once per frame.
         bool toggleEngine = false;
+        bool toggleTurbo = false;
         bool shiftUp = false;
         bool shiftDown = false;
         std::optional<int> selectGear;                 // manual: -1, 0, 1..N

@@ -791,20 +791,20 @@ namespace CarSim::Render
         if (!poolVertices_ || !poolIndices_ || !state.lowBeam || intensity <= 0.01f) {
             return;
         }
-        // Low beam: a short, wide pool that starts just ahead of the bumper and is cut off where
-        // the beam drops. High beam reaches roughly twice as far and stays brighter.
+        // From the cockpit, the bonnet hides much of the first 20 metres. Carry the dipped beam
+        // far enough past it to reveal the road ahead; main beam reaches farther still.
         const bool high = state.highBeam;
         const float nearM = 1.4f;
-        const float farM = high ? 65.0f : 40.0f;
+        const float farM = high ? 160.0f : 95.0f;
         const float halfNear = 2.2f;
-        const float halfFar = high ? 8.5f : 10.0f;
+        const float halfFar = 10.0f;
         const Vector3 origin = state.originPosition;
         Vector3 forward = state.worldMatrix.getForwardProperty();
         forward.Y = 0.0f;
         if (forward.LengthSquared() < 1e-6f) return;
         forward.Normalize();
         const Vector3 right(-forward.Z, 0.0f, forward.X);
-        const Vector3 warm = high ? Vector3(0.95f, 0.94f, 0.88f) : Vector3(0.80f, 0.78f, 0.70f);
+        const Vector3 warm = high ? Vector3(0.90f, 0.90f, 0.84f) : Vector3(0.75f, 0.73f, 0.66f);
 
         const auto sample = [&](const int j, const int i) {
             const float t = static_cast<float>(j) / kPoolCellsAlong;            // 0 near, 1 far

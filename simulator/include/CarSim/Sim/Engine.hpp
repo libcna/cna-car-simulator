@@ -27,6 +27,8 @@ namespace CarSim::Sim
         [[nodiscard]] bool IsRunning() const { return state_ == EngineState::Running; }
         [[nodiscard]] bool IsCranking() const { return state_ == EngineState::Starting; }
         [[nodiscard]] bool IgnitionOn() const { return state_ == EngineState::Running || state_ == EngineState::Starting; }
+        [[nodiscard]] bool TurboEnabled() const { return turboEnabled_; }
+        void SetTurboEnabled(bool enabled) { turboEnabled_ = enabled; }
 
         [[nodiscard]] float Rpm() const;
         [[nodiscard]] float AngularVelocity() const { return omega_; }
@@ -99,6 +101,7 @@ namespace CarSim::Sim
         float crankSecondsTarget_ = 0.8f;
         float flare_ = 0.0f;              // extra idle target right after start (rpm)
         bool fuelAvailable_ = true;
+        bool turboEnabled_ = false;
         float lastLoadFraction_ = 0.0f;
         float lastBrakePowerKw_ = 0.0f;
         bool lastInjecting_ = false;

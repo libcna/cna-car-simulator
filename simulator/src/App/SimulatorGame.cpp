@@ -753,6 +753,7 @@ namespace CarSim::App
             Sim::DriverControls driven = routeDriver_->Update(vehicle_->Snapshot(), dt);
             driven.toggleHeadlights = controls.toggleHeadlights;
             driven.toggleHighBeam = controls.toggleHighBeam;
+            driven.toggleTurbo = controls.toggleTurbo;
             controls = driven;
             const auto& progress = routeDriver_->Progress();
             if (progress.finished && !routeReported_) {
@@ -1017,6 +1018,7 @@ namespace CarSim::App
         std::string lamps;
         if (s.leftIndicatorLit) lamps += "<  ";
         if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
+        if (s.turboEnabled) lamps += "TURBO  ";
         if (s.reserveWarning) lamps += "FUEL  ";
         if (s.handbrake) lamps += "(P)  ";
         if (s.rightIndicatorLit) lamps += "  >";
@@ -1191,6 +1193,7 @@ namespace CarSim::App
             GameAction::Throttle, GameAction::Brake, GameAction::SteerLeft, GameAction::SteerRight, GameAction::Clutch,
             GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
             GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleEngine,
+            GameAction::ToggleTurbo,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
             GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera,
             GameAction::ToggleFullscreen, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,

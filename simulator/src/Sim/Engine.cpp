@@ -91,7 +91,7 @@ namespace CarSim::Sim
 
     float Engine::MaxTorqueAtCurrentRpm() const
     {
-        return std::max(0.0f, def_.torqueCurve.Evaluate(Rpm()));
+        return std::max(0.0f, def_.torqueCurve.Evaluate(Rpm())) * (turboEnabled_ ? 2.0f : 1.0f);
     }
 
     float Engine::CombustionTorque(const float effectiveThrottle) const

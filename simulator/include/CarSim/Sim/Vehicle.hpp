@@ -75,6 +75,7 @@ namespace CarSim::Sim
         float engineLoad = 0.0f;             // delivered torque fraction 0..1 (0 on overrun)
         EngineState engineState = EngineState::Off;
         bool ignitionOn = false;
+        bool turboEnabled = false;
         float throttlePedal = 0.0f;
         float brakePedal = 0.0f;
         float clutchPedal = 0.0f;

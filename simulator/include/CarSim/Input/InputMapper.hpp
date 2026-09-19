@@ -15,7 +15,7 @@ namespace CarSim::Input
     enum class GameAction
     {
         Throttle, Brake, SteerLeft, SteerRight, Clutch, Handbrake, Horn,
-        ToggleEngine, ShiftUp, ShiftDown, GearNeutral, GearReverse,
+        ToggleEngine, ToggleTurbo, ShiftUp, ShiftDown, GearNeutral, GearReverse,
         Gear1, Gear2, Gear3, Gear4, Gear5, Gear6,
         SelectorPark, SelectorDrive, ToggleTransmission,
         IndicatorLeft, IndicatorRight, Hazard, Headlights, HighBeam,
