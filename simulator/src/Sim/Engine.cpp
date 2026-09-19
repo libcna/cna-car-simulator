@@ -24,6 +24,7 @@ namespace CarSim::Sim
             case TurboMode::Off: return "Off";
             case TurboMode::Turbo: return "Turbo";
             case TurboMode::Ultra: return "Ultra turbo";
+            case TurboMode::UltraUltra: return "Ultra ultra turbo";
         }
         return "?";
     }
@@ -33,7 +34,8 @@ namespace CarSim::Sim
         switch (turboMode_) {
             case TurboMode::Off: turboMode_ = TurboMode::Turbo; break;
             case TurboMode::Turbo: turboMode_ = TurboMode::Ultra; break;
-            case TurboMode::Ultra: turboMode_ = TurboMode::Off; break;
+            case TurboMode::Ultra: turboMode_ = TurboMode::UltraUltra; break;
+            case TurboMode::UltraUltra: turboMode_ = TurboMode::Off; break;
         }
     }
 
@@ -43,6 +45,7 @@ namespace CarSim::Sim
             case TurboMode::Off: return 1.0f;
             case TurboMode::Turbo: return 2.0f;
             case TurboMode::Ultra: return 5.0f;
+            case TurboMode::UltraUltra: return 10.0f;
         }
         return 1.0f;
     }

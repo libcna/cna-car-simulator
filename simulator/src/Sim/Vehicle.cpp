@@ -27,6 +27,28 @@ namespace CarSim::Sim
             return v > 0.0f ? 1.0f : (v < 0.0f ? -1.0f : 0.0f);
         }
 
+        float TopGearFactor(const TurboMode mode)
+        {
+            switch (mode) {
+                case TurboMode::Off: return 1.0f;
+                case TurboMode::Turbo: return 0.88f;
+                case TurboMode::Ultra: return 0.53f;
+                case TurboMode::UltraUltra: return 0.40f;
+            }
+            return 1.0f;
+        }
+
+        float DragFactor(const TurboMode mode)
+        {
+            switch (mode) {
+                case TurboMode::Off: return 1.0f;
+                case TurboMode::Turbo: return 0.65f;
+                case TurboMode::Ultra: return 0.40f;
+                case TurboMode::UltraUltra: return 0.40f;
+            }
+            return 1.0f;
+        }
+
         int WheelIndex(const VehicleDefinition& def, const char* name)
         {
             for (std::size_t i = 0; i < def.wheels.size(); ++i) {
@@ -192,9 +214,12 @@ namespace CarSim::Sim
     void Vehicle::StepFlight(const DriverControls& controls, const float dt, const GroundSurface& ground)
     {
         const TurboMode mode = engine_.TurboSetting();
-        const float maxSpeed = mode == TurboMode::Ultra ? 111.0f : mode == TurboMode::Turbo ? 69.0f : 36.0f;
-        const float acceleration = mode == TurboMode::Ultra ? 42.0f : mode == TurboMode::Turbo ? 22.0f : 10.0f;
-        const float climbSpeed = mode == TurboMode::Ultra ? 35.0f : mode == TurboMode::Turbo ? 20.0f : 10.0f;
+        const float maxSpeed = mode == TurboMode::UltraUltra ? 500.0f / 3.6f :
+                               mode == TurboMode::Ultra ? 111.0f : mode == TurboMode::Turbo ? 69.0f : 36.0f;
+        const float acceleration = mode == TurboMode::UltraUltra ? 44.0f :
+                                   mode == TurboMode::Ultra ? 42.0f : mode == TurboMode::Turbo ? 22.0f : 10.0f;
+        const float climbSpeed = mode == TurboMode::UltraUltra ? 40.0f :
+                                mode == TurboMode::Ultra ? 35.0f : mode == TurboMode::Turbo ? 20.0f : 10.0f;
         flightYaw_ -= std::clamp(controls.steering, -1.0f, 1.0f) * 1.4f * dt;
         body_.SetOrientation(Quaternion::CreateFromAxisAngle(Vector3::Up, flightYaw_));
         const Vector3 desired = body_.Forward() * ((std::clamp(controls.throttle, 0.0f, 1.0f) -
@@ -219,7 +244,8 @@ namespace CarSim::Sim
         }
         body_.SetPosition(position);
         body_.SetLinearVelocity(velocity);
-        rotorAngle_ = std::fmod(rotorAngle_ + dt * (mode == TurboMode::Ultra ? 43.0f : mode == TurboMode::Turbo ? 33.0f : 25.0f),
+        rotorAngle_ = std::fmod(rotorAngle_ + dt * (mode == TurboMode::UltraUltra ? 53.0f :
+                                                  mode == TurboMode::Ultra ? 43.0f : mode == TurboMode::Turbo ? 33.0f : 25.0f),
                                 2.0f * std::numbers::pi_v<float>);
         lastSpeedMs_ = Vector3::Dot(velocity, body_.Forward());
     }
@@ -495,7 +521,10 @@ namespace CarSim::Sim
         w.lateralSpeed = vLat;
 
         const float load = w.suspensionForce;
-        const float surfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_);
+        // The boosted driveline needs matching tyre traction to turn its extra torque into
+        // acceleration instead of permanent wheelspin.
+        const float ultraUltraGrip = engine_.TurboSetting() == TurboMode::UltraUltra ? 8.0f : 1.0f;
+        const float surfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_) * ultraUltraGrip;
         const float lowSpeed = std::max(0.1f, def_.tyres.lowSpeedMs);
         const float vDen = std::max(std::fabs(vLong), lowSpeed);
         const float slipAngle = std::atan2(vLat, std::fabs(vLong) + 0.05f);
@@ -521,7 +550,9 @@ namespace CarSim::Sim
         // trims delivered wheel torque near the available grip so the added engine power becomes
         // acceleration instead of sustained wheelspin.
         const float tractionCap = load * f0.friction * radius * 0.93f;
-        const float usableDriveTorque = engine_.TurboSetting() == TurboMode::Ultra && driveTorque > tractionCap
+        const bool tractionControlled = engine_.TurboSetting() == TurboMode::Ultra ||
+                                        engine_.TurboSetting() == TurboMode::UltraUltra;
+        const float usableDriveTorque = tractionControlled && driveTorque > tractionCap
                                             ? tractionCap : driveTorque;
         w.driveTorque = usableDriveTorque;
         float torque = usableDriveTorque;
@@ -604,9 +635,7 @@ namespace CarSim::Sim
         // Taller top gearing lets the extra output reach the requested speeds before the
         // stock engine's limiter. Lower gears keep their launch and overtaking leverage.
         const bool topGear = transmission_->Gear() == transmission_->ForwardGearCount();
-        const float topGearFactor = !topGear ? 1.0f :
-            engine_.TurboSetting() == TurboMode::Ultra ? 0.53f :
-            engine_.TurboSetting() == TurboMode::Turbo ? 0.88f : 1.0f;
+        const float topGearFactor = topGear ? TopGearFactor(engine_.TurboSetting()) : 1.0f;
         const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio() * topGearFactor;
         const bool engaged = std::fabs(ratio) > 1e-3f && !drivenWheels_.empty();
         const float capacity = engaged ? CouplingCapacity() : 0.0f;
@@ -683,8 +712,7 @@ namespace CarSim::Sim
         const float speed = v.Length();
         if (speed > 0.01f) {
             // These gameplay modes trim drag so the extra power reaches their target speeds.
-            const float dragFactor = engine_.TurboSetting() == TurboMode::Ultra ? 0.40f :
-                                     engine_.TurboSetting() == TurboMode::Turbo ? 0.65f : 1.0f;
+            const float dragFactor = DragFactor(engine_.TurboSetting());
             const float drag = c.dragCoefficient * dragFactor;
             const float dragMagnitude = 0.5f * Units::kAirDensity * drag * c.frontalAreaM2 * speed * speed;
             body_.ApplyCentralForce(v * (-dragMagnitude / speed));
@@ -723,8 +751,7 @@ namespace CarSim::Sim
         context.clutchPedal = clutchPedal_;
         context.engineRunning = engine_.IsRunning();
         context.brakePressed = brakePedal_ > 0.1f;
-        context.topGearRatioFactor = engine_.TurboSetting() == TurboMode::Ultra ? 0.53f :
-                                     engine_.TurboSetting() == TurboMode::Turbo ? 0.88f : 1.0f;
+        context.topGearRatioFactor = TopGearFactor(engine_.TurboSetting());
         transmission_->Step(context);
 
         ResolveDriveline(dt);

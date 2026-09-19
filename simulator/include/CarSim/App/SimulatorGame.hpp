@@ -81,6 +81,9 @@ namespace CarSim::App
         bool PlanRoute();
         void ReportRoute() const;
         void UpdateTraffic(float dt);
+        void ToggleWalking();
+        void UpdateWalking(float dt);
+        [[nodiscard]] bool WalkingCanOccupy(const Microsoft::Xna::Framework::Vector3& position) const;
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
         void DrawHud();
         void DrawMap();
@@ -113,6 +116,13 @@ namespace CarSim::App
         int collisionCount_ = 0;
         float lastImpactSpeed_ = 0.0f;
         Input::InputMapper input_;
+        bool walking_ = false;
+        bool running_ = false;
+        bool walkingMoving_ = false;
+        Microsoft::Xna::Framework::Vector3 walkingPosition_{};
+        float walkingYaw_ = 0.0f;
+        float walkingStepDistance_ = 0.0f;
+        float walkingBobPhase_ = 0.0f;
         // Scripted driving over the lane graph (--route). Present only when a route was asked for.
         std::unique_ptr<Traffic::RouteDriver> routeDriver_;
         std::string routeName_;

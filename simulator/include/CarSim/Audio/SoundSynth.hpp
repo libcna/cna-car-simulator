@@ -58,6 +58,7 @@ namespace CarSim::Audio
         [[nodiscard]] Clip GearClunk(int sampleRate);
         [[nodiscard]] Clip Impact(int sampleRate, float strength);   // strength 0..1
         [[nodiscard]] Clip StarterCatch(int sampleRate);
+        [[nodiscard]] Clip Footstep(int sampleRate);
     }
 
     /// Continuous rolling noise of the tyres and the wind, rendered per buffer.

@@ -15,6 +15,7 @@ if(NOT TARGET GTest::gtest)
 endif()
 
 add_executable(carsim_tests
+    App/WalkingModeTests.cpp
     CommandLineTests.cpp
     Core/PiecewiseLinearTests.cpp
     Core/SaveDataTests.cpp

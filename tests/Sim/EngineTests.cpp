@@ -84,8 +84,23 @@ TEST_F(EngineTest, TurboDoublesRunningCombustionTorqueAndCanBeTurnedOff)
     EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal * 2.0f);
     engine.SetTurboMode(TurboMode::Ultra);
     EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal * 5.0f);
+    engine.SetTurboMode(TurboMode::UltraUltra);
+    EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal * 10.0f);
     engine.SetTurboMode(TurboMode::Off);
     EXPECT_FLOAT_EQ(engine.CombustionTorque(1.0f), normal);
+}
+
+TEST_F(EngineTest, TurboKeyCyclesThroughAllFourModes)
+{
+    EXPECT_EQ(engine.TurboSetting(), TurboMode::Off);
+    engine.CycleTurboMode();
+    EXPECT_EQ(engine.TurboSetting(), TurboMode::Turbo);
+    engine.CycleTurboMode();
+    EXPECT_EQ(engine.TurboSetting(), TurboMode::Ultra);
+    engine.CycleTurboMode();
+    EXPECT_EQ(engine.TurboSetting(), TurboMode::UltraUltra);
+    engine.CycleTurboMode();
+    EXPECT_EQ(engine.TurboSetting(), TurboMode::Off);
 }
 
 TEST_F(EngineTest, StopTurnsOffAndSpinsDown)

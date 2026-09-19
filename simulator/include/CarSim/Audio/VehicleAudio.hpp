@@ -44,6 +44,7 @@ namespace CarSim::Audio
 
         /// Mixes and submits as many blocks as the stream needs; call once per frame.
         void Update(const Sim::VehicleState& state, bool cockpit, const std::vector<Collision::ContactEvent>& contacts, float dt);
+        void TriggerFootstep();
 
         AudioLevels levels;
         /// Falling rain (0..1) and how wet the road is (0..1): rain hisses on the roof and the
@@ -72,7 +73,7 @@ namespace CarSim::Audio
         EngineSynth engine_{kSampleRate};
         RollingNoise rolling_{kSampleRate};
         HornVoice horn_{kSampleRate};
-        Clip tick_, tock_, clunk_, catch_;
+        Clip tick_, tock_, clunk_, catch_, footstep_;
         std::vector<Clip> impacts_;
         std::vector<Voice> voices_;
         OnePoleLowPass cabinLeft_, cabinRight_;

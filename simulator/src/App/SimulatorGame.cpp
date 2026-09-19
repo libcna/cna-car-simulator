@@ -1,4 +1,5 @@
 #include "CarSim/App/SimulatorGame.hpp"
+#include "CarSim/App/WalkingMode.hpp"
 
 #include "CarSim/Map/MapDocument.hpp"
 
@@ -21,6 +22,8 @@
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteSortMode.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Viewport.hpp"
+#include "Microsoft/Xna/Framework/Input/Keyboard.hpp"
+#include "Microsoft/Xna/Framework/Input/Keys.hpp"
 #include "System/TimeSpan.hpp"
 
 #include <algorithm>
@@ -797,6 +800,100 @@ namespace CarSim::App
         }
     }
 
+    bool SimulatorGame::WalkingCanOccupy(const Vector3& position) const
+    {
+        const Collision::Obb walker = Collision::Obb::FromHeading(
+            position + Vector3(0.0f, 0.9f, 0.0f), Vector3(0.24f, 0.85f, 0.24f), 0.0f);
+        Collision::Contact contact;
+        return !collision_.Overlaps(walker) &&
+               !Collision::IntersectObbObb(walker, Collision::CollisionWorld::VehicleBox(*vehicle_), contact);
+    }
+
+    void SimulatorGame::ToggleWalking()
+    {
+        if (walking_) {
+            walking_ = false;
+            running_ = false;
+            walkingMoving_ = false;
+            std::cout << "walking: returned to car\n";
+            return;
+        }
+
+        const Sim::VehicleState state = vehicle_->Snapshot();
+        if (!CanEnterWalking(state)) {
+            return;
+        }
+
+        const Vector3 forward = state.worldMatrix.getForwardProperty();
+        const Vector3 right = state.worldMatrix.getRightProperty();
+        const float offset = definition_.chassis.widthM * 0.5f + 0.66f;
+        const auto groundHeight = [this](const float x, const float z) {
+            return map_ ? map_->Ground().HeightAt(x, z) : 0.0f;
+        };
+        // Prefer the driver's side; use the passenger side if a wall blocks the door.
+        for (const float side : {-1.0f, 1.0f}) {
+            const Vector3 candidate = state.originPosition + right * (side * offset);
+            const Vector3 foot(candidate.X, groundHeight(candidate.X, candidate.Z), candidate.Z);
+            if (!WalkingCanOccupy(foot)) continue;
+            walking_ = true;
+            running_ = false;
+            walkingMoving_ = false;
+            walkingPosition_ = foot;
+            walkingYaw_ = std::atan2(-forward.X, -forward.Z);
+            walkingStepDistance_ = 0.5f;
+            walkingBobPhase_ = 0.0f;
+            std::cout << "walking: entered on foot\n";
+            return;
+        }
+        std::cout << "walking: no space next to car\n";
+    }
+
+    void SimulatorGame::UpdateWalking(const float dt)
+    {
+        using Microsoft::Xna::Framework::Input::Keyboard;
+        using Microsoft::Xna::Framework::Input::Keys;
+        const auto keys = Keyboard::GetState();
+        const float turn = (keys.IsKeyDown(Keys::Right) ? 1.0f : 0.0f) -
+                           (keys.IsKeyDown(Keys::Left) ? 1.0f : 0.0f);
+        walkingYaw_ += turn * 2.1f * dt;
+        const float forward = (keys.IsKeyDown(Keys::Up) ? 1.0f : 0.0f) -
+                              (keys.IsKeyDown(Keys::Down) ? 1.0f : 0.0f);
+        const float sideways = (keys.IsKeyDown(Keys::D) ? 1.0f : 0.0f) -
+                               (keys.IsKeyDown(Keys::A) ? 1.0f : 0.0f);
+        Vector3 direction(std::sin(walkingYaw_) * forward + std::cos(walkingYaw_) * sideways,
+                          0.0f,
+                          -std::cos(walkingYaw_) * forward + std::sin(walkingYaw_) * sideways);
+        walkingMoving_ = false;
+        if (direction.LengthSquared() < 0.001f) return;
+        direction.Normalize();
+        const float distance = (running_ ? kRunningSpeedKmh : kWalkingSpeedKmh) / 3.6f * std::clamp(dt, 0.0f, 0.25f);
+        const int steps = std::max(1, static_cast<int>(std::ceil(distance / 0.08f)));
+        const Vector3 delta = direction * (distance / static_cast<float>(steps));
+        const auto groundHeight = [this](const float x, const float z) {
+            return map_ ? map_->Ground().HeightAt(x, z) : 0.0f;
+        };
+        float travelled = 0.0f;
+        for (int i = 0; i < steps; ++i) {
+            const Vector3 previous = walkingPosition_;
+            Vector3 next(walkingPosition_.X + delta.X, 0.0f, walkingPosition_.Z);
+            next.Y = groundHeight(next.X, next.Z);
+            if (WalkingCanOccupy(next)) walkingPosition_ = next;
+            next = Vector3(walkingPosition_.X, 0.0f, walkingPosition_.Z + delta.Z);
+            next.Y = groundHeight(next.X, next.Z);
+            if (WalkingCanOccupy(next)) walkingPosition_ = next;
+            const Vector3 actual = walkingPosition_ - previous;
+            travelled += std::hypot(actual.X, actual.Z);
+        }
+        walkingMoving_ = travelled > 0.001f;
+        walkingBobPhase_ += travelled * (2.0f * std::numbers::pi_v<float> / 1.5f);
+        walkingStepDistance_ += travelled;
+        const float stride = running_ ? 0.95f : 0.72f;
+        while (walkingStepDistance_ >= stride) {
+            walkingStepDistance_ -= stride;
+            if (audio_) audio_->TriggerFootstep();
+        }
+    }
+
     void SimulatorGame::Update(GameTime& gameTime)
     {
         if (exitRequested_) {
@@ -821,9 +918,22 @@ namespace CarSim::App
         UpdateTimeOfDay(dt);
         UpdateWeather(dt);
 
+        const bool wasWalking = walking_;
+        if (input_.Pressed(GameAction::ToggleWalk)) ToggleWalking();
+        const bool walkingTransition = walking_ != wasWalking;
+        if (walking_ && input_.Pressed(GameAction::ToggleRun)) running_ = !running_;
+
         Sim::DriverControls controls = input_.BuildDriverControls(vehicle_->GetTransmission().Mode());
-        ApplyAutoDrive(controls);
-        if (routeDriver_ && !vehicle_->FlightMode()) {
+        if (walking_) {
+            // Hold the parked vehicle still even on a slope or with a gear selected.
+            controls = {};
+            controls.brake = 1.0f;
+            controls.handbrake = true;
+        } else {
+            if (walkingTransition) controls.throttle = 0.0f;
+            ApplyAutoDrive(controls);
+        }
+        if (routeDriver_ && !vehicle_->FlightMode() && !walking_) {
             // The autopilot owns the pedals and the wheel; everything else (camera, overlays,
             // quit) still answers to the keyboard.
             Sim::DriverControls driven = routeDriver_->Update(vehicle_->Snapshot(), dt);
@@ -858,6 +968,7 @@ namespace CarSim::App
         if (vehicle_->FlightMode()) collision_.ResolveFlight(*vehicle_, previousOrigin, contactEvents_);
         else collision_.ResolveVehicle(*vehicle_, contactEvents_);
         stage(collisionMs_);
+        if (walking_) UpdateWalking(dt);
         UpdateTraffic(dt);
         stage(trafficMs_);
         for (const auto& e : contactEvents_) {
@@ -876,7 +987,7 @@ namespace CarSim::App
         cockpitCamera_.Update(state, definition_, dt);
         stageClock = std::chrono::steady_clock::now();
         if (audio_) {
-            audio_->Update(state, cameraMode_ == Render::CameraMode::Cockpit, contactEvents_, dt);
+            audio_->Update(state, !walking_ && cameraMode_ == Render::CameraMode::Cockpit, contactEvents_, dt);
         }
         stage(audioMs_);
         saveTimer_ += static_cast<double>(dt);
@@ -910,7 +1021,7 @@ namespace CarSim::App
         gauges.fuel = state.fuelFraction;
         gauges.temperature = (state.coolantC - definition_.dashboard.temperatureMinC) /
                              std::max(1.0f, definition_.dashboard.temperatureMaxC - definition_.dashboard.temperatureMinC);
-        const bool cockpit = cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
+        const bool cockpit = !walking_ && cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
         const int mirrorEvery = std::max(1, save_.settings.mirrorUpdateEvery);
         const bool mirrorPass = cockpit && mirrorEnabled_ && (framesDrawn_ % mirrorEvery == 0 || !mirror_->Texture());
         auto passClock = std::chrono::steady_clock::now();
@@ -961,7 +1072,14 @@ namespace CarSim::App
         device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, Color(120, 160, 210, 255), 1.0f, 0);
 
         Render::CameraPose camera = cameraMode_ == Render::CameraMode::Chase ? chaseCamera_.Pose() : cockpitCamera_.Pose();
-        if (options_.freeView) {
+        if (walking_) {
+            const float bob = walkingMoving_ ? 0.025f * std::sin(walkingBobPhase_) : 0.0f;
+            camera.position = walkingPosition_ + Vector3(0.0f, 1.68f + bob, 0.0f);
+            camera.target = camera.position + Vector3(std::sin(walkingYaw_), 0.0f, -std::cos(walkingYaw_));
+            camera.up = Vector3(0.0f, 1.0f, 0.0f);
+            camera.fieldOfViewDeg = 68.0f;
+            camera.nearPlane = 0.08f;
+        } else if (options_.freeView) {
             const auto& fv = *options_.freeView;
             const float heading = fv.headingDeg * (std::numbers::pi_v<float> / 180.0f);
             const float pitch = fv.pitchDeg * (std::numbers::pi_v<float> / 180.0f);
@@ -1088,12 +1206,14 @@ namespace CarSim::App
                             &RasterizerState::CullNone);
 
         char buffer[128];
-        std::snprintf(buffer, sizeof(buffer), "%3.0f km/h", static_cast<double>(s.speedKmh));
+        std::snprintf(buffer, sizeof(buffer), "%3.0f km/h", static_cast<double>(walking_ ? (walkingMoving_ ? (running_ ? kRunningSpeedKmh : kWalkingSpeedKmh) : 0.0f) : s.speedKmh));
         fontBold_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 120.0f), Color(255, 255, 255, 235), 1.0f, Render::TextAlign::Right);
-        std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
-                      s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
+        if (walking_) std::snprintf(buffer, sizeof(buffer), "%s", running_ ? "RUNNING" : "WALKING");
+        else std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
+                           s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
         font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
-        std::string status = s.flightMode ? "Helicopter  Space climb  Q descend  J car" :
+        std::string status = walking_ ? "On foot  Arrows move/turn  A/D sidestep" :
+                            s.flightMode ? "Helicopter  Space climb  Q descend  J car" :
                             std::string("Engine: ") + Sim::ToString(s.engineState);
         if (startRefusedHintSeconds_ > 0.0f) {
             status += s.transmissionMode == Sim::TransmissionMode::Automatic
@@ -1114,6 +1234,7 @@ namespace CarSim::App
         if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
         if (s.turboMode == Sim::TurboMode::Turbo) lamps += "TURBO  ";
         if (s.turboMode == Sim::TurboMode::Ultra) lamps += "ULTRA TURBO  ";
+        if (s.turboMode == Sim::TurboMode::UltraUltra) lamps += "ULTRA ULTRA TURBO  ";
         if (s.flightMode) lamps += "FLIGHT  ";
         if (s.reserveWarning) lamps += "FUEL  ";
         if (s.handbrake) lamps += "(P)  ";
@@ -1123,7 +1244,8 @@ namespace CarSim::App
         }
 
         if (!showHelp_) {
-            font_->DrawShadowed(*spriteBatch_, "F1 help   C camera   E engine   M map   L lights   K low/high",
+            font_->DrawShadowed(*spriteBatch_, walking_ ? "W car   Shift run   F1 help" :
+                                "F1 help   C camera   E engine   M map   L lights   K low/high",
                                 Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
         }
 
@@ -1147,14 +1269,15 @@ namespace CarSim::App
         if (mapTexture_ && map_) {
             spriteBatch_->Draw(*mapTexture_, Rectangle(mapX, mapY, side, side), Color(255, 255, 255, 255));
             const auto& terrain = map_->Terrain();
-            const auto position = vehicle_->Snapshot().originPosition;
+            const auto position = walking_ ? walkingPosition_ : vehicle_->Snapshot().originPosition;
             const float u = std::clamp((position.X - terrain.MinX()) / (terrain.MaxX() - terrain.MinX()), 0.0f, 1.0f);
             const float v = std::clamp((position.Z - terrain.MinZ()) / (terrain.MaxZ() - terrain.MinZ()), 0.0f, 1.0f);
             const int x = mapX + static_cast<int>(u * side);
             const int y = mapY + static_cast<int>(v * side);
             spriteBatch_->Draw(white, Rectangle(x - 8, y - 8, 16, 16), Color(9, 19, 25, 255));
             spriteBatch_->Draw(white, Rectangle(x - 5, y - 5, 10, 10), Color(255, 203, 62, 255));
-            Vector3 forward = vehicle_->Snapshot().worldMatrix.getForwardProperty();
+            Vector3 forward = walking_ ? Vector3(std::sin(walkingYaw_), 0.0f, -std::cos(walkingYaw_)) :
+                                         vehicle_->Snapshot().worldMatrix.getForwardProperty();
             const float angle = std::atan2(forward.Z, forward.X);
             spriteBatch_->Draw(white, Rectangle(x, y, 22, 4), std::nullopt, Color(255, 203, 62, 255),
                                 angle, Vector2(0.0f, 0.5f), SpriteEffects::None, 0.0f);
@@ -1334,6 +1457,7 @@ namespace CarSim::App
             GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
             GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleEngine,
             GameAction::ToggleTurbo,
+            GameAction::ToggleWalk, GameAction::ToggleRun,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
             GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera,
             GameAction::ToggleFullscreen, GameAction::ToggleMap, GameAction::ToggleFlight, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,

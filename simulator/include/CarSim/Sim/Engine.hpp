@@ -15,7 +15,7 @@ namespace CarSim::Sim
 
     [[nodiscard]] const char* ToString(EngineState state);
 
-    enum class TurboMode { Off, Turbo, Ultra };
+    enum class TurboMode { Off, Turbo, Ultra, UltraUltra };
 
     [[nodiscard]] const char* ToString(TurboMode mode);
 

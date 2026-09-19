@@ -21,6 +21,7 @@ namespace CarSim::Audio
         tock_ = Clips::IndicatorTock(kSampleRate);
         clunk_ = Clips::GearClunk(kSampleRate);
         catch_ = Clips::StarterCatch(kSampleRate);
+        footstep_ = Clips::Footstep(kSampleRate);
         for (int i = 0; i < 4; ++i) {
             impacts_.push_back(Clips::Impact(kSampleRate, static_cast<float>(i) / 3.0f));
         }
@@ -65,6 +66,11 @@ namespace CarSim::Audio
             voices_.erase(voices_.begin());
         }
         voices_.push_back(Voice{&clip, 0, gain});
+    }
+
+    void VehicleAudio::TriggerFootstep()
+    {
+        Trigger(footstep_, 0.75f);
     }
 
     void VehicleAudio::DetectEvents(const Sim::VehicleState& state, const std::vector<Collision::ContactEvent>& contacts)
@@ -130,7 +136,8 @@ namespace CarSim::Audio
         // A helicopter has a low, periodic blade thrum. Keep it tonal so switching to flight
         // does not reintroduce the broadband hiss removed from the car's engine layer.
         const float rotorTarget = state.flightMode ? 1.0f : 0.0f;
-        const float rotorHz = state.turboMode == Sim::TurboMode::Ultra ? 7.0f :
+        const float rotorHz = state.turboMode == Sim::TurboMode::UltraUltra ? 8.0f :
+                              state.turboMode == Sim::TurboMode::Ultra ? 7.0f :
                               state.turboMode == Sim::TurboMode::Turbo ? 6.0f : 5.0f;
         for (int i = 0; i < kBlockFrames; ++i) {
             rotorGain_ += std::clamp(rotorTarget - rotorGain_, -1.0f / (0.12f * kSampleRate), 1.0f / (0.12f * kSampleRate));

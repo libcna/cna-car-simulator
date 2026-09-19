@@ -197,6 +197,8 @@ TEST_F(VehicleDrive, TurboAcceleratesFasterAndReachesAbout250Kmh)
     boosted.Update(off, kFrame, ground);
     EXPECT_EQ(boosted.Snapshot().turboMode, TurboMode::Ultra);
     boosted.Update(off, kFrame, ground);
+    EXPECT_EQ(boosted.Snapshot().turboMode, TurboMode::UltraUltra);
+    boosted.Update(off, kFrame, ground);
     EXPECT_EQ(boosted.Snapshot().turboMode, TurboMode::Off);
 }
 
@@ -241,6 +243,37 @@ TEST_F(VehicleDrive, UltraTurboAcceleratesBeyondTurboAndReachesAbout400Kmh)
     EXPECT_LT(ultra.SpeedKmh(), 415.0f);
 }
 
+TEST_F(VehicleDrive, UltraUltraTurboAcceleratesFasterAndReachesAbout500Kmh)
+{
+    const auto launch = [this](Vehicle& v, const TurboMode mode) {
+        DriverControls c;
+        c.brake = 1.0f;
+        v.Update(c, kFrame, ground);
+        c.toggleEngine = true;
+        v.Update(c, kFrame, ground);
+        c.toggleEngine = false;
+        Drive(v, ground, 3.0f, [c](float) { return c; });
+        ASSERT_EQ(v.GetEngine().State(), EngineState::Running);
+        c.selector = AutomaticSelector::Drive;
+        v.Update(c, kFrame, ground);
+        c.selector.reset();
+        v.GetEngine().SetTurboMode(mode);
+        Drive(v, ground, 1.0f, [c](float) { return c; });
+    };
+    Vehicle turbo(def, TransmissionMode::Automatic);
+    Vehicle ultraUltra(def, TransmissionMode::Automatic);
+    launch(turbo, TurboMode::Turbo);
+    launch(ultraUltra, TurboMode::UltraUltra);
+    const auto fullThrottle = [](float) { DriverControls c; c.throttle = 1.0f; return c; };
+    Drive(turbo, ground, 15.0f, fullThrottle);
+    Drive(ultraUltra, ground, 15.0f, fullThrottle);
+    EXPECT_GE(ultraUltra.SpeedKmh(), turbo.SpeedKmh() * 2.0f);
+    Drive(ultraUltra, ground, 140.0f, fullThrottle);
+    EXPECT_GE(ultraUltra.SpeedKmh(), 490.0f) << "rpm=" << ultraUltra.GetEngine().Rpm()
+                                              << " gear=" << ultraUltra.GetTransmission().Gear();
+    EXPECT_LE(ultraUltra.SpeedKmh(), 515.0f);
+}
+
 TEST_F(VehicleDrive, HelicopterClimbsMovesAndCyclesTurboModes)
 {
     Vehicle v(def, TransmissionMode::Automatic);
@@ -275,6 +308,13 @@ TEST_F(VehicleDrive, HelicopterClimbsMovesAndCyclesTurboModes)
     Drive(v, ground, 5.0f, [controls](float) { return controls; });
     EXPECT_GE(v.SpeedKmh(), 390.0f);
     EXPECT_LE(v.SpeedKmh(), 405.0f);
+    controls.toggleTurbo = true;
+    v.Update(controls, kFrame, ground);
+    EXPECT_EQ(v.Snapshot().turboMode, TurboMode::UltraUltra);
+    controls.toggleTurbo = false;
+    Drive(v, ground, 3.0f, [controls](float) { return controls; });
+    EXPECT_GE(v.SpeedKmh(), 495.0f);
+    EXPECT_LE(v.SpeedKmh(), 505.0f);
 
     controls.throttle = 0.0f;
     controls.flightDescend = true;

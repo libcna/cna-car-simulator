@@ -139,6 +139,17 @@ namespace CarSim::Audio
             Normalise(c, 0.35f);
             return c;
         }
+
+        Clip Footstep(const int sampleRate)
+        {
+            Clip c = Make(sampleRate, 0.18f);
+            // A short shoe impact followed by a quieter sole scrape. Keep both low and brief.
+            AddDecayingSine(c, 92.0f, 0.9f, 0.035f);
+            AddNoiseBurst(c, 0.7f, 0.022f, 850.0f, 0.0f, 210u);
+            AddNoiseBurst(c, 0.22f, 0.03f, 1500.0f, 0.065f, 211u);
+            Normalise(c, 0.45f);
+            return c;
+        }
     }
 
     RollingNoise::RollingNoise(const int sampleRate) : sampleRate_(sampleRate)

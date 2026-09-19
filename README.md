@@ -184,12 +184,12 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 
 | Action | Keys |
 | --- | --- |
-| Accelerator / brake | `W` / `S` (also `Up` / `Down`) |
+| Accelerator / brake while driving | `W` / `S` (also `Up` / `Down`) |
 | Steer left / right | `A` / `D` (also `Left` / `Right`) |
 | Clutch (manual mode) | `Q` |
 | Handbrake | `Space` |
 | Engine start / stop (one press; the starter cranks until the engine catches) | `E` |
-| Cycle off / turbo / ultra turbo (about 250 / 400 km/h) | `O` |
+| Cycle off / turbo / ultra turbo / ultra ultra turbo (about 250 / 400 / 500 km/h) | `O` |
 | Gear up / selector up, gear down / selector down | `Left Shift` / `Left Ctrl` (also right-hand keys) |
 | Manual gears | `1` .. `6`, `N` neutral, `R` reverse |
 | Automatic selector | `P` park, `R` reverse, `N` neutral, `F` drive |
@@ -202,6 +202,8 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Show / hide map | `M` |
 | Car / helicopter | `J` |
 | Helicopter: forward / back, turn, climb / descend; short / long searchlight | `W` / `S`, `A` / `D`, `Space` / `Q`; `K` |
+| Enter walking mode from a stopped car with the engine off; return to car | `W` |
+| On foot: forward / back, turn, sidestep, toggle run | `Up` / `Down`, `Left` / `Right`, `A` / `D`, `Shift` |
 | Rear-view mirror on / off, HUD text on / off | `V`, `Tab` |
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
@@ -209,6 +211,10 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Next weather (clear, cloud, overcast, rain) | `F9` |
 | Help overlay, debug overlay, screenshot | `F1`, `F3`, `F12` |
 | Quit | `Esc` |
+
+Walking uses a first-person view and audible footsteps at 4 km/h; running is 8 km/h.
+The parked car must have its engine off before `W` enters walking mode. `W` cannot
+switch to walking from the helicopter.
 
 Driving notes: the engine has to be started with `E`; the starter only engages in neutral,
 with the clutch pressed, or with the automatic selector in `P` or `N`, and it cranks for a
@@ -250,7 +256,7 @@ Action names are the `GameAction` enumerators (`Throttle`, `Brake`, `SteerLeft`,
 `SteerRight`, `Clutch`, `Handbrake`, `Horn`, `ToggleEngine`, `ToggleTurbo`, `ShiftUp`, `ShiftDown`,
 `GearNeutral`, `GearReverse`, `Gear1` .. `Gear6`, `SelectorPark`, `SelectorDrive`,
 `ToggleTransmission`, `IndicatorLeft`, `IndicatorRight`, `Hazard`, `Headlights`, `HighBeam`,
-`ToggleCamera`, `ToggleFullscreen`, `ToggleMap`, `ToggleFlight`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
+`ToggleCamera`, `ToggleFullscreen`, `ToggleMap`, `ToggleFlight`, `ToggleWalk`, `ToggleRun`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
 `Quit`, `VolumeUp`, `VolumeDown`, `ToggleMirror`, `ToggleHud`); key names are the ones the
 help overlay prints (`A`..`Z`, `0`..`9`, `F1`..`F12`, `Space`, `Left Shift`, `Page Up`, ...).
 Unknown names are reported as warnings and ignored. An override replaces the default keys of

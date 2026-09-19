@@ -108,6 +108,8 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleMap), "M");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleMirror), "V");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleFlight), "J");
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleWalk), "W");
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleRun), "Left Shift / Right Shift");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::SelectorDrive), "F");
     std::vector<std::string> warnings;
     mapper.ApplyOverrides({{"Horn", "J"}, {"Nonsense", "K"}, {"Throttle", "no key"}}, warnings);

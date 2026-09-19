@@ -42,6 +42,8 @@ namespace CarSim::Input
             case GameAction::ToggleFullscreen: return "ToggleFullscreen";
             case GameAction::ToggleMap: return "ToggleMap";
             case GameAction::ToggleFlight: return "ToggleFlight";
+            case GameAction::ToggleWalk: return "ToggleWalk";
+            case GameAction::ToggleRun: return "ToggleRun";
             case GameAction::ToggleHelp: return "ToggleHelp";
             case GameAction::ToggleDebug: return "ToggleDebug";
             case GameAction::Screenshot: return "Screenshot";
@@ -72,7 +74,7 @@ namespace CarSim::Input
             case GameAction::Handbrake: return "Handbrake";
             case GameAction::Horn: return "Horn";
             case GameAction::ToggleEngine: return "Start / stop engine";
-            case GameAction::ToggleTurbo: return "Cycle turbo: off / turbo / ultra";
+            case GameAction::ToggleTurbo: return "Cycle turbo: off / turbo / ultra / ultra ultra";
             case GameAction::ShiftUp: return "Gear up / selector up";
             case GameAction::ShiftDown: return "Gear down / selector down";
             case GameAction::GearNeutral: return "Neutral";
@@ -95,6 +97,8 @@ namespace CarSim::Input
             case GameAction::ToggleFullscreen: return "Toggle full screen";
             case GameAction::ToggleMap: return "Show / hide map";
             case GameAction::ToggleFlight: return "Car / helicopter flight";
+            case GameAction::ToggleWalk: return "Walk / return to car (engine off, stopped)";
+            case GameAction::ToggleRun: return "Walk: toggle running";
             case GameAction::ToggleHelp: return "Help";
             case GameAction::ToggleDebug: return "Debug overlay";
             case GameAction::Screenshot: return "Screenshot";
@@ -144,6 +148,8 @@ namespace CarSim::Input
             {GameAction::ToggleFullscreen, Keys::F11},
             {GameAction::ToggleMap, Keys::M},
             {GameAction::ToggleFlight, Keys::J},
+            {GameAction::ToggleWalk, Keys::W},
+            {GameAction::ToggleRun, Keys::LeftShift}, {GameAction::ToggleRun, Keys::RightShift},
             {GameAction::ToggleHelp, Keys::F1},
             {GameAction::ToggleDebug, Keys::F3},
             {GameAction::Screenshot, Keys::F12},

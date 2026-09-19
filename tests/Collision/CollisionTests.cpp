@@ -265,7 +265,7 @@ TEST(CollisionWorld, HelicopterStopsAtBuildingButCanFlyAboveIt)
     EXPECT_TRUE(overheadContacts.empty());
 }
 
-TEST(CollisionWorld, UltraHelicopterDoesNotPassThroughThinWall)
+TEST(CollisionWorld, UltraUltraHelicopterDoesNotPassThroughThinWall)
 {
     Sim::Vehicle helicopter(Sim::MakeReferenceVehicle(), Sim::TransmissionMode::Automatic);
     Sim::FlatGround ground(0.0f);
@@ -285,9 +285,10 @@ TEST(CollisionWorld, UltraHelicopterDoesNotPassThroughThinWall)
     controls.toggleTurbo = true;
     helicopter.Update(controls, 1.0f / 60.0f, ground);
     helicopter.Update(controls, 1.0f / 60.0f, ground);
+    helicopter.Update(controls, 1.0f / 60.0f, ground);
     controls.toggleTurbo = false;
     controls.throttle = 1.0f;
-    helicopter.Body().SetLinearVelocity(Vector3(0.0f, 0.0f, -111.0f));
+    helicopter.Body().SetLinearVelocity(Vector3(0.0f, 0.0f, -500.0f / 3.6f));
     std::vector<ContactEvent> events;
     for (int frame = 0; frame < 12; ++frame) {
         const Vector3 previous = helicopter.OriginPosition();
