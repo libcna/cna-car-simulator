@@ -89,9 +89,9 @@
   "antiRollStiffness": 12000
  },
  "tyres": {
-  "peakFriction": 1.0,
+  "peakFriction": 1.08,
   "peakSlipRatio": 0.12,
-  "peakSlipAngleDeg": 8.0,
+  "peakSlipAngleDeg": 6.0,
   "shapeFactor": 1.6,
   "curvatureFactor": 0.97,
   "loadSensitivity": 0.12,
@@ -102,8 +102,8 @@
  "steering": {
   "maxWheelAngleDeg": 34,
   "steeringRatio": 15.5,
-  "wheelTurnRateDegPerSec": 60,
-  "highSpeedFactor": 0.35,
+  "wheelTurnRateDegPerSec": 100,
+  "highSpeedFactor": 0.5,
   "highSpeedKmh": 130,
   "ackermannFactor": 0.8
  },
@@ -250,8 +250,9 @@
     ]
    ],
    "minShiftInterval": 1.5,
-   "creepTorque": 25,
-   "lockupSlipRpm": 1400
+   "creepTorque": 18,
+   "lockupSlipRpm": 1400,
+   "stallTorqueRatio": 1.9
   }
  },
  "fuel": {

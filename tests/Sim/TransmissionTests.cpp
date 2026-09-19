@@ -164,7 +164,12 @@ TEST_F(AutomaticTest, CouplingCreepsAtIdleAndLocksAboveIdle)
     const float idle = def.engine.idleRpm;
     const float maxCap = def.clutch.maxTorqueNm;
     EXPECT_FLOAT_EQ(t.CouplingCapacity(idle, idle, maxCap), def.gearbox.automatic.creepTorqueNm);
-    EXPECT_FLOAT_EQ(t.CouplingCapacity(idle - 200.0f, idle, maxCap), def.gearbox.automatic.creepTorqueNm);
+    // Below idle the converter absorbs torque with the square of its speed, so a sagging engine
+    // sheds load instead of being dragged into a stall.
+    const float below = (idle - 200.0f) / idle;
+    EXPECT_FLOAT_EQ(t.CouplingCapacity(idle - 200.0f, idle, maxCap),
+                    def.gearbox.automatic.creepTorqueNm * below * below);
+    EXPECT_FLOAT_EQ(t.CouplingCapacity(0.0f, idle, maxCap), 0.0f);
     EXPECT_FLOAT_EQ(t.CouplingCapacity(idle + def.gearbox.automatic.lockupSlipRpm, idle, maxCap), maxCap);
     const float mid = t.CouplingCapacity(idle + 0.5f * def.gearbox.automatic.lockupSlipRpm, idle, maxCap);
     EXPECT_GT(mid, def.gearbox.automatic.creepTorqueNm);

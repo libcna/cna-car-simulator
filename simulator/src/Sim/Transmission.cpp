@@ -197,6 +197,13 @@ namespace CarSim::Sim
     float AutomaticTransmission::CouplingCapacity(const float engineRpm, const float idleRpm,
                                                   const float maxCapacity) const
     {
+        // A converter absorbs torque in proportion to the square of its impeller speed, so below
+        // idle the creep load falls away as the engine slows. A constant creep load instead
+        // out-pulled the idle controller and stalled a car held on the brake in D within seconds.
+        if (engineRpm < idleRpm) {
+            const float r = std::max(0.0f, engineRpm) / std::max(1.0f, idleRpm);
+            return std::min(maxCapacity, def_.automatic.creepTorqueNm * r * r);
+        }
         const float slipBand = std::max(50.0f, def_.automatic.lockupSlipRpm);
         const float t = std::clamp((engineRpm - idleRpm) / slipBand, 0.0f, 1.0f);
         return std::min(maxCapacity, def_.automatic.creepTorqueNm + maxCapacity * t * t);

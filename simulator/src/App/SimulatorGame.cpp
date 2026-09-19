@@ -767,6 +767,7 @@ namespace CarSim::App
             stageClock = now;
         };
         vehicle_->Update(controls, dt, ground);
+        startRefusedHintSeconds_ = vehicle_->StartRefused() ? 4.0f : std::max(0.0f, startRefusedHintSeconds_ - dt);
         stage(vehicleMs_);
         contactEvents_.clear();
         collision_.ResolveVehicle(*vehicle_, contactEvents_);
@@ -996,8 +997,10 @@ namespace CarSim::App
                       s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
         font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
         std::string status = std::string("Engine: ") + Sim::ToString(s.engineState);
-        if (vehicle_->StartRefused()) {
-            status += "  (press the clutch or select N/P to start)";
+        if (startRefusedHintSeconds_ > 0.0f) {
+            status += s.transmissionMode == Sim::TransmissionMode::Automatic
+                          ? "  (select P or N with the P / N key, then press E)"
+                          : "  (hold the clutch Q or select neutral N, then press E)";
         }
         font_->DrawShadowed(*spriteBatch_, status, Vector2(w - 24.0f, h - 42.0f), Color(220, 220, 220, 200), 0.8f, Render::TextAlign::Right);
         std::string clock = FormatClock(timeOfDayHours_);

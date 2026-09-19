@@ -158,6 +158,8 @@ namespace CarSim::Sim
         }
         require(gearbox.automatic.upshiftRpm.Evaluate(1.0f) <= engine.limiterRpm,
                 "gearbox.automatic full-throttle upshift must not exceed the limiter");
+        require(gearbox.automatic.stallTorqueRatio >= 1.0f && gearbox.automatic.stallTorqueRatio <= 3.0f,
+                "gearbox.automatic.stallTorqueRatio out of range");
 
         require(fuel.tankLiters > 5.0f && fuel.tankLiters < 200.0f, "fuel.tankLiters out of range");
         require(fuel.reserveLiters > 0.0f && fuel.reserveLiters < fuel.tankLiters, "fuel.reserveLiters must be below tank size");
@@ -209,8 +211,8 @@ namespace CarSim::Sim
         };
 
         def.suspension = {0.36f, 0.22f, 26000.0f, 2200.0f, 3200.0f, 12000.0f};
-        def.tyres = {1.0f, 0.12f, 8.0f, 1.6f, 0.97f, 0.12f, 3000.0f, 1.1f, 0.8f};
-        def.steering = {34.0f, 15.5f, 60.0f, 0.35f, 130.0f, 0.8f};
+        def.tyres = {1.08f, 0.12f, 6.0f, 1.6f, 0.97f, 0.12f, 3000.0f, 1.1f, 0.8f};
+        def.steering = {34.0f, 15.5f, 100.0f, 0.5f, 130.0f, 0.8f};
 
         def.engine.idleRpm = 850.0f;
         def.engine.redlineRpm = 6200.0f;
@@ -241,8 +243,9 @@ namespace CarSim::Sim
         def.gearbox.automatic.upshiftRpm = Core::PiecewiseLinear({{0.0f, 2100.0f}, {0.5f, 3200.0f}, {1.0f, 6000.0f}});
         def.gearbox.automatic.downshiftRpm = Core::PiecewiseLinear({{0.0f, 1100.0f}, {0.5f, 1700.0f}, {1.0f, 4200.0f}});
         def.gearbox.automatic.minShiftIntervalS = 1.5f;
-        def.gearbox.automatic.creepTorqueNm = 25.0f;
+        def.gearbox.automatic.creepTorqueNm = 18.0f;
         def.gearbox.automatic.lockupSlipRpm = 1400.0f;
+        def.gearbox.automatic.stallTorqueRatio = 1.9f;
 
         def.fuel = {45.0f, 7.0f, 0.5f, 1.0f, 30.0f};
         def.electrics = {0.75f};
@@ -420,6 +423,7 @@ namespace CarSim::Sim
                     r.Float(obj, "minShiftInterval", g.automatic.minShiftIntervalS, "gearbox.automatic");
                     r.Float(obj, "creepTorque", g.automatic.creepTorqueNm, "gearbox.automatic");
                     r.Float(obj, "lockupSlipRpm", g.automatic.lockupSlipRpm, "gearbox.automatic");
+                    r.Float(obj, "stallTorqueRatio", g.automatic.stallTorqueRatio, "gearbox.automatic");
                 }
             }
 

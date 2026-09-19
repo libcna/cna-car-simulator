@@ -74,8 +74,15 @@ each driven wheel). Two regimes:
 
 Manual capacity comes from the pedal through `Clutch` (smoothstep engagement band). The automatic
 uses a converter-like coupling: creep torque at idle rising to full capacity `lockupSlipRpm` above
-idle, never locking below idle. A manual clutch locked below the stall speed stalls the engine,
-which is the realistic outcome of dumping the clutch.
+idle, never locking below idle. Below idle the creep load falls with the square of engine speed, as
+a converter's absorption does, so a car held on the brake in D idles slightly low instead of
+stalling. While it slips and drives, the converter multiplies the torque it
+passes: `stallTorqueRatio` with the output held, falling linearly to 1:1 at a speed ratio of 0.85
+(the coupling point). Multiplication times speed ratio never exceeds 0.85, so the converter trades
+slip for torque without adding energy; on overrun it couples 1:1. During an automatic gear change
+the controller withdraws engine torque, so a full-throttle upshift does not flare the unloaded
+engine into the limiter. A manual clutch locked below the stall speed stalls the engine, which is
+the realistic outcome of dumping the clutch.
 
 The keyboard clutch is a *driver's foot*, not a switch: pressing is fast, releasing is fast down to
 the bite point, then the pedal is eased through the band and never asked to carry more torque than
@@ -113,14 +120,22 @@ the cockpit is the road-wheel angle times `steeringRatio`.
 
 Reference vehicle "Lipan 1.2" (1120 kg, 122 Nm, 5-speed): settles at ride height without drift;
 manual launch at 45 % throttle moves off without stalling and locks the clutch at ~9 km/h;
-dumping the clutch at idle stalls; automatic 0-100 km/h in ~14 s with three upshifts; 100-0 km/h
-in ~40 m with ABS and no pull; straight-line stability at 90 km/h; steering right turns right with
-mild body roll; handbrake holds a 12 % grade and the car rolls back when released; identical runs
-are bit-identical.
+dumping the clutch at idle stalls; automatic 0-100 km/h in ~14 s; 100-0 km/h in ~37 m with ABS
+and no pull; straight-line stability at 90 km/h; steering right turns right with mild body roll;
+handbrake holds a 12 % grade and the car rolls back when released; identical runs are
+bit-identical.
+
+`carsim-simtrace metrics --vehicle content/vehicles/lipan_12.json` measures what a keyboard driver
+feels (all-or-nothing pedals and steering, the automatic choosing its gears) on the content file
+itself. Current values: 0-50 km/h 5.0 s, 0-100 km/h 14.3 s, upshifts at 6,000 rpm with no flare
+while shifting; 100-0 km/h in 36.8 m (mean 1.02 g), 7 m/s^2 reached 0.07 s after the key goes down;
+a full keyboard steer reaches 0.5 g lateral in 0.10 s at 50 km/h and holds 0.84 g on a 19 m radius,
+0.85 g at 90 km/h with 0.7 deg of body slip, and stays stable at 120 km/h (2.2 deg body slip).
 
 ## Compromises
 
 No camber, toe or caster effects; independent suspension only (no axle kinematics); no tyre
-temperature or wear; the differential is open with no limited-slip; the automatic has no torque
-multiplication; aerodynamic lift and side wind are ignored; the collision response is handled by
+temperature or wear; the differential is open with no limited-slip; the converter's torque
+multiplication is a linear ramp rather than a measured K-factor map; aerodynamic lift and side
+wind are ignored; the collision response is handled by
 the collision module (impulses on the same rigid body).

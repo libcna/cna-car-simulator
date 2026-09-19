@@ -237,11 +237,12 @@ namespace CarSim::Sim
     void Vehicle::UpdatePedals(const DriverControls& controls, const float dt)
     {
         // Pedal travel rates give keyboard input a human feel: the accelerator and brake move
-        // quickly, the clutch releases slowly enough for a controlled engagement.
+        // quickly, the clutch releases slowly enough for a controlled engagement. The brake is
+        // applied the way a driver stamps on it -- full pressure in a tenth of a second.
         const float throttleTarget = std::clamp(controls.throttle, 0.0f, 1.0f);
         throttlePedal_ = MoveToward(throttlePedal_, throttleTarget, (throttleTarget > throttlePedal_ ? 4.0f : 8.0f) * dt);
         const float brakeTarget = std::clamp(controls.brake, 0.0f, 1.0f);
-        brakePedal_ = MoveToward(brakePedal_, brakeTarget, (brakeTarget > brakePedal_ ? 5.0f : 8.0f) * dt);
+        brakePedal_ = MoveToward(brakePedal_, brakeTarget, (brakeTarget > brakePedal_ ? 10.0f : 8.0f) * dt);
         // Clutch: pressed quickly; released quickly down to the bite point, then eased through
         // the engagement band the way a driver's foot does: the release slows to a trickle while
         // the clutch would demand more torque than the engine can give, and resumes once the
@@ -527,7 +528,11 @@ namespace CarSim::Sim
 
     void Vehicle::ResolveDriveline(const float dt)
     {
-        const float driverThrottle = throttlePedal_;
+        // An automatic's controller withdraws engine torque while it changes gear; without that
+        // a full-throttle upshift flares the unloaded engine into the limiter every time.
+        const bool automaticShift =
+            transmission_->Mode() == TransmissionMode::Automatic && transmission_->IsShifting();
+        const float driverThrottle = automaticShift ? 0.0f : throttlePedal_;
         const bool fuel = fuel_.HasFuel();
         const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio();
         const bool engaged = std::fabs(ratio) > 1e-3f && !drivenWheels_.empty();
@@ -568,8 +573,20 @@ namespace CarSim::Sim
         // converge without chatter.
         const float viscous = 0.5f * engine_.Inertia() / dt;
         const float clutchTorque = std::clamp(viscous * slip, -capacity, capacity);
+        // A torque converter multiplies the engine's torque while its turbine runs slower than its
+        // impeller: stallTorqueRatio with the output held, falling to 1:1 at the coupling point.
+        // Its efficiency (multiplication x speed ratio) stays at or below 0.85, so it trades slip
+        // for torque and never adds energy. Only when driving -- on overrun it couples 1:1.
+        float multiplication = 1.0f;
+        const float impeller = omegaIn + slip;
+        if (transmission_->Mode() == TransmissionMode::Automatic && clutchTorque > 0.0f && impeller > 1.0f) {
+            constexpr float kCouplingPoint = 0.85f;
+            const float speedRatio = std::clamp(omegaIn / impeller, 0.0f, 1.0f);
+            multiplication = 1.0f + (def_.gearbox.automatic.stallTorqueRatio - 1.0f) *
+                                        std::max(0.0f, 1.0f - speedRatio / kCouplingPoint);
+        }
         engine_.Step(dt, driverThrottle, fuel, true, clutchTorque);
-        const float wheelTorque = clutchTorque * ratio * efficiency / n;
+        const float wheelTorque = clutchTorque * multiplication * ratio * efficiency / n;
         for (auto& w : wheels_) {
             IntegrateWheel(w, dt, w.def->driven ? wheelTorque : 0.0f, 0.0f);
         }

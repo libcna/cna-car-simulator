@@ -199,5 +199,8 @@ namespace CarSim::App
         bool autoDriveStarted_ = false;
         bool lightsApplied_ = false;
         bool lightsEngineRequested_ = false;
+        // The vehicle reports a refused start for the one update the key was pressed in; the HUD
+        // keeps the explanation up long enough to be read.
+        float startRefusedHintSeconds_ = 0.0f;
     };
 }

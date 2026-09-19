@@ -141,6 +141,7 @@ namespace CarSim::Sim
         float minShiftIntervalS = 1.5f;
         float creepTorqueNm = 60.0f;
         float lockupSlipRpm = 1400.0f;       // converter model: full capacity this far above idle
+        float stallTorqueRatio = 1.0f;       // converter torque multiplication with the output held
     };
 
     struct GearboxDefinition

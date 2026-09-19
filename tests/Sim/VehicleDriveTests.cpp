@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <iostream>
@@ -503,4 +504,61 @@ TEST_F(VehicleDrive, WetBrakingAndCorneringAreNoticeableButControllable)
     EXPECT_LT(dryRun, 12.0f) << "a 1.2 should reach 50 km/h inside twelve seconds";
     EXPECT_GE(wetRun, dryRun - 0.05f) << "rain must not make the car quicker";
     EXPECT_LT(wetRun, dryRun * 1.6f) << "rain should cost traction, not the whole launch";
+}
+
+namespace
+{
+    /// Starts the engine in P on the brake, then selects D and keeps the brake on.
+    void ReadyAutomaticInDrive(Vehicle& vehicle, const GroundSurface& ground)
+    {
+        DriverControls c;
+        c.brake = 1.0f;
+        vehicle.Update(c, kFrame, ground);
+        c.toggleEngine = true;
+        vehicle.Update(c, kFrame, ground);
+        c.toggleEngine = false;
+        Drive(vehicle, ground, 3.0f, [c](float) { return c; });
+        ASSERT_EQ(vehicle.GetEngine().State(), EngineState::Running);
+        c.selector = AutomaticSelector::Drive;
+        vehicle.Update(c, kFrame, ground);
+        c.selector.reset();
+        Drive(vehicle, ground, 1.0f, [c](float) { return c; });
+    }
+}
+
+TEST_F(VehicleDrive, AutomaticWaitingOnTheBrakeInDriveKeepsIdlingAndStillCreeps)
+{
+    // Waiting at a junction in D must not stall the engine. The converter's creep load used to be
+    // constant below idle and out-pulled the idle controller within three seconds.
+    Vehicle v(def, TransmissionMode::Automatic);
+    ReadyAutomaticInDrive(v, ground);
+    Drive(v, ground, 30.0f, [](float) { DriverControls c; c.brake = 1.0f; return c; });
+    EXPECT_EQ(v.GetEngine().State(), EngineState::Running) << "held on the brake in D for 30 s";
+    EXPECT_GT(v.GetEngine().Rpm(), 650.0f) << "idle may sag under the converter's load, not collapse";
+    EXPECT_LT(v.SpeedKmh(), 0.1f);
+
+    Drive(v, ground, 3.0f, [](float) { return Idle(); });
+    EXPECT_EQ(v.GetEngine().State(), EngineState::Running);
+    EXPECT_GT(v.ForwardSpeedMs(), 0.3f) << "released, an automatic creeps forward";
+}
+
+TEST_F(VehicleDrive, AutomaticFullThrottleUpshiftsDoNotFlareTheEngine)
+{
+    Vehicle v(def, TransmissionMode::Automatic);
+    ReadyAutomaticInDrive(v, ground);
+    float peakWhileShifting = 0.0f;
+    int shifts = 0;
+    bool wasShifting = false;
+    for (int i = 0; i < static_cast<int>(15.0f / kFrame); ++i) {
+        DriverControls c;
+        c.throttle = 1.0f;
+        v.Update(c, kFrame, ground);
+        const bool shifting = v.GetTransmission().IsShifting();
+        if (shifting) peakWhileShifting = std::max(peakWhileShifting, v.GetEngine().Rpm());
+        if (shifting && !wasShifting) ++shifts;
+        wasShifting = shifting;
+    }
+    ASSERT_GE(shifts, 2) << "the drive should include at least two upshifts";
+    EXPECT_LT(peakWhileShifting, def.engine.redlineRpm)
+        << "with the load gone during a shift, full throttle must not rev the engine past redline";
 }

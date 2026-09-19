@@ -284,6 +284,13 @@ namespace CarSim::Traffic
         } else if (errorKmh < -1.0f) {
             controls.brake = Clamp(-errorKmh * settings_.brakeGain * 0.05f, 0.0f, 0.8f);
         }
+        // An automatic creeps. At walking pace a proportional brake that light cannot hold it, so
+        // the car crawled past the end of the route; the final metres are braked the way a driver
+        // brings an automatic to a stop -- firmly.
+        if (targetKmh < 3.0f && state.speedKmh > targetKmh) {
+            controls.throttle = 0.0f;
+            controls.brake = std::max(controls.brake, 0.4f);
+        }
         // Back off the throttle while the wheel is hard over, which is what a driver does.
         controls.throttle *= 1.0f - 0.45f * std::abs(controls.steering);
 
