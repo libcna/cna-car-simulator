@@ -62,7 +62,14 @@ namespace CarSim::App
         graphics_.setPreferredDepthStencilFormatProperty(DepthFormat::Depth24Stencil8);
         graphics_.setIsFullScreenProperty(options_.fullscreen);
         graphics_.setSynchronizeWithVerticalRetraceProperty(true);
+#ifdef __EMSCRIPTEN__
+        // GraphicsDeviceManager requests 8x whenever PreferMultiSampling is true, with no
+        // per-platform cap. The web build skips MSAA rather than pay 8x resolve and fill through
+        // the browser's WebGL layer on whatever GPU the visitor has.
+        graphics_.setPreferMultiSamplingProperty(false);
+#else
         graphics_.setPreferMultiSamplingProperty(true);
+#endif
 
         setIsFixedTimeStepProperty(true);
         setTargetElapsedTimeProperty(System::TimeSpan::FromSeconds(1.0 / 60.0));
