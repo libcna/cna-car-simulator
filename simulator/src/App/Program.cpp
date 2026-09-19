@@ -2,12 +2,19 @@
 #include "CarSim/Core/CommandLine.hpp"
 #include "CarSim/Core/Version.hpp"
 
+#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <memory>
 
 int main(int argc, char* argv[])
 {
+#if defined(__EMSCRIPTEN__)
+    // SDL's Web Audio backend hands the browser twice this many frames per callback. Its default
+    // of 1024 leaves ~43 ms, which one slow frame on the main thread already exceeds. Set before
+    // the game opens the audio device; an explicit value in the environment still wins.
+    setenv("SDL_AUDIO_DEVICE_SAMPLE_FRAMES", "2048", 0);
+#endif
     const auto parsed = CarSim::Core::ParseCommandLine(argc, argv);
     if (!parsed.ok()) {
         for (const auto& error : parsed.errors) {

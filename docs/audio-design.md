@@ -11,8 +11,14 @@ project code (`simulator/src/Audio`).
 the instance for `PendingBufferCount` and renders blocks until three are pending, converts to
 interleaved 16-bit PCM and calls `SubmitBuffer`. `Play()` starts once the first blocks are
 queued. Underruns (pending count reaching zero after start) are counted and shown in the debug
-overlay. Audio can be disabled with `--no-audio`; a failed device also disables it without
-stopping the simulator.
+overlay (F3, "audio stream"). Audio can be disabled with `--no-audio`; a failed device also
+disables it without stopping the simulator.
+
+The web build keeps eight blocks (about 186 ms) queued instead, and asks SDL for a 2048-frame
+device buffer (`SDL_AUDIO_DEVICE_SAMPLE_FRAMES`, set in `Program.cpp` before the device opens).
+In the browser the audio callback runs on the main thread and pulls a large chunk at a time, while
+the frame loop runs zero, one or several updates per animation frame; with three blocks the queue
+ran dry during a slow frame and the stream played gaps.
 
 ## Engine (`Audio::EngineSynth`)
 

@@ -29,7 +29,14 @@ namespace CarSim::Audio
     public:
         static constexpr int kSampleRate = 44100;
         static constexpr int kBlockFrames = 1024;
+#if defined(__EMSCRIPTEN__)
+        // The browser pulls audio in ~43 ms bursts on the main thread and the web frame loop runs
+        // zero, one or several updates per animation frame, so three blocks (~70 ms) ran dry and
+        // played silence. Eight (~186 ms) ride over a slow frame; the cost is latency, not sound.
+        static constexpr int kTargetPendingBlocks = 8;
+#else
         static constexpr int kTargetPendingBlocks = 3;
+#endif
 
         /// Creates the stream; `enabled = false` builds a silent no-op mixer (headless runs).
         explicit VehicleAudio(bool enabled);
