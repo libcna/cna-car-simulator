@@ -179,15 +179,15 @@ namespace CarSim::App
         if (!options_.cockpit && save_.settings.startInCockpit) {
             options_.cockpit = true;
         }
-        // Old profiles stored the former default M for the mirror. Reserve M for the map and
-        // migrate that old binding to V so one press cannot toggle both overlays.
+        // M now opens the map. Restore F for Drive and J for flight in profiles saved with
+        // the previous F-flight/G-Drive layout.
         for (auto& binding : save_.bindings) {
             if (binding.first == "ToggleMirror" && binding.second == "M") {
                 binding.second = "V";
-            } else if (binding.first == "SelectorDrive" && binding.second == "F") {
-                binding.second = "G";
-            } else if (binding.first == "ToggleFlight" && binding.second == "J") {
+            } else if (binding.first == "SelectorDrive" && binding.second == "G") {
                 binding.second = "F";
+            } else if (binding.first == "ToggleFlight" && binding.second == "F") {
+                binding.second = "J";
             }
         }
         std::vector<std::string> bindingWarnings;
@@ -1093,7 +1093,7 @@ namespace CarSim::App
         std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
                       s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
         font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
-        std::string status = s.flightMode ? "Helicopter  Space climb  Q descend  F car" :
+        std::string status = s.flightMode ? "Helicopter  Space climb  Q descend  J car" :
                             std::string("Engine: ") + Sim::ToString(s.engineState);
         if (startRefusedHintSeconds_ > 0.0f) {
             status += s.transmissionMode == Sim::TransmissionMode::Automatic

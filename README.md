@@ -192,7 +192,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Cycle off / turbo / ultra turbo (about 250 / 400 km/h) | `O` |
 | Gear up / selector up, gear down / selector down | `Left Shift` / `Left Ctrl` (also right-hand keys) |
 | Manual gears | `1` .. `6`, `N` neutral, `R` reverse |
-| Automatic selector | `P` park, `R` reverse, `N` neutral, `G` drive |
+| Automatic selector | `P` park, `R` reverse, `N` neutral, `F` drive |
 | Toggle automatic / manual | `T` |
 | Indicators left / right, hazard | `,` / `.` / `H` |
 | Headlights on / off; switch low / high beam | `L`; `K` (also turns on high beam directly) |
@@ -200,7 +200,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Camera cockpit / exterior | `C` |
 | Toggle full screen | `F11` (or start with `--fullscreen`) |
 | Show / hide map | `M` |
-| Car / helicopter | `F` |
+| Car / helicopter | `J` |
 | Helicopter: forward / back, turn, climb / descend; short / long searchlight | `W` / `S`, `A` / `D`, `Space` / `Q`; `K` |
 | Rear-view mirror on / off, HUD text on / off | `V`, `Tab` |
 | Master volume | `Page Up` / `Page Down` |
