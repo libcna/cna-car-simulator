@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 #include <string>
 
 using namespace CarSim;
@@ -111,6 +112,74 @@ TEST(SampleMap, RightOfWayIsAntisymmetric)
         }
     }
     EXPECT_GT(yields, 20);
+}
+
+TEST(SampleMap, BuildingsAndTreeTrunksStayOutOfRoads)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    ASSERT_EQ(world->Objects().Buildings().size(), world->Data().objects.buildings.size())
+        << "Road clearance must relocate buildings, including churches, rather than remove them";
+    const auto onRoad = [&](const Microsoft::Xna::Framework::Vector2& p) {
+        float height = 0.0f;
+        Sim::SurfaceType surface = Sim::SurfaceType::Asphalt;
+        float edge = 0.0f;
+        return world->Roads().RoadSurfaceAt(p, height, surface, edge) && edge < 0.0f;
+    };
+    int overlappingBuildings = 0;
+    int overlappingTrees = 0;
+    float largestMove = 0.0f;
+    std::string largestMovedBuilding;
+    std::ostringstream examples;
+    for (const auto& b : world->Objects().Buildings()) {
+        const auto fwd = Map::DirectionFromHeading(b.headingRad);
+        const Microsoft::Xna::Framework::Vector2 right(-fwd.Y, fwd.X);
+        const Microsoft::Xna::Framework::Vector2 centre(b.position.X, b.position.Z);
+        const float move = Microsoft::Xna::Framework::Vector2::Distance(centre, b.spec->position);
+        if (move > largestMove) {
+            largestMove = move;
+            largestMovedBuilding = b.spec->type + " from (" + std::to_string(b.spec->position.X) + ", " +
+                                   std::to_string(b.spec->position.Y) + ") to (" +
+                                   std::to_string(centre.X) + ", " + std::to_string(centre.Y) + ")";
+        }
+        const int nx = std::max(1, static_cast<int>(std::ceil(b.halfWidth * 4.0f)));
+        const int nz = std::max(1, static_cast<int>(std::ceil(b.halfDepth * 4.0f)));
+        bool overlap = false;
+        Microsoft::Xna::Framework::Vector2 overlapPoint;
+        for (int iz = 0; iz <= nz && !overlap; ++iz) {
+            for (int ix = 0; ix <= nx; ++ix) {
+                const float x = -b.halfWidth + 2.0f * b.halfWidth * static_cast<float>(ix) / nx;
+                const float z = -b.halfDepth + 2.0f * b.halfDepth * static_cast<float>(iz) / nz;
+                const auto point = centre + right * x + fwd * z;
+                if (onRoad(point)) { overlap = true; overlapPoint = point; break; }
+            }
+        }
+        if (overlap) {
+            ++overlappingBuildings;
+            if (overlappingBuildings <= 20) {
+                Map::RoadHit hit;
+                const bool found = world->Roads().NearestRoad(overlapPoint, 30.0f, hit);
+                examples << "building " << b.spec->type << " at " << centre.X << "," << centre.Y
+                         << " overlaps at " << overlapPoint.X << "," << overlapPoint.Y;
+                if (found) examples << " with " << world->Roads().Roads()[static_cast<std::size_t>(hit.road)].spec->id;
+                examples << "\n";
+            }
+        }
+    }
+    for (const auto& t : world->Objects().Trees()) {
+        const Microsoft::Xna::Framework::Vector2 centre(t.position.X, t.position.Z);
+        if (onRoad(centre)) {
+            ++overlappingTrees;
+            if (overlappingTrees <= 20) examples << "tree " << Map::ToString(t.species) << " at " << centre.X << "," << centre.Y << "\n";
+        }
+    }
+    EXPECT_EQ(overlappingBuildings, 0) << examples.str();
+    EXPECT_EQ(overlappingTrees, 0) << examples.str();
+    EXPECT_LE(largestMove, 40.0f) << largestMovedBuilding;
+    for (const auto& warning : world->BuildWarnings()) {
+        EXPECT_EQ(warning.find("no road-clear position"), std::string::npos) << warning;
+    }
 }
 
 TEST(SampleMap, PlotsAndUtilityPolesAreGeneratedClearOfBuildingsAndRoads)

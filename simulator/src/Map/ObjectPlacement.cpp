@@ -28,6 +28,45 @@ namespace CarSim::Map
         }
 
         float Hash01(const int x, const int y, const unsigned seed) { return Core::Noise::Hash(x, y, seed); }
+
+        bool BuildingRoadClear(const MapWorld& world, const PlacedBuilding& building, const Vector2& centre)
+        {
+            // Check the whole rotated footprint, including the gaps between its corners. A
+            // winding road can pass through a long building without touching any corner.
+            const Vector2 fwd = DirectionFromHeading(building.headingRad);
+            const Vector2 right(-fwd.Y, fwd.X);
+            const int widthSteps = std::max(1, static_cast<int>(std::ceil(building.halfWidth * 2.0f)));
+            const int depthSteps = std::max(1, static_cast<int>(std::ceil(building.halfDepth * 2.0f)));
+            for (int z = 0; z <= depthSteps; ++z) {
+                for (int x = 0; x <= widthSteps; ++x) {
+                    const float across = -building.halfWidth + 2.0f * building.halfWidth * static_cast<float>(x) / widthSteps;
+                    const float along = -building.halfDepth + 2.0f * building.halfDepth * static_cast<float>(z) / depthSteps;
+                    const Vector2 point = centre + right * across + fwd * along;
+                    if (!world.Terrain().Contains(point.X, point.Y)) return false;
+                    float height = 0.0f;
+                    Sim::SurfaceType surface = Sim::SurfaceType::Asphalt;
+                    float pavedEdge = 0.0f;
+                    if (world.Roads().RoadSurfaceAt(point, height, surface, pavedEdge) && pavedEdge < 0.75f) return false;
+                }
+            }
+            return true;
+        }
+
+        bool BuildingFootprintsOverlap(const PlacedBuilding& a, const Vector2& aCentre,
+                                       const PlacedBuilding& b, const Vector2& bCentre)
+        {
+            const Vector2 af = DirectionFromHeading(a.headingRad), ar(-af.Y, af.X);
+            const Vector2 bf = DirectionFromHeading(b.headingRad), br(-bf.Y, bf.X);
+            const Vector2 delta = bCentre - aCentre;
+            for (const Vector2& axis : {af, ar, bf, br}) {
+                const float aRadius = a.halfWidth * std::fabs(Vector2::Dot(axis, ar)) +
+                                      a.halfDepth * std::fabs(Vector2::Dot(axis, af));
+                const float bRadius = b.halfWidth * std::fabs(Vector2::Dot(axis, br)) +
+                                      b.halfDepth * std::fabs(Vector2::Dot(axis, bf));
+                if (std::fabs(Vector2::Dot(delta, axis)) >= aRadius + bRadius + 0.5f) return false;
+            }
+            return true;
+        }
     }
 
     bool ParseTreeSpecies(const std::string& text, TreeSpecies& out)
@@ -126,7 +165,7 @@ namespace CarSim::Map
         signs_.clear();
         props_.clear();
         vehicles_.clear();
-        PlaceBuildings(world);
+        PlaceBuildings(world, warnings);
         PlaceTrees(world, warnings);
         PlaceAvenues(world, warnings);
         PlaceSigns(world);
@@ -423,9 +462,15 @@ namespace CarSim::Map
         return true;
     }
 
-    void ObjectPlacement::PlaceBuildings(const MapWorld& world)
+    void ObjectPlacement::PlaceBuildings(const MapWorld& world, std::vector<std::string>& warnings)
     {
         const MapGround& ground = world.Ground();
+        std::vector<PlacedBuilding> planned;
+        std::vector<Vector2> resolvedCentres;
+        std::vector<bool> active;
+        planned.reserve(world.Data().objects.buildings.size());
+        resolvedCentres.reserve(world.Data().objects.buildings.size());
+        active.reserve(world.Data().objects.buildings.size());
         for (const BuildingSpec& spec : world.Data().objects.buildings) {
             PlacedBuilding b;
             b.spec = &spec;
@@ -435,6 +480,55 @@ namespace CarSim::Map
             b.height = spec.eavesHeight;
             const float pitch = spec.roofPitchDeg * kPi / 180.0f;
             b.roofHeight = std::tan(pitch) * std::min(b.halfDepth, b.halfWidth);
+            b.position = Vector3(spec.position.X, 0.0f, spec.position.Y);
+            planned.push_back(b);
+            resolvedCentres.push_back(spec.position);
+            active.push_back(true);
+        }
+        for (std::size_t i = 0; i < planned.size(); ++i) {
+            PlacedBuilding b = planned[i];
+            const BuildingSpec& spec = *b.spec;
+            Vector2 centre = spec.position;
+            if (!BuildingRoadClear(world, b, centre)) {
+                // Some authored rows cross a different road from the one they face. Keep the
+                // building in its neighbourhood by finding the closest free plot nearby.
+                RoadHit hit;
+                Vector2 away(1.0f, 0.0f);
+                if (world.Roads().NearestRoad(centre, 100.0f, hit)) {
+                    away = centre - Vector2(hit.sample.position.X, hit.sample.position.Z);
+                    if (away.LengthSquared() < 0.01f) {
+                        away = Vector2(-hit.sample.tangent.Z, hit.sample.tangent.X);
+                    }
+                }
+                const float baseAngle = std::atan2(away.Y, away.X);
+                bool moved = false;
+                for (float radius = 2.0f; radius <= 80.0f && !moved; radius += 2.0f) {
+                    for (int direction = 0; direction < 16; ++direction) {
+                        const float angle = baseAngle + static_cast<float>(direction) * (2.0f * kPi / 16.0f);
+                        const Vector2 candidate = spec.position + Vector2(std::cos(angle), std::sin(angle)) * radius;
+                        if (!BuildingRoadClear(world, b, candidate)) continue;
+                        bool occupied = false;
+                        for (std::size_t other = 0; other < planned.size(); ++other) {
+                            if (other == i || !active[other]) continue;
+                            if (BuildingFootprintsOverlap(b, candidate, planned[other], resolvedCentres[other])) {
+                                occupied = true;
+                                break;
+                            }
+                        }
+                        if (occupied) continue;
+                        centre = candidate;
+                        moved = true;
+                        break;
+                    }
+                }
+                if (!moved) {
+                    active[i] = false;
+                    warnings.push_back("objects.buildings: no road-clear position for " + spec.type + " near (" +
+                                       std::to_string(spec.position.X) + ", " + std::to_string(spec.position.Y) + ")");
+                    continue;
+                }
+            }
+            resolvedCentres[i] = centre;
             // Foundation: highest corner defines the floor, walls extend down to the lowest corner.
             const Vector2 fwd = DirectionFromHeading(b.headingRad);
             const Vector2 right(-fwd.Y, fwd.X);
@@ -442,15 +536,15 @@ namespace CarSim::Map
             float highest = -lowest;
             for (const float sx : {-1.0f, 1.0f}) {
                 for (const float sz : {-1.0f, 1.0f}) {
-                    const Vector2 corner = spec.position + right * (sx * b.halfWidth) + fwd * (sz * b.halfDepth);
+                    const Vector2 corner = centre + right * (sx * b.halfWidth) + fwd * (sz * b.halfDepth);
                     const float h = ground.HeightAt(corner.X, corner.Y);
                     lowest = std::min(lowest, h);
                     highest = std::max(highest, h);
                 }
             }
-            const float centre = ground.HeightAt(spec.position.X, spec.position.Y);
-            const float floor = std::max(centre, highest - 0.35f);
-            b.position = Vector3(spec.position.X, floor + 0.05f, spec.position.Y);
+            const float centreHeight = ground.HeightAt(centre.X, centre.Y);
+            const float floor = std::max(centreHeight, highest - 0.35f);
+            b.position = Vector3(centre.X, floor + 0.05f, centre.Y);
             b.foundationDrop = std::max(0.3f, floor + 0.05f - lowest + 0.3f);
             buildings_.push_back(b);
         }
@@ -483,10 +577,34 @@ namespace CarSim::Map
             if (!ParseTreeSpecies(spec.species, t.species)) {
                 warnings.push_back("objects.trees: unknown species '" + spec.species + "', using linden");
             }
-            t.position = Vector3(spec.position.X, ground.HeightAt(spec.position.X, spec.position.Y), spec.position.Y);
             t.scale = spec.scale;
             t.seed = spec.seed;
             t.rotationRad = Hash01(static_cast<int>(spec.seed), 3, 11u) * 2.0f * kPi;
+            Vector2 position = spec.position;
+            const auto clear = [&](const Vector2& p) {
+                return world.Terrain().Contains(p.X, p.Y) &&
+                       ClearOfRoads(world, p, t.TrunkRadius() + 0.75f) &&
+                       !InsideBuilding(p, t.TrunkRadius() + 0.75f);
+            };
+            if (!clear(position)) {
+                bool moved = false;
+                for (float radius = 2.0f; radius <= 30.0f && !moved; radius += 2.0f) {
+                    for (int direction = 0; direction < 16; ++direction) {
+                        const float angle = static_cast<float>(direction) * (2.0f * kPi / 16.0f);
+                        const Vector2 candidate = spec.position + Vector2(std::cos(angle), std::sin(angle)) * radius;
+                        if (!clear(candidate)) continue;
+                        position = candidate;
+                        moved = true;
+                        break;
+                    }
+                }
+                if (!moved) {
+                    warnings.push_back("objects.trees: no road-clear position near (" +
+                                       std::to_string(spec.position.X) + ", " + std::to_string(spec.position.Y) + ")");
+                    continue;
+                }
+            }
+            t.position = Vector3(position.X, ground.HeightAt(position.X, position.Y), position.Y);
             trees_.push_back(t);
         }
         // Forests: jittered grid sampling inside the polygon.
@@ -621,6 +739,7 @@ namespace CarSim::Map
                     t.scale = 0.85f + 0.3f * Hash01(n, side > 0.0f ? 1 : 0, avenue.seed);
                     t.rotationRad = Hash01(n, 7, avenue.seed) * 2.0f * kPi;
                     t.seed = avenue.seed * 131u + static_cast<unsigned>(n * 2 + (side > 0.0f ? 1 : 0));
+                    if (!ClearOfRoads(world, p, t.TrunkRadius() + 0.75f)) continue;
                     t.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
                     trees_.push_back(t);
                 }

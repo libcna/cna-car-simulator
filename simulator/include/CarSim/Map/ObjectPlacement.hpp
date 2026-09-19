@@ -140,7 +140,7 @@ namespace CarSim::Map
         [[nodiscard]] bool InsideBuilding(const Microsoft::Xna::Framework::Vector2& point, float margin) const;
 
     private:
-        void PlaceBuildings(const MapWorld& world);
+        void PlaceBuildings(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceTrees(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceAvenues(const MapWorld& world, std::vector<std::string>& warnings);
         void PlaceSigns(const MapWorld& world);
