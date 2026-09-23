@@ -1,6 +1,7 @@
 #include "CarSim/Render/ProceduralTextures.hpp"
 
 #include <algorithm>
+#include <vector>
 #include <cmath>
 
 namespace CarSim::Render::Textures
@@ -279,6 +280,33 @@ namespace CarSim::Render::Textures
             faces.push_back(std::move(img));
         }
         return faces;
+    }
+
+    Image PuddleMask(const int size, const std::uint32_t seed, const float coverage)
+    {
+        // Low-frequency blobs thresholded at the quantile that leaves `coverage` of the area
+        // wet, with a soft rim where the water thins out; fine ripples keep the reflection from
+        // looking like paint.
+        std::vector<float> blob(static_cast<std::size_t>(size) * static_cast<std::size_t>(size));
+        for (int y = 0; y < size; ++y) {
+            for (int x = 0; x < size; ++x) {
+                const float u = (static_cast<float>(x) + 0.5f) / static_cast<float>(size);
+                const float v = (static_cast<float>(y) + 0.5f) / static_cast<float>(size);
+                blob[static_cast<std::size_t>(y * size + x)] = Noise::Fbm(u * 10.0f, v * 10.0f, 10, 3, 0.5f, seed);
+            }
+        }
+        std::vector<float> sorted = blob;
+        const auto cut = static_cast<std::ptrdiff_t>(static_cast<float>(sorted.size() - 1) * (1.0f - std::clamp(coverage, 0.02f, 0.6f)));
+        std::nth_element(sorted.begin(), sorted.begin() + cut, sorted.end());
+        const float threshold = sorted[static_cast<std::size_t>(cut)];
+        Image img(size, size);
+        img.Generate([&](int x, int y, float u, float v) {
+            const float depth = std::clamp((blob[static_cast<std::size_t>(y * size + x)] - threshold) / 0.03f, 0.0f, 1.0f);
+            const float ripple = 0.85f + 0.15f * Noise::Value(u * 128.0f, v * 128.0f, 128, seed + 7);
+            const float g = depth * ripple;
+            return ToColor({g, g, g});
+        });
+        return img;
     }
 
     Image CloudLayer(const int size, const std::uint32_t seed, const float coverage)

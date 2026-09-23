@@ -795,6 +795,9 @@ namespace CarSim::App
         if (worldRenderer_) {
             worldRenderer_->SetWetness(weather_.wetness);
         }
+        if (vehicleMaterials_) {
+            vehicleMaterials_->SetWetness(weather_.wetness);
+        }
         if (vehicle_) {
             vehicle_->SetRoadWetness(weather_.wetness);
         }

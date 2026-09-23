@@ -234,10 +234,10 @@ namespace CarSim::Render
         paint_->setEnvironmentMapProperty(environment_.get());
         // Subtle, view-dependent sheen: the diffuse paint colour must stay readable head-on.
         // The cube map's alpha is a sun mask, so EnvironmentMapSpecular only adds a sun glint.
-        paint_->setEnvironmentMapAmountProperty(0.22f);
+        paint_->setEnvironmentMapAmountProperty(0.22f + 0.18f * wetness_);
         sunGlint_ = Vector3(0.9f, 0.86f, 0.78f);
         paint_->setEnvironmentMapSpecularProperty(sunGlint_);
-        paint_->setFresnelFactorProperty(2.2f);
+        paint_->setFresnelFactorProperty(2.2f - 0.7f * wetness_);
 
         // Cabin surfaces are lit by light entering through the glass from every direction:
         // stronger ambient, softer key light, no fog.
@@ -348,6 +348,14 @@ namespace CarSim::Render
             environment_ = UploadCubeMap(device, Textures::SkyCubeFaces(kEnvironmentFaceSize, zenith, horizon, ground, -rig.sunDirection, 140.0f));
             paint_->setEnvironmentMapProperty(environment_.get());
         }
+    }
+
+    void VehicleMaterials::SetWetness(const float wetness)
+    {
+        const float wet = std::clamp(wetness, 0.0f, 1.0f);
+        wetness_ = wet;
+        paint_->setEnvironmentMapAmountProperty(0.22f + 0.18f * wet);
+        paint_->setFresnelFactorProperty(2.2f - 0.7f * wet);
     }
 
     Texture2D* VehicleMaterials::TextureFor(const CarMaterial material) const

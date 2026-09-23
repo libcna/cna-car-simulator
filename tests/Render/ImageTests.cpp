@@ -51,3 +51,17 @@ TEST(Image, DownsampleAveragesAndTexturesHaveExpectedTone)
     }
     EXPECT_GT(transparent, 0) << "leaf clusters need transparent gaps for alpha testing";
 }
+
+TEST(Image, PuddleMaskCoversTheRequestedShare)
+{
+    const Image mask = Textures::PuddleMask(128, 71u, 0.14f);
+    int wet = 0;
+    for (int y = 0; y < 128; ++y) {
+        for (int x = 0; x < 128; ++x) {
+            wet += mask.At(x, y).getRProperty() > 40 ? 1 : 0;
+        }
+    }
+    const float share = static_cast<float>(wet) / (128.0f * 128.0f);
+    EXPECT_GT(share, 0.08f);
+    EXPECT_LT(share, 0.20f);
+}

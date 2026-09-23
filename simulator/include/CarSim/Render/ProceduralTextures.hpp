@@ -48,6 +48,9 @@ namespace CarSim::Render::Textures
     /// Cloud layer seen from below. `coverage` runs from 0 (a few wisps) to 1 (a solid
     /// overcast lid); the clouds also darken as they thicken.
     [[nodiscard]] Image CloudLayer(int size, std::uint32_t seed, float coverage = 0.4f);
+    /// Tileable puddle mask for wet asphalt: grey where water stands (the brightness is the
+    /// share of the sky it reflects), black elsewhere. `coverage` is the wet area share.
+    [[nodiscard]] Image PuddleMask(int size, std::uint32_t seed, float coverage = 0.14f);
     /// Car interior fabric/plastic grain.
     [[nodiscard]] Image InteriorGrain(int size, const Rgb& base, std::uint32_t seed);
 }

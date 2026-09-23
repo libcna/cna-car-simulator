@@ -50,6 +50,8 @@ namespace CarSim::Render
         /// Colour of the sun glint the paint's cube map carries in its alpha. Each material scales
         /// it: a clear coat takes all of it, glass a third, a wing mirror barely any.
         [[nodiscard]] const Microsoft::Xna::Framework::Vector3& SunGlint() const { return sunGlint_; }
+        /// A film of rain on the paint mirrors more of the sky (0 dry .. 1 soaked).
+        void SetWetness(float wetness);
         Microsoft::Xna::Framework::Graphics::Texture2D& White() { return *white_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& DefaultPlate() { return *defaultPlate_; }
         Microsoft::Xna::Framework::Graphics::Texture2D& DefaultCluster() { return *defaultCluster_; }
@@ -57,6 +59,7 @@ namespace CarSim::Render
         [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* TextureFor(CarMaterial material) const;
 
     private:
+        float wetness_ = 0.0f;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> lit_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> litTextured_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> interiorLit_;

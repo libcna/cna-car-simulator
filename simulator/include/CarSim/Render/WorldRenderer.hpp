@@ -88,6 +88,9 @@ namespace CarSim::Render
         {
             std::unique_ptr<GpuMesh> mesh;
             Surface surface = Surface::Asphalt;
+            /// Asphalt only: the same surface with its texture coordinates stretched so the
+            /// puddle mask repeats every 16 x 16 m instead of every texture tile.
+            std::unique_ptr<GpuMesh> puddles;
         };
 
         struct ObjectBatch
@@ -134,6 +137,8 @@ namespace CarSim::Render
         /// Multiplies the rig lighting and the ground shadow into the wear colours of a road
         /// mesh; `tint` (verges) blends the outer vertices into the terrain's macro tint.
         void BakeRoadColours(MeshData& mesh, const Image& shadow, const Image* tint) const;
+        /// Creates `batch.puddles` from an asphalt mesh whose UVs are in 4 m tiles.
+        static void AddPuddleMesh(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const MeshData& asphalt, Batch& batch);
         Microsoft::Xna::Framework::Graphics::Texture2D* TextureFor(Surface s) const;
 
         const Map::MapWorld& world_;
@@ -173,6 +178,8 @@ namespace CarSim::Render
         float lampFactor_ = 0.0f;                                                             // 0 by day, 1 after dark
         float wetness_ = 0.0f;                                                                // 0 dry road, 1 soaked
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadSheenEffect_;    // wet-road sky sheen
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> puddleEffect_;       // additive sky in standing water
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> puddleMask_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> roofTextures_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> windowTexture_;

@@ -1380,9 +1380,10 @@ Recorded so the next pass does not have to rediscover the reasoning.
 - **The terrain detail texture visibly tiles** when seen from a height (a roughly 40 m grid over
   open meadow). At driving height it is not noticeable, and breaking it up means touching the
   terrain macro that everything else is baked against. Listed as open work.
-- **The wet sheen does not reach the paved square or the filling-station forecourt**: it runs
-  over road batches only. Both are cobbles and concrete rather than asphalt, so the miss is less
-  wrong than it would be on tarmac, but it is a gap.
+- ~~**The wet sheen does not reach the paved square or the filling-station forecourt**~~ Closed
+  after Phase 13: squares, yards, pavements and kerbs carry a weaker sheen than asphalt, grass
+  verges none; terrain, trees, buildings and car paint darken or gloss with the wetness, and
+  standing water (a puddle mask, 16 m repeat) appears on asphalt once the road is soaked.
 - **Traffic bodies were not changed.** Five silhouettes, two variants each and sixteen paint
   colours give 160 combinations, which reads as varied from a driving distance in the traffic
   and town captures. A bus or lorry class is still open work from Phase 12.

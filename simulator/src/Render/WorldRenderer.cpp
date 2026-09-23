@@ -108,6 +108,13 @@ namespace CarSim::Render
         // second additive pass over the road with a black diffuse and the sky as the fog colour
         // puts exactly that sheen on it: nothing near, sky far. No renderer internals, no custom
         // shader, and it costs one extra pass over the road batches only while the road is wet.
+        puddleMask_ = UploadTexture(device, Textures::PuddleMask(256, 71u), true);
+        puddleEffect_ = std::make_unique<BasicEffect>(device);
+        puddleEffect_->setLightingEnabledProperty(false);
+        puddleEffect_->setTextureEnabledProperty(true);
+        puddleEffect_->setVertexColorEnabledProperty(false);
+        puddleEffect_->setFogEnabledProperty(true);
+        puddleEffect_->setFogColorProperty(Vector3(0.0f, 0.0f, 0.0f));   // additive: fog fades it out
         roadSheenEffect_ = std::make_unique<BasicEffect>(device);
         roadSheenEffect_->setLightingEnabledProperty(false);
         roadSheenEffect_->setTextureEnabledProperty(false);
@@ -443,12 +450,24 @@ namespace CarSim::Render
             };
             push(meshes.verge, Surface::Grass, &tint);
             push(meshes.paved, pavedSurface, nullptr);
+            if (pavedSurface == Surface::Asphalt && !roadBatches_.empty() && roadBatches_.back().surface == Surface::Asphalt) {
+                AddPuddleMesh(device, meshes.paved, roadBatches_.back());
+            }
             push(meshes.shoulder, Surface::Gravel, nullptr);
             push(meshes.sidewalk, Surface::Paving, nullptr);
             push(meshes.kerb, Surface::Concrete, nullptr);
             push(meshes.markings, Surface::Marking, nullptr);
         }
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
+    }
+
+    void WorldRenderer::AddPuddleMesh(GraphicsDevice& device, const MeshData& asphalt, Batch& batch)
+    {
+        MeshData stretched = asphalt;
+        for (auto& v : stretched.vertices) {
+            v.uv = Vector2(v.uv.X * 0.25f, v.uv.Y * 0.25f);
+        }
+        batch.puddles = GpuMesh::Create(device, stretched, VertexLayout::PositionTexture);
     }
 
     void WorldRenderer::BuildIntersections(GraphicsDevice& device, const Image& shadow)
@@ -476,6 +495,9 @@ namespace CarSim::Render
             roadBatches_.push_back(std::move(b));
         };
         push(asphalt, Surface::Asphalt);
+        if (asphalt.TriangleCount() > 0) {
+            AddPuddleMesh(device, asphalt, roadBatches_.back());
+        }
         push(gravel, Surface::Gravel);
         push(markings, Surface::Marking);
         stats_.roadBatchesTotal = static_cast<int>(roadBatches_.size());
@@ -1033,6 +1055,11 @@ namespace CarSim::Render
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
         device.getSamplerStatesProperty()[1] = SamplerState::LinearClamp;
 
+        // Wet ground, grass and walls read darker: water fills the pores and the fine texture
+        // that scattered light back. Applied per frame on top of the rig's scale, since the
+        // wetness moves continuously while the lighting refreshes in steps.
+        const float wetGround = 1.0f - 0.16f * wetness_;
+        terrainEffect_->setDiffuseColorProperty(bakedScale_ * wetGround);
         terrainEffect_->setWorldProperty(Matrix::getIdentityProperty());
         terrainEffect_->setViewProperty(view);
         terrainEffect_->setProjectionProperty(projection);
@@ -1067,7 +1094,9 @@ namespace CarSim::Render
             const bool markings = pass == 1;
             device.setRasterizerStateProperty(markings ? (mirrored ? *markingStateMirrored_ : *markingState_) : solid);
             Vector3 tint = markings ? Vector3(0.92f, 0.92f, 0.90f) : Vector3(1.0f, 1.0f, 1.0f);
-            if (wetness_ > 0.0f) {
+            if (wetness_ > 0.0f && !markings) {
+                // Per batch below: grass verges darken like the terrain beside them.
+            } else if (wetness_ > 0.0f) {
                 // Wet asphalt swallows light and takes on the colour of the sky it reflects; the
                 // paint on it darkens less, because it stays rough.
                 const float wet = wetness_ * (markings ? 0.45f : 1.0f);
@@ -1080,6 +1109,20 @@ namespace CarSim::Render
             for (const auto& b : roadBatches_) {
                 if ((b.surface == Surface::Marking) != markings || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
                     continue;
+                }
+                if (wetness_ > 0.0f && !markings) {
+                    // Wet asphalt and stone swallow light and take on the colour of the sky
+                    // they reflect; grass only darkens, like the terrain beside it.
+                    Vector3 t(1.0f, 1.0f, 1.0f);
+                    if (b.surface == Surface::Grass) {
+                        t = Vector3(wetGround, wetGround, wetGround);
+                    } else {
+                        const float wet = wetness_ * (b.surface == Surface::Asphalt ? 1.0f : 0.8f);
+                        const Vector3 sky = rig_.horizonColor;
+                        t = Vector3(1.0f - 0.42f * wet + sky.X * 0.10f * wet, 1.0f - 0.42f * wet + sky.Y * 0.10f * wet,
+                                    1.0f - 0.40f * wet + sky.Z * 0.13f * wet);
+                    }
+                    roadUnlitEffect_->setDiffuseColorProperty(Vector3(t.X * bakedScale_.X, t.Y * bakedScale_.Y, t.Z * bakedScale_.Z));
                 }
                 roadUnlitEffect_->setTextureProperty(TextureFor(b.surface));
                 ApplyAll(*roadUnlitEffect_, device, *b.mesh);
@@ -1106,13 +1149,41 @@ namespace CarSim::Render
             device.setBlendStateProperty(BlendState::Additive);
             device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
             for (const auto& b : roadBatches_) {
-                if (b.surface == Surface::Marking || b.surface == Surface::Gravel || !b.mesh ||
+                if (b.surface == Surface::Marking || b.surface == Surface::Gravel || b.surface == Surface::Grass || !b.mesh ||
                     !frustum.Intersects(b.mesh->Sphere())) {
                     continue;
                 }
+                // Smooth asphalt mirrors the most; slabs, kerbs and cobbles are rougher and
+                // drain between their joints.
+                const float surfaceShare = b.surface == Surface::Asphalt ? 1.0f : (b.surface == Surface::Cobbles ? 0.55f : 0.75f);
+                roadSheenEffect_->setFogColorProperty(sky * (strength * surfaceShare));
                 ApplyAll(*roadSheenEffect_, device, *b.mesh);
                 ++stats_.drawCalls;
                 stats_.triangles += b.mesh->PrimitiveCount();
+            }
+            // Standing water once the rain has soaked the road: brighter patches of reflected
+            // sky, fading out with distance like the sheen.
+            const float standing = std::clamp((wetness_ - 0.35f) / 0.65f, 0.0f, 1.0f);
+            if (standing > 0.0f && puddleEffect_ && puddleMask_) {
+                puddleEffect_->setWorldProperty(Matrix::getIdentityProperty());
+                puddleEffect_->setViewProperty(view);
+                puddleEffect_->setProjectionProperty(projection);
+                puddleEffect_->setTextureProperty(puddleMask_.get());
+                puddleEffect_->setDiffuseColorProperty(Vector3(0.015f, 0.015f, 0.02f) + sky * (0.20f * standing));
+                puddleEffect_->setFogStartProperty(6.0f);
+                puddleEffect_->setFogEndProperty(std::min(120.0f, rig_.fogEnd));
+                // The puddles lie on the road surface itself; the marking state's depth bias
+                // keeps them from fighting it for the depth test.
+                device.setRasterizerStateProperty(mirrored ? *markingStateMirrored_ : *markingState_);
+                for (const auto& b : roadBatches_) {
+                    if (!b.puddles || !frustum.Intersects(b.puddles->Sphere())) {
+                        continue;
+                    }
+                    ApplyAll(*puddleEffect_, device, *b.puddles);
+                    ++stats_.drawCalls;
+                    stats_.triangles += b.puddles->PrimitiveCount();
+                }
+                device.setRasterizerStateProperty(solid);
             }
             device.setBlendStateProperty(BlendState::Opaque);
             device.setDepthStencilStateProperty(DepthStencilState::Default);
@@ -1136,10 +1207,11 @@ namespace CarSim::Render
                 continue;
             }
             roadEffect_->setTextureProperty(b.texture);
-            roadEffect_->setDiffuseColorProperty(b.diffuse);
+            // Rain-soaked plaster, roof tiles and wood darken and pick up a wet gloss.
+            roadEffect_->setDiffuseColorProperty(b.diffuse * (1.0f - 0.22f * wetness_));
             roadEffect_->setEmissiveColorProperty(b.emissive + b.nightEmissive * lampFactor_);
-            roadEffect_->setSpecularColorProperty(b.specular);
-            roadEffect_->setSpecularPowerProperty(b.specularPower);
+            roadEffect_->setSpecularColorProperty(b.specular + Vector3(0.20f, 0.20f, 0.21f) * wetness_);
+            roadEffect_->setSpecularPowerProperty(b.specularPower + 20.0f * wetness_);
             ApplyAll(*roadEffect_, device, *b.mesh);
             ++stats_.objectBatchesDrawn;
             ++stats_.drawCalls;
@@ -1154,6 +1226,7 @@ namespace CarSim::Render
         const Vector3 cameraPosition = Matrix::Invert(view).getTranslationProperty();
         const float treeRange = maxDistance > 0.0f ? std::min(maxDistance, 1100.0f) : 1100.0f * scale * vegetationScale_;
         device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+        treeEffect_->setDiffuseColorProperty(bakedScale_ * (1.0f - 0.10f * wetness_));
         treeEffect_->setWorldProperty(Matrix::getIdentityProperty());
         treeEffect_->setViewProperty(view);
         treeEffect_->setProjectionProperty(projection);
