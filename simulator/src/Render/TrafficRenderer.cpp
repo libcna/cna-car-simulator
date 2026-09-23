@@ -17,7 +17,7 @@ namespace CarSim::Render
         }
         // One model per body style and size variant, without cockpits (a cabin block keeps them
         // from looking hollow through the glass).
-        for (int b = 0; b < 5; ++b) {
+        for (int b = 0; b < Sim::CarStyle::kBodyCount; ++b) {
             for (int k = 0; k < kVariantsPerBody; ++k) {
                 const Sim::CarStyle style = Sim::CarStyle::Preset(static_cast<Sim::CarStyle::Body>(b), VariantSeed(static_cast<unsigned>(k)));
                 renderers_[static_cast<std::size_t>(b * kVariantsPerBody + k)] = std::make_unique<VehicleRenderer>(device, materials, style, nullptr, false);
@@ -50,6 +50,14 @@ namespace CarSim::Render
         int index = paletteIndex % kPaletteSize;
         if (body == Sim::CarStyle::Body::Van && index >= 4) {
             index = index % 2;   // vans: mostly white or silver
+        }
+        if (body == Sim::CarStyle::Body::Bus) {
+            // Regional and town bus liveries: white, the regional yellow-and-blue's yellow, red.
+            static const Vector3 buses[3] = {Vector3(0.90f, 0.90f, 0.88f), Vector3(0.86f, 0.72f, 0.12f), Vector3(0.66f, 0.10f, 0.10f)};
+            return buses[static_cast<std::size_t>(paletteIndex % 3)];
+        }
+        if (body == Sim::CarStyle::Body::Truck && index >= 3) {
+            index = 0;   // box lorries: nearly all white
         }
         return palette[static_cast<std::size_t>(index)];
     }

@@ -320,3 +320,38 @@ TEST(ProceduralCar, WingMirrorGlassFacesTheDriver)
         }
     }
 }
+TEST(ProceduralCar, BusesAndLorriesAreBuiltToSizeWithWheelsAndLamps)
+{
+    for (const CarStyle::Body body : {CarStyle::Body::Bus, CarStyle::Body::Truck}) {
+        const CarStyle style = CarStyle::Preset(body, 1u);
+        const CarModel model = GenerateCar(style, nullptr, false);
+        Vector3 mn(1e9f, 1e9f, 1e9f), mx(-1e9f, -1e9f, -1e9f);
+        int wheels = 0;
+        for (const auto& part : model.parts) {
+            if (part.role != CarPart::Role::Static) {
+                ++wheels;
+                continue;
+            }
+            for (const auto& v : part.mesh.vertices) {
+                mn = Vector3::Min(mn, v.position);
+                mx = Vector3::Max(mx, v.position);
+            }
+        }
+        EXPECT_EQ(wheels, 8) << CarStyle::ToString(body) << ": a tyre and a rim per wheel";
+        EXPECT_NEAR(mx.Z - mn.Z, style.length, 0.5f) << CarStyle::ToString(body);
+        EXPECT_NEAR(mx.X - mn.X, style.width, 0.8f) << CarStyle::ToString(body) << " (mirrors stick out)";
+        EXPECT_NEAR(mx.Y, style.height + (body == CarStyle::Body::Bus ? 0.24f : 0.0f), 0.05f) << CarStyle::ToString(body);
+        int heads = 0, tails = 0;
+        for (const auto& lamp : model.lamps) {
+            heads += lamp.kind == CarMaterial::LampHead ? 1 : 0;
+            tails += lamp.kind == CarMaterial::LampTail ? 1 : 0;
+        }
+        EXPECT_EQ(heads, 2);
+        EXPECT_EQ(tails, 2);
+        EXPECT_NE(Find(model, "body_glass"), nullptr);
+        EXPECT_NE(Find(model, "plates"), nullptr);
+        for (const auto& centre : model.wheelCenters) {
+            EXPECT_NEAR(centre.Y, style.wheelRadius, 1e-4f);
+        }
+    }
+}

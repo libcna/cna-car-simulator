@@ -142,6 +142,9 @@ namespace CarSim::Render
     /// Player car: style from the definition, full cockpit interior.
     [[nodiscard]] CarModel GenerateCar(const Sim::VehicleDefinition& definition);
 
+    /// Buses and lorries (traffic): box-built bodies with the same parts and wheel roles.
+    [[nodiscard]] CarModel GenerateHeavyVehicle(const Sim::CarStyle& style);
+
     /// Generic generator. `definition` (optional) supplies the cockpit placement (driver eye,
     /// steering wheel, cluster, mirror); `interior` selects whether cabin parts are built.
     [[nodiscard]] CarModel GenerateCar(const CarStyle& style, const Sim::VehicleDefinition* definition, bool interior);

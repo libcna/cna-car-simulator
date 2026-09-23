@@ -142,6 +142,17 @@ namespace CarSim::Traffic
     void TrafficSystem::ChooseNextLink(TrafficVehicle& v)
     {
         v.nextLink = v.lane >= 0 ? lanes_.RandomLink(v.lane, rng_) : -1;
+        // Buses and lorries keep to the through route where there is one: a twelve-metre body
+        // does not turn inside a village junction without sweeping the next approach's stop
+        // line. They still turn where the road only goes left or right.
+        if (v.Heavy() && v.nextLink >= 0 && lanes_.LinkAt(v.nextLink).turn != Map::TurnType::Straight) {
+            for (const int id : lanes_.LaneAt(v.lane).outgoingLinks) {
+                if (lanes_.LinkAt(id).turn == Map::TurnType::Straight) {
+                    v.nextLink = id;
+                    break;
+                }
+            }
+        }
     }
 
     void TrafficSystem::UpdatePose(TrafficVehicle& v)
@@ -162,7 +173,57 @@ namespace CarSim::Traffic
             v.headingRad = std::atan2(f.X, -f.Z);
         }
         // Front wheels follow the path curvature: steer angle ~ atan(wheelbase * curvature).
-        v.steerAngle = std::atan(2.55f * p.curvature);
+        v.steerAngle = std::atan(v.wheelbaseM * p.curvature);
+        if (v.Heavy()) {
+            // A long rigid body is not the tangent at its middle: both axles run on the path and
+            // the body lies along the chord between them. Posed on the tangent, a bus's ends
+            // swung more than a metre out of its lane in a village bend.
+            const float half = 0.5f * v.wheelbaseM;
+            LanePoint front;
+            LanePoint rear;
+            bool haveRear = false;
+            if (v.s - half >= 0.0f) {
+                rear = v.link >= 0 ? lanes_.LinkAt(v.link).Evaluate(v.s - half) : lanes_.LaneAt(v.lane).Evaluate(v.s - half);
+                haveRear = true;
+            } else if (v.link >= 0) {
+                const Lane& from = lanes_.LaneAt(lanes_.LinkAt(v.link).fromLane);
+                if (from.length + v.s - half >= 0.0f) {
+                    rear = from.Evaluate(from.length + v.s - half);
+                    haveRear = true;
+                }
+            }
+            if (haveRear && PathPointAhead(v, half, front)) {
+                Vector3 chord = front.position - rear.position;
+                chord.Y = 0.0f;
+                if (chord.LengthSquared() > 1e-4f) {
+                    v.position = (front.position + rear.position) * 0.5f;
+                    chord.Normalize();
+                    v.forward = chord;
+                    v.headingRad = std::atan2(chord.X, -chord.Z);
+                    v.steerAngle = std::atan(v.wheelbaseM * front.curvature);
+                }
+            }
+        }
+        // Keeping right: a bus or a lorry drives at the kerb edge of its lane, and a car meeting
+        // one moves over too, as drivers do on a narrow village road. Without it the two bodies
+        // touched across the centre line in the bends.
+        if (v.link < 0 && v.lane >= 0) {
+            const Lane& lane = lanes_.LaneAt(v.lane);
+            bool moveOver = v.Heavy();
+            if (!moveOver && lane.oppositeLane >= 0) {
+                for (const auto& o : vehicles_) {
+                    if (o.Heavy() && o.link < 0 && o.lane == lane.oppositeLane && Vector3::DistanceSquared(o.position, v.position) < 25.0f * 25.0f) {
+                        moveOver = true;
+                        break;
+                    }
+                }
+            }
+            const float spare = 0.5f * (lane.width - v.widthM) - 0.12f;
+            if (moveOver && spare > 0.0f) {
+                const Vector3 right(-v.forward.Z, 0.0f, v.forward.X);
+                v.position += right * spare;
+            }
+        }
     }
 
     float TrafficSystem::DesiredSpeedAhead(const TrafficVehicle& v) const
@@ -205,6 +266,11 @@ namespace CarSim::Traffic
                     }
                 }
             }
+        }
+        // Buses and lorries: Czech limits for heavy vehicles (80 km/h out of town) and gentler
+        // cornering.
+        if (v.Heavy()) {
+            desired = std::min(desired, 80.0f * kKmhToMs);
         }
         return desired;
     }
@@ -309,6 +375,18 @@ namespace CarSim::Traffic
                 }
             }
         }
+        // A bus or a lorry coming the other way round a tight village bend, or turning across
+        // us, can put its body into our lane. A car waits for it to pass, as a driver would; the
+        // heavy vehicle keeps going (it is the one that cannot move over).
+        if (!v.Heavy()) {
+            for (const auto& o : vehicles_) {
+                if (o.id == v.id || !o.Heavy() || (o.link < 0 && o.lane == v.lane)) continue;
+                if (Vector3::DistanceSquared(o.position, v.position) > 35.0f * 35.0f) continue;
+                const float blockedAt = PathBlockedBy(v, o, 30.0f);
+                if (blockedAt < 0.0f) continue;
+                consider(blockedAt + 0.5f * o.lengthM, o.lengthM, std::max(0.0f, Vector3::Dot(o.Velocity(), v.forward)), o.id, true);
+            }
+        }
         // Also treat the player as an obstacle when it physically sits on our path (any heading).
         if (player.valid && player.blocksTraffic) {
             for (const auto& seg : path) {
@@ -342,6 +420,55 @@ namespace CarSim::Traffic
         return best;
     }
 
+    bool TrafficSystem::BoxClearFor(const TrafficVehicle& v) const
+    {
+        if (v.nextLink < 0) {
+            return true;
+        }
+        const LaneLink& link = lanes_.LinkAt(v.nextLink);
+        // Buses and lorries have the junction to themselves: their bodies sweep outside the
+        // car-sized conflict map and a stop in the mouth leaves the cab across the crossing lane.
+        // A heavy vehicle enters only an empty junction, and nobody enters while one is still
+        // inside, its tail included.
+        if (link.intersection >= 0) {
+            const auto& inter = world_.Roads().Intersections()[static_cast<std::size_t>(link.intersection)];
+            const Vector2 centre(inter.center.X, inter.center.Z);
+            for (const auto& o : vehicles_) {
+                if (o.id == v.id) continue;
+                bool inside = o.link >= 0 && lanes_.LinkAt(o.link).intersection == link.intersection;
+                if (!inside && o.Heavy()) {
+                    // Just out of the connector, still dragging its tail through the junction.
+                    const float d = Vector2::Distance(Vector2(o.position.X, o.position.Z), centre);
+                    inside = d < inter.radius + 0.5f * o.lengthM;
+                }
+                if (!inside) continue;
+                const bool aheadOnOurConnector = o.link == v.nextLink && o.s > 0.5f * o.lengthM;
+                if ((v.Heavy() || o.Heavy()) && !aheadOnOurConnector) {
+                    return false;
+                }
+            }
+        }
+        // Cars that have claimed the junction on the way in count as inside.
+        for (const auto& o : vehicles_) {
+            if (o.id == v.id || !o.claimed || o.link >= 0 || o.nextLink < 0) continue;
+            const LaneLink& theirs = lanes_.LinkAt(o.nextLink);
+            if (std::find(link.conflicts.begin(), link.conflicts.end(), o.nextLink) != link.conflicts.end()) return false;
+            if ((v.Heavy() || o.Heavy()) && theirs.intersection == link.intersection && o.nextLink != v.nextLink) return false;
+        }
+        // Nobody enters while a car is still crossing on a conflicting connector: the car
+        // that entered the box first gets to leave it. Entering behind its path is what locked
+        // two cars nose to flank and then made the deadlock release drive one through the other.
+        for (const int cId : link.conflicts) {
+            const float length = lanes_.LinkAt(cId).length;
+            for (const auto& o : vehicles_) {
+                if (o.id != v.id && o.link == cId && o.s < length - 0.5f * o.lengthM) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     bool TrafficSystem::MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const
     {
         if (v.nextLink < 0) {
@@ -359,6 +486,9 @@ namespace CarSim::Traffic
                 return false;
             }
         }
+        if (!BoxClearFor(v)) {
+            return false;
+        }
         // A car standing on any crossing connector: the box is not clear, entering would only add
         // to the stand-off.
         for (const int cId : link.conflicts) {
@@ -372,18 +502,53 @@ namespace CarSim::Traffic
         // reaction time: a left turn across oncoming traffic takes several seconds, and a fixed
         // headway alone lets a car commit to a turn it cannot finish.
         const float entrySpeed = std::max(3.0f, v.speed);
-        const float crossingSeconds = std::min(6.0f, link.length / entrySpeed);
+        float crossingSeconds = std::min(6.0f, link.length / entrySpeed);
+        if (v.Heavy()) {
+            // A bus or a lorry has to drag its whole length clear of the crossing path and pulls
+            // away slowly: it needs a much longer gap than a car does.
+            crossingSeconds = std::min(8.0f, 1.2f * (link.length + v.lengthM) / entrySpeed);
+        }
+        // A bus or a lorry also waits for anything arriving fast from any approach: its body can
+        // reach paths the car-sized conflict map does not list.
+        if (v.Heavy() && link.intersection >= 0) {
+            for (const auto& o : vehicles_) {
+                if (o.id == v.id || o.link >= 0 || o.nextLink < 0 || o.lane == v.lane) continue;
+                const LaneLink& theirs = lanes_.LinkAt(o.nextLink);
+                if (theirs.intersection != link.intersection) continue;
+                if (theirs.control == Map::ApproachControl::Signal && theirs.signalGroup >= 0 &&
+                    AspectOf(theirs.intersection, theirs.signalGroup) != SignalAspect::Green) continue;   // held at its red
+                const float remaining = lanes_.LaneAt(o.lane).length - o.s;
+                const float eta = remaining / std::max(1.0f, o.speed);
+                if (remaining < 6.0f || (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds)) {
+                    return false;
+                }
+            }
+        }
         for (const int mId : link.yieldTo) {
             const LaneLink& m = lanes_.LinkAt(mId);
+            // At a signal only the movements that have green matter; the lane graph lists the
+            // cross streams too, and waiting for cars standing at their red line never ends.
+            const bool heldBySignal = m.control == Map::ApproachControl::Signal && m.signalGroup >= 0 &&
+                                      AspectOf(m.intersection, m.signalGroup) != SignalAspect::Green;
             for (const auto& o : vehicles_) {
                 if (o.id == v.id) continue;
                 if (o.link == mId) {
                     return false;   // already crossing
                 }
-                if (o.link < 0 && o.lane == m.fromLane && o.nextLink == mId) {
+                if (o.link < 0 && o.lane == m.fromLane && o.nextLink == mId && !heldBySignal) {
                     const float remaining = lanes_.LaneAt(o.lane).length - o.s;
                     const float eta = remaining / std::max(1.0f, o.speed);
                     if (remaining < 6.0f || (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds)) {
+                        return false;
+                    }
+                }
+                // Still in the previous junction on its way onto the approach lane: it has not
+                // chosen its next connector yet, so assume it may be coming our way. Without this
+                // a short approach lane hides a priority car until it is too close to give way.
+                if (o.link >= 0 && lanes_.LinkAt(o.link).toLane == m.fromLane && !heldBySignal) {
+                    const float remaining = lanes_.LinkAt(o.link).length - o.s + lanes_.LaneAt(m.fromLane).length;
+                    const float eta = remaining / std::max(1.0f, o.speed);
+                    if (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds) {
                         return false;
                     }
                 }
@@ -536,7 +701,12 @@ namespace CarSim::Traffic
             if (signalised && v.committed && v.speed < 0.4f && distanceToEnd > 1.0f + v.lengthM * 0.5f) {
                 v.committed = false;
             }
-            if (signalised && distanceToEnd < 60.0f && !v.committed) {
+            // A permissive turn that has been waiting at the line on green for a gap in the
+            // oncoming stream clears the junction when the light changes, once the oncoming
+            // traffic has stopped, as drivers do; otherwise it would wait through every cycle.
+            const bool clearingTurn = signalised && v.yieldingOnGreen && !link.yieldTo.empty() &&
+                                      distanceToEnd - 1.0f - v.lengthM * 0.5f < 1.5f;
+            if (signalised && distanceToEnd < 60.0f && !v.committed && !clearingTurn) {
                 // Amber means stop unless that would mean braking harder than a normal stop, in
                 // which case the car is already too close and carries on.
                 const float comfortableStop = v.speed * v.speed / (2.0f * 3.0f) + 1.0f;
@@ -558,25 +728,35 @@ namespace CarSim::Traffic
                         gap = lineGap;
                         leaderSpeed = 0.0f;
                     }
-                } else if (distanceToEnd < 12.0f) {
-                    v.committed = true;   // through on green: do not stop halfway on a change
+                } else if (distanceToEnd < 12.0f && (link.yieldTo.empty() || MayEnterIntersection(v, player))) {
+                    // Through on green: do not stop halfway on a change. A turn that gives way
+                    // on green (left across the oncoming stream) commits only once it may go.
+                    v.committed = true;
                 }
             }
-            const bool controlled = !signalised &&
-                                    (link.control == Map::ApproachControl::Yield || link.control == Map::ApproachControl::Stop ||
-                                     link.control == Map::ApproachControl::RightHandRule || !link.yieldTo.empty());
+            // On green a permissive turn still gives way to the conflicting green movements the
+            // lane graph lists for it; before this, a left turn on green crossed the oncoming
+            // stream blind.
+            const bool controlled = (!signalised &&
+                                     (link.control == Map::ApproachControl::Yield || link.control == Map::ApproachControl::Stop ||
+                                      link.control == Map::ApproachControl::RightHandRule || !link.yieldTo.empty())) ||
+                                    (signalised && !signalHold && !link.yieldTo.empty());
+            if (!(controlled && signalised)) v.yieldingOnGreen = false;
             if (controlled && distanceToEnd < 40.0f) {
                 bool hold = false;
                 if (link.control == Map::ApproachControl::Stop && !v.stoppedAtLine) {
                     // Come to a full stop at the line first.
                     hold = true;
-                    if (distanceToEnd < 2.5f && v.speed < 0.3f) {
+                    // Measured to the centre, so a long vehicle's nose is already at the line
+                    // further out.
+                    if (distanceToEnd < 2.5f + std::max(0.0f, 0.5f * v.lengthM - 2.3f) && v.speed < 0.3f) {
                         v.stoppedAtLine = true;
                     }
                 }
                 if (!hold && !v.committed && !MayEnterIntersection(v, player)) {
                     hold = true;
                 }
+                if (signalised) v.yieldingOnGreen = hold;
                 if (hold) {
                     v.waiting = true;
                     v.waitTime += dt;
@@ -593,7 +773,28 @@ namespace CarSim::Traffic
                                 anyoneInside = true;
                             }
                             if (o.link < 0 && o.nextLink >= 0 && lanes_.LinkAt(o.nextLink).intersection == link.intersection) {
-                                if (o.committed || o.waitTime > v.waitTime || (o.waitTime == v.waitTime && o.id < v.id)) {
+                                // A committed car only goes first if it is at the front of its lane;
+                                // one left committed in a queue behind another would hold the whole
+                                // junction for ever.
+                                bool frontOfLane = true;
+                                for (const auto& q : vehicles_) {
+                                    if (q.id != o.id && q.link < 0 && q.lane == o.lane && q.s > o.s) {
+                                        frontOfLane = false;
+                                        break;
+                                    }
+                                }
+                                if ((o.committed && frontOfLane) || o.waitTime > v.waitTime || (o.waitTime == v.waitTime && o.id < v.id)) {
+                                    someoneElseFirst = true;
+                                }
+                            }
+                            // Traffic arriving too fast to stop for us goes first: releasing into
+                            // its path is what put two cars nose to flank in the box.
+                            if (o.link < 0 && o.nextLink >= 0 && o.speed > 2.0f &&
+                                std::find(link.conflicts.begin(), link.conflicts.end(), o.nextLink) != link.conflicts.end()) {
+                                const float toLine = lanes_.LaneAt(o.lane).length - o.s;
+                                // Only traffic that can no longer stop: anyone else sees the released
+                                // car claim the junction and waits for it (BoxClearFor).
+                                if (toLine < o.speed * o.speed / (2.0f * params.comfortDecel) + 8.0f) {
                                     someoneElseFirst = true;
                                 }
                             }
@@ -618,7 +819,33 @@ namespace CarSim::Traffic
             } else if (!signalHold) {
                 v.waiting = false;
                 v.waitTime = 0.0f;
+                // Priority movements too: nobody drives into a junction another car is still
+                // crossing, or while a bus or a lorry is inside. Only while it can still stop at
+                // the line; past that point it is committed like any driver would be.
+                const float lineGap = distanceToEnd - 1.0f - v.lengthM * 0.5f;
+                const float stopping = v.speed * v.speed / (2.0f * params.comfortDecel);
+                if (!v.committed && lineGap > 0.0f && lineGap > stopping - 1.0f && distanceToEnd < 60.0f && !BoxClearFor(v)) {
+                    if (lineGap < gap) {
+                        gap = std::max(0.05f, lineGap);
+                        leaderSpeed = 0.0f;
+                    }
+                }
             }
+        }
+        // A car that will not stop at the line this frame and is inside its stopping distance
+        // has claimed its way through the junction: BoxClearFor treats it as already inside, so
+        // two cars cannot both decide on the same empty box.
+        v.claimed = false;
+        if (v.link < 0 && v.nextLink >= 0) {
+            const float lineGap = distanceToEnd - 1.0f - v.lengthM * 0.5f;
+            // Waiting to give way, or held at the line this frame (a car stopped a little over the
+            // line has its hold clamped to a tiny positive gap).
+            const bool heldAtLine = v.waiting || gap <= std::max(lineGap, 0.05f) + 0.1f;
+            // Creeping off the line counts too: it is about to be in the box.
+            v.claimed = !heldAtLine && lineGap < std::max(3.0f, v.speed * v.speed / (2.0f * params.comfortDecel) + 2.0f);
+            // Told to give way too late to stop even hard: it is going in regardless, so it had
+            // better be seen as going in.
+            if (v.speed > 1.0f && lineGap < v.speed * v.speed / (2.0f * 6.0f) + 0.5f) v.claimed = true;
         }
         if (v.stunned > 0.0f) {
             v.stunned -= dt;
@@ -631,8 +858,15 @@ namespace CarSim::Traffic
             leaderSpeed = 0.0f;
             v.committed = true;
         }
-        float accel = IdmAcceleration(v.speed, desired, gap, leaderSpeed, params);
-        accel = std::clamp(accel, -8.0f, params.maxAccel);
+        // A lorry or a bus pulls away at about 60 % of a car's rate and keeps longer gaps.
+        auto vehicleParams = params;
+        if (v.Heavy()) {
+            vehicleParams.maxAccel *= 0.6f;
+            vehicleParams.timeHeadway *= 1.3f;
+            vehicleParams.minGap += 1.0f;
+        }
+        float accel = IdmAcceleration(v.speed, desired, gap, leaderSpeed, vehicleParams);
+        accel = std::clamp(accel, -8.0f, vehicleParams.maxAccel);
         float newSpeed = std::max(0.0f, v.speed + accel * dt);
         float distance = 0.5f * (v.speed + newSpeed) * dt;
         if (leader.found && leader.id == -2) {
@@ -662,6 +896,11 @@ namespace CarSim::Traffic
                 v.stoppedAtLine = false;
                 v.waiting = false;
                 v.waitTime = 0.0f;
+                // A release to clear the box ends with the box: carried onto the next lane, the
+                // commitment let the car into the next junction without giving way at all.
+                v.committed = false;
+                v.clearingBox = false;
+                v.yieldingOnGreen = false;
                 ChooseNextLink(v);
             } else if (v.lane >= 0) {
                 const Lane& lane = lanes_.LaneAt(v.lane);
@@ -726,14 +965,16 @@ namespace CarSim::Traffic
 
     Sim::CarStyle::Body TrafficSystem::PickBody(const float roll)
     {
-        if (roll < 0.40f) return Sim::CarStyle::Body::Hatchback;
-        if (roll < 0.62f) return Sim::CarStyle::Body::Sedan;
-        if (roll < 0.78f) return Sim::CarStyle::Body::Estate;
-        if (roll < 0.91f) return Sim::CarStyle::Body::Suv;
-        return Sim::CarStyle::Body::Van;
+        if (roll < 0.38f) return Sim::CarStyle::Body::Hatchback;
+        if (roll < 0.58f) return Sim::CarStyle::Body::Sedan;
+        if (roll < 0.73f) return Sim::CarStyle::Body::Estate;
+        if (roll < 0.85f) return Sim::CarStyle::Body::Suv;
+        if (roll < 0.93f) return Sim::CarStyle::Body::Van;
+        if (roll < 0.97f) return Sim::CarStyle::Body::Truck;
+        return Sim::CarStyle::Body::Bus;
     }
 
-    int TrafficSystem::SpawnOn(const int lane, const float s, const float speed)
+    int TrafficSystem::SpawnOn(const int lane, const float s, const float speed, const std::optional<Sim::CarStyle::Body> body)
     {
         if (lane < 0 || static_cast<std::size_t>(lane) >= lanes_.Lanes().size()) {
             return -1;
@@ -754,12 +995,14 @@ namespace CarSim::Traffic
         v.driverFactor = factor(rng_);
         v.paletteIndex = kPaletteDraw[palette(rng_)];
         v.body = PickBody(roll(rng_));
+        if (body) v.body = *body;
         v.styleSeed = seed(rng_);
         const Sim::CarStyle style = Sim::CarStyle::Preset(v.body, v.styleSeed);
         v.lengthM = style.length;
         v.widthM = style.width;
         v.heightM = style.height;
         v.massKg = Sim::TypicalMassKg(v.body);
+        v.wheelbaseM = style.wheelbase;
         // Vans and SUVs drive a little more conservatively.
         if (v.body == Sim::CarStyle::Body::Van) v.driverFactor = std::min(v.driverFactor, 1.0f);
         v.plate = plates_.Next();

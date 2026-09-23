@@ -1,3 +1,4 @@
+#include "CarSim/Collision/Shapes.hpp"
 #include "CarSim/Map/MapData.hpp"
 #include "CarSim/Map/MapDocument.hpp"
 #include "CarSim/Map/MapWorld.hpp"
@@ -7,6 +8,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 
 using namespace CarSim;
 using Microsoft::Xna::Framework::Vector2;
@@ -312,4 +314,72 @@ TEST(TrafficSystem, NewCarsAppearOutsideThePlayersViewConeAndWheelsSpinWithSpeed
     }
     EXPECT_GE(spawnsChecked, 12);
     EXPECT_GT(spinChecked, 1000);
+}
+
+TEST(TrafficSystem, BusesAndLorriesShareAJunctionWithCarsWithoutOverlap)
+{
+    // A bus and a lorry on the main road, cars from both sides of the minor road: the long
+    // bodies sweep outside the car-sized conflict map, so the junction has to be kept clear
+    // around them. Nobody may touch anybody, and everybody gets through.
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 7);
+    traffic.SetDensity(0);
+    const int mainEast = LaneOf(*world, "main", true, 0);
+    const int mainWest = LaneOf(*world, "main", false, 0);
+    const int minorSouth = LaneOf(*world, "minor", true, 0);
+    const int minorNorth = LaneOf(*world, "minor", false, 0);
+    ASSERT_GE(mainEast, 0);
+    ASSERT_GE(minorNorth, 0);
+    const int bus = traffic.SpawnOn(mainEast, 330.0f, 12.0f, Sim::CarStyle::Body::Bus);
+    const int lorry = traffic.SpawnOn(mainWest, 320.0f, 12.0f, Sim::CarStyle::Body::Truck);
+    const int carA = traffic.SpawnOn(minorSouth, 350.0f, 8.0f, Sim::CarStyle::Body::Hatchback);
+    const int carB = traffic.SpawnOn(minorNorth, 345.0f, 8.0f, Sim::CarStyle::Body::Sedan);
+    ASSERT_GE(bus, 0);
+    ASSERT_GE(lorry, 0);
+    ASSERT_GE(carA, 0);
+    ASSERT_GE(carB, 0);
+    std::map<int, int> phase;   // 0 approaching, 1 inside the junction, 2 through
+
+    const auto box = [](const Traffic::TrafficVehicle& c) {
+        return Collision::Obb::FromHeading(c.position + Vector3(0.0f, 0.5f * c.heightM, 0.0f),
+                                           Vector3(0.5f * c.widthM, 0.5f * c.heightM, 0.5f * c.lengthM), c.headingRad);
+    };
+    int overlaps = 0;
+    for (int i = 0; i < 30 * 90; ++i) {
+        traffic.Update(1.0f / 30.0f, NoPlayer());
+        const auto& cars = traffic.Vehicles();
+        for (const auto& c : cars) {
+            int& p = phase[c.id];
+            if (p == 0 && c.link >= 0) p = 1;
+            if (p == 1 && c.link < 0) p = 2;
+        }
+        for (std::size_t a = 0; a < cars.size(); ++a) {
+            for (std::size_t b = a + 1; b < cars.size(); ++b) {
+                Collision::Contact contact;
+                if (Collision::IntersectObbObb(box(cars[a]), box(cars[b]), contact)) ++overlaps;
+            }
+        }
+    }
+    EXPECT_EQ(overlaps, 0);
+    for (const auto& v : traffic.Vehicles()) {
+        EXPECT_EQ(phase[v.id], 2) << "vehicle " << v.id << " (" << Sim::CarStyle::ToString(v.body) << ") did not get through the junction";
+    }
+}
+
+TEST(TrafficSystem, LongVehiclesAreSlowerAndCarryTheirBodyClass)
+{
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 3);
+    traffic.SetDensity(0);
+    const int lane = LaneOf(*world, "main", true, 0);
+    const int bus = traffic.SpawnOn(lane, 10.0f, 0.0f, Sim::CarStyle::Body::Bus);
+    ASSERT_GE(bus, 0);
+    const auto& v = traffic.Vehicles().front();
+    EXPECT_TRUE(v.Heavy());
+    EXPECT_GT(v.lengthM, 11.0f);
+    EXPECT_GT(v.massKg, 10000.0f);
+    for (int i = 0; i < 30 * 60; ++i) traffic.Update(1.0f / 30.0f, NoPlayer());
+    EXPECT_LE(traffic.Vehicles().front().speed, 80.0f / 3.6f + 0.1f) << "heavy vehicles keep to 80 km/h";
 }

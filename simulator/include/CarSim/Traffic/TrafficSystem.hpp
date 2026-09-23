@@ -15,6 +15,7 @@
 
 #include <random>
 #include <string>
+#include <optional>
 #include <vector>
 
 namespace CarSim::Traffic
@@ -34,8 +35,10 @@ namespace CarSim::Traffic
         float widthM = 1.75f;
         float heightM = 1.48f;
         float massKg = 1250.0f;
+        float wheelbaseM = 2.55f;
         int paletteIndex = 0;
         Sim::CarStyle::Body body = Sim::CarStyle::Body::Hatchback;   // body variant (dimensions follow the preset)
+        [[nodiscard]] bool Heavy() const { return body == Sim::CarStyle::Body::Bus || body == Sim::CarStyle::Body::Truck; }
         unsigned styleSeed = 1;                                       // preset variation
         std::string plate;
         // Derived pose.
@@ -48,7 +51,9 @@ namespace CarSim::Traffic
         bool waiting = false;         // held at an intersection
         float waitTime = 0.0f;
         bool stoppedAtLine = false;   // stop sign: full stop registered
-        bool committed = false;       // released by the deadlock breaker: enters without re-checking
+        bool committed = false;
+        bool claimed = false;
+        bool yieldingOnGreen = false; // a permissive turn held at the line on green for oncoming traffic         // inside its stopping distance and not holding: will enter the junction       // released by the deadlock breaker: enters without re-checking
         bool backingOff = false;      // reversing out of a junction stand-off back to the line
         float standoffTime = 0.0f;    // seconds stopped nose to nose inside a junction
         float blockedTime = 0.0f;     // seconds standing still while already inside a junction
@@ -105,7 +110,8 @@ namespace CarSim::Traffic
         [[nodiscard]] SignalAspect AspectOf(int intersection, int group) const;
 
         /// Spawns a car on `lane` at `s` (tests and scripted scenes). Returns its id or -1.
-        int SpawnOn(int lane, float s, float speed);
+        /// `body` forces the body class (the default picks one at random as the traffic does).
+        int SpawnOn(int lane, float s, float speed, std::optional<Sim::CarStyle::Body> body = std::nullopt);
         void RemoveAll() { vehicles_.clear(); }
 
         /// Marks a car as hit: it brakes to a stop and waits before continuing.
@@ -138,6 +144,9 @@ namespace CarSim::Traffic
         void UpdatePose(TrafficVehicle& v);
         void ChooseNextLink(TrafficVehicle& v);
         [[nodiscard]] Leader FindLeader(const TrafficVehicle& v, const PlayerProbe& player, const PlayerProbe& pedestrian) const;
+        /// No conflicting car still crossing the junction, and no bus or lorry inside it (or, for
+        /// one, nobody at all): the box is free for `v` to enter.
+        [[nodiscard]] bool BoxClearFor(const TrafficVehicle& v) const;
         [[nodiscard]] bool MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const;
         [[nodiscard]] float DesiredSpeedAhead(const TrafficVehicle& v) const;
         void SpawnAroundPlayer(const PlayerProbe& player);

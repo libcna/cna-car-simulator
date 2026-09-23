@@ -18,8 +18,12 @@ namespace CarSim::Sim
             Sedan,
             Estate,
             Suv,
-            Van
+            Van,
+            Bus,       // 12 m city / regional bus (traffic only)
+            Truck      // 8 m box lorry (traffic only)
         };
+        static constexpr int kBodyCount = 7;
+        [[nodiscard]] bool Heavy() const { return body == Body::Bus || body == Body::Truck; }
 
         Body body = Body::Hatchback;
         float length = 4.05f;
@@ -60,7 +64,7 @@ namespace CarSim::Sim
         /// Traffic preset with typical dimensions of the class; `seed` picks small variations.
         [[nodiscard]] static CarStyle Preset(Body body, unsigned seed);
         [[nodiscard]] static const char* ToString(Body body);
-        /// Parses a body name ("hatchback", "sedan", "estate", "suv", "van"); false if unknown.
+        /// Parses a body name ("hatchback", "sedan", "estate", "suv", "van", "bus", "truck").
         [[nodiscard]] static bool ParseBody(const std::string& text, Body& out);
     };
 

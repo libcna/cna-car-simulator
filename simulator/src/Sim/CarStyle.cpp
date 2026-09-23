@@ -13,6 +13,8 @@ namespace CarSim::Sim
             case Body::Estate: return "estate";
             case Body::Suv: return "suv";
             case Body::Van: return "van";
+            case Body::Bus: return "bus";
+            case Body::Truck: return "truck";
         }
         return "?";
     }
@@ -24,6 +26,8 @@ namespace CarSim::Sim
         if (text == "estate") { out = Body::Estate; return true; }
         if (text == "suv") { out = Body::Suv; return true; }
         if (text == "van") { out = Body::Van; return true; }
+        if (text == "bus") { out = Body::Bus; return true; }
+        if (text == "truck") { out = Body::Truck; return true; }
         return false;
     }
 
@@ -81,8 +85,18 @@ namespace CarSim::Sim
                 s.roofRearFromRearAxle = 0.95f; s.rearWindowDrop = 0.05f; s.roofCrown = 0.04f; s.tumblehome = 0.09f;
                 s.sillTuck = 0.03f; s.archFlare = 0.015f; s.noseRounding = 0.26f; s.tailRounding = 0.14f; s.rimSpokes = 6;
                 break;
+            case Body::Bus:
+                s.length = 12.0f + 0.4f * j; s.width = 2.55f; s.height = 3.05f + 0.1f * j; s.wheelbase = 5.9f + 0.2f * j;
+                s.frontOverhangFraction = 0.44f; s.wheelRadius = 0.50f; s.tyreWidth = 0.30f; s.rideHeight = 0.30f;
+                s.rimRadius = 0.30f; s.rimSpokes = 10;
+                break;
+            case Body::Truck:
+                s.length = 8.2f + 0.6f * j; s.width = 2.50f; s.height = 3.40f + 0.2f * j; s.wheelbase = 4.5f + 0.3f * j;
+                s.frontOverhangFraction = 0.35f; s.wheelRadius = 0.47f; s.tyreWidth = 0.28f; s.rideHeight = 0.35f;
+                s.rimRadius = 0.29f; s.rimSpokes = 10;
+                break;
         }
-        s.track = s.width - 0.27f;
+        s.track = s.Heavy() ? s.width - 0.45f : s.width - 0.27f;
         return s;
     }
 
@@ -94,6 +108,8 @@ namespace CarSim::Sim
             case CarStyle::Body::Estate: return 1420.0f;
             case CarStyle::Body::Suv: return 1520.0f;
             case CarStyle::Body::Van: return 1950.0f;
+            case CarStyle::Body::Bus: return 12000.0f;
+            case CarStyle::Body::Truck: return 7500.0f;
         }
         return 1250.0f;
     }

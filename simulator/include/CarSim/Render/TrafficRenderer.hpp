@@ -84,7 +84,7 @@ namespace CarSim::Render
         [[nodiscard]] VehicleRenderer& RendererFor(const Traffic::TrafficVehicle& v);
         [[nodiscard]] VehicleRenderer& RendererFor(Sim::CarStyle::Body body, unsigned seed);
 
-        std::array<std::unique_ptr<VehicleRenderer>, 5 * kVariantsPerBody> renderers_;
+        std::array<std::unique_ptr<VehicleRenderer>, Sim::CarStyle::kBodyCount * kVariantsPerBody> renderers_;
         const BitmapFont* plateFont_;
         std::unique_ptr<Image> plateAtlas_;
         std::map<std::string, std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> plates_;

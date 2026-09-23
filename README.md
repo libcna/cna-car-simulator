@@ -71,14 +71,17 @@ What you get today:
   own square, and the hamlet of **Kamenice** in the western hills -- plus tree avenues, fields,
   meadows and a forest with a gravel forest track. About 27 km of roads, 22 intersections,
   Czech traffic signs and road markings.
-- Cockpit camera with a live instrument cluster, rotating steering wheel and a working
-  rear-view mirror; exterior chase camera.
+- Cockpit camera with a live instrument cluster, rotating steering wheel, a working rear-view
+  mirror and live wing mirrors; exterior chase camera.
 - Ambient traffic with Czech registration plates that follows lanes, keeps distance, obeys
   priority, yield, stop, the right-hand rule and working traffic signals, and reacts to the
-  player; cars parked on the town square that are as solid as any other obstacle.
+  player; buses and box lorries that keep to 80 km/h, prefer the through route, have a
+  junction to themselves and make oncoming cars wait in tight bends; cars parked on the town
+  square that are as solid as any other obstacle.
 - A day and night cycle with a real solar path, street lamps, lit windows and headlamp pools
   after dark, and weather -- clear, scattered cloud, overcast or rain, with wet roads that take
-  a third off the grip.
+  a third off the grip, puddles, tyre spray, a darker and glossier wet world, raindrops on the
+  windscreen and wipers.
 - Physical collisions with buildings, street furniture, trees and traffic cars.
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
   horn, gear and impact sounds.
@@ -86,7 +89,7 @@ What you get today:
   save file; in-game help and debug overlays.
 
 Not included (by design or deferred, see `plan.md` sections 2 and 23): damage, pedestrians,
-overtaking traffic, gamepad support, real-brand car models (no legally redistributable Škoda
+overtaking traffic, real-brand car models (no legally redistributable Škoda
 model was available; the car is procedural).
 
 ## Requirements

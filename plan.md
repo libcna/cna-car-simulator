@@ -494,12 +494,25 @@ render the frame in a few milliseconds).
 
 ## 23. Deferred features
 
-Binary map cache and chunk streaming; side mirrors; visual damage; traffic signals runtime
-logic; traffic overtaking and lane changes; traffic body variants (TRF-007); pedestrians;
-gamepad/steering-wheel hardware; multiple licensed real-car models; car body polish (UX-006);
-additional maps; batch merging and instanced trees (PERF-002 levers); renderer conformance probe
-(RND-009); normal mapping (needs custom shaders); indicator self-cancel (only with reliable
-steering heuristic).
+Binary map cache and chunk streaming; visual damage; traffic signals runtime logic; traffic
+overtaking and lane changes; pedestrians; multiple licensed real-car models; car body polish
+(UX-006); additional maps; batch merging and instanced trees (PERF-002 levers); renderer
+conformance probe (RND-009); normal mapping (needs custom shaders).
+
+Since delivered (after Phase 13): side mirrors, gamepad and steering-wheel input, indicator
+self-cancel, traffic buses and lorries (the heavy part of TRF-007), a limited-slip
+differential, rain on the windscreen with wipers, tyre spray and puddles.
+
+Traffic junction logic, reworked with the buses and lorries: the 30-minute soak passed on its
+seed (21) by luck -- seeds 21-30 gave 56 overlap events on the old code, clean on 4 of 10. Fixed:
+a deadlock release could put a car in front of traffic too fast to stop; a clearing release
+stayed committed into the next junction; a car committed in a queue blocked every release; a
+waiting car stopped just over the line counted as entering; left turns on green crossed the
+oncoming stream without giving way, and on green everyone waited for cross traffic standing at
+red; a long vehicle never "stopped at the line" of a stop sign. Cars now claim a junction
+(`claimed`) once inside their stopping distance, and nobody enters while a conflicting car is
+still crossing. Seeds 21-40 are all clean, 41-60 clean on 15 of 20 (the rest are late-yield and
+box-clearing cases). `CARSIM_SOAK_SEED` runs the soak on another seed.
 
 Day and night, weather, traffic signals and a larger world were deferred here until Phase 12
 (section 25) took them on at the owner's request.

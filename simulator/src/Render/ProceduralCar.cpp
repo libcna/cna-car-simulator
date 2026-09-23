@@ -475,6 +475,9 @@ namespace CarSim::Render
                     sh.rearFaceGlassBottom = h - 0.85f;
                     break;
                 }
+                case CarStyle::Body::Bus:
+                case CarStyle::Body::Truck:
+                    break;   // built by GenerateHeavyVehicle, never lofted
             }
             sh.top.Set(top);
 
@@ -978,6 +981,9 @@ namespace CarSim::Render
 
     CarModel GenerateCar(const CarStyle& style, const Sim::VehicleDefinition* definition, const bool interior)
     {
+        if (style.Heavy()) {
+            return GenerateHeavyVehicle(style);
+        }
         CarModel model;
         model.style = style;
         model.wheelRadius = style.wheelRadius;

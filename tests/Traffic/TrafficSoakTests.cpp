@@ -24,7 +24,7 @@ TEST(TrafficSoak, ThirtyMinutesWithoutOverlapsOrStuckCars)
     std::vector<std::string> errors;
     auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
     ASSERT_TRUE(world);
-    Traffic::TrafficSystem traffic(*world, 21);
+    Traffic::TrafficSystem traffic(*world, std::getenv("CARSIM_SOAK_SEED") ? std::atoi(std::getenv("CARSIM_SOAK_SEED")) : 21);
     traffic.SetDensity(20);
     Traffic::PlayerProbe player;
     player.valid = true;
@@ -50,7 +50,8 @@ TEST(TrafficSoak, ThirtyMinutesWithoutOverlapsOrStuckCars)
     int committedObservations = 0;
     const bool verbose = std::getenv("CARSIM_SOAK_VERBOSE") != nullptr;
     const auto describe = [&](const Traffic::TrafficVehicle& c) {
-        std::printf("    car %d lane %d link %d next %d s %.1f speed %.2f waiting %d wait %.1f stopped %d at (%.1f, %.1f)\n", c.id, c.lane,
+        std::printf("    car %d (%s, %.1f m) lane %d link %d next %d s %.1f speed %.2f waiting %d wait %.1f stopped %d at (%.1f, %.1f)\n", c.id,
+                    Sim::CarStyle::ToString(c.body), static_cast<double>(c.lengthM), c.lane,
                     c.link, c.nextLink, static_cast<double>(c.s), static_cast<double>(c.speed), c.waiting ? 1 : 0,
                     static_cast<double>(c.waitTime), c.stoppedAtLine ? 1 : 0, static_cast<double>(c.position.X), static_cast<double>(c.position.Z));
     };
