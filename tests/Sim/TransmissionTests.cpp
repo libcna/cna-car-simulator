@@ -62,6 +62,39 @@ TEST(ManualTransmission, ShiftNeedsClutchWhileRunning)
     EXPECT_FLOAT_EQ(t.TotalRatio(), def.gearbox.ratios[0] * def.gearbox.finalDrive);
 }
 
+TEST(ManualTransmission, ShiftWaitsForATravellingClutchPedal)
+{
+    const auto def = MakeReferenceVehicle();
+    ManualTransmission t(def.gearbox);
+    t.RequestShiftUp();
+    auto c = Ctx(900.0f, 0.0f, 0.0f, 0.1f);
+    c.clutchRequested = true;
+    t.Step(c);
+    EXPECT_FALSE(t.GrindEvent());
+    EXPECT_FALSE(t.IsShifting());
+    c.clutchPedal = 0.7f;
+    t.Step(c);
+    EXPECT_TRUE(t.IsShifting());
+    EXPECT_EQ(t.TargetGear(), 1);
+}
+
+TEST(ManualTransmission, ShiftGivesUpWhenThePedalNeverArrives)
+{
+    const auto def = MakeReferenceVehicle();
+    ManualTransmission t(def.gearbox);
+    t.RequestShiftUp();
+    auto c = Ctx(900.0f, 0.0f, 0.0f, 0.1f);
+    c.clutchRequested = true;
+    bool ground = false;
+    for (int i = 0; i < 120; ++i) {
+        t.Step(c);
+        ground = ground || t.GrindEvent();
+    }
+    EXPECT_TRUE(ground);
+    EXPECT_EQ(t.Gear(), 0);
+    EXPECT_FALSE(t.IsShifting());
+}
+
 TEST(ManualTransmission, EngineOffStationaryAllowsLeverWithoutClutch)
 {
     const auto def = MakeReferenceVehicle();

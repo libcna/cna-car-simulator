@@ -213,6 +213,7 @@ namespace CarSim::Sim
         float throttlePedal_ = 0.0f;
         float brakePedal_ = 0.0f;
         float clutchPedal_ = 0.0f;
+        float clutchTarget_ = 0.0f;
         bool handbrake_ = false;
         float steerInput_ = 0.0f;
         float steerAngle_ = 0.0f;           // average road-wheel angle (rad, + right)

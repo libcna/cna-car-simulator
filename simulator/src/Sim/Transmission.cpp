@@ -88,36 +88,46 @@ namespace CarSim::Sim
 
     void ManualTransmission::RequestShiftUp()
     {
-        const int base = IsShifting() ? targetGear_ : gear_;
+        // A request still waiting for the clutch counts as the current gear, so two quick
+        // presses move the lever two gates.
+        const int base = hasRequest_ ? requestedGear_ : (IsShifting() ? targetGear_ : gear_);
         requestedGear_ = std::min(base + 1, ForwardGearCount());
         hasRequest_ = true;
+        requestAge_ = 0.0f;
     }
 
     void ManualTransmission::RequestShiftDown()
     {
-        const int base = IsShifting() ? targetGear_ : gear_;
+        const int base = hasRequest_ ? requestedGear_ : (IsShifting() ? targetGear_ : gear_);
         requestedGear_ = std::max(base - 1, -1);
         hasRequest_ = true;
+        requestAge_ = 0.0f;
     }
 
     void ManualTransmission::RequestGear(const int gear)
     {
         requestedGear_ = std::clamp(gear, -1, ForwardGearCount());
         hasRequest_ = true;
+        requestAge_ = 0.0f;
     }
 
     void ManualTransmission::Step(const TransmissionContext& context)
     {
         ClearEvents();
         if (hasRequest_) {
-            hasRequest_ = false;
             const int current = IsShifting() ? targetGear_ : gear_;
-            if (requestedGear_ != current) {
-                if (ShiftAllowed(context)) {
-                    BeginShift(requestedGear_);
-                } else {
-                    grindEvent_ = true;
-                }
+            if (requestedGear_ == current) {
+                hasRequest_ = false;
+            } else if (ShiftAllowed(context)) {
+                hasRequest_ = false;
+                BeginShift(requestedGear_);
+            } else if (context.clutchRequested && requestAge_ < kRequestPatienceS) {
+                // On a keyboard the clutch and the lever are pressed together, and the pedal
+                // takes a few steps to travel past the open point: hold the request for it.
+                requestAge_ += context.dt;
+            } else {
+                hasRequest_ = false;
+                grindEvent_ = true;
             }
         }
         AdvanceShift(context.dt);

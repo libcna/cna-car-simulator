@@ -16,6 +16,7 @@ namespace CarSim::Sim
         float throttle = 0.0f;        // driver throttle 0..1
         float speedMs = 0.0f;         // vehicle forward speed (signed)
         float clutchPedal = 0.0f;     // 1 = fully pressed (manual only)
+        bool clutchRequested = false; // the driver is pressing the clutch, the pedal may still be travelling
         bool engineRunning = false;
         bool brakePressed = false;
         float topGearRatioFactor = 1.0f; // gameplay boost stretches the highest ratio
@@ -91,7 +92,9 @@ namespace CarSim::Sim
         void Step(const TransmissionContext& context) override;
 
         /// Requests are applied in the next Step; they need the clutch pressed (pedal above
-        /// the clutch's open point) unless the engine is off and the car is stationary.
+        /// the clutch's open point) unless the engine is off and the car is stationary. While
+        /// the driver is pressing the clutch but the pedal has not yet travelled past the open
+        /// point, the request waits for it instead of grinding.
         void RequestShiftUp();
         void RequestShiftDown();
         void RequestGear(int gear);   // -1, 0, 1..N
@@ -101,7 +104,9 @@ namespace CarSim::Sim
 
         int requestedGear_ = 0;
         bool hasRequest_ = false;
+        float requestAge_ = 0.0f;
         float clutchOpenPoint_ = 0.6f;
+        static constexpr float kRequestPatienceS = 0.4f;
     };
 
     class AutomaticTransmission final : public Transmission

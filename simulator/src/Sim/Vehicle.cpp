@@ -335,19 +335,30 @@ namespace CarSim::Sim
         // the clutch would demand more torque than the engine can give, and resumes once the
         // speeds have matched (locked) or the engine has torque in hand.
         const float clutchTarget = std::clamp(controls.clutch, 0.0f, 1.0f);
+        clutchTarget_ = clutchTarget;
         float clutchRate = 8.0f;
         if (clutchTarget < clutchPedal_) {
             clutchRate = 4.0f;
             const auto& cd = def_.clutch;
+            // Only a clutch that slows the engine down can stall it. In neutral it carries
+            // nothing, and when the wheels turn the gearbox input faster than the engine (a gear
+            // engaged on the move with the throttle closed, or a downshift) it pulls the engine
+            // up instead.
+            const float ratio = transmission_->IsShifting() ? 0.0f : transmission_->TotalRatio();
+            const bool engineLoaded = std::fabs(ratio) > 1e-3f &&
+                                      engine_.AngularVelocity() > std::fabs(ratio * AverageDrivenSpin());
             if (clutchPedal_ <= cd.engageEnd + 0.02f && clutchPedal_ > cd.engageStart - 0.02f) {
                 clutchRate = 0.5f;
-                if (engine_.IsRunning() && !clutchLocked_) {
+                if (engine_.IsRunning() && !clutchLocked_ && engineLoaded) {
                     // Do not let the clutch demand more than the engine can deliver: release
-                    // down to the bite point for the available torque, then only trickle.
+                    // down to the bite point for the available torque, then wait there while the
+                    // engine is near idle. With revs in hand the foot keeps coming up -- a pedal
+                    // parked below the engine's torque would slip at the limiter for ever.
                     const float available = std::max(0.0f, engine_.NetTorque(throttlePedal_));
                     const float floor = clutch_.PedalForCapacity(available * 0.9f / engine_.PowerMultiplier());
                     if (clutchPedal_ - clutchRate * dt <= floor) {
-                        clutchRate = engine_.Rpm() > def_.engine.idleRpm + 300.0f ? 0.01f : 0.0f;
+                        const float headroom = std::clamp((engine_.Rpm() - def_.engine.idleRpm - 300.0f) / 1500.0f, 0.0f, 1.0f);
+                        clutchRate = 0.5f * headroom;
                     }
                 }
             }
@@ -778,6 +789,7 @@ namespace CarSim::Sim
         context.throttle = throttlePedal_;
         context.speedMs = ForwardSpeedMs();
         context.clutchPedal = clutchPedal_;
+        context.clutchRequested = clutchTarget_ > 0.6f;
         context.engineRunning = engine_.IsRunning();
         context.brakePressed = brakePedal_ > 0.1f;
         context.topGearRatioFactor = TopGearFactor(engine_.TurboSetting());

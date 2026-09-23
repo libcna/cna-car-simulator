@@ -793,3 +793,66 @@ TEST_F(VehicleDrive, AutomaticFullThrottleUpshiftsDoNotFlareTheEngine)
     EXPECT_LT(peakWhileShifting, def.engine.redlineRpm)
         << "with the load gone during a shift, full throttle must not rev the engine past redline";
 }
+
+TEST_F(VehicleDrive, ManualKeyboardUpshiftsWithClutchPressedTogetherEngageAndLock)
+{
+    // On a keyboard the clutch key and the shift key go down in the same frame; the shift must
+    // wait for the pedal instead of grinding, and the released clutch must bite rather than
+    // hang in its engagement band with the engine at the limiter.
+    Vehicle v(def, TransmissionMode::Manual);
+    StartEngine(v, ground);
+    DriverControls c;
+    c.clutch = 1.0f;
+    c.selectGear = 1;
+    v.Update(c, kFrame, ground);
+    Drive(v, ground, 0.5f, [](float) { DriverControls k; k.clutch = 1.0f; return k; });
+    Drive(v, ground, 4.0f, [](float) { DriverControls k; k.throttle = 1.0f; return k; });
+    ASSERT_EQ(v.GetTransmission().Gear(), 1);
+    for (int gear = 2; gear <= 4; ++gear) {
+        DriverControls k;
+        k.clutch = 1.0f;
+        k.shiftUp = true;
+        v.Update(k, kFrame, ground);
+        EXPECT_FALSE(v.GetTransmission().GrindEvent()) << "shift into " << gear;
+        Drive(v, ground, 0.25f, [](float) { DriverControls q; q.clutch = 1.0f; return q; });
+        Drive(v, ground, 2.0f, [](float) { DriverControls q; q.throttle = 1.0f; return q; });
+        const auto s = v.Snapshot();
+        EXPECT_EQ(v.GetTransmission().Gear(), gear);
+        EXPECT_TRUE(s.clutchLocked) << "the clutch should have bitten two seconds after the shift into " << gear;
+        EXPECT_LT(s.engineRpm, 6000.0f) << "a slipping clutch leaves the engine at the limiter in " << gear;
+    }
+}
+
+TEST_F(VehicleDrive, ManualShiftWithoutClutchStillGrinds)
+{
+    Vehicle v(def, TransmissionMode::Manual);
+    StartEngine(v, ground);
+    Drive(v, ground, 1.0f, [](float) { return DriverControls{}; });   // clutch fully up
+    DriverControls c;
+    c.selectGear = 1;
+    v.Update(c, kFrame, ground);
+    Drive(v, ground, 0.5f, [](float) { return DriverControls{}; });
+    EXPECT_EQ(v.GetTransmission().Gear(), 0);
+}
+
+TEST_F(VehicleDrive, ManualCoastingDownshiftReengagesWithoutThrottle)
+{
+    Vehicle v(def, TransmissionMode::Manual);
+    StartEngine(v, ground);
+    DriverControls c;
+    c.clutch = 1.0f;
+    c.selectGear = 1;
+    v.Update(c, kFrame, ground);
+    Drive(v, ground, 0.5f, [](float) { DriverControls k; k.clutch = 1.0f; return k; });
+    Drive(v, ground, 3.0f, [](float) { DriverControls k; k.throttle = 1.0f; return k; });
+    DriverControls k;
+    k.clutch = 1.0f;
+    k.selectGear = 2;
+    v.Update(k, kFrame, ground);
+    Drive(v, ground, 0.6f, [](float) { DriverControls q; q.clutch = 1.0f; return q; });
+    ASSERT_EQ(v.GetTransmission().Gear(), 2);
+    // Throttle closed, clutch released: the wheels drive the engine, nothing to stall.
+    Drive(v, ground, 2.0f, [](float) { return DriverControls{}; });
+    EXPECT_TRUE(v.Snapshot().clutchLocked);
+    EXPECT_LT(v.ClutchPedal(), 0.05f);
+}
