@@ -41,6 +41,26 @@ namespace CarSim::Render
         frustum_ = BoundingFrustum(view_ * projection);
     }
 
+    void MirrorView::UpdateWing(const Sim::VehicleState& state, const Vector3& glassCentre, const float glassYaw)
+    {
+        const Matrix& world = state.worldMatrix;
+        // The driver sits inboard of the mirror, so the reflected line of sight leaves the
+        // glass angled outboard: back along the flank with the car's own side at the inner
+        // edge of the image, as a correctly set mirror shows it.
+        const float outward = glassYaw * 0.9f;
+        const Vector3 lookLocal = glassCentre + Vector3(std::sin(outward) * 20.0f, -0.9f, std::cos(outward) * 20.0f);
+        pose_.position = Vector3::Transform(glassCentre, world);
+        pose_.target = Vector3::Transform(lookLocal, world);
+        pose_.up = world.getUpProperty();
+        pose_.fieldOfViewDeg = 16.0f;
+        pose_.nearPlane = 0.15f;
+        pose_.farPlane = 200.0f;
+        view_ = pose_.View();
+        const Matrix projection = pose_.Projection(aspect_);
+        projectionMirrored_ = projection * Matrix::CreateScale(-1.0f, 1.0f, 1.0f);
+        frustum_ = BoundingFrustum(view_ * projection);
+    }
+
     void MirrorView::Begin(GraphicsDevice& device)
     {
         device.SetRenderTarget(target_.get());

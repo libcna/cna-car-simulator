@@ -249,9 +249,21 @@ TEST(ProceduralCar, WingMirrorGlassIsConvexAndAimedOutboard)
 {
     const Sim::VehicleDefinition definition = Sim::MakeReferenceVehicle();
     const CarModel model = GenerateCar(definition);
-    const CarPart* glass = Find(model, "mirror_glass");
-    ASSERT_NE(glass, nullptr);
-    ASSERT_GE(glass->mesh.vertices.size(), 24u) << "a convex face needs more than one quad per side";
+    // One part per side, so each can carry its own mirror image.
+    const CarPart* left = Find(model, "mirror_glass_left");
+    const CarPart* right = Find(model, "mirror_glass_right");
+    ASSERT_NE(left, nullptr);
+    ASSERT_NE(right, nullptr);
+    CarPart merged;
+    merged.mesh.vertices = left->mesh.vertices;
+    merged.mesh.vertices.insert(merged.mesh.vertices.end(), right->mesh.vertices.begin(), right->mesh.vertices.end());
+    const CarPart* glass = &merged;
+    ASSERT_GE(left->mesh.vertices.size(), 12u) << "a convex face needs more than one quad";
+    ASSERT_GE(right->mesh.vertices.size(), 12u) << "a convex face needs more than one quad";
+    for (int s = 0; s < 2; ++s) {
+        EXPECT_GT(model.wingMirrors[static_cast<std::size_t>(s)].centre.X * (s == 0 ? -1.0f : 1.0f), 0.5f)
+            << "the exported glass centre sits on its side of the car";
+    }
 
     // Split the vertices by side and check each face fans its normals: a flat face would have
     // every normal identical.
@@ -283,5 +295,28 @@ TEST(ProceduralCar, WingMirrorGlassIsConvexAndAimedOutboard)
         average = average * (1.0f / static_cast<float>(normals.size()));
         EXPECT_GT(average.Z, 0.5f) << "the face should still look rearward";
         EXPECT_GT(average.X * side, 0.05f) << "the face should be angled outboard";
+    }
+}
+TEST(ProceduralCar, WingMirrorGlassFacesTheDriver)
+{
+    // The glass was once wound the wrong way round: back-face culling removed it from every
+    // viewpoint that could see it, so the mirrors showed only their black housings.
+    const Sim::VehicleDefinition definition = Sim::MakeReferenceVehicle();
+    const CarModel model = GenerateCar(definition);
+    for (const char* name : {"mirror_glass_left", "mirror_glass_right"}) {
+        const CarPart* glass = Find(model, name);
+        ASSERT_NE(glass, nullptr);
+        const auto& m = glass->mesh;
+        ASSERT_FALSE(m.indices.empty());
+        for (std::size_t i = 0; i + 2 < m.indices.size(); i += 3) {
+            const auto& a = m.vertices[m.indices[i]];
+            const auto& b = m.vertices[m.indices[i + 1]];
+            const auto& c = m.vertices[m.indices[i + 2]];
+            // Project convention: triangles are clockwise-front, outward = -cross(b - a, c - a).
+            const Vector3 facing = -Vector3::Cross(b.position - a.position, c.position - a.position);
+            EXPECT_GT(Vector3::Dot(facing, a.normal + b.normal + c.normal), 0.0f) << name << " triangle " << i / 3;
+            const Vector3 toEye = definition.visual.driverEye - a.position;
+            EXPECT_GT(Vector3::Dot(facing, toEye), 0.0f) << name << " is culled from the driver's seat";
+        }
     }
 }

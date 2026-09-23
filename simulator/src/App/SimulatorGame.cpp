@@ -529,6 +529,7 @@ namespace CarSim::App
         }
         cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
         mirror_ = std::make_unique<Render::MirrorView>(device);
+        for (auto& wing : wingMirrors_) wing = std::make_unique<Render::MirrorView>(device, 256, 160);
         chaseCamera_.groundHeight = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
         if (vehicle_->FlightMode()) {
             chaseCamera_.distance = options_.chaseDistanceM.value_or(14.0f);
@@ -571,6 +572,7 @@ namespace CarSim::App
         playerPlate_ = nullptr;
         cluster_.reset();
         mirror_.reset();
+        for (auto& wing : wingMirrors_) wing.reset();
         gaugeFont_.reset();
         vehicleRenderer_.reset();
         vehicleMaterials_.reset();
@@ -1204,33 +1206,55 @@ namespace CarSim::App
         cluster_->Render(device, *spriteBatch_, state, elapsedSeconds_);
         vehicleRenderer_->SetClusterTexture(cluster_->Texture());
         lap(kPassCluster);
-        if (mirrorPass) {
-            mirror_->Update(state, definition_);
-            mirror_->Begin(device);
-            sky_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, true);
+        // Everything a mirror shows, into the target `m` has bound.
+        const auto drawMirrorScene = [&](Render::MirrorView& m, const float distance) {
+            sky_->Draw(device, m.View(), m.Projection(), m.Pose().position, true);
             if (worldRenderer_) {
-                worldRenderer_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), true,
-                                     qualitySettings_.mirrorDistanceM);
+                worldRenderer_->Draw(device, m.View(), m.Projection(), m.Frustum(), true,
+                                     distance);
             }
             vehicleRenderer_->SetPlateTexture(playerPlate_);
-            vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
-            vehicleRenderer_->DrawTransparent(device, state, mirror_->View(), mirror_->Projection(), true);
-            if (exhaustSmoke_) exhaustSmoke_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position);
-            if (wheelSpray_) wheelSpray_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, rig_.fogColor);
+            vehicleRenderer_->DrawOpaque(device, state, m.View(), m.Projection(), false, gauges, true);
+            vehicleRenderer_->DrawTransparent(device, state, m.View(), m.Projection(), true);
+            if (exhaustSmoke_) exhaustSmoke_->Draw(device, m.View(), m.Projection(), m.Pose().position);
+            if (wheelSpray_) wheelSpray_->Draw(device, m.View(), m.Projection(), m.Pose().position, rig_.fogColor);
             if (traffic_ && trafficRenderer_) {
-                trafficRenderer_->Draw(device, *traffic_, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), mirror_->Pose().position, rig_,
+                trafficRenderer_->Draw(device, *traffic_, m.View(), m.Projection(), m.Frustum(), m.Pose().position, rig_,
                                        groundQuery, true);
             }
             if (map_ && trafficRenderer_) {
-                trafficRenderer_->DrawParked(device, map_->Objects().Vehicles(), parkedPlates_, mirror_->View(), mirror_->Projection(),
-                                             mirror_->Frustum(), mirror_->Pose().position, rig_, groundQuery, true);
+                trafficRenderer_->DrawParked(device, map_->Objects().Vehicles(), parkedPlates_, m.View(), m.Projection(),
+                                             m.Frustum(), m.Pose().position, rig_, groundQuery, true);
             }
+        };
+        if (mirrorPass) {
+            mirror_->Update(state, definition_);
+            mirror_->Begin(device);
+            drawMirrorScene(*mirror_, qualitySettings_.mirrorDistanceM);
             mirror_->End(device);
             vehicleRenderer_->SetMirrorTexture(mirror_->Texture());
         } else if (cockpit && mirrorEnabled_) {
             vehicleRenderer_->SetMirrorTexture(mirror_->Texture());   // half-rate: keep the previous image
         } else {
             vehicleRenderer_->SetMirrorTexture(nullptr);
+        }
+        // Wing mirrors: smaller images, one side per frame, not on the low tier.
+        const bool wings = cockpit && mirrorEnabled_ && quality_ != Render::QualityTier::Low && wingMirrors_[0];
+        if (wings) {
+            const int side = static_cast<int>(framesDrawn_ % 2);
+            for (int s = 0; s < 2; ++s) {
+                if (s != side && wingMirrorsDrawn_[static_cast<std::size_t>(s)]) continue;
+                auto& wing = *wingMirrors_[static_cast<std::size_t>(s)];
+                const auto& glass = vehicleRenderer_->Model().wingMirrors[static_cast<std::size_t>(s)];
+                wing.UpdateWing(state, glass.centre, glass.yaw);
+                wing.Begin(device);
+                drawMirrorScene(wing, std::min(150.0f, qualitySettings_.mirrorDistanceM));
+                wing.End(device);
+                wingMirrorsDrawn_[static_cast<std::size_t>(s)] = true;
+            }
+            vehicleRenderer_->SetWingMirrorTextures(wingMirrors_[0]->Texture(), wingMirrors_[1]->Texture());
+        } else {
+            vehicleRenderer_->SetWingMirrorTextures(nullptr, nullptr);
         }
         lap(kPassMirror);
 

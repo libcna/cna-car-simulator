@@ -115,6 +115,13 @@ namespace CarSim::Render
         bool left = false;
     };
 
+    /// A wing mirror's glass: centre in the body frame and its outboard yaw (radians).
+    struct WingMirror
+    {
+        Microsoft::Xna::Framework::Vector3 centre{};
+        float yaw = 0.0f;
+    };
+
     struct CarModel
     {
         std::vector<CarPart> parts;
@@ -128,6 +135,7 @@ namespace CarSim::Render
         /// The wiped part of the windscreen as a flat quad in the body frame, inset from the
         /// pillars: bottom left, bottom right, top right, top left (left = -X).
         std::array<Microsoft::Xna::Framework::Vector3, 4> windscreen{};
+        std::array<WingMirror, 2> wingMirrors{};   // left, right
         int bodyTriangles = 0;
     };
 

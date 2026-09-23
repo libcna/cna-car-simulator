@@ -994,7 +994,9 @@ namespace CarSim::Render
         CarPart housings = MakePart("lamp_housings", CarMaterial::GlossBlack);
         CarPart grille = MakePart("grille", CarMaterial::Grille);
         CarPart chrome = MakePart("chrome", CarMaterial::Chrome);
-        CarPart mirrorGlass = MakePart("mirror_glass", CarMaterial::MirrorGlass);
+        // One part per wing mirror, so each can show its own mirror image from the cockpit.
+        CarPart mirrorGlassL = MakePart("mirror_glass_left", CarMaterial::MirrorGlass);
+        CarPart mirrorGlassR = MakePart("mirror_glass_right", CarMaterial::MirrorGlass);
         CarPart plates = MakePart("plates", CarMaterial::Plate);
         CarPart lampHead = MakePart("lamp_head", CarMaterial::LampHead);
         CarPart lampTail = MakePart("lamp_tail", CarMaterial::LampTail);
@@ -1181,6 +1183,8 @@ namespace CarSim::Render
                 // so the face carries sky at the top and ground at the bottom, and it is aimed a
                 // little outboard, where a driver would set it.
                 const Vector3 g = centre + Vector3(0.0f, 0.0f, 0.049f);
+                CarPart& mirrorGlass = side < 0.0f ? mirrorGlassL : mirrorGlassR;
+                model.wingMirrors[side < 0.0f ? 0 : 1] = WingMirror{g, side * 0.20f};
                 const float halfW = 0.085f;
                 const float halfH = 0.05f;
                 const float bulge = 0.014f;                  // sagitta across the face
@@ -1209,7 +1213,9 @@ namespace CarSim::Render
                         const auto b = grid[static_cast<std::size_t>(iy)][static_cast<std::size_t>(ix + 1)];
                         const auto c = grid[static_cast<std::size_t>(iy + 1)][static_cast<std::size_t>(ix + 1)];
                         const auto d = grid[static_cast<std::size_t>(iy + 1)][static_cast<std::size_t>(ix)];
-                        mirrorGlass.mesh.AddQuad(b, a, d, c);
+                        // Front faces towards the driver behind the mirror; the opposite order
+                        // was culled from every viewpoint that could see the glass.
+                        mirrorGlass.mesh.AddQuad(c, d, a, b);
                     }
                 }
             }
@@ -1402,7 +1408,7 @@ namespace CarSim::Render
         }
 
         model.bodyTriangles = static_cast<int>(paint.mesh.TriangleCount() + glass.mesh.TriangleCount() + trim.mesh.TriangleCount() + gloss.mesh.TriangleCount());
-        for (CarPart* p : {&paint, &glass, &trim, &gloss, &housings, &grille, &chrome, &mirrorGlass, &plates, &lampHead, &lampTail, &lampReverse,
+        for (CarPart* p : {&paint, &glass, &trim, &gloss, &housings, &grille, &chrome, &mirrorGlassL, &mirrorGlassR, &plates, &lampHead, &lampTail, &lampReverse,
                            &indLF, &indRF, &indLR, &indRR, &repeaterL, &repeaterR}) {
             if (p->mesh.TriangleCount() > 0) model.parts.push_back(std::move(*p));
         }

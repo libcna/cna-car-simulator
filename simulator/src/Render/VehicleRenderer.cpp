@@ -624,7 +624,10 @@ namespace CarSim::Render
         MaterialLook look = LookFor(part, paintColor_, interiorColor_, state, paintOverride_);
         const Matrix world = PartWorld(part, state, gauges);
         const bool interior = IsInteriorPart(part);
-        const bool mirrorFace = part.name == "mirror_face" && mirrorTexture_ != nullptr;
+        Texture2D* faceTexture = part.name == "mirror_face" ? mirrorTexture_
+                               : part.name == "mirror_glass_left" ? wingTextures_[0]
+                               : part.name == "mirror_glass_right" ? wingTextures_[1] : nullptr;
+        const bool mirrorFace = faceTexture != nullptr;
         const bool glass = part.material == CarMaterial::Glass;
         if (glass && glassFromInside_) {
             look.envAmount = 0.0f;
@@ -651,7 +654,7 @@ namespace CarSim::Render
             auto& e = materials_.LitTextured();
             Texture2D* texture = part.material == CarMaterial::Plate ? (plateTexture_ ? plateTexture_ : &materials_.DefaultPlate())
                                : part.material == CarMaterial::Cluster ? (clusterTexture_ ? clusterTexture_ : &materials_.DefaultCluster())
-                               : mirrorTexture_;
+                               : faceTexture;
             device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
             const bool display = (part.material == CarMaterial::Cluster && clusterTexture_ != nullptr) || mirrorFace;
             e.setWorldProperty(world);

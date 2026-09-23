@@ -19,6 +19,7 @@
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 
 #include <functional>
+#include <array>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -120,6 +121,12 @@ namespace CarSim::Render
         void SetPaintOverride(const std::optional<Microsoft::Xna::Framework::Vector3>& paint) { paintOverride_ = paint; }
         void SetClusterTexture(Microsoft::Xna::Framework::Graphics::Texture2D* texture) { clusterTexture_ = texture; }
         void SetMirrorTexture(Microsoft::Xna::Framework::Graphics::Texture2D* texture) { mirrorTexture_ = texture; }
+        /// Images for the wing mirror glass (null: the glass shows its sky reflection).
+        void SetWingMirrorTextures(Microsoft::Xna::Framework::Graphics::Texture2D* left, Microsoft::Xna::Framework::Graphics::Texture2D* right)
+        {
+            wingTextures_[0] = left;
+            wingTextures_[1] = right;
+        }
 
         /// Opaque parts. `drawInterior` selects cockpit-only parts (drawn from inside or in mirrors).
         /// `lod` 0 draws everything, 1 drops small detail parts, 2 also drops lamps and trim.
@@ -208,6 +215,7 @@ namespace CarSim::Render
         std::optional<Microsoft::Xna::Framework::Vector3> paintOverride_;
         Microsoft::Xna::Framework::Graphics::Texture2D* clusterTexture_ = nullptr;
         Microsoft::Xna::Framework::Graphics::Texture2D* mirrorTexture_ = nullptr;
+        std::array<Microsoft::Xna::Framework::Graphics::Texture2D*, 2> wingTextures_{nullptr, nullptr};
         int drawCalls_ = 0;
         int triangles_ = 0;
     };

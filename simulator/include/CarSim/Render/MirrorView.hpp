@@ -29,6 +29,9 @@ namespace CarSim::Render
 
         /// Updates the mirror camera from the vehicle state (call once per frame before Begin).
         void Update(const Sim::VehicleState& state, const Sim::VehicleDefinition& definition);
+        /// Wing mirror: a camera at the glass centre (body frame) looking back past the car's
+        /// side, turned outboard by twice the glass's yaw as a mirror reflects it.
+        void UpdateWing(const Sim::VehicleState& state, const Microsoft::Xna::Framework::Vector3& glassCentre, float glassYaw);
 
         /// Binds the mirror target and clears it. Draw the scene between Begin and End using
         /// View(), Projection() (horizontally mirrored) and Frustum(); front faces are clockwise

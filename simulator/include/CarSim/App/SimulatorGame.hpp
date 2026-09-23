@@ -176,6 +176,8 @@ namespace CarSim::App
         std::unique_ptr<Render::BitmapFont> gaugeFont_;
         std::unique_ptr<Render::InstrumentCluster> cluster_;
         std::unique_ptr<Render::MirrorView> mirror_;
+        std::array<std::unique_ptr<Render::MirrorView>, 2> wingMirrors_;   // left, right
+        std::array<bool, 2> wingMirrorsDrawn_{false, false};
         Render::ChaseCamera chaseCamera_;
         Render::CockpitCamera cockpitCamera_;
         Render::CameraMode cameraMode_ = Render::CameraMode::Chase;
