@@ -68,6 +68,7 @@ add_library(carsim_render STATIC
     src/Render/CarTextures.cpp
     src/Render/CarWheels.cpp
     src/Render/ExhaustSmoke.cpp
+    src/Render/WheelSpray.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralCockpit.cpp
     src/Render/ProceduralTextures.cpp

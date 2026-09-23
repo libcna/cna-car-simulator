@@ -486,6 +486,7 @@ namespace CarSim::App
         vehicleRenderer_ = std::make_unique<Render::VehicleRenderer>(device, *vehicleMaterials_, definition_);
         exhaustSmoke_ = std::make_unique<Render::ExhaustSmokeRenderer>(device, vehicleRenderer_->Model().style);
         exhaustSmoke_->Smoke().SetEnabled(exhaustSmokeEnabled_);
+        wheelSpray_ = std::make_unique<Render::WheelSprayRenderer>(device);
         plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
         trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleMaterials_, plateFont_.get());
         {
@@ -730,6 +731,49 @@ namespace CarSim::App
             worldRenderer_->SetDrawDistanceScale(qualitySettings_.drawDistanceScale);
             worldRenderer_->SetVegetationScale(qualitySettings_.vegetationScale);
         }
+    }
+
+    void SimulatorGame::UpdateSpray(const Sim::VehicleState& state, const float dt)
+    {
+        if (!wheelSpray_) return;
+        sprayEmitters_.clear();
+        if (weather_.wetness > 0.15f) {
+            const auto surfaceShare = [](const Sim::SurfaceType s) {
+                switch (s) {
+                    case Sim::SurfaceType::Grass: return 0.0f;
+                    case Sim::SurfaceType::Gravel:
+                    case Sim::SurfaceType::Dirt: return 0.4f;
+                    case Sim::SurfaceType::Cobbles: return 0.7f;
+                    default: return 1.0f;
+                }
+            };
+            if (!state.flightMode && !walking_) {
+                for (std::size_t i = 0; i < state.wheels.size() && i < definition_.wheels.size(); ++i) {
+                    const auto& w = state.wheels[i];
+                    if (!w.grounded) continue;
+                    Render::SprayEmitter e;
+                    e.contact = w.worldCenter - Vector3(0.0f, definition_.wheels[i].radiusM, 0.0f);
+                    e.velocity = state.velocity;
+                    e.share = surfaceShare(w.surface);
+                    sprayEmitters_.push_back(e);
+                }
+            }
+            if (traffic_) {
+                // Only cars the camera could see the spray of; the rear wheels throw the plume.
+                const Vector3 eye = cameraMode_ == Render::CameraMode::Cockpit ? state.originPosition : chaseCamera_.Pose().position;
+                for (const auto& car : traffic_->Vehicles()) {
+                    if (Vector3::DistanceSquared(car.position, eye) > 90.0f * 90.0f) continue;
+                    const Vector3 right(-car.forward.Z, 0.0f, car.forward.X);
+                    for (const float side : {-1.0f, 1.0f}) {
+                        Render::SprayEmitter e;
+                        e.contact = car.position - car.forward * (car.lengthM * 0.32f) + right * (side * car.widthM * 0.4f);
+                        e.velocity = car.forward * car.speed;
+                        sprayEmitters_.push_back(e);
+                    }
+                }
+            }
+        }
+        wheelSpray_->Spray().Update(dt, sprayEmitters_, weather_.wetness);
     }
 
     void SimulatorGame::UpdateRumble(const Sim::VehicleState& state, const float dt)
@@ -1073,6 +1117,7 @@ namespace CarSim::App
 
         const auto state = vehicle_->Snapshot();
         UpdateRumble(state, dt);
+        UpdateSpray(state, dt);
         if (exhaustSmoke_) {
             const float bearing = weather_.windFromDeg * std::numbers::pi_v<float> / 180.0f;
             const Vector3 wind(-std::sin(bearing) * weather_.windSpeedMs, 0.0f,
@@ -1153,6 +1198,7 @@ namespace CarSim::App
             vehicleRenderer_->DrawOpaque(device, state, mirror_->View(), mirror_->Projection(), false, gauges, true);
             vehicleRenderer_->DrawTransparent(device, state, mirror_->View(), mirror_->Projection(), true);
             if (exhaustSmoke_) exhaustSmoke_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position);
+            if (wheelSpray_) wheelSpray_->Draw(device, mirror_->View(), mirror_->Projection(), mirror_->Pose().position, rig_.fogColor);
             if (traffic_ && trafficRenderer_) {
                 trafficRenderer_->Draw(device, *traffic_, mirror_->View(), mirror_->Projection(), mirror_->Frustum(), mirror_->Pose().position, rig_,
                                        groundQuery, true);
@@ -1220,6 +1266,7 @@ namespace CarSim::App
         vehicleRenderer_->DrawHeadlightPool(device, state, view, projection, groundQuery, rig_.LampFactor());
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
         if (exhaustSmoke_) exhaustSmoke_->Draw(device, view, projection, camera.position);
+        if (wheelSpray_) wheelSpray_->Draw(device, view, projection, camera.position, rig_.fogColor);
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);
         }

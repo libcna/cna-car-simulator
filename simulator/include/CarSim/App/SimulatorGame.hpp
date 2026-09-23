@@ -10,6 +10,7 @@
 #include "CarSim/Render/BitmapFont.hpp"
 #include "CarSim/Render/Camera.hpp"
 #include "CarSim/Render/ExhaustSmoke.hpp"
+#include "CarSim/Render/WheelSpray.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/QualityTier.hpp"
@@ -72,6 +73,8 @@ namespace CarSim::App
         void ApplyWeatherToWorld();
         /// Controller vibration from wheel slip, ABS, rough ground and impacts.
         void UpdateRumble(const Sim::VehicleState& state, float dt);
+        /// Spray from the player's tyres and the traffic near the camera on a wet road.
+        void UpdateSpray(const Sim::VehicleState& state, float dt);
         /// Reads the graphics tier from the save (or --quality) and applies its draw distances
         /// and mirror rate. Called once the renderers exist.
         void ApplyQualitySettings();
@@ -153,6 +156,8 @@ namespace CarSim::App
         std::unique_ptr<Render::SkyRenderer> sky_;
         std::unique_ptr<Render::RainRenderer> rain_;
         std::unique_ptr<Render::ExhaustSmokeRenderer> exhaustSmoke_;
+        std::unique_ptr<Render::WheelSprayRenderer> wheelSpray_;
+        std::vector<Render::SprayEmitter> sprayEmitters_;
         std::unique_ptr<Render::SignalRenderer> signalRenderer_;
         std::unique_ptr<Render::TestGround> testGround_;
         std::unique_ptr<Render::WorldRenderer> worldRenderer_;
