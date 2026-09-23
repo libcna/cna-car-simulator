@@ -169,7 +169,9 @@ namespace CarSim::Input
             {GameAction::TimeForward, Keys::F7},
             {GameAction::TimeBackward, Keys::F6},
             {GameAction::ToggleTimeFlow, Keys::F8},
-            {GameAction::CycleWeather, Keys::F9},
+            // Not F9 or F10: the CNA runtime keeps those for its own debug hook (F9 simulates a
+            // lost graphics context, F10 restores it), which re-creates every texture.
+            {GameAction::CycleWeather, Keys::F4},
         };
     }
 
@@ -377,6 +379,10 @@ namespace CarSim::Input
             }
             if (!KeyFromName(keyName, key)) {
                 warnings.push_back("bindings: unknown key '" + keyName + "' for " + actionName);
+                continue;
+            }
+            if (key == Keys::F9 || key == Keys::F10) {
+                warnings.push_back("bindings: " + keyName + " is reserved by the framework, keeping the default for " + actionName);
                 continue;
             }
             // Saved profiles contain every binding, including alternates. Apply repeated

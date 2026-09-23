@@ -103,7 +103,7 @@ Tick each; note anything that differs. (Keys are the defaults; `F1` shows the cu
 - [ ] `,` `.` `H` indicators; `L` headlights, `K` high beam; `B` horn.
 - [ ] Traffic keeps lane and distance, yields correctly, stops at red and goes at green at the
       signalised junction east of the square (`--spawn kostel` starts 90 m short of it).
-- [ ] Weather cycles with `F9`; rain visibly changes the scene and the braking distance.
+- [ ] Weather cycles with `F4`; rain visibly changes the scene and the braking distance.
 - [ ] Time: `F6` and `F7` move the clock an hour, `F8` freezes it; sunset and night look
       continuous, with no step in the sky or on the ground at any hour.
 - [ ] `Backspace` puts the car back on the road; `F5` resets the trip meter; `F12` screenshots.

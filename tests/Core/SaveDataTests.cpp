@@ -112,6 +112,8 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleMirror), "V");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleFlight), "J");
     EXPECT_EQ(mapper.KeysFor(Input::GameAction::ToggleWalk), "G");
+    // F9/F10 belong to the CNA runtime's context-loss debug hook.
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::CycleWeather), "F4");
     mapper.Update(Microsoft::Xna::Framework::Input::KeyboardState{Microsoft::Xna::Framework::Input::Keys::W});
     EXPECT_TRUE(mapper.Held(Input::GameAction::Throttle));
     EXPECT_FALSE(mapper.Pressed(Input::GameAction::ToggleWalk));
@@ -123,6 +125,22 @@ TEST(InputBindings, KeyNamesRoundTripAndOverridesApply)
     EXPECT_NE(mapper.KeysFor(Input::GameAction::Horn).find("J"), std::string::npos);
     const auto named = mapper.NamedBindings();
     EXPECT_FALSE(named.empty());
+}
+
+TEST(InputBindings, FrameworkDebugKeysCannotBeBound)
+{
+    // The CNA runtime turns F9 into a simulated graphics-context loss and F10 into its restore,
+    // whatever the game does with the key; a game action on either breaks every texture.
+    for (const auto& b : Input::InputMapper::DefaultBindings()) {
+        EXPECT_NE(b.key, Microsoft::Xna::Framework::Input::Keys::F9);
+        EXPECT_NE(b.key, Microsoft::Xna::Framework::Input::Keys::F10);
+    }
+    Input::InputMapper mapper;
+    std::vector<std::string> warnings;
+    mapper.ApplyOverrides({{"CycleWeather", "F9"}, {"Horn", "F10"}}, warnings);
+    EXPECT_EQ(warnings.size(), 2u);
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::CycleWeather), "F4");
+    EXPECT_EQ(mapper.KeysFor(Input::GameAction::Horn), "B");
 }
 
 TEST(InputBindings, SavedAlternatesKeepBothShiftKeysAndRepairOlderDuplicates)

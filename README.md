@@ -209,7 +209,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
 | Clock back / forward an hour, freeze the clock | `F6` / `F7`, `F8` |
-| Next weather (clear, cloud, overcast, rain) | `F9` |
+| Next weather (clear, cloud, overcast, rain) | `F4` |
 | Help overlay, debug overlay, screenshot | `F1`, `F3`, `F12` |
 | Quit | `Esc` |
 

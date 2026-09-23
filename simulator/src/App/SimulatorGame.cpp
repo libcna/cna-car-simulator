@@ -196,6 +196,10 @@ namespace CarSim::App
                 // W is the accelerator. Old profiles made the first press of the throttle
                 // exit a parked car and then suppressed all of its driving controls.
                 binding.second = "G";
+            } else if (binding.first == "CycleWeather" && binding.second == "F9") {
+                // F9 also fires the framework's simulated context loss, which broke the
+                // textures every time the weather was changed.
+                binding.second = "F4";
             }
         }
         std::vector<std::string> bindingWarnings;
