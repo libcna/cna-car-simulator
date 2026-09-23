@@ -36,6 +36,7 @@ namespace CarSim::Input
             case GameAction::SelectorPark: return "SelectorPark";
             case GameAction::SelectorDrive: return "SelectorDrive";
             case GameAction::ToggleTransmission: return "ToggleTransmission";
+            case GameAction::ToggleDifferential: return "ToggleDifferential";
             case GameAction::IndicatorLeft: return "IndicatorLeft";
             case GameAction::IndicatorRight: return "IndicatorRight";
             case GameAction::Hazard: return "Hazard";
@@ -92,6 +93,7 @@ namespace CarSim::Input
             case GameAction::SelectorPark: return "Park (automatic)";
             case GameAction::SelectorDrive: return "Drive (automatic)";
             case GameAction::ToggleTransmission: return "Switch automatic / manual";
+            case GameAction::ToggleDifferential: return "Differential open / limited slip";
             case GameAction::IndicatorLeft: return "Left indicator";
             case GameAction::IndicatorRight: return "Right indicator";
             case GameAction::Hazard: return "Hazard lights";
@@ -144,6 +146,7 @@ namespace CarSim::Input
             {GameAction::SelectorPark, Keys::P},
             {GameAction::SelectorDrive, Keys::F},
             {GameAction::ToggleTransmission, Keys::T},
+            {GameAction::ToggleDifferential, Keys::U},
             {GameAction::IndicatorLeft, Keys::OemComma},
             {GameAction::IndicatorRight, Keys::OemPeriod},
             {GameAction::Hazard, Keys::H},
@@ -233,6 +236,7 @@ namespace CarSim::Input
         c.shiftUp = Pressed(GameAction::ShiftUp);
         c.shiftDown = Pressed(GameAction::ShiftDown);
         c.toggleTransmissionMode = Pressed(GameAction::ToggleTransmission);
+        c.toggleDifferential = Pressed(GameAction::ToggleDifferential);
         if (mode == Sim::TransmissionMode::Manual) {
             if (Pressed(GameAction::GearNeutral)) c.selectGear = 0;
             if (Pressed(GameAction::GearReverse)) c.selectGear = -1;

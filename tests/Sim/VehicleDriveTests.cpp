@@ -856,3 +856,86 @@ TEST_F(VehicleDrive, ManualCoastingDownshiftReengagesWithoutThrottle)
     EXPECT_TRUE(v.Snapshot().clutchLocked);
     EXPECT_LT(v.ClutchPedal(), 0.05f);
 }
+
+namespace
+{
+    /// Full throttle through a tight left turn in first gear; returns the mean driven-wheel
+    /// speed difference (rad/s) over the last second.
+    float DrivenSpinDifferenceInTightTurn(const VehicleDefinition& def, const GroundSurface& ground, const bool limitedSlip)
+    {
+        Vehicle v(def, TransmissionMode::Manual);
+        v.SetLimitedSlip(limitedSlip);
+        StartEngine(v, ground);
+        DriverControls c;
+        c.clutch = 1.0f;
+        c.selectGear = 1;
+        v.Update(c, kFrame, ground);
+        Drive(v, ground, 0.5f, [](float) { DriverControls k; k.clutch = 1.0f; return k; });
+        Drive(v, ground, 3.0f, [](float) { DriverControls k; k.throttle = 0.6f; return k; });
+        float sum = 0.0f;
+        int samples = 0;
+        Drive(v, ground, 3.0f, [&](float t) {
+            DriverControls k;
+            k.throttle = 1.0f;
+            k.steering = -1.0f;
+            if (t > 2.0f) {
+                float driven[2];
+                int n = 0;
+                for (const auto& w : v.Wheels()) {
+                    if (w.def->driven && n < 2) driven[n++] = w.spinVelocity;
+                }
+                if (n == 2) { sum += std::fabs(driven[0] - driven[1]); ++samples; }
+            }
+            return k;
+        });
+        return samples > 0 ? sum / static_cast<float>(samples) : 0.0f;
+    }
+}
+
+TEST_F(VehicleDrive, LimitedSlipKeepsTheDrivenWheelsCloserThanAnOpenDifferential)
+{
+    const float open = DrivenSpinDifferenceInTightTurn(def, ground, false);
+    const float lsd = DrivenSpinDifferenceInTightTurn(def, ground, true);
+    std::cout << "driven wheel speed difference: open " << open << " rad/s, LSD " << lsd << " rad/s\n";
+    EXPECT_GT(open, 0.5f) << "the inner wheel should spin up with an open differential";
+    EXPECT_LT(lsd, open * 0.7f);
+}
+
+TEST_F(VehicleDrive, LimitedSlipDoesNotChangeStraightLineAcceleration)
+{
+    auto speedAfter = [&](const bool limitedSlip) {
+        Vehicle v(def, TransmissionMode::Manual);
+        v.SetLimitedSlip(limitedSlip);
+        StartEngine(v, ground);
+        DriverControls c;
+        c.clutch = 1.0f;
+        c.selectGear = 1;
+        v.Update(c, kFrame, ground);
+        Drive(v, ground, 0.5f, [](float) { DriverControls k; k.clutch = 1.0f; return k; });
+        Drive(v, ground, 4.0f, [](float) { DriverControls k; k.throttle = 0.6f; return k; });
+        return v.Snapshot().speedKmh;
+    };
+    EXPECT_NEAR(speedAfter(true), speedAfter(false), 1.0f);
+}
+
+TEST(VehicleDefinitionDifferential, ParsesTypeAndRejectsBadLock)
+{
+    VehicleDefinition def = MakeReferenceVehicle();
+    EXPECT_FALSE(def.differential.limitedSlip);
+    def.differential.powerLock = 1.5f;
+    EXPECT_FALSE(def.Validate().empty());
+}
+
+TEST_F(VehicleDrive, IndicatorSwitchesOffAfterTheTurnIsCompleted)
+{
+    Vehicle v(def, TransmissionMode::Manual);
+    StartEngine(v, ground);
+    DriverControls c;
+    c.indicator = IndicatorRequest::ToggleLeft;
+    v.Update(c, kFrame, ground);
+    ASSERT_EQ(v.Snapshot().indicatorMode, IndicatorMode::Left);
+    Drive(v, ground, 1.5f, [](float) { DriverControls k; k.steering = -1.0f; return k; });
+    EXPECT_EQ(v.Snapshot().indicatorMode, IndicatorMode::Left) << "still in the turn";
+    Drive(v, ground, 1.5f, [](float) { return DriverControls{}; });
+    EXPECT_EQ(v.Snapshot().indicatorMode, IndicatorMode::Off);
+}

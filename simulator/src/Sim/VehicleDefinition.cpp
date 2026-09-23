@@ -148,6 +148,9 @@ namespace CarSim::Sim
             require(r > 0.3f && r < 6.0f, "gearbox ratio out of range");
         }
         require(gearbox.reverseRatio > 0.5f, "gearbox.reverse must be positive");
+        require(differential.preloadNm >= 0.0f && differential.preloadNm <= 1000.0f, "differential.preload out of range");
+        require(differential.powerLock >= 0.0f && differential.powerLock <= 1.0f, "differential.powerLock must be 0..1");
+        require(differential.coastLock >= 0.0f && differential.coastLock <= 1.0f, "differential.coastLock must be 0..1");
         require(gearbox.finalDrive > 2.0f && gearbox.finalDrive < 7.0f, "gearbox.finalDrive out of range");
         require(gearbox.efficiency > 0.7f && gearbox.efficiency <= 1.0f, "gearbox.efficiency out of range");
         require(gearbox.automatic.upshiftRpm.Size() >= 2 && gearbox.automatic.downshiftRpm.Size() >= 2,
@@ -436,6 +439,21 @@ namespace CarSim::Sim
                 r.Float(obj, "initialLiters", f.initialLiters, "fuel");
             } else {
                 errors.push_back("fuel: object is required");
+            }
+            if (r.HasObject(root, "differential", obj)) {
+                auto& dd = def.differential;
+                std::string type;
+                r.String(obj, "type", type, "differential");
+                if (type == "lsd" || type == "limitedSlip") {
+                    dd.limitedSlip = true;
+                } else if (type == "open" || type.empty()) {
+                    dd.limitedSlip = false;
+                } else {
+                    errors.push_back("differential.type must be 'open' or 'lsd'");
+                }
+                r.Float(obj, "preload", dd.preloadNm, "differential");
+                r.Float(obj, "powerLock", dd.powerLock, "differential");
+                r.Float(obj, "coastLock", dd.coastLock, "differential");
             }
             if (r.HasObject(root, "electrics", obj)) {
                 r.Float(obj, "indicatorPeriod", def.electrics.indicatorPeriodS, "electrics");

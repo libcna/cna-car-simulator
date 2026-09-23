@@ -255,6 +255,12 @@
    "stallTorqueRatio": 1.9
   }
  },
+ "differential": {
+  "type": "open",
+  "preload": 40,
+  "powerLock": 0.45,
+  "coastLock": 0.25
+ },
  "fuel": {
   "tankLiters": 45,
   "reserveLiters": 7,

@@ -155,6 +155,17 @@ namespace CarSim::Sim
         AutomaticDefinition automatic;
     };
 
+    /// Axle differential. Open by default; the limited-slip option is a clutch-pack type whose
+    /// locking torque is a preload plus a share of the torque through it (a "ramp" LSD), so it
+    /// locks harder under power than on the overrun.
+    struct DifferentialDefinition
+    {
+        bool limitedSlip = false;
+        float preloadNm = 40.0f;
+        float powerLock = 0.45f;            // locking torque per Nm of drive torque
+        float coastLock = 0.25f;            // the same on the overrun
+    };
+
     struct FuelTankDefinition
     {
         float tankLiters = 45.0f;
@@ -209,6 +220,7 @@ namespace CarSim::Sim
         EngineDefinition engine;
         ClutchDefinition clutch;
         GearboxDefinition gearbox;
+        DifferentialDefinition differential;
         FuelTankDefinition fuel;
         ElectricsDefinition electrics;
         VisualDefinition visual;

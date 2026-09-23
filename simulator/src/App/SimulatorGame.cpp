@@ -1294,6 +1294,7 @@ namespace CarSim::App
         std::string lamps;
         if (s.leftIndicatorLit) lamps += "<  ";
         if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
+        if (s.limitedSlip) lamps += "LSD  ";
         if (s.turboMode == Sim::TurboMode::Turbo) lamps += "TURBO  ";
         if (s.turboMode == Sim::TurboMode::Ultra) lamps += "ULTRA TURBO  ";
         if (s.turboMode == Sim::TurboMode::UltraUltra) lamps += "ULTRA ULTRA TURBO  ";
@@ -1518,7 +1519,8 @@ namespace CarSim::App
         const GameAction rows[] = {
             GameAction::Throttle, GameAction::Brake, GameAction::SteerLeft, GameAction::SteerRight, GameAction::Clutch,
             GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
-            GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleEngine,
+            GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleDifferential,
+            GameAction::ToggleEngine,
             GameAction::ToggleTurbo,
             GameAction::ToggleWalk, GameAction::ToggleRun,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,

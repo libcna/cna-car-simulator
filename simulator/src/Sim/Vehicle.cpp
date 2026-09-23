@@ -96,6 +96,7 @@ namespace CarSim::Sim
                 drivenWheels_.push_back(static_cast<int>(i));
             }
         }
+        limitedSlip_ = def_.differential.limitedSlip;
         PlaceAt(Vector3(0.0f, 0.0f, 0.0f), 0.0f);
     }
 
@@ -257,6 +258,9 @@ namespace CarSim::Sim
         startRefused_ = false;
         if (controls.toggleTurbo) {
             engine_.CycleTurboMode();
+        }
+        if (controls.toggleDifferential) {
+            limitedSlip_ = !limitedSlip_;
         }
         if (controls.toggleTransmissionMode) {
             SetTransmissionMode(transmission_->Mode() == TransmissionMode::Manual ? TransmissionMode::Automatic
@@ -497,6 +501,34 @@ namespace CarSim::Sim
         return automatic->CouplingCapacity(engine_.Rpm(), def_.engine.idleRpm, def_.clutch.maxTorqueNm * multiplier);
     }
 
+    void Vehicle::DriveWheels(const float dt, const float torquePerWheel, const float reflectedInertia)
+    {
+        // Limited slip: the clutch packs carry torque from the faster driven wheel to the slower
+        // one, up to the preload plus a share of the torque through the differential. Viscous
+        // inside that limit so the two speeds converge without chatter.
+        float transferToLeft = 0.0f;
+        int left = -1, right = -1;
+        if (limitedSlip_ && drivenWheels_.size() == 2) {
+            left = drivenWheels_[0];
+            right = drivenWheels_[1];
+            if (wheels_[static_cast<std::size_t>(left)].def->position.X > 0.0f) std::swap(left, right);
+            const auto& dd = def_.differential;
+            const float through = 2.0f * torquePerWheel;
+            const float lock = dd.preloadNm + (through >= 0.0f ? dd.powerLock : dd.coastLock) * std::fabs(through);
+            const float difference = wheels_[static_cast<std::size_t>(left)].spinVelocity -
+                                     wheels_[static_cast<std::size_t>(right)].spinVelocity;
+            const float stiffness = 0.5f * (def_.tyres.wheelInertiaKgM2 + reflectedInertia) / dt;
+            transferToLeft = std::clamp(-stiffness * difference, -lock, lock);
+        }
+        for (std::size_t i = 0; i < wheels_.size(); ++i) {
+            auto& w = wheels_[i];
+            float torque = w.def->driven ? torquePerWheel : 0.0f;
+            if (static_cast<int>(i) == left) torque += 0.5f * transferToLeft;
+            if (static_cast<int>(i) == right) torque -= 0.5f * transferToLeft;
+            IntegrateWheel(w, dt, torque, w.def->driven ? reflectedInertia : 0.0f);
+        }
+    }
+
     void Vehicle::IntegrateWheel(WheelRuntime& w, const float dt, const float driveTorque, const float extraInertia)
     {
         const float inertia = def_.tyres.wheelInertiaKgM2 + extraInertia;
@@ -685,9 +717,7 @@ namespace CarSim::Sim
         if (!engaged || capacity <= 0.01f) {
             clutchLocked_ = false;
             engine_.Step(dt, driverThrottle, fuel, true, 0.0f);
-            for (auto& w : wheels_) {
-                IntegrateWheel(w, dt, 0.0f, 0.0f);
-            }
+            DriveWheels(dt, 0.0f, 0.0f);
             return;
         }
 
@@ -698,9 +728,7 @@ namespace CarSim::Sim
             const float engineTorque = engine_.NetTorque(driverThrottle);
             const float wheelTorque = engineTorque * ratio * efficiency / n;
             const float reflected = engine_.Inertia() * ratio * ratio / n;
-            for (auto& w : wheels_) {
-                IntegrateWheel(w, dt, w.def->driven ? wheelTorque : 0.0f, w.def->driven ? reflected : 0.0f);
-            }
+            DriveWheels(dt, wheelTorque, reflected);
             const float newOmegaIn = ratio * AverageDrivenSpin();
             const float transmitted = engineTorque - engine_.Inertia() * (newOmegaIn - engine_.AngularVelocity()) / dt;
             engine_.SetAngularVelocity(std::max(0.0f, newOmegaIn));
@@ -729,9 +757,7 @@ namespace CarSim::Sim
         }
         engine_.Step(dt, driverThrottle, fuel, true, clutchTorque);
         const float wheelTorque = clutchTorque * multiplication * ratio * efficiency / n;
-        for (auto& w : wheels_) {
-            IntegrateWheel(w, dt, w.def->driven ? wheelTorque : 0.0f, 0.0f);
-        }
+        DriveWheels(dt, wheelTorque, 0.0f);
         const float newSlip = engine_.AngularVelocity() - ratio * AverageDrivenSpin();
         const bool crossed = Sign(newSlip) != Sign(slip);
         // An automatic's converter never locks below idle; a manual clutch can (and then stalls).
@@ -804,6 +830,8 @@ namespace CarSim::Sim
         odometer_.Add(speed, dt);
         fuel_.Step(dt, engine_);
         thermal_.Step(dt, engine_, fuel_.MassFlowGramsPerSecond(engine_), speed);
+        const float lock = Units::DegToRad(def_.steering.maxWheelAngleDeg);
+        electrics_.TrackSteering(lock > 1e-4f ? steerAngle_ / lock : 0.0f);
         electrics_.Step(dt, engine_.IgnitionOn());
         lastSpeedMs_ = speed;
     }
@@ -823,6 +851,7 @@ namespace CarSim::Sim
         s.engineState = engine_.State();
         s.ignitionOn = engine_.IgnitionOn();
         s.turboMode = engine_.TurboSetting();
+        s.limitedSlip = limitedSlip_;
         s.flightMode = flightMode_;
         s.rotorAngle = rotorAngle_;
         s.throttlePedal = throttlePedal_;

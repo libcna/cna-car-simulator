@@ -37,6 +37,7 @@ namespace CarSim::Sim
         std::optional<int> selectGear;                 // manual: -1, 0, 1..N
         std::optional<AutomaticSelector> selector;     // automatic
         bool toggleTransmissionMode = false;
+        bool toggleDifferential = false;
         IndicatorRequest indicator = IndicatorRequest::None;
         bool toggleHeadlights = false;
         bool toggleHighBeam = false;

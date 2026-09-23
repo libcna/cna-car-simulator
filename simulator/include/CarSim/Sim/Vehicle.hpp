@@ -76,6 +76,7 @@ namespace CarSim::Sim
         EngineState engineState = EngineState::Off;
         bool ignitionOn = false;
         TurboMode turboMode = TurboMode::Off;
+        bool limitedSlip = false;
         bool flightMode = false;
         float rotorAngle = 0.0f;
         float throttlePedal = 0.0f;
@@ -167,6 +168,8 @@ namespace CarSim::Sim
         [[nodiscard]] float ThrottlePedal() const { return throttlePedal_; }
         [[nodiscard]] float BrakePedal() const { return brakePedal_; }
         [[nodiscard]] float ClutchPedal() const { return clutchPedal_; }
+        [[nodiscard]] bool LimitedSlip() const { return limitedSlip_; }
+        void SetLimitedSlip(bool on) { limitedSlip_ = on; }
         [[nodiscard]] bool Handbrake() const { return handbrake_; }
         [[nodiscard]] float SteeringWheelAngle() const;
         [[nodiscard]] bool ClutchLocked() const { return clutchLocked_; }
@@ -190,6 +193,9 @@ namespace CarSim::Sim
         void UpdateSuspension(float dt, const GroundSurface& ground);
         void ResolveDriveline(float dt);
         void IntegrateWheel(WheelRuntime& wheel, float dt, float driveTorque, float extraInertia);
+        /// Integrates every wheel, splitting `torquePerWheel` over the driven axle through the
+        /// differential (open: equal; limited slip: biased towards the slower wheel).
+        void DriveWheels(float dt, float torquePerWheel, float reflectedInertia);
         void ApplyBodyForces(float dt);
         void ApplySleep();
         [[nodiscard]] float AverageDrivenSpin() const;
@@ -208,6 +214,7 @@ namespace CarSim::Sim
         Electrics electrics_;
         std::array<WheelRuntime, 4> wheels_{};
         std::vector<int> drivenWheels_;
+        bool limitedSlip_ = false;
         int frontLeft_ = 0, frontRight_ = 1, rearLeft_ = 2, rearRight_ = 3;
 
         float throttlePedal_ = 0.0f;

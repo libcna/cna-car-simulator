@@ -61,8 +61,12 @@ removes the standstill chatter classic tyre models suffer from.
 
 ## Driveline (`Vehicle::ResolveDriveline`)
 
-Engine -> clutch/coupling -> gearbox ratio -> final drive -> open differential (equal torque to
-each driven wheel). Two regimes:
+Engine -> clutch/coupling -> gearbox ratio -> final drive -> differential -> driven wheels. The
+differential is open by default (equal torque to each driven wheel). With `differential.type`
+`"lsd"` in the vehicle JSON, or `U` in the game, it is a clutch-pack limited-slip unit
+(`Vehicle::DriveWheels`): torque moves from the faster to the slower wheel, up to
+`preload + powerLock * |drive torque|` (`coastLock` on the overrun), viscous inside that limit.
+Two regimes for the coupling:
 
 - **Slipping**: the coupling transmits `clamp(k_visc * slip, +-capacity)` with a narrow viscous
   band for convergence; the engine integrates freely against that load and the wheels receive the
@@ -135,7 +139,8 @@ a full keyboard steer reaches 0.5 g lateral in 0.10 s at 50 km/h and holds 0.84 
 ## Compromises
 
 No camber, toe or caster effects; independent suspension only (no axle kinematics); no tyre
-temperature or wear; the differential is open with no limited-slip; the converter's torque
+temperature or wear; the limited-slip differential has no ramp-angle asymmetry beyond the separate
+power and coast lock factors; the converter's torque
 multiplication is a linear ramp rather than a measured K-factor map; aerodynamic lift and side
 wind are ignored; the collision response is handled by
 the collision module (impulses on the same rigid body).
