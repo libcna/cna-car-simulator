@@ -213,6 +213,11 @@ namespace CarSim::Render
         const Vector3 toSun = -bakeRig_.sunDirection;
         const float sizeX = terrain.MaxX() - terrain.MinX();
         const float sizeZ = terrain.MaxZ() - terrain.MinZ();
+        // Furrows are only drawn where a texel can hold them: at under two texels per furrow they
+        // alias into broad false stripes across the whole field.
+        const float texelM = std::max(sizeX / static_cast<float>(width), sizeZ / static_cast<float>(height));
+        constexpr float kFurrowM = 3.0f;
+        const float furrowShare = Clamp01((kFurrowM / texelM - 2.0f) / 2.0f);
         for (int y = 0; y < height; ++y) {
             const float z = terrain.MinZ() + (static_cast<float>(y) + 0.5f) / static_cast<float>(height) * sizeZ;
             for (int x = 0; x < width; ++x) {
@@ -224,12 +229,21 @@ namespace CarSim::Render
                 Rgb tint{0.56f, 0.60f, 0.40f};
                 const Map::RegionType region = terrain.RegionAt(wx, z);
                 const float variation = Core::Noise::FbmSigned(wx * 0.012f, z * 0.012f, 3, 0.5f, 91u);
+                // Medium-scale patches (tens of metres) that the 7 m grass tile cannot carry: lusher
+                // and thinner, drier ground. They break up the tile's repeat seen from above.
+                const float patch = Core::Noise::FbmSigned(wx / 23.0f, z / 23.0f, 3, 0.55f, 131u);
+                const float dryness = Core::Noise::FbmSigned(wx / 61.0f, z / 61.0f, 2, 0.5f, 177u);
                 switch (region) {
-                    case Map::RegionType::Meadow:
+                    case Map::RegionType::Meadow: {
                         tint = Rgb{0.55f + 0.06f * variation, 0.60f + 0.04f * variation, 0.44f + 0.03f * variation};
+                        const float lush = 1.0f + 0.10f * patch;
+                        const float dry = Clamp01(dryness * 0.6f) * 0.35f;
+                        tint = Rgb{(tint.r * (1.0f - dry) + 0.70f * dry) * lush, (tint.g * (1.0f - dry) + 0.64f * dry) * lush,
+                                   (tint.b * (1.0f - dry) + 0.40f * dry) * lush};
                         break;
+                    }
                     case Map::RegionType::Town:
-                        tint = Rgb{0.56f + 0.04f * variation, 0.60f, 0.45f};
+                        tint = Rgb{(0.56f + 0.04f * variation) * (1.0f + 0.07f * patch), 0.60f * (1.0f + 0.07f * patch), 0.45f};
                         break;
                     case Map::RegionType::Forest:
                         tint = Rgb{0.38f, 0.35f, 0.25f};
@@ -242,7 +256,7 @@ namespace CarSim::Render
                         tint = Rgb{0.52f, 0.52f, 0.50f};
                         break;
                     case Map::RegionType::Orchard:
-                        tint = Rgb{0.56f, 0.60f, 0.38f};
+                        tint = Rgb{0.56f * (1.0f + 0.08f * patch), 0.60f * (1.0f + 0.08f * patch), 0.38f};
                         break;
                     case Map::RegionType::Field: {
                         const Map::RegionSpec* spec = terrain.RegionSpecAt(wx, z);
@@ -256,7 +270,8 @@ namespace CarSim::Render
                         else if (crop == "maize") tint = Rgb{0.42f, 0.52f, 0.28f};
                         else if (crop == "ploughed") tint = Rgb{0.40f, 0.31f, 0.24f};
                         else tint = Rgb{0.64f, 0.58f, 0.40f};
-                        const float f = 0.9f + 0.1f * furrow;
+                        // Soil and crop density vary across a field too.
+                        const float f = (1.0f - 0.1f * furrowShare + 0.1f * furrowShare * furrow) * (1.0f + 0.06f * patch);
                         tint = Rgb{tint.r * f, tint.g * f, tint.b * f};
                         break;
                     }

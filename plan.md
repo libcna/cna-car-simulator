@@ -1379,7 +1379,9 @@ Recorded so the next pass does not have to rediscover the reasoning.
   most obvious "procedural" tell in a street scene at middle distance, but fixing it properly
   means more geometry on 624 buildings and belongs in a pass that can measure the cost on real
   hardware first. Listed as open work in `handoff.md`.
-- **The terrain detail texture visibly tiles** when seen from a height (a roughly 40 m grid over
+- **The terrain detail texture visibly tiles** (Addressed after Phase 13: the macro now carries
+  23 m lush/thin patches and 61 m dry areas, and field furrows are faded out where the macro
+  texel cannot hold them, which removes the moire stripes seen from the air.) when seen from a height (a roughly 40 m grid over
   open meadow). At driving height it is not noticeable, and breaking it up means touching the
   terrain macro that everything else is baked against. Listed as open work.
 - ~~**The wet sheen does not reach the paved square or the filling-station forecourt**~~ Closed
