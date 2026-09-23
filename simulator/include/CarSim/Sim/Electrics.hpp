@@ -31,6 +31,15 @@ namespace CarSim::Sim
         void ToggleHighBeam();
         void SetHorn(bool on) { horn_ = on; }
 
+        /// Self-cancelling indicator: `steerFraction` is the road-wheel angle over its lock
+        /// (-1 full left .. +1 full right). Turning well into the indicated side arms the cancel
+        /// cam; the wheel coming back towards straight then switches the indicator off. A lane
+        /// change never turns the wheel far enough to arm it, as on a real column switch.
+        void TrackSteering(float steerFraction);
+
+        static constexpr float kSelfCancelArm = 0.30f;
+        static constexpr float kSelfCancelRelease = 0.10f;
+
         /// Advances the blink phase. `ignitionOn` gates every lamp except hazards.
         void Step(float dt, bool ignitionOn);
 
@@ -57,5 +66,6 @@ namespace CarSim::Sim
         float blinkTimer_ = 0.0f;
         bool blinkOn_ = false;
         bool blinkEdge_ = false;
+        bool cancelArmed_ = false;
     };
 }

@@ -8,6 +8,7 @@ namespace CarSim::Sim
             blinkTimer_ = 0.0f;
             blinkOn_ = true;
             blinkEdge_ = true;
+            cancelArmed_ = false;
         };
         switch (request) {
             case IndicatorRequest::None:
@@ -27,6 +28,25 @@ namespace CarSim::Sim
             case IndicatorRequest::Cancel:
                 indicator_ = IndicatorMode::Off;
                 break;
+        }
+    }
+
+    void Electrics::TrackSteering(const float steerFraction)
+    {
+        float into = 0.0f;   // how far the wheel is turned towards the indicated side
+        if (indicator_ == IndicatorMode::Left) {
+            into = -steerFraction;
+        } else if (indicator_ == IndicatorMode::Right) {
+            into = steerFraction;
+        } else {
+            cancelArmed_ = false;
+            return;
+        }
+        if (into >= kSelfCancelArm) {
+            cancelArmed_ = true;
+        } else if (cancelArmed_ && into <= kSelfCancelRelease) {
+            indicator_ = IndicatorMode::Off;
+            cancelArmed_ = false;
         }
     }
 

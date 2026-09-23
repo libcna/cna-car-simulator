@@ -64,3 +64,31 @@ TEST(Electrics, HeadlightModesNeedIgnition)
     EXPECT_TRUE(e.LowBeamOn());
     EXPECT_FALSE(e.HighBeamOn());
 }
+
+TEST(Electrics, IndicatorCancelsItselfWhenTheWheelReturnsAfterATurn)
+{
+    const VehicleDefinition def = MakeReferenceVehicle();
+    Electrics e(def.electrics);
+    e.ApplyIndicator(IndicatorRequest::ToggleLeft);
+    e.TrackSteering(-0.05f);
+    e.TrackSteering(0.0f);
+    EXPECT_EQ(e.Indicator(), IndicatorMode::Left) << "not armed before the turn";
+    for (float s = 0.0f; s >= -0.6f; s -= 0.05f) e.TrackSteering(s);
+    EXPECT_EQ(e.Indicator(), IndicatorMode::Left) << "still turning";
+    for (float s = -0.6f; s <= 0.0f; s += 0.05f) e.TrackSteering(s);
+    EXPECT_EQ(e.Indicator(), IndicatorMode::Off);
+}
+
+TEST(Electrics, LaneChangeAndOppositeSteeringDoNotCancel)
+{
+    const VehicleDefinition def = MakeReferenceVehicle();
+    Electrics e(def.electrics);
+    e.ApplyIndicator(IndicatorRequest::ToggleRight);
+    for (float s : {0.05f, 0.15f, 0.2f, 0.1f, 0.0f, -0.15f, 0.0f}) e.TrackSteering(s);
+    EXPECT_EQ(e.Indicator(), IndicatorMode::Right) << "a lane change keeps the indicator";
+    for (float s : {-0.5f, -0.8f, 0.0f}) e.TrackSteering(s);
+    EXPECT_EQ(e.Indicator(), IndicatorMode::Right) << "turning the other way does not arm the cam";
+    e.ApplyIndicator(IndicatorRequest::ToggleHazard);
+    for (float s : {0.8f, 0.0f, -0.8f, 0.0f}) e.TrackSteering(s);
+    EXPECT_EQ(e.Indicator(), IndicatorMode::Hazard) << "hazards never self-cancel";
+}
