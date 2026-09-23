@@ -38,6 +38,7 @@ add_executable(carsim_tests
     Render/CameraTests.cpp
     Render/ExhaustSmokeTests.cpp
     Render/WheelSprayTests.cpp
+    Render/WindscreenRainTests.cpp
     Render/RoadMeshBuilderTests.cpp
     Render/GroundShadowTests.cpp
     Map/MapDocumentTests.cpp

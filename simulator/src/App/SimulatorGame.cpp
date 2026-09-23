@@ -412,6 +412,18 @@ namespace CarSim::App
                 controls.toggleEngine = true;
             }
         }
+        if (options_.wiperSteps > 0 && wiperStepsApplied_ < options_.wiperSteps) {
+            // Like --lights: the wipers need the ignition, so a capture that asks for them
+            // starts the engine first when nothing else does.
+            const Sim::VehicleState state = vehicle_->Snapshot();
+            if (state.ignitionOn && elapsedSeconds_ > 0.3) {
+                ++wiperStepsApplied_;
+                controls.cycleWipers = true;
+            } else if (!state.ignitionOn && !options_.autoDriveSeconds && !lightsEngineRequested_ && elapsedSeconds_ > 0.1) {
+                lightsEngineRequested_ = true;
+                controls.toggleEngine = true;
+            }
+        }
         if (!options_.autoDriveSeconds) {
             return;
         }
@@ -487,6 +499,7 @@ namespace CarSim::App
         exhaustSmoke_ = std::make_unique<Render::ExhaustSmokeRenderer>(device, vehicleRenderer_->Model().style);
         exhaustSmoke_->Smoke().SetEnabled(exhaustSmokeEnabled_);
         wheelSpray_ = std::make_unique<Render::WheelSprayRenderer>(device);
+        windscreenRain_ = std::make_unique<Render::WindscreenRainRenderer>(device);
         plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
         trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleMaterials_, plateFont_.get());
         {
@@ -1118,6 +1131,11 @@ namespace CarSim::App
         const auto state = vehicle_->Snapshot();
         UpdateRumble(state, dt);
         UpdateSpray(state, dt);
+        if (windscreenRain_) {
+            // The screen keeps its drops whichever camera is in use; under the helicopter or
+            // with the driver out walking nothing new lands on it that matters.
+            windscreenRain_->Rain().Update(dt, state.flightMode ? 0.0f : weather_.rain, state.speedKmh / 3.6f, state.wiperPosition);
+        }
         if (exhaustSmoke_) {
             const float bearing = weather_.windFromDeg * std::numbers::pi_v<float> / 180.0f;
             const Vector3 wind(-std::sin(bearing) * weather_.windSpeedMs, 0.0f,
@@ -1265,6 +1283,10 @@ namespace CarSim::App
         vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundQuery);
         vehicleRenderer_->DrawHeadlightPool(device, state, view, projection, groundQuery, rig_.LampFactor());
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
+        if (windscreenRain_ && !state.flightMode) {
+            const Vector3 light = rig_.fogColor * 0.85f + Vector3(0.08f, 0.08f, 0.08f);
+            windscreenRain_->Draw(device, view, projection, state.worldMatrix, vehicleRenderer_->Model().windscreen, state.wiperPosition, light);
+        }
         if (exhaustSmoke_) exhaustSmoke_->Draw(device, view, projection, camera.position);
         if (wheelSpray_) wheelSpray_->Draw(device, view, projection, camera.position, rig_.fogColor);
         if (!cockpit) {
@@ -1382,6 +1404,9 @@ namespace CarSim::App
         if (s.leftIndicatorLit) lamps += "<  ";
         if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
         if (s.limitedSlip) lamps += "LSD  ";
+        if (s.wiperMode == Sim::WiperMode::Intermittent) lamps += "WIPERS INT  ";
+        if (s.wiperMode == Sim::WiperMode::Slow) lamps += "WIPERS  ";
+        if (s.wiperMode == Sim::WiperMode::Fast) lamps += "WIPERS FAST  ";
         if (s.turboMode == Sim::TurboMode::Turbo) lamps += "TURBO  ";
         if (s.turboMode == Sim::TurboMode::Ultra) lamps += "ULTRA TURBO  ";
         if (s.turboMode == Sim::TurboMode::UltraUltra) lamps += "ULTRA ULTRA TURBO  ";
@@ -1611,7 +1636,7 @@ namespace CarSim::App
             GameAction::ToggleTurbo,
             GameAction::ToggleWalk, GameAction::ToggleRun,
             GameAction::Handbrake, GameAction::IndicatorLeft, GameAction::IndicatorRight, GameAction::Hazard,
-            GameAction::Headlights, GameAction::HighBeam, GameAction::Horn, GameAction::ToggleCamera,
+            GameAction::Headlights, GameAction::HighBeam, GameAction::CycleWipers, GameAction::Horn, GameAction::ToggleCamera,
             GameAction::ToggleFullscreen, GameAction::ToggleMap, GameAction::ToggleExhaustSmoke, GameAction::ToggleFlight, GameAction::ToggleMirror, GameAction::ToggleHud, GameAction::ToggleHelp,
             GameAction::ToggleDebug, GameAction::Screenshot, GameAction::ResetVehicle,
             GameAction::ResetTrip, GameAction::VolumeUp, GameAction::VolumeDown,

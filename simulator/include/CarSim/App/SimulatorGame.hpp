@@ -11,6 +11,7 @@
 #include "CarSim/Render/Camera.hpp"
 #include "CarSim/Render/ExhaustSmoke.hpp"
 #include "CarSim/Render/WheelSpray.hpp"
+#include "CarSim/Render/WindscreenRain.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/QualityTier.hpp"
@@ -157,6 +158,7 @@ namespace CarSim::App
         std::unique_ptr<Render::RainRenderer> rain_;
         std::unique_ptr<Render::ExhaustSmokeRenderer> exhaustSmoke_;
         std::unique_ptr<Render::WheelSprayRenderer> wheelSpray_;
+        std::unique_ptr<Render::WindscreenRainRenderer> windscreenRain_;
         std::vector<Render::SprayEmitter> sprayEmitters_;
         std::unique_ptr<Render::SignalRenderer> signalRenderer_;
         std::unique_ptr<Render::TestGround> testGround_;
@@ -225,6 +227,7 @@ namespace CarSim::App
         bool screenshotRequested_ = false;
         bool autoDriveStarted_ = false;
         bool lightsApplied_ = false;
+        int wiperStepsApplied_ = 0;
         bool lightsEngineRequested_ = false;
         // The vehicle reports a refused start for the one update the key was pressed in; the HUD
         // keeps the explanation up long enough to be read.

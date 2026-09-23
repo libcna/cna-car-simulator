@@ -21,7 +21,7 @@ namespace CarSim::Input
         ToggleEngine, ToggleTurbo, ShiftUp, ShiftDown, GearNeutral, GearReverse,
         Gear1, Gear2, Gear3, Gear4, Gear5, Gear6,
         SelectorPark, SelectorDrive, ToggleTransmission, ToggleDifferential,
-        IndicatorLeft, IndicatorRight, Hazard, Headlights, HighBeam,
+        IndicatorLeft, IndicatorRight, Hazard, Headlights, HighBeam, CycleWipers,
         ToggleCamera, ToggleFullscreen, ToggleMap, ToggleExhaustSmoke, ToggleFlight, ToggleWalk, ToggleRun, ToggleHelp, ToggleDebug, Screenshot, ResetVehicle, ResetTrip, Quit,
         VolumeUp, VolumeDown, ToggleMirror, ToggleHud,
         TimeForward, TimeBackward, ToggleTimeFlow, CycleWeather,

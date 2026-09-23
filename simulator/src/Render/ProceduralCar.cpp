@@ -1228,8 +1228,9 @@ namespace CarSim::Render
                     gloss.mesh.Append(recess, Matrix::getIdentityProperty());
                 }
             }
-            // Wipers on the windshield base.
-            {
+            // Wipers on the windshield base. The player's car (built with its interior) gets
+            // animated wipers from WindscreenRainRenderer instead.
+            if (!interior) {
                 const float zw = sh.zCowl + 0.09f;
                 const float slope = std::atan2(sh.Top(zw + 0.2f) - sh.Top(zw), 0.2f);
                 const float yw = sh.Top(zw) + 0.014f;
@@ -1373,6 +1374,14 @@ namespace CarSim::Render
             uv.vHoodStart = skin.V(sh.zF + 0.16f);
             uv.vFrontBumper = skin.V(sh.zFrontBumper);
             uv.vCowl = skin.V(sh.zCowl);
+            {
+                const float zb = sh.zCowl + 0.07f;
+                const float zt = sh.zRoofFront - 0.05f;
+                const float hwb = std::max(0.2f, sh.HwRoof(zb) - 0.10f);
+                const float hwt = std::max(0.2f, sh.HwRoof(zt) - 0.08f);
+                model.windscreen = {Vector3(-hwb, sh.Top(zb), zb), Vector3(hwb, sh.Top(zb), zb), Vector3(hwt, sh.Top(zt), zt),
+                                    Vector3(-hwt, sh.Top(zt), zt)};
+            }
             uv.vDoorFront = skin.V(sh.zDoorFront);
             uv.vBPillar = skin.V(sh.zB);
             uv.vDoorRear = skin.V(sh.zDoorRear);

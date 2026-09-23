@@ -1,5 +1,8 @@
 #include "CarSim/Sim/Electrics.hpp"
 
+#include <algorithm>
+#include <cmath>
+
 namespace CarSim::Sim
 {
     void Electrics::ApplyIndicator(const IndicatorRequest request)
@@ -50,6 +53,28 @@ namespace CarSim::Sim
         }
     }
 
+    const char* ToString(const WiperMode mode)
+    {
+        switch (mode) {
+            case WiperMode::Off: return "off";
+            case WiperMode::Intermittent: return "intermittent";
+            case WiperMode::Slow: return "slow";
+            case WiperMode::Fast: return "fast";
+        }
+        return "off";
+    }
+
+    void Electrics::CycleWipers()
+    {
+        switch (wipers_) {
+            case WiperMode::Off: wipers_ = WiperMode::Intermittent; break;
+            case WiperMode::Intermittent: wipers_ = WiperMode::Slow; break;
+            case WiperMode::Slow: wipers_ = WiperMode::Fast; break;
+            case WiperMode::Fast: wipers_ = WiperMode::Off; break;
+        }
+        wiperPause_ = 0.0f;   // a new setting starts with a wipe
+    }
+
     void Electrics::ToggleHeadlights()
     {
         headlights_ = headlights_ == HeadlightMode::Off ? HeadlightMode::Low : HeadlightMode::Off;
@@ -68,6 +93,28 @@ namespace CarSim::Sim
     {
         ignitionOn_ = ignitionOn;
         blinkEdge_ = false;
+
+        // Wipers: a sweep starts only with the ignition on and the switch on; once started it
+        // runs to the end and parks.
+        const bool wanted = ignitionOn && wipers_ != WiperMode::Off;
+        if (wiperPhase_ <= 0.0f && wanted) {
+            if (wipers_ == WiperMode::Intermittent && wiperPause_ > 0.0f) {
+                wiperPause_ -= dt;
+            } else {
+                wiperPhase_ = 1e-4f;
+            }
+        }
+        if (wiperPhase_ > 0.0f) {
+            const float period = wipers_ == WiperMode::Fast ? kWipeFastS : kWipeSlowS;
+            wiperPhase_ += dt / period;
+            if (wiperPhase_ >= 1.0f) {
+                wiperPhase_ = 0.0f;
+                wiperPause_ = kIntermittentPauseS;
+            }
+        }
+        // Up and back: a smooth cosine, so the blade slows at both ends of its travel.
+        wiperPosition_ = wiperPhase_ > 0.0f ? 0.5f - 0.5f * std::cos(wiperPhase_ * 6.2831853f) : 0.0f;
+
         if (indicator_ == IndicatorMode::Off) {
             blinkTimer_ = 0.0f;
             blinkOn_ = false;

@@ -125,6 +125,9 @@ namespace CarSim::Render
         CarStyle style;
         BodyUvLayout uv;
         std::array<Microsoft::Xna::Framework::Vector3, 4> wheelCenters{};   // FL, FR, RL, RR at rest
+        /// The wiped part of the windscreen as a flat quad in the body frame, inset from the
+        /// pillars: bottom left, bottom right, top right, top left (left = -X).
+        std::array<Microsoft::Xna::Framework::Vector3, 4> windscreen{};
         int bodyTriangles = 0;
     };
 

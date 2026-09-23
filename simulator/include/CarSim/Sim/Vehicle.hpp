@@ -99,6 +99,8 @@ namespace CarSim::Sim
         bool rightIndicatorLit = false;
         IndicatorMode indicatorMode = IndicatorMode::Off;
         bool lowBeam = false;
+        WiperMode wiperMode = WiperMode::Off;
+        float wiperPosition = 0.0f;          // 0 parked .. 1 far end of the sweep
         bool highBeam = false;
         bool brakeLights = false;
         bool reverseLights = false;

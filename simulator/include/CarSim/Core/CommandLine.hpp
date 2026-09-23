@@ -39,6 +39,7 @@ namespace CarSim::Core
         std::optional<float> timeOfDay;      // clock in hours (--time 21:30 or --time 21.5)
         std::optional<float> timeScale;      // simulated seconds per real second (0 freezes the sky)
         std::optional<std::string> weather;  // clear / cloudy / overcast / rain
+        int wiperSteps = 0;                  // --wipers: 1 intermittent, 2 slow, 3 fast
         std::optional<std::string> quality;  // graphics tier: low / medium / high
         bool showHelpOverlay = false;   // start with the F1 help overlay open (captures)
         bool showDebugOverlay = false;  // start with the F3 debug overlay open

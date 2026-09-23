@@ -41,6 +41,7 @@ namespace CarSim::Sim
         IndicatorRequest indicator = IndicatorRequest::None;
         bool toggleHeadlights = false;
         bool toggleHighBeam = false;
+        bool cycleWipers = false;
         bool resetTrip = false;
     };
 }

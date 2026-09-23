@@ -316,6 +316,9 @@ namespace CarSim::Sim
         if (controls.toggleHighBeam) {
             electrics_.ToggleHighBeam();
         }
+        if (controls.cycleWipers) {
+            electrics_.CycleWipers();
+        }
         electrics_.SetHorn(controls.horn);
         handbrake_ = controls.handbrake;
         steerInput_ = std::clamp(controls.steering, -1.0f, 1.0f);
@@ -851,6 +854,8 @@ namespace CarSim::Sim
         s.engineState = engine_.State();
         s.ignitionOn = engine_.IgnitionOn();
         s.turboMode = engine_.TurboSetting();
+        s.wiperMode = electrics_.Wipers();
+        s.wiperPosition = electrics_.WiperPosition();
         s.limitedSlip = limitedSlip_;
         s.flightMode = flightMode_;
         s.rotorAngle = rotorAngle_;

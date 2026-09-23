@@ -109,3 +109,13 @@ TEST(CommandLine, ParsesTheWeather)
     const std::array<const char*, 3> bad{"sim", "--weather", "hurricane"};
     EXPECT_FALSE(ParseCommandLine(static_cast<int>(bad.size()), bad.data()).ok());
 }
+
+TEST(CommandLine, ParsesTheWipers)
+{
+    const std::array<const char*, 3> argv{"sim", "--wipers", "slow"};
+    const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+    ASSERT_TRUE(result.ok()) << result.errors.front();
+    EXPECT_EQ(result.options.wiperSteps, 2);
+    const std::array<const char*, 3> bad{"sim", "--wipers", "turbo"};
+    EXPECT_FALSE(ParseCommandLine(static_cast<int>(bad.size()), bad.data()).ok());
+}

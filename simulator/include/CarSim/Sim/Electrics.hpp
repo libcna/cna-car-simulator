@@ -14,6 +14,16 @@ namespace CarSim::Sim
         Hazard
     };
 
+    enum class WiperMode
+    {
+        Off,
+        Intermittent,   // one wipe every few seconds
+        Slow,
+        Fast
+    };
+
+    [[nodiscard]] const char* ToString(WiperMode mode);
+
     enum class HeadlightMode
     {
         Off,
@@ -30,6 +40,17 @@ namespace CarSim::Sim
         void ToggleHeadlights();
         void ToggleHighBeam();
         void SetHorn(bool on) { horn_ = on; }
+        /// Off -> intermittent -> slow -> fast -> off.
+        void CycleWipers();
+
+        /// Wiper blade position: 0 parked at the bottom of the screen, 1 at the far end of
+        /// the sweep. A wipe in progress always finishes and parks, even when switched off.
+        [[nodiscard]] float WiperPosition() const { return wiperPosition_; }
+        [[nodiscard]] WiperMode Wipers() const { return wipers_; }
+
+        static constexpr float kWipeSlowS = 1.35f;          // one up-and-back sweep
+        static constexpr float kWipeFastS = 0.90f;
+        static constexpr float kIntermittentPauseS = 3.5f;
 
         /// Self-cancelling indicator: `steerFraction` is the road-wheel angle over its lock
         /// (-1 full left .. +1 full right). Turning well into the indicated side arms the cancel
@@ -67,5 +88,9 @@ namespace CarSim::Sim
         bool blinkOn_ = false;
         bool blinkEdge_ = false;
         bool cancelArmed_ = false;
+        WiperMode wipers_ = WiperMode::Off;
+        float wiperPhase_ = 0.0f;        // 0..1 through the current sweep; 0 = parked
+        float wiperPause_ = 0.0f;        // intermittent: time left before the next sweep
+        float wiperPosition_ = 0.0f;
     };
 }

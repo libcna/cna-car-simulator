@@ -48,6 +48,7 @@ namespace CarSim::Input
             case GameAction::SelectorDrive: return "SelectorDrive";
             case GameAction::ToggleTransmission: return "ToggleTransmission";
             case GameAction::ToggleDifferential: return "ToggleDifferential";
+            case GameAction::CycleWipers: return "CycleWipers";
             case GameAction::IndicatorLeft: return "IndicatorLeft";
             case GameAction::IndicatorRight: return "IndicatorRight";
             case GameAction::Hazard: return "Hazard";
@@ -105,6 +106,7 @@ namespace CarSim::Input
             case GameAction::SelectorDrive: return "Drive (automatic)";
             case GameAction::ToggleTransmission: return "Switch automatic / manual";
             case GameAction::ToggleDifferential: return "Differential open / limited slip";
+            case GameAction::CycleWipers: return "Wipers off / interval / slow / fast";
             case GameAction::IndicatorLeft: return "Left indicator";
             case GameAction::IndicatorRight: return "Right indicator";
             case GameAction::Hazard: return "Hazard lights";
@@ -158,6 +160,7 @@ namespace CarSim::Input
             {GameAction::SelectorDrive, Keys::F},
             {GameAction::ToggleTransmission, Keys::T},
             {GameAction::ToggleDifferential, Keys::U},
+            {GameAction::CycleWipers, Keys::I},
             {GameAction::IndicatorLeft, Keys::OemComma},
             {GameAction::IndicatorRight, Keys::OemPeriod},
             {GameAction::Hazard, Keys::H},
@@ -394,6 +397,7 @@ namespace CarSim::Input
         if (Pressed(GameAction::Hazard)) c.indicator = Sim::IndicatorRequest::ToggleHazard;
         c.toggleHeadlights = Pressed(GameAction::Headlights);
         c.toggleHighBeam = Pressed(GameAction::HighBeam);
+        c.cycleWipers = Pressed(GameAction::CycleWipers);
         c.resetTrip = Pressed(GameAction::ResetTrip);
         return c;
     }

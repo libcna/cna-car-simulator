@@ -188,6 +188,15 @@ namespace CarSim::Core
                                                 std::string(*value) + "'");
                     }
                 }
+            } else if (arg == "--wipers") {
+                if (const auto value = takeValue(arg)) {
+                    const std::string v(*value);
+                    if (v == "int" || v == "intermittent") options.wiperSteps = 1;
+                    else if (v == "slow") options.wiperSteps = 2;
+                    else if (v == "fast") options.wiperSteps = 3;
+                    else if (v == "off") options.wiperSteps = 0;
+                    else result.errors.push_back("--wipers expects off, int, slow or fast, got '" + v + "'");
+                }
             } else if (arg == "--time-scale") {
                 if (const auto value = takeValue(arg)) {
                     try {
@@ -300,6 +309,7 @@ namespace CarSim::Core
             "  --time <hh:mm>        Clock the world starts at (also accepts decimal hours)\n"
             "  --time-scale <x>      Simulated seconds of the clock per real second (0 freezes the sky)\n"
             "  --weather <name>      clear, cloudy, overcast or rain (the weather starts settled)\n"
+            "  --wipers <mode>       off, int, slow or fast (starts the engine if needed)\n"
             "  --help-overlay        Start with the help overlay open\n"
             "  --debug-overlay       Start with the debug overlay open\n"
             "  --map-overlay         Start with the M map open\n"
