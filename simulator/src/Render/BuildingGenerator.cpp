@@ -81,6 +81,14 @@ namespace CarSim::Render
             f.AddBox(Vector3(w * 0.5f, -h * 0.5f - fw, 0.0f), Vector3(w * 0.5f + fw, h * 0.5f + fw, depth), 1.0f);
             f.AddBox(Vector3(-w * 0.5f, h * 0.5f, 0.0f), Vector3(w * 0.5f, h * 0.5f + fw, depth), 1.0f);
             f.AddBox(Vector3(-w * 0.5f, -h * 0.5f - fw, 0.0f), Vector3(w * 0.5f, -h * 0.5f, depth), 1.0f);
+            // The window cross: a centre mullion and a transom at two thirds of the height, the
+            // way Czech casement windows are divided. Narrow openings get the transom only.
+            const float bar = 0.035f, barDepth = 0.035f;
+            const float transomY = h * (2.0f / 3.0f) - h * 0.5f;
+            f.AddBox(Vector3(-w * 0.5f, transomY - bar, 0.0f), Vector3(w * 0.5f, transomY + bar, barDepth), 1.0f);
+            if (w > 0.8f) {
+                f.AddBox(Vector3(-bar, -h * 0.5f, 0.0f), Vector3(bar, h * 0.5f, barDepth), 1.0f);
+            }
             frames.Append(f, FaceBasis(n, centre + n * 0.004f));
             MeshData d;
             d.AddQuad(Vector3(-w * 0.5f, h * 0.5f - 0.11f, 0.0f), Vector3(w * 0.5f, h * 0.5f - 0.11f, 0.0f), Vector3(w * 0.5f, h * 0.5f, 0.0f),
@@ -195,7 +203,8 @@ namespace CarSim::Render
         }
 
         void WindowRow(MeshData& windows, MeshData& trim, MeshData* frames, MeshData* dark, const float hw, const float hd, const float yBottom,
-                       const float h, const float w, const float spacing, const Vector3& n, const bool sill, const int skipCentre = -1)
+                       const float h, const float w, const float spacing, const Vector3& n, const bool sill, const int skipCentre = -1,
+                       const bool surround = false)
         {
             const bool frontBack = std::fabs(n.Z) > 0.5f;
             const float span = frontBack ? hw : hd;
@@ -207,6 +216,17 @@ namespace CarSim::Render
                 Vector3 centre = frontBack ? Vector3(along, yBottom + h * 0.5f, n.Z * hd) : Vector3(n.X * hw, yBottom + h * 0.5f, along);
                 Window(windows, centre, w, h, n);
                 if (frames && dark) Frame(*frames, *dark, centre, w, h, n);
+                if (surround && frames) {
+                    // Town-house window surround: a flat plaster band round the opening and a
+                    // small cornice (the head moulding) over it that throws a shadow line.
+                    MeshData s;
+                    const float band = 0.13f, proud = 0.025f;
+                    s.AddBox(Vector3(-w * 0.5f - 0.08f - band, -h * 0.5f - 0.08f, 0.0f), Vector3(-w * 0.5f - 0.08f, h * 0.5f + 0.08f, proud), 1.0f);
+                    s.AddBox(Vector3(w * 0.5f + 0.08f, -h * 0.5f - 0.08f, 0.0f), Vector3(w * 0.5f + 0.08f + band, h * 0.5f + 0.08f, proud), 1.0f);
+                    s.AddBox(Vector3(-w * 0.5f - 0.08f - band, h * 0.5f + 0.08f, 0.0f), Vector3(w * 0.5f + 0.08f + band, h * 0.5f + 0.08f + band, proud), 1.0f);
+                    s.AddBox(Vector3(-w * 0.5f - 0.30f, h * 0.5f + 0.08f + band, 0.0f), Vector3(w * 0.5f + 0.30f, h * 0.5f + 0.2f + band, 0.12f), 1.0f);
+                    frames->Append(s, FaceBasis(n, centre));
+                }
                 if (sill) {
                     const Vector3 up(0.0f, 1.0f, 0.0f);
                     const Vector3 right = Vector3::Cross(up, n);
@@ -433,10 +453,13 @@ namespace CarSim::Render
                     const float y = static_cast<float>(f) * floorH + (f == 0 ? 1.0f : 0.95f);
                     const bool shopFront = type == "shop" && f == 0;
                     const int doorSlot = f == 0 ? 0 : -1;
+                    // Street facades of town houses and shops carry window surrounds; farm
+                    // houses and the backs of buildings stay plain, as they are in the villages.
+                    const bool dressed = floors >= 2 && type != "farm";
                     if (shopFront) {
                         WindowRow(glass, trim, &frames, &dark, hw, hd, 0.5f, 2.2f, 2.4f, 3.0f, front, false, 0);
                     } else {
-                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, front, true, doorSlot);
+                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, front, true, doorSlot, dressed);
                     }
                     WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, back, true);
                     if (hw * 2.0f > 6.0f) {
@@ -455,6 +478,19 @@ namespace CarSim::Render
                 if (floors >= 2) {
                     Box(frames, Vector3(-hw - 0.05f, h - 0.24f, -hd - 0.05f), Vector3(hw + 0.05f, h - 0.08f, hd + 0.05f), 1.0f);
                     Box(frames, Vector3(-hw - 0.03f, floorH - 0.04f, -hd - 0.03f), Vector3(hw + 0.03f, floorH + 0.04f, hd + 0.03f), 1.0f);
+                    // Corner pilasters (lizény) from the plinth to the cornice.
+                    for (const float sx : {-1.0f, 1.0f}) {
+                        for (const float sz : {-1.0f, 1.0f}) {
+                            const float x0 = sx * hw, z0 = sz * hd;
+                            Box(frames, Vector3(std::min(x0, x0 - sx * 0.45f) - 0.02f, 0.45f, std::min(z0, z0 + sz * 0.035f)),
+                                Vector3(std::max(x0, x0 - sx * 0.45f) + 0.02f, h - 0.24f, std::max(z0, z0 + sz * 0.035f)), 1.0f);
+                            Box(frames, Vector3(std::min(x0, x0 + sx * 0.035f), 0.45f, std::min(z0, z0 - sz * 0.45f) - 0.02f),
+                                Vector3(std::max(x0, x0 + sx * 0.035f), h - 0.24f, std::max(z0, z0 - sz * 0.45f) + 0.02f), 1.0f);
+                        }
+                    }
+                } else if (type != "barn") {
+                    // Even a cottage has a plain band under the eaves.
+                    Box(frames, Vector3(-hw - 0.03f, h - 0.18f, -hd - 0.03f), Vector3(hw + 0.03f, h - 0.06f, hd + 0.03f), 1.0f);
                 }
                 // A dormer on some two-storey gabled houses.
                 if (type == "house" && floors >= 2 && !hipped && seed % 3u == 1u && hw > 4.5f) {

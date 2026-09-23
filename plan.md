@@ -1372,7 +1372,9 @@ Recorded so the next pass does not have to rediscover the reasoning.
 
 - **No new weather, seasons, missions, economy, police, pedestrians, vehicles or settlements.**
   The brief for this phase ruled them out and nothing here needed them.
-- **Building facades were not rebuilt.** Windows already carry a frame, a sill and a reveal
+- **Building facades were not rebuilt.** (Partly addressed after Phase 13: framed windows now
+  carry a mullion and transom, street facades of town houses get window surrounds with a head
+  moulding, two-storey houses corner pilasters, cottages an eaves band.) Windows already carry a frame, a sill and a reveal
   within 420 m, and the settlements vary facade and roof colour per seed. Flat facades remain the
   most obvious "procedural" tell in a street scene at middle distance, but fixing it properly
   means more geometry on 624 buildings and belongs in a pass that can measure the cost on real
