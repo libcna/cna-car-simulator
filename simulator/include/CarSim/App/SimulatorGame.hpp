@@ -70,6 +70,8 @@ namespace CarSim::App
         void ApplyClockSettings();
         void ApplyWeatherSettings();
         void ApplyWeatherToWorld();
+        /// Controller vibration from wheel slip, ABS, rough ground and impacts.
+        void UpdateRumble(const Sim::VehicleState& state, float dt);
         /// Reads the graphics tier from the save (or --quality) and applies its draw distances
         /// and mirror rate. Called once the renderers exist.
         void ApplyQualitySettings();
@@ -118,6 +120,9 @@ namespace CarSim::App
         std::vector<Collision::ContactEvent> contactEvents_;
         int collisionCount_ = 0;
         float lastImpactSpeed_ = 0.0f;
+        float impactRumble_ = 0.0f;
+        float rumbleLow_ = 0.0f;
+        float rumbleHigh_ = 0.0f;
         Input::InputMapper input_;
         bool walking_ = false;
         bool running_ = false;

@@ -251,3 +251,38 @@ TEST(SaveData, GraphicsTiersParseAndAreOrdered)
     EXPECT_FLOAT_EQ(high.drawDistanceScale, 1.0f);
     EXPECT_EQ(high.mirrorUpdateEvery, 1);
 }
+
+TEST(InputBindings, GamePadDrivesWithAnalogPedalsAndSteering)
+{
+    using Microsoft::Xna::Framework::Vector2;
+    using Microsoft::Xna::Framework::Input::Buttons;
+    using Microsoft::Xna::Framework::Input::GamePadState;
+    Input::InputMapper mapper;
+    mapper.UpdatePad(GamePadState(Vector2(-0.5f, 0.0f), Vector2(0.0f, 0.0f), 0.25f, 0.7f, {}), false);
+    auto c = mapper.BuildDriverControls(Sim::TransmissionMode::Manual);
+    EXPECT_NEAR(c.throttle, 0.7f, 1e-4f);
+    EXPECT_NEAR(c.brake, 0.25f, 1e-4f);
+    EXPECT_LT(c.steering, 0.0f);
+    EXPECT_GT(c.steering, -0.5f) << "a thumbstick is curved for fine control near the centre";
+
+    // A wheel is linear.
+    mapper.UpdatePad(GamePadState(Vector2(-0.5f, 0.0f), Vector2(0.0f, 0.0f), 0.0f, 0.0f, {}), true);
+    c = mapper.BuildDriverControls(Sim::TransmissionMode::Manual);
+    EXPECT_NEAR(c.steering, -0.5f, 1e-4f);
+
+    // Buttons: a press is an edge, a hold is not repeated.
+    mapper.UpdatePad(GamePadState(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), 0.0f, 0.0f, {Buttons::RightShoulder, Buttons::X}), false);
+    c = mapper.BuildDriverControls(Sim::TransmissionMode::Manual);
+    EXPECT_TRUE(c.shiftUp);
+    EXPECT_FLOAT_EQ(c.clutch, 1.0f);
+    mapper.UpdatePad(GamePadState(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), 0.0f, 0.0f, {Buttons::RightShoulder}), false);
+    c = mapper.BuildDriverControls(Sim::TransmissionMode::Manual);
+    EXPECT_FALSE(c.shiftUp);
+    EXPECT_EQ(mapper.PadButtonsFor(Input::GameAction::ShiftUp), "RB");
+
+    // Keyboard still works and wins where it asks for more.
+    mapper.Update(Microsoft::Xna::Framework::Input::KeyboardState{Microsoft::Xna::Framework::Input::Keys::W});
+    mapper.UpdatePad(GamePadState(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), 0.0f, 0.3f, {}), false);
+    c = mapper.BuildDriverControls(Sim::TransmissionMode::Manual);
+    EXPECT_FLOAT_EQ(c.throttle, 1.0f);
+}

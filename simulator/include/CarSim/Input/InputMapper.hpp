@@ -3,9 +3,12 @@
 
 #include "CarSim/Sim/DriverControls.hpp"
 
+#include "Microsoft/Xna/Framework/Input/Buttons.hpp"
+#include "Microsoft/Xna/Framework/Input/GamePadState.hpp"
 #include "Microsoft/Xna/Framework/Input/KeyboardState.hpp"
 #include "Microsoft/Xna/Framework/Input/Keys.hpp"
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,6 +37,24 @@ namespace CarSim::Input
         Microsoft::Xna::Framework::Input::Keys key;
     };
 
+    /// A game-controller button bound to an action (buttons are fixed, not user-rebindable).
+    struct PadBinding
+    {
+        GameAction action;
+        Microsoft::Xna::Framework::Input::Buttons button;
+    };
+
+    /// What the first game controller reported this frame, reduced to what driving needs.
+    struct PadSnapshot
+    {
+        bool connected = false;
+        bool wheel = false;              // a steering wheel: linear steering, no stick curve
+        float steering = 0.0f;           // -1..1, positive = right
+        float throttle = 0.0f;           // 0..1 (right trigger / accelerator pedal)
+        float brake = 0.0f;              // 0..1 (left trigger / brake pedal)
+        std::uint32_t buttons = 0;       // Buttons flags held
+    };
+
     /// Polls the keyboard once per frame and answers held/pressed queries per action.
     /// Bindings are data so a settings file (or a gamepad layer) can replace them later.
     class InputMapper
@@ -49,6 +70,14 @@ namespace CarSim::Input
         void Update();
         /// Feeds an explicit state (tests).
         void Update(const Microsoft::Xna::Framework::Input::KeyboardState& state);
+        /// Feeds a game-controller state (tests; Update() reads player one itself). `wheel`
+        /// selects the steering-wheel profile.
+        void UpdatePad(const Microsoft::Xna::Framework::Input::GamePadState& state, bool wheel);
+        [[nodiscard]] const PadSnapshot& Pad() const { return pad_; }
+        [[nodiscard]] static std::vector<PadBinding> DefaultPadBindings();
+        /// Controller buttons bound to an action, joined with " / " (empty when none).
+        [[nodiscard]] std::string PadButtonsFor(GameAction action) const;
+        [[nodiscard]] static std::string ButtonName(Microsoft::Xna::Framework::Input::Buttons button);
 
         [[nodiscard]] bool Held(GameAction action) const;
         [[nodiscard]] bool Pressed(GameAction action) const;   // went down this frame
@@ -70,7 +99,13 @@ namespace CarSim::Input
         [[nodiscard]] std::string KeysFor(GameAction action) const;
 
     private:
+        [[nodiscard]] bool KeyHeld(GameAction action) const;
+        [[nodiscard]] bool PadHeld(GameAction action) const;
+
         std::vector<Binding> bindings_;
+        std::vector<PadBinding> padBindings_;
+        PadSnapshot pad_;
+        std::uint32_t previousPadButtons_ = 0;
         Microsoft::Xna::Framework::Input::KeyboardState current_;
         Microsoft::Xna::Framework::Input::KeyboardState previous_;
     };

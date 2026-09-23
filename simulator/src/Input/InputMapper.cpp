@@ -1,12 +1,23 @@
 #include "CarSim/Input/InputMapper.hpp"
 
+#include "Microsoft/Xna/Framework/Input/GamePad.hpp"
+#include "Microsoft/Xna/Framework/Input/GamePadCapabilities.hpp"
+#include "Microsoft/Xna/Framework/Input/GamePadDeadZone.hpp"
+#include "Microsoft/Xna/Framework/Input/GamePadType.hpp"
 #include "Microsoft/Xna/Framework/Input/Keyboard.hpp"
+#include "Microsoft/Xna/Framework/PlayerIndex.hpp"
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 
 namespace CarSim::Input
 {
+    using Microsoft::Xna::Framework::Input::Buttons;
+    using Microsoft::Xna::Framework::Input::GamePad;
+    using Microsoft::Xna::Framework::Input::GamePadDeadZone;
+    using Microsoft::Xna::Framework::Input::GamePadState;
+    using Microsoft::Xna::Framework::Input::GamePadType;
     using Microsoft::Xna::Framework::Input::Keyboard;
     using Microsoft::Xna::Framework::Input::KeyboardState;
     using Microsoft::Xna::Framework::Input::Keys;
@@ -178,8 +189,31 @@ namespace CarSim::Input
         };
     }
 
+    std::vector<PadBinding> InputMapper::DefaultPadBindings()
+    {
+        // Sticks and triggers drive the car directly (see UpdatePad); the buttons follow the
+        // usual racing-game layout, and a wheel's paddles report as the shoulder buttons.
+        return {
+            {GameAction::ShiftUp, Buttons::RightShoulder},
+            {GameAction::ShiftDown, Buttons::LeftShoulder},
+            {GameAction::Clutch, Buttons::X},
+            {GameAction::Handbrake, Buttons::B},
+            {GameAction::SelectorDrive, Buttons::A},
+            {GameAction::ToggleCamera, Buttons::Y},
+            {GameAction::ToggleEngine, Buttons::Start},
+            {GameAction::ToggleTransmission, Buttons::Back},
+            {GameAction::IndicatorLeft, Buttons::DPadLeft},
+            {GameAction::IndicatorRight, Buttons::DPadRight},
+            {GameAction::Headlights, Buttons::DPadUp},
+            {GameAction::Horn, Buttons::DPadDown},
+            {GameAction::HighBeam, Buttons::LeftStick},
+            {GameAction::Hazard, Buttons::RightStick},
+        };
+    }
+
     InputMapper::InputMapper()
-        : bindings_(DefaultBindings())
+        : bindings_(DefaultBindings()),
+          padBindings_(DefaultPadBindings())
     {
     }
 
@@ -191,6 +225,91 @@ namespace CarSim::Input
     void InputMapper::Update()
     {
         Update(Keyboard::GetState());
+        using Microsoft::Xna::Framework::PlayerIndex;
+        const GamePadState state = GamePad::GetState(PlayerIndex::One, GamePadDeadZone::IndependentAxes);
+        bool wheel = false;
+        if (state.getIsConnectedProperty()) {
+            wheel = GamePad::GetCapabilities(PlayerIndex::One).getGamePadTypeProperty() == GamePadType::Wheel;
+        }
+        UpdatePad(state, wheel);
+    }
+
+    void InputMapper::UpdatePad(const GamePadState& state, const bool wheel)
+    {
+        previousPadButtons_ = pad_.buttons;
+        pad_ = PadSnapshot{};
+        if (!state.getIsConnectedProperty()) {
+            return;
+        }
+        pad_.connected = true;
+        pad_.wheel = wheel;
+        const float x = std::clamp(state.getThumbSticksProperty().getLeftProperty().X, -1.0f, 1.0f);
+        // A thumbstick has a few millimetres of travel: an exponent keeps the centre fine and
+        // still reaches full lock. A wheel is already a 1:1 control.
+        pad_.steering = wheel ? x : std::copysign(std::pow(std::fabs(x), 1.6f), x);
+        pad_.throttle = std::clamp(state.getTriggersProperty().getRightProperty(), 0.0f, 1.0f);
+        pad_.brake = std::clamp(state.getTriggersProperty().getLeftProperty(), 0.0f, 1.0f);
+        static constexpr Buttons kAll[] = {
+            Buttons::DPadUp, Buttons::DPadDown, Buttons::DPadLeft, Buttons::DPadRight, Buttons::Start, Buttons::Back,
+            Buttons::LeftStick, Buttons::RightStick, Buttons::LeftShoulder, Buttons::RightShoulder, Buttons::A,
+            Buttons::B, Buttons::X, Buttons::Y,
+        };
+        for (const Buttons b : kAll) {
+            if (state.IsButtonDown(b)) pad_.buttons |= static_cast<std::uint32_t>(b);
+        }
+    }
+
+    bool InputMapper::PadHeld(const GameAction action) const
+    {
+        for (const auto& b : padBindings_) {
+            if (b.action == action && (pad_.buttons & static_cast<std::uint32_t>(b.button)) != 0) {
+                return true;
+            }
+        }
+        // Analog controls also count as held past half travel, so walking and flying (which
+        // read actions, not pedals) answer to the controller too.
+        if (pad_.connected) {
+            switch (action) {
+                case GameAction::Throttle: return pad_.throttle > 0.5f;
+                case GameAction::Brake: return pad_.brake > 0.5f;
+                case GameAction::SteerLeft: return pad_.steering < -0.5f;
+                case GameAction::SteerRight: return pad_.steering > 0.5f;
+                default: break;
+            }
+        }
+        return false;
+    }
+
+    std::string InputMapper::ButtonName(const Buttons button)
+    {
+        switch (button) {
+            case Buttons::DPadUp: return "D-pad up";
+            case Buttons::DPadDown: return "D-pad down";
+            case Buttons::DPadLeft: return "D-pad left";
+            case Buttons::DPadRight: return "D-pad right";
+            case Buttons::Start: return "Start";
+            case Buttons::Back: return "Back";
+            case Buttons::LeftStick: return "Left stick click";
+            case Buttons::RightStick: return "Right stick click";
+            case Buttons::LeftShoulder: return "LB";
+            case Buttons::RightShoulder: return "RB";
+            case Buttons::A: return "A";
+            case Buttons::B: return "B";
+            case Buttons::X: return "X";
+            case Buttons::Y: return "Y";
+            default: return "?";
+        }
+    }
+
+    std::string InputMapper::PadButtonsFor(const GameAction action) const
+    {
+        std::string out;
+        for (const auto& b : padBindings_) {
+            if (b.action != action) continue;
+            if (!out.empty()) out += " / ";
+            out += ButtonName(b.button);
+        }
+        return out;
     }
 
     void InputMapper::Update(const KeyboardState& state)
@@ -199,7 +318,7 @@ namespace CarSim::Input
         current_ = state;
     }
 
-    bool InputMapper::Held(const GameAction action) const
+    bool InputMapper::KeyHeld(const GameAction action) const
     {
         for (const auto& b : bindings_) {
             if (b.action == action && current_.IsKeyDown(b.key)) {
@@ -209,10 +328,21 @@ namespace CarSim::Input
         return false;
     }
 
+    bool InputMapper::Held(const GameAction action) const
+    {
+        return KeyHeld(action) || PadHeld(action);
+    }
+
     bool InputMapper::Pressed(const GameAction action) const
     {
         for (const auto& b : bindings_) {
             if (b.action == action && current_.IsKeyDown(b.key) && !previous_.IsKeyDown(b.key)) {
+                return true;
+            }
+        }
+        for (const auto& b : padBindings_) {
+            const auto bit = static_cast<std::uint32_t>(b.button);
+            if (b.action == action && (pad_.buttons & bit) != 0 && (previousPadButtons_ & bit) == 0) {
                 return true;
             }
         }
@@ -222,10 +352,18 @@ namespace CarSim::Input
     Sim::DriverControls InputMapper::BuildDriverControls(const Sim::TransmissionMode mode) const
     {
         Sim::DriverControls c;
-        c.throttle = Held(GameAction::Throttle) ? 1.0f : 0.0f;
-        c.brake = Held(GameAction::Brake) ? 1.0f : 0.0f;
+        // The pedals and the wheel read the keys alone; the controller's analog travel is merged
+        // below rather than through Held, which rounds it to on/off.
+        c.throttle = KeyHeld(GameAction::Throttle) ? 1.0f : 0.0f;
+        c.brake = KeyHeld(GameAction::Brake) ? 1.0f : 0.0f;
         c.clutch = Held(GameAction::Clutch) ? 1.0f : 0.0f;
-        c.steering = (Held(GameAction::SteerRight) ? 1.0f : 0.0f) - (Held(GameAction::SteerLeft) ? 1.0f : 0.0f);
+        c.steering = (KeyHeld(GameAction::SteerRight) ? 1.0f : 0.0f) - (KeyHeld(GameAction::SteerLeft) ? 1.0f : 0.0f);
+        if (pad_.connected) {
+            // Analog controls: whichever of keyboard and controller asks for more wins.
+            c.throttle = std::max(c.throttle, pad_.throttle);
+            c.brake = std::max(c.brake, pad_.brake);
+            if (std::fabs(pad_.steering) > std::fabs(c.steering)) c.steering = pad_.steering;
+        }
         c.handbrake = Held(GameAction::Handbrake);
         c.horn = Held(GameAction::Horn);
         c.toggleEngine = Pressed(GameAction::ToggleEngine);

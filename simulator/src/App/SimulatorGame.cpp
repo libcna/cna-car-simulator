@@ -22,7 +22,9 @@
 #include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SpriteSortMode.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Viewport.hpp"
+#include "Microsoft/Xna/Framework/Input/GamePad.hpp"
 #include "Microsoft/Xna/Framework/Input/Keyboard.hpp"
+#include "Microsoft/Xna/Framework/PlayerIndex.hpp"
 #include "Microsoft/Xna/Framework/Input/Keys.hpp"
 #include "System/TimeSpan.hpp"
 
@@ -730,6 +732,40 @@ namespace CarSim::App
         }
     }
 
+    void SimulatorGame::UpdateRumble(const Sim::VehicleState& state, const float dt)
+    {
+        using Microsoft::Xna::Framework::PlayerIndex;
+        using Microsoft::Xna::Framework::Input::GamePad;
+        if (!input_.Pad().connected) {
+            rumbleLow_ = rumbleHigh_ = 0.0f;
+            return;
+        }
+        // Low motor: wheelspin or a locked wheel, and a knock on impact that dies away; high
+        // motor: the ABS pump and a rough surface under the tyres.
+        float slip = 0.0f;
+        bool rough = false;
+        for (const auto& w : state.wheels) {
+            if (!w.grounded) continue;
+            slip = std::max(slip, std::fabs(w.slipRatio));
+            rough = rough || w.surface == Sim::SurfaceType::Gravel || w.surface == Sim::SurfaceType::Grass;
+        }
+        impactRumble_ = std::max(0.0f, impactRumble_ - 2.5f * dt);
+        for (const auto& e : contactEvents_) {
+            impactRumble_ = std::max(impactRumble_, std::min(1.0f, e.closingSpeed / 8.0f));
+        }
+        const bool driving = !walking_ && !state.flightMode;
+        const float speedShare = std::clamp(state.speedKmh / 60.0f, 0.0f, 1.0f);
+        float low = driving ? std::clamp((slip - 0.15f) * 1.5f, 0.0f, 0.6f) : 0.0f;
+        float high = driving ? (state.absActive ? 0.35f : 0.0f) + (rough ? 0.18f * speedShare : 0.0f) : 0.0f;
+        low = std::clamp(low + impactRumble_, 0.0f, 1.0f);
+        high = std::clamp(high, 0.0f, 1.0f);
+        if (std::fabs(low - rumbleLow_) > 0.02f || std::fabs(high - rumbleHigh_) > 0.02f) {
+            rumbleLow_ = low;
+            rumbleHigh_ = high;
+            GamePad::SetVibration(PlayerIndex::One, low, high);
+        }
+    }
+
     void SimulatorGame::ApplyWeatherToWorld()
     {
         rig_.SetWeather(weather_.cloudCover, weather_.rain);
@@ -1033,6 +1069,7 @@ namespace CarSim::App
         }
 
         const auto state = vehicle_->Snapshot();
+        UpdateRumble(state, dt);
         if (exhaustSmoke_) {
             const float bearing = weather_.windFromDeg * std::numbers::pi_v<float> / 180.0f;
             const Vector3 wind(-std::sin(bearing) * weather_.windSpeedMs, 0.0f,
@@ -1560,6 +1597,14 @@ namespace CarSim::App
             const float y = top + 52.0f + static_cast<float>(row) * rowHeight;
             std::string keys = input_.KeysFor(a);
             std::string label = Input::Describe(a);
+            if (input_.Pad().connected) {
+                // With a controller connected, show its control where it has one.
+                std::string pad = input_.PadButtonsFor(a);
+                if (a == GameAction::Throttle) pad = input_.Pad().wheel ? "Accelerator" : "RT";
+                if (a == GameAction::Brake) pad = input_.Pad().wheel ? "Brake pedal" : "LT";
+                if (a == GameAction::SteerLeft || a == GameAction::SteerRight) pad = input_.Pad().wheel ? "Wheel" : "Left stick";
+                if (!pad.empty()) keys = pad;
+            }
             if (a == GameAction::Gear1) {
                 keys = "1 - 6";
                 label = "Select a gear (manual)";

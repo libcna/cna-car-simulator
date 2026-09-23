@@ -232,6 +232,27 @@ or at standstill in gear stalls the engine; in automatic mode the car creeps in 
 the fuel drops to half of the reserve amount the tank is refilled to 100 % (both fractions are
 vehicle-definition parameters, `fuel.refillAtReserveFraction` and `fuel.refillToFraction`).
 
+### Gamepad and steering wheel
+
+The first game controller (XNA `GamePad`, player one) works alongside the keyboard; whichever
+asks for more throttle, brake or steering wins. A controller that reports itself as a wheel
+(`GamePadType::Wheel`) steers linearly, a gamepad's stick is curved for fine control near the
+centre. With a controller connected, `F1` shows its buttons.
+
+| Control | Gamepad | Wheel |
+|---|---|---|
+| Steer | left stick | wheel |
+| Accelerate / brake | `RT` / `LT` | accelerator / brake pedal |
+| Gear up / down (manual), selector up / down (automatic) | `RB` / `LB` | right / left paddle |
+| Clutch (held), handbrake | `X`, `B` | `X`, `B` |
+| Drive (automatic), camera | `A`, `Y` | `A`, `Y` |
+| Engine start / stop, automatic / manual | `Start`, `Back` | `Start`, `Back` |
+| Indicators left / right, headlights, horn | D-pad left / right / up / down | D-pad |
+| High beam, hazard | left / right stick click | |
+
+The controller vibrates with wheelspin or a locked wheel, the ABS, gravel and grass, and on
+impacts. Controller buttons are fixed; the keyboard bindings stay configurable.
+
 ## Save file and settings
 
 Odometer, trip, transmission mode, the last vehicle and map, and settings are stored as JSON
