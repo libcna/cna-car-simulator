@@ -1563,8 +1563,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [~] `P14-011` Extract traffic planning/queries/spawning or junction ownership incrementally.
   First step: the existing overtake and return-to-lane methods were moved unchanged into
   `TrafficOvertaking.cpp` (130 lines identical to the old definitions); four targeted overtake
-  tests and the complete suite pass. Acceptance for completion: further meaningful ownership
-  separation with signal, heavy-vehicle and pedestrian tests plus all soaks still passing.
+  tests and the complete suite pass. The four body selection/spawn/despawn methods (120 lines)
+  then moved byte-identically into `TrafficSpawning.cpp`; the population, visibility and
+  heavy-vehicle junction tests and the complete six-part suite, including all soaks, pass.
+  Acceptance for completion:
+  further meaningful junction/query ownership separation with signal, heavy-vehicle and
+  pedestrian tests plus all soaks still passing.
 - [~] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
   replacement architecture. The four existing scenery builders (buildings/props, lamp geometry,
   tree cards, signs) moved byte-identically into `WorldRendererScenery.cpp` while the render

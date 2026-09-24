@@ -262,6 +262,13 @@ tests; a filtered blade sweep and restrained turbine layer improve the tonal-onl
 The 90-frame dummy-audio flight run reported 0.332 ms mean audio update. No real-speaker
 listening result or recorded engine samples are claimed; see `docs/audio-design.md`.
 
+The four existing traffic population methods (body selection, direct spawn, despawn and
+player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
+population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,
+including all traffic soaks, pass. Traffic routing,
+following, intersection admission and recovery still share `TrafficSystem.cpp` and remain
+the next candidate for careful extraction.
+
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,
