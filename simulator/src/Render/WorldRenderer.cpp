@@ -1413,7 +1413,10 @@ namespace CarSim::Render
 
         // Trees: alpha-tested cards, both windings present, distance culled.
         const Vector3 cameraPosition = Matrix::Invert(view).getTranslationProperty();
-        const float treeRange = maxDistance > 0.0f ? std::min(maxDistance, 1100.0f) : 1100.0f * scale * vegetationScale_;
+        // Alpha-tested foliage otherwise leaves pale cut-out silhouettes after the rest of the
+        // world has vanished into dense fog. Use the same visibility horizon as opaque objects;
+        // the effect's fog ramp hides the last visible cards before a batch is culled.
+        const float treeRange = std::min(horizon, maxDistance > 0.0f ? std::min(maxDistance, 1100.0f) : 1100.0f * scale * vegetationScale_);
         device.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
         treeEffect_->setDiffuseColorProperty(bakedScale_ * (1.0f - 0.10f * wetness_));
         treeEffect_->setWorldProperty(Matrix::getIdentityProperty());
@@ -1425,8 +1428,12 @@ namespace CarSim::Render
                 continue;
             }
             const BoundingSphere& sphere = b.mesh->Sphere();
-            if (Vector3::Distance(sphere.Center, cameraPosition) - sphere.Radius > treeRange) {
+            const float centreDistance = Vector3::Distance(sphere.Center, cameraPosition);
+            if (centreDistance - sphere.Radius > treeRange) {
                 continue;
+            }
+            if (rig_.fogEnd < 400.0f && centreDistance > treeRange + 30.0f) {
+                continue;   // a coarse 256 m chunk must not leave a white silhouette beyond dense fog
             }
             treeEffect_->setTextureProperty(b.texture);
             ApplyAll(*treeEffect_, device, *b.mesh);
