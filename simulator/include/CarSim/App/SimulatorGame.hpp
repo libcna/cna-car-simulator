@@ -141,6 +141,7 @@ namespace CarSim::App
         bool running_ = false;
         bool walkingMoving_ = false;
         Microsoft::Xna::Framework::Vector3 walkingPosition_{};
+        Microsoft::Xna::Framework::Vector3 walkingVelocity_{};
         float walkingYaw_ = 0.0f;
         float walkingStepDistance_ = 0.0f;
         float walkingBobPhase_ = 0.0f;
@@ -229,6 +230,7 @@ namespace CarSim::App
             long long drawCalls = 0, triangles = 0;
             long long terrainChunks = 0, roadBatches = 0, objectBatches = 0, treeBatches = 0;
             long long trafficCount = 0, trafficDrawn = 0, trafficLod0 = 0, trafficLod1 = 0, trafficLod2 = 0, parkedDrawn = 0;
+            long long pedestrianCount = 0, pedestrianDrawn = 0, pedestrianDrawCalls = 0, pedestrianTriangles = 0;
             double passSum[kPassCount] = {};
             // The update half, split the same way the overlay splits it.
             double vehicleSum = 0.0, collisionSum = 0.0, trafficMsSum = 0.0, audioSum = 0.0;

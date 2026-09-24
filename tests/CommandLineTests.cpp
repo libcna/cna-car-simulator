@@ -68,6 +68,18 @@ TEST(CommandLine, StartsMapAndHelicopterForCaptures)
     EXPECT_TRUE(result.options.startFlight);
 }
 
+TEST(CommandLine, StartsWalkingForCapturesButNotWithFlightOrDrivingRoute)
+{
+    const std::array<const char*, 2> walk{"sim", "--walk"};
+    const auto accepted = ParseCommandLine(static_cast<int>(walk.size()), walk.data());
+    ASSERT_TRUE(accepted.ok());
+    EXPECT_TRUE(accepted.options.startWalking);
+    const std::array<const char*, 3> flight{"sim", "--walk", "--flight"};
+    EXPECT_FALSE(ParseCommandLine(static_cast<int>(flight.size()), flight.data()).ok());
+    const std::array<const char*, 4> route{"sim", "--walk", "--route", "town"};
+    EXPECT_FALSE(ParseCommandLine(static_cast<int>(route.size()), route.data()).ok());
+}
+
 TEST(CommandLine, ParsesTheClock)
 {
     {

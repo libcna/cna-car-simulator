@@ -574,6 +574,10 @@ namespace CarSim::App
         audio_->levels.engine = save_.settings.engineVolume;
         audio_->levels.effects = save_.settings.effectsVolume;
         std::cout << "audio: " << (audio_->Enabled() ? "stereo stream at 44.1 kHz" : "disabled") << "\n";
+        if (options_.startWalking) {
+            ToggleWalking();
+            if (!walking_) std::cerr << "walking: --walk could not enter on foot at this spawn\n";
+        }
     }
 
     void SimulatorGame::UnloadContent()
@@ -1047,6 +1051,7 @@ namespace CarSim::App
             walking_ = false;
             running_ = false;
             walkingMoving_ = false;
+            walkingVelocity_ = Vector3(0.0f, 0.0f, 0.0f);
             std::cout << "walking: returned to car\n";
             return;
         }
@@ -1070,6 +1075,7 @@ namespace CarSim::App
             walking_ = true;
             running_ = false;
             walkingMoving_ = false;
+            walkingVelocity_ = Vector3(0.0f, 0.0f, 0.0f);
             walkingPosition_ = foot;
             walkingYaw_ = std::atan2(-forward.X, -forward.Z);
             walkingStepDistance_ = 0.5f;
@@ -1096,23 +1102,26 @@ namespace CarSim::App
                           0.0f,
                           -std::cos(walkingYaw_) * forward + std::sin(walkingYaw_) * sideways);
         walkingMoving_ = false;
-        if (direction.LengthSquared() < 0.001f) return;
-        direction.Normalize();
-        const float distance = (running_ ? kRunningSpeedKmh : kWalkingSpeedKmh) / 3.6f * std::clamp(dt, 0.0f, 0.25f);
+        walkingVelocity_ = StepWalkingVelocity(walkingVelocity_, direction, running_, dt);
+        const float distance = walkingVelocity_.Length() * std::clamp(dt, 0.0f, 0.25f);
+        if (distance < 1e-5f) return;
         const int steps = std::max(1, static_cast<int>(std::ceil(distance / 0.08f)));
-        const Vector3 delta = direction * (distance / static_cast<float>(steps));
+        const float stepSeconds = std::clamp(dt, 0.0f, 0.25f) / static_cast<float>(steps);
         const auto groundHeight = [this](const float x, const float z) {
             return map_ ? map_->Ground().HeightAt(x, z) : 0.0f;
         };
         float travelled = 0.0f;
         for (int i = 0; i < steps; ++i) {
+            const Vector3 delta = walkingVelocity_ * stepSeconds;
             const Vector3 previous = walkingPosition_;
             Vector3 next(walkingPosition_.X + delta.X, 0.0f, walkingPosition_.Z);
             next.Y = groundHeight(next.X, next.Z);
             if (WalkingCanOccupy(next)) walkingPosition_ = next;
+            else walkingVelocity_.X = 0.0f;
             next = Vector3(walkingPosition_.X, 0.0f, walkingPosition_.Z + delta.Z);
             next.Y = groundHeight(next.X, next.Z);
             if (WalkingCanOccupy(next)) walkingPosition_ = next;
+            else walkingVelocity_.Z = 0.0f;
             const Vector3 actual = walkingPosition_ - previous;
             travelled += std::hypot(actual.X, actual.Z);
         }
@@ -1475,6 +1484,12 @@ namespace CarSim::App
                     bench_.trafficLod2 += ts.lod2;
                 }
                 bench_.trafficCount += traffic_ ? static_cast<long long>(traffic_->Vehicles().size()) : 0;
+                bench_.pedestrianCount += pedestrians_ ? static_cast<long long>(pedestrians_->People().size()) : 0;
+                if (pedestrianRenderer_) {
+                    bench_.pedestrianDrawn += pedestrianRenderer_->DrawnLastFrame();
+                    bench_.pedestrianDrawCalls += pedestrianRenderer_->DrawCallsLastFrame();
+                    bench_.pedestrianTriangles += pedestrianRenderer_->TrianglesLastFrame();
+                }
                 for (int i = 0; i < kPassCount; ++i) bench_.passSum[i] += passMs_[i];
             }
             lastFrameEnd_ = drawEnd;
@@ -1522,7 +1537,8 @@ namespace CarSim::App
                 wallWorst = samples[rank];
             }
             const std::string scene = FormatClock(timeOfDayHours_) + " " + Core::ToString(weather_.kind) + " " +
-                                      (options_.freeView ? "free" : (cameraMode_ == Render::CameraMode::Cockpit ? "cockpit" : "chase")) +
+                                      (walking_ ? "walking" : (vehicle_ && vehicle_->FlightMode() ? "flight" : (options_.freeView ? "free" :
+                                       (cameraMode_ == Render::CameraMode::Cockpit ? "cockpit" : "chase")))) +
                                       (options_.spawn ? " spawn=" + *options_.spawn : std::string());
             std::cout << "benchmark: " << bench_.frames << " frames after " << bench_.warmupFrames << " warm-up frames, "
                       << viewportWidth_ << "x" << viewportHeight_ << ", scene " << scene << "\n"
@@ -1542,7 +1558,11 @@ namespace CarSim::App
                       << "  traffic avg: " << static_cast<double>(bench_.trafficCount) / n << " cars, drawn " << static_cast<double>(bench_.trafficDrawn) / n
                       << " (parked drawn " << static_cast<double>(bench_.parkedDrawn) / n << ")"
                       << " (lod0 " << static_cast<double>(bench_.trafficLod0) / n << ", lod1 " << static_cast<double>(bench_.trafficLod1) / n << ", lod2 "
-                      << static_cast<double>(bench_.trafficLod2) / n << ")\n";
+                      << static_cast<double>(bench_.trafficLod2) / n << ")\n"
+                      << "  people  avg: " << static_cast<double>(bench_.pedestrianCount) / n << " alive, "
+                      << static_cast<double>(bench_.pedestrianDrawn) / n << " drawn, "
+                      << static_cast<double>(bench_.pedestrianDrawCalls) / n << " submissions, "
+                      << static_cast<double>(bench_.pedestrianTriangles) / n / 1000.0 << "k triangles (main view)\n";
             if (options_.benchmarkJsonPath) {
                 std::ofstream json(*options_.benchmarkJsonPath);
                 if (json) {
@@ -1565,7 +1585,10 @@ namespace CarSim::App
                          << static_cast<double>(bench_.trafficCount) / n << ", \"drawn\": " << static_cast<double>(bench_.trafficDrawn) / n
                          << ", \"parkedDrawn\": " << static_cast<double>(bench_.parkedDrawn) / n << ", \"lod0\": "
                          << static_cast<double>(bench_.trafficLod0) / n << ", \"lod1\": " << static_cast<double>(bench_.trafficLod1) / n << ", \"lod2\": "
-                         << static_cast<double>(bench_.trafficLod2) / n << "},\n  \"mirrorUpdateEvery\": " << std::max(1, save_.settings.mirrorUpdateEvery)
+                         << static_cast<double>(bench_.trafficLod2) / n << "},\n  \"pedestriansAvg\": {\"alive\": "
+                         << static_cast<double>(bench_.pedestrianCount) / n << ", \"drawn\": " << static_cast<double>(bench_.pedestrianDrawn) / n
+                         << ", \"drawCalls\": " << static_cast<double>(bench_.pedestrianDrawCalls) / n << ", \"triangles\": "
+                         << static_cast<double>(bench_.pedestrianTriangles) / n << "},\n  \"mirrorUpdateEvery\": " << std::max(1, save_.settings.mirrorUpdateEvery)
                          << "\n}\n";
                     std::cout << "benchmark JSON written to " << *options_.benchmarkJsonPath << "\n";
                 }

@@ -45,6 +45,7 @@ namespace CarSim::Core
         bool showDebugOverlay = false;  // start with the F3 debug overlay open
         bool showMapOverlay = false;    // start with the M map open (captures)
         bool startFlight = false;       // start as a helicopter (captures)
+        bool startWalking = false;      // enter walking mode at the spawn (captures/benchmarks)
 
         /// Save file override; empty = DefaultSavePath(). `--no-save` disables loading and saving.
         std::string savePath;

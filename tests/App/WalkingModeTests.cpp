@@ -37,3 +37,21 @@ TEST(WalkingMode, FootstepHasAudibleShortImpact)
                                          [](float a, float b) { return std::fabs(a) < std::fabs(b); });
     EXPECT_GT(std::fabs(peak), 0.3f);
 }
+
+TEST(WalkingMode, StartsAndStopsSmoothlyWithoutExceedingWalkingOrRunningSpeed)
+{
+    using Microsoft::Xna::Framework::Vector3;
+    Vector3 velocity(0.0f, 0.0f, 0.0f);
+    const Vector3 forward(0.0f, 0.0f, -1.0f);
+    velocity = App::StepWalkingVelocity(velocity, forward, false, 0.1f);
+    EXPECT_NEAR(velocity.Length(), 0.5f, 1e-4f);
+    for (int i = 0; i < 10; ++i) velocity = App::StepWalkingVelocity(velocity, forward, false, 0.1f);
+    EXPECT_NEAR(velocity.Length(), App::kWalkingSpeedKmh / 3.6f, 1e-4f);
+    for (int i = 0; i < 10; ++i) velocity = App::StepWalkingVelocity(velocity, forward, true, 0.1f);
+    EXPECT_NEAR(velocity.Length(), App::kRunningSpeedKmh / 3.6f, 1e-4f);
+    const float previous = velocity.Length();
+    velocity = App::StepWalkingVelocity(velocity, Vector3(0.0f, 0.0f, 0.0f), false, 0.1f);
+    EXPECT_LT(velocity.Length(), previous);
+    for (int i = 0; i < 10; ++i) velocity = App::StepWalkingVelocity(velocity, Vector3(0.0f, 0.0f, 0.0f), false, 0.1f);
+    EXPECT_LT(velocity.Length(), 1e-4f);
+}

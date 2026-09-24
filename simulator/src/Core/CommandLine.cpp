@@ -144,6 +144,8 @@ namespace CarSim::Core
                 options.showMapOverlay = true;
             } else if (arg == "--flight") {
                 options.startFlight = true;
+            } else if (arg == "--walk") {
+                options.startWalking = true;
             } else if (arg == "--no-save") {
                 options.noSave = true;
             } else if (arg == "--save") {
@@ -286,6 +288,12 @@ namespace CarSim::Core
                 result.errors.push_back("unknown argument '" + std::string(arg) + "'");
             }
         }
+        if (options.startWalking && options.startFlight) {
+            result.errors.push_back("--walk and --flight cannot start together");
+        }
+        if (options.startWalking && options.route) {
+            result.errors.push_back("--walk cannot start a driving route");
+        }
         return result;
     }
 
@@ -314,6 +322,7 @@ namespace CarSim::Core
             "  --debug-overlay       Start with the debug overlay open\n"
             "  --map-overlay         Start with the M map open\n"
             "  --flight              Start in helicopter mode\n"
+            "  --walk                Start on foot beside the parked car (captures/benchmarks)\n"
             "  --content <dir>       Content root directory\n"
             "  --vehicle <name>      Vehicle definition to drive\n"
             "  --map <name>          Map to load\n"

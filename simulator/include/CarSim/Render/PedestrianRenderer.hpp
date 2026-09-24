@@ -1,5 +1,5 @@
-// Draws the people on the pavements: a simple figure (legs, torso, arms, head) in everyday
-// clothes, legs and arms swinging with the walk.
+// Draws shared rounded body parts for the people on pavements, with per-person colours and
+// the existing arm/leg walking cycle. No per-person mesh allocations.
 #pragma once
 
 #include "CarSim/Render/GpuMesh.hpp"
@@ -26,12 +26,16 @@ namespace CarSim::Render
                   const LightingRig& rig, bool mirrored = false);
 
         [[nodiscard]] int DrawnLastFrame() const { return drawn_; }
+        [[nodiscard]] int DrawCallsLastFrame() const { return drawCalls_; }
+        [[nodiscard]] int TrianglesLastFrame() const { return triangles_; }
         static constexpr float kRangeM = 160.0f;
 
     private:
-        std::unique_ptr<GpuMesh> torso_, head_, leg_, arm_, shoe_;
+        std::unique_ptr<GpuMesh> torso_, head_, hair_, leg_, arm_, hand_, shoe_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> effect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
         int drawn_ = 0;
+        int drawCalls_ = 0;
+        int triangles_ = 0;
     };
 }
