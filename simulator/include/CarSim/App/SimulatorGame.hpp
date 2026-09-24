@@ -234,5 +234,7 @@ namespace CarSim::App
         // The vehicle reports a refused start for the one update the key was pressed in; the HUD
         // keeps the explanation up long enough to be read.
         float startRefusedHintSeconds_ = 0.0f;
+        float grindHintSeconds_ = 0.0f;
+        int lastGrindCount_ = 0;
     };
 }

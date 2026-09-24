@@ -939,3 +939,45 @@ TEST_F(VehicleDrive, IndicatorSwitchesOffAfterTheTurnIsCompleted)
     Drive(v, ground, 1.5f, [](float) { return DriverControls{}; });
     EXPECT_EQ(v.Snapshot().indicatorMode, IndicatorMode::Off);
 }
+
+TEST_F(VehicleDrive, AutomaticClutchLaunchesAndShiftsWithoutTheClutchKey)
+{
+    Vehicle v(def, TransmissionMode::Manual);
+    v.SetAutoClutch(true);
+    StartEngine(v, ground);
+    DriverControls c;
+    c.selectGear = 1;
+    v.Update(c, kFrame, ground);
+    Drive(v, ground, 1.0f, [](float) { return DriverControls{}; });
+    ASSERT_EQ(v.GetTransmission().Gear(), 1) << "first goes in without the clutch key";
+    EXPECT_EQ(v.GetEngine().State(), EngineState::Running) << "standing in gear does not stall";
+    Drive(v, ground, 4.0f, [](float) { DriverControls k; k.throttle = 0.6f; return k; });
+    EXPECT_EQ(v.GetEngine().State(), EngineState::Running) << "the launch does not stall";
+    EXPECT_GT(v.Snapshot().speedKmh, 15.0f);
+    for (int gear = 2; gear <= 3; ++gear) {
+        DriverControls k;
+        k.throttle = 0.0f;
+        k.shiftUp = true;
+        v.Update(k, kFrame, ground);
+        Drive(v, ground, 3.0f, [](float) { DriverControls q; q.throttle = 0.8f; return q; });
+        EXPECT_EQ(v.GetTransmission().Gear(), gear);
+        EXPECT_TRUE(v.Snapshot().clutchLocked) << "gear " << gear;
+    }
+    EXPECT_EQ(v.GrindCount(), 0);
+    // Braking to a stop in third: the clutch goes down before the engine stalls.
+    Drive(v, ground, 8.0f, [](float) { DriverControls q; q.brake = 0.7f; return q; });
+    EXPECT_LT(v.Snapshot().speedKmh, 1.0f);
+    EXPECT_EQ(v.GetEngine().State(), EngineState::Running);
+}
+
+TEST_F(VehicleDrive, ShiftingWithoutTheClutchIsCountedForTheHint)
+{
+    Vehicle v(def, TransmissionMode::Manual);
+    StartEngine(v, ground);
+    Drive(v, ground, 1.0f, [](float) { return DriverControls{}; });
+    DriverControls c;
+    c.selectGear = 1;
+    v.Update(c, kFrame, ground);
+    Drive(v, ground, 0.2f, [](float) { return DriverControls{}; });
+    EXPECT_EQ(v.GrindCount(), 1);
+}

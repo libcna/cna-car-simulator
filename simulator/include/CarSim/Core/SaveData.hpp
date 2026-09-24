@@ -22,6 +22,9 @@ namespace CarSim::Core
         bool hudVisible = true;
         bool exhaustSmokeEnabled = true;
         bool startInCockpit = false;
+        bool autoClutch = false;
+        std::string differential;       // "open" / "lsd"; empty = vehicle default
+        std::string wipers = "off";     // off / intermittent / slow / fast
         float timeOfDayHours = 10.5f;   // clock the world starts at (0..24)
         float timeScale = 60.0f;        // simulated seconds per real second (0 freezes the sky)
         std::string weather = "few-clouds";   // clear / few-clouds / overcast / rain

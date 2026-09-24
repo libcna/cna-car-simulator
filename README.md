@@ -199,6 +199,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Automatic selector | `P` park, `R` reverse, `N` neutral, `F` drive |
 | Toggle automatic / manual | `T` |
 | Differential open / limited slip (`LSD` on the HUD) | `U` |
+| Automatic clutch for the manual gearbox (`AUTO CLUTCH` on the HUD) | `Z` |
 | Wipers off / intermittent / slow / fast | `I` |
 | Indicators left / right, hazard (they switch themselves off when the wheel returns after a turn) | `,` / `.` / `H` |
 | Headlights on / off; switch low / high beam | `L`; `K` (also turns on high beam directly) |
@@ -290,7 +291,7 @@ nothing is lost. Settings and bindings can be edited by hand:
 Action names are the `GameAction` enumerators (`Throttle`, `Brake`, `SteerLeft`,
 `SteerRight`, `Clutch`, `Handbrake`, `Horn`, `ToggleEngine`, `ToggleTurbo`, `ShiftUp`, `ShiftDown`,
 `GearNeutral`, `GearReverse`, `Gear1` .. `Gear6`, `SelectorPark`, `SelectorDrive`,
-`ToggleTransmission`, `ToggleDifferential`, `IndicatorLeft`, `IndicatorRight`, `Hazard`, `Headlights`, `HighBeam`, `CycleWipers`,
+`ToggleTransmission`, `ToggleDifferential`, `ToggleAutoClutch`, `IndicatorLeft`, `IndicatorRight`, `Hazard`, `Headlights`, `HighBeam`, `CycleWipers`,
 `ToggleCamera`, `ToggleFullscreen`, `ToggleMap`, `ToggleFlight`, `ToggleWalk`, `ToggleRun`, `ToggleHelp`, `ToggleDebug`, `Screenshot`, `ResetVehicle`, `ResetTrip`,
 `Quit`, `VolumeUp`, `VolumeDown`, `ToggleMirror`, `ToggleHud`); key names are the ones the
 help overlay prints (`A`..`Z`, `0`..`9`, `F1`..`F12`, `Space`, `Left Shift`, `Page Up`, ...).

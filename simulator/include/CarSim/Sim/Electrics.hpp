@@ -42,6 +42,7 @@ namespace CarSim::Sim
         void SetHorn(bool on) { horn_ = on; }
         /// Off -> intermittent -> slow -> fast -> off.
         void CycleWipers();
+        void SetWipers(WiperMode mode) { wipers_ = mode; }
 
         /// Wiper blade position: 0 parked at the bottom of the screen, 1 at the far end of
         /// the sweep. A wipe in progress always finishes and parks, even when switched off.

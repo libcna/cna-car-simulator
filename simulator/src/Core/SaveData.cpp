@@ -121,6 +121,9 @@ namespace CarSim::Core
             r.Bool(settings, "hudVisible", d.settings.hudVisible, "save.settings");
             r.Bool(settings, "exhaustSmokeEnabled", d.settings.exhaustSmokeEnabled, "save.settings");
             r.Bool(settings, "startInCockpit", d.settings.startInCockpit, "save.settings");
+            r.Bool(settings, "autoClutch", d.settings.autoClutch, "save.settings");
+            r.String(settings, "differential", d.settings.differential, "save.settings");
+            r.String(settings, "wipers", d.settings.wipers, "save.settings");
         }
         JsonElement bindings;
         if (r.HasArray(root, "bindings", bindings)) {
@@ -189,7 +192,10 @@ namespace CarSim::Core
         out << "    \"weather\": \"" << Escape(data.settings.weather) << "\",\n";
         out << "    \"hudVisible\": " << (data.settings.hudVisible ? "true" : "false") << ",\n";
         out << "    \"exhaustSmokeEnabled\": " << (data.settings.exhaustSmokeEnabled ? "true" : "false") << ",\n";
-        out << "    \"startInCockpit\": " << (data.settings.startInCockpit ? "true" : "false") << "\n";
+        out << "    \"startInCockpit\": " << (data.settings.startInCockpit ? "true" : "false") << ",\n";
+        out << "    \"autoClutch\": " << (data.settings.autoClutch ? "true" : "false") << ",\n";
+        out << "    \"differential\": \"" << Escape(data.settings.differential) << "\",\n";
+        out << "    \"wipers\": \"" << Escape(data.settings.wipers) << "\"\n";
         out << "  },\n";
         out << "  \"bindings\": [";
         for (std::size_t i = 0; i < data.bindings.size(); ++i) {

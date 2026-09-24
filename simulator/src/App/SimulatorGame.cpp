@@ -223,6 +223,12 @@ namespace CarSim::App
         } else if (save_.transmissionMode == "manual") {
             vehicle_->SetTransmissionMode(Sim::TransmissionMode::Manual);
         }
+        vehicle_->SetAutoClutch(save_.settings.autoClutch);
+        if (save_.settings.differential == "lsd") vehicle_->SetLimitedSlip(true);
+        if (save_.settings.differential == "open") vehicle_->SetLimitedSlip(false);
+        for (const Sim::WiperMode mode : {Sim::WiperMode::Off, Sim::WiperMode::Intermittent, Sim::WiperMode::Slow, Sim::WiperMode::Fast}) {
+            if (save_.settings.wipers == Sim::ToString(mode)) vehicle_->GetElectrics().SetWipers(mode);
+        }
     }
 
     void SimulatorGame::WriteSave()
@@ -246,6 +252,9 @@ namespace CarSim::App
         save_.settings.mirrorEnabled = mirrorEnabled_;
         save_.settings.exhaustSmokeEnabled = exhaustSmokeEnabled_;
         save_.settings.startInCockpit = cameraMode_ == Render::CameraMode::Cockpit;
+        save_.settings.autoClutch = vehicle_->AutoClutch();
+        save_.settings.differential = vehicle_->LimitedSlip() ? "lsd" : "open";
+        save_.settings.wipers = Sim::ToString(vehicle_->GetElectrics().Wipers());
         save_.settings.timeOfDayHours = timeOfDayHours_;
         save_.settings.timeScale = timeScale_;
         save_.settings.weather = Core::ToString(weather_.kind);
@@ -1115,6 +1124,9 @@ namespace CarSim::App
         vehicle_->Update(controls, dt, ground);
         if (vehicle_->FlightMode()) cameraMode_ = Render::CameraMode::Chase;
         startRefusedHintSeconds_ = vehicle_->StartRefused() ? 4.0f : std::max(0.0f, startRefusedHintSeconds_ - dt);
+        // The lever was moved without the clutch: say so, instead of a silent grind.
+        grindHintSeconds_ = vehicle_->GrindCount() != lastGrindCount_ ? 3.0f : std::max(0.0f, grindHintSeconds_ - dt);
+        lastGrindCount_ = vehicle_->GrindCount();
         stage(vehicleMs_);
         contactEvents_.clear();
         if (vehicle_->FlightMode()) collision_.ResolveFlight(*vehicle_, previousOrigin, contactEvents_);
@@ -1410,6 +1422,10 @@ namespace CarSim::App
         std::string status = walking_ ? "On foot  Arrows move/turn  A/D sidestep" :
                             s.flightMode ? "Helicopter  Space climb  Q descend  J car" :
                             std::string("Engine: ") + Sim::ToString(s.engineState);
+        if (grindHintSeconds_ > 0.0f && startRefusedHintSeconds_ <= 0.0f) {
+            status += "  (press the clutch " + input_.KeysFor(GameAction::Clutch) + " to change gear, or " +
+                      input_.KeysFor(GameAction::ToggleAutoClutch) + " for the automatic clutch)";
+        }
         if (startRefusedHintSeconds_ > 0.0f) {
             status += s.transmissionMode == Sim::TransmissionMode::Automatic
                           ? "  (select P or N with the P / N key, then press E)"
@@ -1428,6 +1444,7 @@ namespace CarSim::App
         if (s.leftIndicatorLit) lamps += "<  ";
         if (s.lowBeam) lamps += s.highBeam ? "HIGH BEAM  " : "LIGHTS  ";
         if (s.limitedSlip) lamps += "LSD  ";
+        if (s.autoClutch && s.transmissionMode == Sim::TransmissionMode::Manual) lamps += "AUTO CLUTCH  ";
         if (s.wiperMode == Sim::WiperMode::Intermittent) lamps += "WIPERS INT  ";
         if (s.wiperMode == Sim::WiperMode::Slow) lamps += "WIPERS  ";
         if (s.wiperMode == Sim::WiperMode::Fast) lamps += "WIPERS FAST  ";
@@ -1655,7 +1672,7 @@ namespace CarSim::App
         const GameAction rows[] = {
             GameAction::Throttle, GameAction::Brake, GameAction::SteerLeft, GameAction::SteerRight, GameAction::Clutch,
             GameAction::ShiftUp, GameAction::ShiftDown, GameAction::GearNeutral, GameAction::GearReverse, GameAction::Gear1,
-            GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleDifferential,
+            GameAction::SelectorPark, GameAction::SelectorDrive, GameAction::ToggleTransmission, GameAction::ToggleDifferential, GameAction::ToggleAutoClutch,
             GameAction::ToggleEngine,
             GameAction::ToggleTurbo,
             GameAction::ToggleWalk, GameAction::ToggleRun,

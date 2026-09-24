@@ -198,20 +198,49 @@ namespace CarSim::Sim
                 PlaceAt(Vector3(origin.X, ground.HeightAt(origin.X, origin.Z), origin.Z), flightYaw_);
             }
         }
-        ApplyDiscreteControls(controls);
         const float clamped = std::clamp(frameDt, 0.0f, 0.25f);
+        DriverControls effective = controls;
+        if (autoClutch_ && transmission_->Mode() == TransmissionMode::Manual && !flightMode_) {
+            effective.clutch = std::max(effective.clutch, AutoClutchDemand(controls, clamped));
+        }
+        ApplyDiscreteControls(effective);
         accumulator_ += clamped;
         int steps = 0;
         while (accumulator_ >= kPhysicsStepSeconds && steps < 30) {
             if (flightMode_) {
-                StepFlight(controls, kPhysicsStepSeconds, ground);
+                StepFlight(effective, kPhysicsStepSeconds, ground);
             } else {
-                UpdatePedals(controls, kPhysicsStepSeconds);
+                UpdatePedals(effective, kPhysicsStepSeconds);
                 StepPhysics(kPhysicsStepSeconds, ground);
             }
             accumulator_ -= kPhysicsStepSeconds;
             ++steps;
         }
+    }
+
+    float Vehicle::AutoClutchDemand(const DriverControls& controls, const float dt)
+    {
+        // A shift asked for this frame: press the clutch for as long as the lever needs.
+        if (controls.shiftUp || controls.shiftDown || controls.selectGear) {
+            autoClutchShiftTimer_ = def_.gearbox.shiftTimeS + 0.15f;
+        }
+        autoClutchShiftTimer_ = std::max(0.0f, autoClutchShiftTimer_ - dt);
+        if (autoClutchShiftTimer_ > 0.0f || transmission_->IsShifting()) {
+            return 1.0f;
+        }
+        if (transmission_->Gear() == 0 || !engine_.IsRunning()) {
+            return 0.0f;
+        }
+        // In gear: held down while standing without throttle, and whenever the engine is being
+        // dragged towards a stall; released (through the pedal model's bite-point logic) as
+        // soon as the driver asks for power.
+        const float speed = std::fabs(ForwardSpeedMs());
+        const float wheelRpm = Units::RadSToRpm(std::fabs(transmission_->TotalRatio() * AverageDrivenSpin()));
+        const bool stalling = wheelRpm < def_.engine.idleRpm + 80.0f && throttlePedal_ < 0.1f;
+        if (controls.throttle < 0.05f && (speed < 1.5f || stalling)) {
+            return 1.0f;
+        }
+        return 0.0f;
     }
 
     void Vehicle::StepFlight(const DriverControls& controls, const float dt, const GroundSurface& ground)
@@ -261,6 +290,9 @@ namespace CarSim::Sim
         }
         if (controls.toggleDifferential) {
             limitedSlip_ = !limitedSlip_;
+        }
+        if (controls.toggleAutoClutch) {
+            autoClutch_ = !autoClutch_;
         }
         if (controls.toggleTransmissionMode) {
             SetTransmissionMode(transmission_->Mode() == TransmissionMode::Manual ? TransmissionMode::Automatic
@@ -823,6 +855,7 @@ namespace CarSim::Sim
         context.brakePressed = brakePedal_ > 0.1f;
         context.topGearRatioFactor = TopGearFactor(engine_.TurboSetting());
         transmission_->Step(context);
+        if (transmission_->GrindEvent()) ++grindCount_;
 
         ResolveDriveline(dt);
         ApplyBodyForces(dt);
@@ -857,6 +890,7 @@ namespace CarSim::Sim
         s.wiperMode = electrics_.Wipers();
         s.wiperPosition = electrics_.WiperPosition();
         s.limitedSlip = limitedSlip_;
+        s.autoClutch = autoClutch_;
         s.flightMode = flightMode_;
         s.rotorAngle = rotorAngle_;
         s.throttlePedal = throttlePedal_;

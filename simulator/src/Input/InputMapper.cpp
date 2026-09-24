@@ -48,6 +48,7 @@ namespace CarSim::Input
             case GameAction::SelectorDrive: return "SelectorDrive";
             case GameAction::ToggleTransmission: return "ToggleTransmission";
             case GameAction::ToggleDifferential: return "ToggleDifferential";
+            case GameAction::ToggleAutoClutch: return "ToggleAutoClutch";
             case GameAction::CycleWipers: return "CycleWipers";
             case GameAction::IndicatorLeft: return "IndicatorLeft";
             case GameAction::IndicatorRight: return "IndicatorRight";
@@ -106,6 +107,7 @@ namespace CarSim::Input
             case GameAction::SelectorDrive: return "Drive (automatic)";
             case GameAction::ToggleTransmission: return "Switch automatic / manual";
             case GameAction::ToggleDifferential: return "Differential open / limited slip";
+            case GameAction::ToggleAutoClutch: return "Automatic clutch (manual) on / off";
             case GameAction::CycleWipers: return "Wipers off / interval / slow / fast";
             case GameAction::IndicatorLeft: return "Left indicator";
             case GameAction::IndicatorRight: return "Right indicator";
@@ -160,6 +162,7 @@ namespace CarSim::Input
             {GameAction::SelectorDrive, Keys::F},
             {GameAction::ToggleTransmission, Keys::T},
             {GameAction::ToggleDifferential, Keys::U},
+            {GameAction::ToggleAutoClutch, Keys::Z},
             {GameAction::CycleWipers, Keys::I},
             {GameAction::IndicatorLeft, Keys::OemComma},
             {GameAction::IndicatorRight, Keys::OemPeriod},
@@ -378,6 +381,7 @@ namespace CarSim::Input
         c.shiftDown = Pressed(GameAction::ShiftDown);
         c.toggleTransmissionMode = Pressed(GameAction::ToggleTransmission);
         c.toggleDifferential = Pressed(GameAction::ToggleDifferential);
+        c.toggleAutoClutch = Pressed(GameAction::ToggleAutoClutch);
         if (mode == Sim::TransmissionMode::Manual) {
             if (Pressed(GameAction::GearNeutral)) c.selectGear = 0;
             if (Pressed(GameAction::GearReverse)) c.selectGear = -1;

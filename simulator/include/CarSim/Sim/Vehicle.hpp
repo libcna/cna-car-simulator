@@ -77,6 +77,7 @@ namespace CarSim::Sim
         bool ignitionOn = false;
         TurboMode turboMode = TurboMode::Off;
         bool limitedSlip = false;
+        bool autoClutch = false;
         bool flightMode = false;
         float rotorAngle = 0.0f;
         float throttlePedal = 0.0f;
@@ -162,6 +163,7 @@ namespace CarSim::Sim
         [[nodiscard]] const Odometer& GetOdometer() const { return odometer_; }
         [[nodiscard]] Odometer& GetOdometer() { return odometer_; }
         [[nodiscard]] const Electrics& GetElectrics() const { return electrics_; }
+        [[nodiscard]] Electrics& GetElectrics() { return electrics_; }
         [[nodiscard]] const std::array<WheelRuntime, 4>& Wheels() const { return wheels_; }
 
         [[nodiscard]] float ForwardSpeedMs() const;
@@ -171,6 +173,13 @@ namespace CarSim::Sim
         [[nodiscard]] float BrakePedal() const { return brakePedal_; }
         [[nodiscard]] float ClutchPedal() const { return clutchPedal_; }
         [[nodiscard]] bool LimitedSlip() const { return limitedSlip_; }
+        /// Manual gearbox with the clutch worked for the driver: it goes down for every shift,
+        /// at a standstill in gear and before the engine would stall, and comes up through the
+        /// bite point on its own. The driver's clutch key still works on top.
+        [[nodiscard]] bool AutoClutch() const { return autoClutch_; }
+        void SetAutoClutch(bool on) { autoClutch_ = on; }
+        /// Counts refused shifts (lever moved without the clutch); a HUD hint watches it.
+        [[nodiscard]] int GrindCount() const { return grindCount_; }
         void SetLimitedSlip(bool on) { limitedSlip_ = on; }
         [[nodiscard]] bool Handbrake() const { return handbrake_; }
         [[nodiscard]] float SteeringWheelAngle() const;
@@ -217,6 +226,11 @@ namespace CarSim::Sim
         std::array<WheelRuntime, 4> wheels_{};
         std::vector<int> drivenWheels_;
         bool limitedSlip_ = false;
+        bool autoClutch_ = false;
+        float autoClutchShiftTimer_ = 0.0f;
+        int grindCount_ = 0;
+        /// Clutch demand of the automatic clutch for this frame (0..1).
+        [[nodiscard]] float AutoClutchDemand(const DriverControls& controls, float dt);
         int frontLeft_ = 0, frontRight_ = 1, rearLeft_ = 2, rearRight_ = 3;
 
         float throttlePedal_ = 0.0f;
