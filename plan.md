@@ -1563,8 +1563,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `TrafficOvertaking.cpp` (130 lines identical to the old definitions); four targeted overtake
   tests and the complete suite pass. Acceptance for completion: further meaningful ownership
   separation with signal, heavy-vehicle and pedestrian tests plus all soaks still passing.
-- [ ] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
-  replacement architecture. Acceptance: normal car, boosts, flight, damage and all rendering
+- [~] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
+  replacement architecture. The four existing scenery builders (buildings/props, lamp geometry,
+  tree cards, signs) moved byte-identically into `WorldRendererScenery.cpp` while the render
+  path remains in `WorldRenderer.cpp`. A fixed 1280 × 720 offscreen town capture before and
+  after has identical SHA-256 `7e85dbe197249f600b147e77d0e1c47ea6b1ed5fda2b65e1ca48a49b7d462437`;
+  the complete suite passed. Vehicle and road ownership are still open.
+  Acceptance: normal car, boosts, flight, damage and all rendering
   modes retain their behavior; before/after captures and renderer checks show no regression.
 - [~] `P14-020` Improve building facades and Czech settlement details using reusable parts.
   A shared framed/panelled door kit replaces flat door quads without adding a material pass;

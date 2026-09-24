@@ -206,6 +206,9 @@ architecture, fidelity, traffic-rule and audio work.
 
 Current Phase 14 progress: HUD/map/help/debug drawing and overtaking were extracted into
 coherent translation units without changing their existing algorithms; the overtake planner
+and the scenery construction methods in `WorldRendererScenery.cpp` now have separate ownership.
+The extracted scenery methods are byte-identical to their originals and a fixed town screenshot
+is byte-identical before and after; the full six-test suite passed. The overtake planner
 now reads authored directional centre lines, road-wide bans and pedestrian crossings, with
 weather and acceleration checks under test. A close town facade now has a framed, panelled
 door and quieter plaster. The first real GPU baseline was run at `2fa9ddd` on the accelerated
