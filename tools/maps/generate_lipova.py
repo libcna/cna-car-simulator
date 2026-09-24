@@ -349,6 +349,15 @@ def signs_and_props():
     # Speed and hazards.
     sign("B20a", "E2", "E3", 0.50, +1, value=70)
     sign("B20b", "E3", "E4", 0.10, +1, value=70)
+    # The plates bracket the authored 2750-3090 m no-overtaking section in both
+    # directions. Repeat B 21a after the E3 junction: Czech prohibitory signs normally
+    # expire at the next junction, but this solid/no-overtaking stretch continues.
+    sign("B21a", "E2", "E3", 0.78, +1)
+    sign("B21a", "E3", "E4", 0.03, +1)
+    sign("B21b", "E3", "E4", 0.31, +1)
+    sign("B21a", "E4", "E3", 0.69, +1)
+    sign("B21a", "E3", "E2", 0.03, +1)
+    sign("B21b", "E3", "E2", 0.22, +1)
     sign("A14", "N3", "F4", 0.35, +1)          # deer, entering the forest
     sign("A14", "F1", "F2", 0.30, +1)
     sign("A22", "F3", "F2", 0.05, +1)          # forest road junction ahead

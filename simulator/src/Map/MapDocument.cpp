@@ -16,7 +16,7 @@ namespace CarSim::Map
     namespace
     {
         constexpr const char* kKnownSignCodes[] = {
-            "P1", "P2", "P3", "P4", "P6", "B20a", "B20b", "IZ4a", "IZ4b", "IS3a", "IS3b", "IS3c", "IS3d",
+            "P1", "P2", "P3", "P4", "P6", "B20a", "B20b", "B21a", "B21b", "IZ4a", "IZ4b", "IS3a", "IS3b", "IS3c", "IS3d",
             "IP6", "IJ4c", "A7a", "A12a", "A14", "A22", "Z11a", "Z11b", "B1", "B2", "C2a"};
 
         bool CheckSchemaVersion(const JsonReader& r, const JsonElement& root, const std::string& file, std::vector<std::string>& errors)

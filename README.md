@@ -397,7 +397,8 @@ regional letter weights (`docs/research/czech-plates.md`). A traffic car queues 
 player who stops in the lane; it does not overtake.
 It may pass slower AI traffic on clear two-lane roads after checking the full passing and
 return path against authored centre-line ranges, oncoming traffic, junctions, crossings,
-curvature and weather clearance.
+curvature and weather clearance. The restricted stretch near E3 also has B 21a/B 21b roadside
+plates in both directions, with B 21a repeated after the junction.
 
 Traffic continues beneath an airborne helicopter; the helicopter still collides with car
 bodies when it actually touches them.

@@ -80,6 +80,59 @@ TEST(SampleMap, LipovaLoadsAndIsFullyConnected)
 #endif
 }
 
+TEST(SampleMap, OvertakingPlatesBracketTheAuthoredRestrictionInBothDirections)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    const Map::Road* road = nullptr;
+    for (const auto& candidate : world->Roads().Roads()) {
+        if (candidate.spec && candidate.spec->id == "main") road = &candidate;
+    }
+    ASSERT_NE(road, nullptr);
+    ASSERT_EQ(road->spec->centreLineSections.size(), 1u);
+    const auto& section = road->spec->centreLineSections.front();
+    float junctionS = -1.0f;
+    for (std::size_t i = 0; i < road->nodeIndices.size(); ++i) {
+        if (world->Data().nodes[static_cast<std::size_t>(road->nodeIndices[i])].id == "E3") junctionS = road->nodeS[i];
+    }
+    ASSERT_GT(junctionS, section.fromM);
+    ASSERT_LT(junctionS, section.toM);
+    int starts = 0, repeats = 0, ends = 0;
+    int forwardRepeats = 0, reverseRepeats = 0;
+    for (const auto& sign : world->Data().objects.signs) {
+        if (sign.code != "B21a" && sign.code != "B21b") continue;
+        float roadS = 0.0f, lateral = 0.0f;
+        const float distance = road->curve.Project(sign.position, roadS, lateral);
+        EXPECT_LT(distance, 12.0f);
+        EXPECT_GT(std::fabs(lateral), road->profile.HalfPavedWidth());
+        const float heading = sign.headingDeg * 3.14159265f / 180.0f;
+        const auto tangent = road->curve.Evaluate(roadS).tangent;
+        const float facingDot = std::sin(heading) * tangent.X - std::cos(heading) * tangent.Z;
+        if (lateral > 0.0f) EXPECT_LT(facingDot, -0.8f);
+        else EXPECT_GT(facingDot, 0.8f);
+        const float boundary = sign.code == "B21a"
+                                   ? (lateral > 0.0f ? section.fromM : section.toM)
+                                   : (lateral > 0.0f ? section.toM : section.fromM);
+        if (sign.code == "B21a" && std::fabs(roadS - junctionS) < 45.0f) {
+            if (lateral > 0.0f) EXPECT_GT(roadS, junctionS);
+            else EXPECT_LT(roadS, junctionS);
+            ++repeats;
+            if (lateral > 0.0f) ++forwardRepeats;
+            else ++reverseRepeats;
+        } else {
+            EXPECT_NEAR(roadS, boundary, 25.0f) << sign.code;
+            if (sign.code == "B21a") ++starts;
+            else ++ends;
+        }
+    }
+    EXPECT_EQ(starts, 2);
+    EXPECT_EQ(repeats, 2);
+    EXPECT_EQ(forwardRepeats, 1);
+    EXPECT_EQ(reverseRepeats, 1);
+    EXPECT_EQ(ends, 2);
+}
+
 TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)
 {
     std::vector<std::string> errors;

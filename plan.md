@@ -1660,9 +1660,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   prevent starting a pass through a crossing. Ordered metre ranges now override the road-wide
   marking; both the road mesh and the pass planner read them, and the latter checks the entire
   return path. The `main` road has a 2750–3090 m solid/no-overtaking section near E3, with
-  matched Radeon before/after frames. Parser, mesh and deterministic traffic tests pass;
-  see `docs/research/czech-overtaking.md`. Acceptance for completion: roadside signs,
-  junction/crossing edge cases and wider authored local restrictions.
+  matched Radeon before/after frames. B 21a/B 21b faces and six roadside plates now
+  bracket this range in the shipped map, including a B 21a repeat after the E3 junction in
+  each direction, with a boundary-projection regression test and a
+  Radeon road view. Parser, mesh and deterministic traffic tests pass; see
+  `docs/research/czech-overtaking.md`. Acceptance for completion: junction/crossing edge cases,
+  broader local restrictions, and review of vertical-sign effects at other sites.
 - [~] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
   Initiation now estimates passing time from the actual car's acceleration, accounts for

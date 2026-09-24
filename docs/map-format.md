@@ -130,7 +130,9 @@ road-wide restriction independent of the paint. Each `centreLineSections[]` entr
 `fromM`, `toM`, optional `centreLine` and optional `noOvertaking`; metres run along the smoothed road
 curve from its first node. Ranges must be ordered, non-overlapping and within the road length.
 Outside them, the road-wide marking applies. The traffic planner checks the whole pass and
-return path against these ranges. Roadside B 21a/B 21b signs still need authored placement.
+return path against these ranges. B 21a/B 21b roadside sign faces are supported in `objects.signs`;
+the shipped map places a start, post-junction repeat and end for each direction at E3. The map positions are
+checked against the range boundaries; the planner uses the range rather than sign pixels.
 
 Derived at load time (`RoadNetwork`): straight-and-arc centrelines through the nodes, heights
 from the terrain (80 m low-pass, pinned to node heights, flattened across intersections),

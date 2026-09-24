@@ -253,3 +253,14 @@ All four renderers show the same continuous stroke and road scene. OPENGL33 is b
 to OPENGLES3. Mean absolute RGB differences against OPENGLES3 were 0.608 / 0.594 / 0.660
 for Vulkan and 2.797 / 2.450 / 1.186 for SOFTWARE, mainly from foliage and ground
 filtering. No renderer-specific application code was added.
+
+### Phase 14 B 21 roadside sign checkpoint (2026-09-25)
+
+After adding procedural B 21a/B 21b faces and plates at the E3 restriction, all four
+renderers captured the same 1280 × 720 clear 13:00 view at frame 2 with
+`--view 1160 8 -273 68 -7`. The retained
+[Radeon OPENGLES3 view](screenshots/phase14/overtaking-sign.jpg) shows the B 21a plate
+beside the authored restriction. OPENGL33 was byte-identical. Mean absolute RGB difference
+against OPENGLES3 was 0.719 / 0.702 / 0.726 for Vulkan RADV and
+7.766 / 7.745 / 4.515 for SOFTWARE. Visual inspection found the same plate and road
+marking in all four; the larger software difference is mainly surface and vegetation tone.

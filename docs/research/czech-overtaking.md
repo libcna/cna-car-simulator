@@ -1,6 +1,6 @@
 # Czech overtaking rules represented in the simulator
 
-Sources checked 2026-09-24: [Road Traffic Act 361/2000 Sb., §17 in e-Sbírka](https://e-sbirka.gov.cz/sb/2000/361),
+Sources checked 2026-09-25: [Road Traffic Act 361/2000 Sb., §17 in e-Sbírka](https://e-sbirka.gov.cz/sb/2000/361),
 [implementing Decree 294/2015 Sb. in e-Sbírka](https://e-sbirka.gov.cz/sb/2015/294), and
 [BESIP's overtaking guidance](https://besip.gov.cz/Clanky/Predjizdeni). The implemented model is
 a conservative simulation subset, not a claim of exhaustive legal interpretation.
@@ -24,4 +24,11 @@ and an optional independent `noOvertaking` restriction. The road mesh and planne
 same sections. A pass is rejected if any restricted interval lies within its estimated passing
 and return distance. `main` now has a 2750–3090 m solid/no-overtaking section around the E3
 junction approach; the fixed before/after view is in `docs/screenshots/phase14/`.
-B 21a/B 21b roadside signs and more sight-distance authoring remain Phase 14 work.
+The decree calls B 21a "Zákaz předjíždění" and B 21b "Konec zákazu předjíždění".
+The simulator paints both faces procedurally. Six roadside plates bracket the E3 restriction:
+one start, one repeat after the junction and one end for each direction of travel. The repeat
+follows the decree's general rule that a sign prohibition ends at the nearest junction.
+Their map positions are checked against
+the restricted curve interval in `SampleMap` tests; the AI reads the interval itself rather
+than inferring restrictions from sign textures. B 21a's motorcycle exception is irrelevant to
+the current AI population, which has no motorcycles. More sight-distance authoring remains.

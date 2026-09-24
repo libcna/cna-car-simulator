@@ -138,11 +138,28 @@ namespace CarSim::Render
                 img.FillRect(static_cast<int>(x), static_cast<int>(cy - h * 0.38f), static_cast<int>(x + w * 0.16f), static_cast<int>(cy - h * 0.05f), kBlue);
             }
         }
+
+        void PassingCars(Image& img, const Color& overtaker, const Color& other)
+        {
+            // Two rear-view cars, as on the Czech B 21a/B 21b plates. Keep the silhouettes
+            // broad enough to read at driving distance after the 512 px face is minified.
+            const auto car = [&](const float x, const float y, const Color& paint) {
+                img.FillPolygon(Rounded(x - 67.0f, y - 95.0f, x + 67.0f, y + 92.0f, 22.0f), paint);
+                img.FillRect(static_cast<int>(x - 49.0f), static_cast<int>(y - 58.0f),
+                             static_cast<int>(x + 49.0f), static_cast<int>(y - 4.0f), kWhite);
+                img.FillRect(static_cast<int>(x - 54.0f), static_cast<int>(y + 51.0f),
+                             static_cast<int>(x - 27.0f), static_cast<int>(y + 71.0f), kWhite);
+                img.FillRect(static_cast<int>(x + 27.0f), static_cast<int>(y + 51.0f),
+                             static_cast<int>(x + 54.0f), static_cast<int>(y + 71.0f), kWhite);
+            };
+            car(174.0f, 252.0f, overtaker);
+            car(338.0f, 252.0f, other);
+        }
     }
 
     bool SignGenerator::IsKnown(const std::string& code)
     {
-        static const char* known[] = {"P1", "P2", "P3", "P4", "P6", "B1", "B2", "B20a", "B20b", "IZ4a", "IZ4b", "IS3a", "IS3b", "IS3c", "IS3d",
+        static const char* known[] = {"P1", "P2", "P3", "P4", "P6", "B1", "B2", "B20a", "B20b", "B21a", "B21b", "IZ4a", "IZ4b", "IS3a", "IS3b", "IS3c", "IS3d",
                                       "IP6", "IJ4c", "A7a", "A12a", "A14", "A22"};
         return std::any_of(std::begin(known), std::end(known), [&](const char* k) { return code == k; });
     }
@@ -235,6 +252,20 @@ namespace CarSim::Render
                 face.image.FillPolygon(Octagon(c, c, kFace * 0.50f), kWhite);
                 face.image.FillPolygon(Octagon(c, c, kFace * 0.46f), kRed);
                 Text(face.image, font, atlas, "STOP", c, c, kFace * 0.66f, 3.6f, kWhite);
+            } else if (code == "B21a" || code == "B21b") {
+                face.widthM = face.heightM = 0.7f;
+                if (code == "B21a") {
+                    Circle(face.image, kRed, kWhite, kFace * 0.09f);
+                    PassingCars(face.image, kRed, kBlack);
+                } else {
+                    Circle(face.image, kWhite, kWhite, kFace * 0.09f);
+                    face.image.FillRing(c, c, kFace * 0.48f, kFace * 0.46f, kGrey);
+                    PassingCars(face.image, kGrey, kGrey);
+                    for (const float off : {-40.0f, 0.0f, 40.0f}) {
+                        face.image.DrawLine(kFace * 0.20f + off, kFace * 0.80f,
+                                            kFace * 0.80f + off, kFace * 0.20f, 10.0f, kGrey);
+                    }
+                }
             } else if (code == "B20a" || code == "B20b") {
                 face.widthM = face.heightM = 0.7f;
                 if (code == "B20a") {

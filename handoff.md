@@ -326,6 +326,12 @@ passes, including the traffic soaks, smoke and static checks;
 all four renderers built and showed the same solid stroke. See
 `docs/renderer-conformance.md`.
 
+The B 21a/B 21b sign faces are now procedural and six signs bracket the E3 restricted
+section in both directions. Each direction has a post-junction B 21a repeat. The shipped-map
+test projects each sign onto the smoothed road and checks the matching boundary or junction;
+a Radeon view is retained at
+`docs/screenshots/phase14/overtaking-sign.jpg`. The AI continues to use the authored range.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,
