@@ -1557,7 +1557,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [~] `P14-010` Extract coherent SimulatorGame responsibilities while retaining orchestration.
   First step: HUD, map, help and diagnostic drawing (341 lines, byte-identical definitions) moved
   into `SimulatorGameOverlays.cpp`; the deterministic help-overlay capture is pixel-identical
-  before and after the extraction at 1280 x 720. Acceptance for completion: player-mode and
+  before and after the extraction at 1280 x 720. Walking entry, occupancy and movement control
+  (110 method lines) then moved byte-identically into `SimulatorGameWalking.cpp`, bringing
+  `SimulatorGame.cpp` from 1615 to 1503 lines. Six focused walking/traffic/flight interaction
+  tests pass, and a fixed Radeon walking capture is pixel-identical before and after.
+  The complete six-part suite and all four renderer builds pass.
+  Acceptance for completion: player-mode and
   environment responsibilities have clear ownership; walking, flight, weather, save and
   benchmark paths still work.
 - [~] `P14-011` Extract traffic planning/queries/spawning or junction ownership incrementally.

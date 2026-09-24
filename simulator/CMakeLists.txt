@@ -117,6 +117,7 @@ add_executable(cna-car-simulator
     src/App/Program.cpp
     src/App/SimulatorGame.cpp
     src/App/SimulatorGameOverlays.cpp
+    src/App/SimulatorGameWalking.cpp
 )
 target_link_libraries(cna-car-simulator PRIVATE carsim_render carsim_core CNA)
 if(TARGET SDL3::SDL3main)

@@ -303,6 +303,13 @@ after recompilation. All six project checks pass, including traffic soaks, smoke
 map and asset checks. OPENGL33, Vulkan and SOFTWARE builds and matched cockpit captures
 also pass visual inspection; see `docs/renderer-conformance.md`.
 
+Walking entry, collision occupancy and stepped movement (110 method lines) now live
+byte-identically in `SimulatorGameWalking.cpp`. `SimulatorGame.cpp` fell from 1615 to
+1503 lines, and the walking mode / traffic walker / helicopter interaction tests pass.
+The fixed Radeon walking frame is pixel-identical before and after extraction. The full
+six-part suite passes, including the traffic soaks, smoke run and static checks. All four
+renderer builds include the new source.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,
