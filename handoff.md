@@ -354,6 +354,12 @@ switch boundary; it does not replace the still-needed real-speaker listening and
 engine, weather and wind sound work. The full six-part suite and a 90-frame dummy-audio
 runtime pass.
 
+Rolling noise now exposes separate road/contact and airflow outputs for the vehicle mixer;
+the original combined API remains their sum. The cockpit applies an additional 0.90 gain
+to road contact and 0.55 to airflow before the common cabin filter, while the exterior sum
+is unchanged. Deterministic split-output and integrated cabin tests pass. Final audio
+balance still needs real-speaker review.
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map

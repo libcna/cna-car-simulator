@@ -1720,6 +1720,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The complete six-part suite passes. A 90-frame offscreen dummy-audio stream ran without
   errors and averaged 0.273 ms project audio update at 320 × 200; it has no matched before
   run and is not a listening or performance comparison.
+  Rolling synthesis now exposes road/contact and wind separately while its combined path
+  stays the sum of the two. The cabin reduces outside airflow more than tyre/road contact;
+  split-output and integrated steady-speed tests characterize the resulting mix. Exterior
+  gain and all existing weather/flight sources remain in place. A matched 90-frame 320 × 200
+  dummy-stream run measured 0.273 ms project audio update before and 0.274 ms after (single
+  runs, not a speaker or statistically meaningful performance comparison).
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.

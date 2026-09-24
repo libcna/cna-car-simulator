@@ -27,6 +27,8 @@ namespace CarSim::Audio
         cabinLeft_.SetCutoff(levels.cockpitLowPassHz, kSampleRate);
         cabinRight_.SetCutoff(levels.cockpitLowPassHz, kSampleRate);
         mono_.assign(kBlockFrames, 0.0f);
+        rollingRoad_.assign(kBlockFrames, 0.0f);
+        rollingWind_.assign(kBlockFrames, 0.0f);
         stereo_.assign(kBlockFrames * 2, 0.0f);
         trafficStereo_.assign(kBlockFrames * 2, 0.0f);
         pcm_.assign(static_cast<std::size_t>(kBlockFrames) * 4, 0);
@@ -173,8 +175,10 @@ namespace CarSim::Audio
         }
         rolling.surfaceRoughness = groundedWheels > 0 ? roughness / static_cast<float>(groundedWheels) : 1.0f;
         rolling.slip = groundedWheels > 0 ? slip / static_cast<float>(groundedWheels) : 0.0f;
+        std::fill(rollingRoad_.begin(), rollingRoad_.end(), 0.0f);
+        std::fill(rollingWind_.begin(), rollingWind_.end(), 0.0f);
+        rolling_.RenderComponents(rollingRoad_.data(), rollingWind_.data(), kBlockFrames, rolling);
         std::vector<float> effects(static_cast<std::size_t>(kBlockFrames), 0.0f);
-        rolling_.Render(effects.data(), kBlockFrames, rolling);
         // Rain: a broadband hiss on the roof and the screen (louder inside the car, where the
         // drops land on the metal a hand's width above your head), plus the spray a wet road
         // throws up under the wheels, which follows speed rather than the rain itself.
@@ -298,7 +302,13 @@ namespace CarSim::Audio
         for (int i = 0; i < kBlockFrames; ++i) {
             const float blend = cockpitBlend_;
             const float insideGain = 1.0f - blend * (1.0f - levels.cockpitAttenuation);
-            const float dry = mono_[static_cast<std::size_t>(i)] + effects[static_cast<std::size_t>(i)] * levels.effects;
+            // Road roar reaches the cabin through the structure; outside air-flow noise is
+            // muffled more strongly. Keep the exterior sum unchanged.
+            const float roadGain = 1.0f - 0.10f * blend;
+            const float windGain = 1.0f - 0.45f * blend;
+            const float dry = mono_[static_cast<std::size_t>(i)] +
+                              (effects[static_cast<std::size_t>(i)] + rollingRoad_[static_cast<std::size_t>(i)] * roadGain +
+                               rollingWind_[static_cast<std::size_t>(i)] * windGain) * levels.effects;
             const float l = cabinLeft_.Process(dry);
             const float r = cabinRight_.Process(dry);
             const float trafficGain = levels.effects * insideGain * (1.0f - 0.55f * blend);

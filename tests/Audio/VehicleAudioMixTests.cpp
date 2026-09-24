@@ -46,3 +46,30 @@ TEST(VehicleAudioMix, CameraSwitchStartsAtThePreviousMixAndCrossfadesWithinTheBl
         EXPECT_GT(lateDifference, 0.01);
     }
 }
+
+TEST(VehicleAudioMix, CabinMufflesAirFlowMoreThanRoadContact)
+{
+    const auto level = [](const bool cockpit, const bool grounded) {
+        Audio::VehicleAudio audio(false);
+        Sim::VehicleState state;
+        state.speedKmh = 130.0f;
+        for (auto& wheel : state.wheels) {
+            wheel.grounded = grounded;
+            wheel.surface = Sim::SurfaceType::Gravel;
+        }
+        std::vector<float> stereo;
+        for (int block = 0; block < 30; ++block) audio.RenderBlock(stereo, state, cockpit);
+        double energy = 0.0;
+        for (const float sample : stereo) energy += static_cast<double>(sample) * sample;
+        return std::sqrt(energy / static_cast<double>(stereo.size()));
+    };
+    const double roadOutside = level(false, true);
+    const double roadInside = level(true, true);
+    const double airOutside = level(false, false);
+    const double airInside = level(true, false);
+    ASSERT_GT(roadOutside, 0.001);
+    ASSERT_GT(airOutside, 0.001);
+    EXPECT_LT(roadInside, roadOutside);
+    EXPECT_LT(airInside, airOutside);
+    EXPECT_GT(roadInside / roadOutside, airInside / airOutside + 0.04);
+}

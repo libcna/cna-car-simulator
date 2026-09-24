@@ -197,6 +197,27 @@ TEST(RollingNoise, SnowGravelAndWheelSlipHaveDistinctAudibleTextures)
     EXPECT_LT(Rms(render(airborne), steady), Rms(dry, steady));
 }
 
+TEST(RollingNoise, SeparateRoadAndWindLayersSumToTheExistingExteriorSound)
+{
+    RollingNoise combined(kRate), separated(kRate);
+    RollingNoise::Input input;
+    input.speedKmh = 115.0f;
+    input.surfaceRoughness = 1.6f;
+    input.snowCover = 0.35f;
+    input.slip = 0.2f;
+    std::vector<float> all(1024), road(1024), wind(1024);
+    for (int block = 0; block < 8; ++block) {
+        std::fill(all.begin(), all.end(), 0.0f);
+        std::fill(road.begin(), road.end(), 0.0f);
+        std::fill(wind.begin(), wind.end(), 0.0f);
+        combined.Render(all.data(), static_cast<int>(all.size()), input);
+        separated.RenderComponents(road.data(), wind.data(), static_cast<int>(road.size()), input);
+        for (std::size_t i = 0; i < all.size(); ++i) EXPECT_NEAR(all[i], road[i] + wind[i], 1e-6f);
+    }
+    EXPECT_GT(Rms(road, 0), 0.001f);
+    EXPECT_GT(Rms(wind, 0), 0.001f);
+}
+
 TEST(EngineSynth, IdleHasNoContinuousHighFrequencyHiss)
 {
     EngineSynth synth(kRate);

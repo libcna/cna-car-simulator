@@ -89,6 +89,8 @@ namespace CarSim::Audio
         std::vector<Voice> voices_;
         OnePoleLowPass cabinLeft_, cabinRight_;
         std::vector<float> mono_;
+        std::vector<float> rollingRoad_;
+        std::vector<float> rollingWind_;
         std::vector<float> stereo_;
         std::vector<float> trafficStereo_;
         std::vector<SharpRuntime::bytecs> pcm_;

@@ -101,7 +101,8 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
   roughness and muted in the air. A separate low-passed granular layer responds to gravel,
   cobbles and snow; a high-passed layer follows contact-patch slip and softens on snow.
 - Wind: noise high-passed at 250 Hz and low-passed twice at 1400 Hz, growing with the cube of
-  speed up to its cap at 130 km/h.
+  speed up to its cap at 130 km/h. The same synthesizer now exposes road/contact and airflow
+  outputs separately; its original combined output remains the sum of those two signals.
 - `carsim-simtrace engine-sound` reports each layer's level and its share of energy above 2 and
   5 kHz. Tyres and wind at 50 km/h: RMS 0.013 with 1.5 % above 2 kHz (the engine at a light
   cruise is about 0.10). They used to reach full level by 38 and 60 km/h, at 0.077 RMS with 38 %
@@ -120,7 +121,12 @@ including the independently spatialized traffic layer. Previously the camera cha
 the whole 1024-sample block at once, causing a measured 0.0027–0.0033 first-sample jump in
 a deterministic engine-plus-traffic switch test. Both directions now start at exactly the
 previous mix and fade within the first block; the focused test checks the first stereo sample,
-later change and bounded output. Stable inside/outside mix levels are unchanged.
+later change and bounded output. That switch fix retained the established steady-state mix.
+The road/contact signal gets an additional 0.90 cabin gain before the common cabin filter;
+airflow gets 0.55. Exterior gains remain 1.0 for both. This lets the cabin retain tyre
+contact through the structure while reducing the outside air rush more strongly. A separate
+device-free integrated test compares steady 130 km/h road and airborne cases to guard this
+relationship; actual speaker balance still needs listening review.
 
 ## Nearby traffic (Phase 14)
 
@@ -167,11 +173,13 @@ low-pass 1700 Hz. Master, engine and effects levels persist in the save file.
 frequency dominates the spectrum at 1500/3000/4500 rpm; load increases loudness; block
 boundaries are continuous; clips are bounded and short; rolling noise grows with speed.
 The Phase 14 rolling test compares steady dry asphalt, gravel, packed snow and full slip,
-also checking bounded level and reduced airborne tyre sound.
+also checking bounded level and reduced airborne tyre sound. A split-output test checks
+that road plus airflow reconstructs the prior combined output sample by sample.
 `tests/Audio/TrafficAudioTests.cpp` checks stereo direction, distance falloff, six-voice
 prioritisation, fade-out, finite level and cabin attenuation in the integrated vehicle mixer.
 `tests/Audio/VehicleAudioMixTests.cpp` checks the first sample and within-block transition
-for both exterior-to-cockpit and cockpit-to-exterior switches with engine and traffic active.
+for both exterior-to-cockpit and cockpit-to-exterior switches with engine and traffic active,
+and checks that the cabin muffles airflow more strongly than road contact.
 `tests/Audio/VehicleAudioFlightTests.cpp` checks isolated rotor fade, bounded output, and
 normal versus extreme rotor cadence through the integrated mixer without an audio device.
 `tests/Audio/AudioLayersTests.cpp`: the shift dip cuts to 0.2 and recovers within 0.26 s; the

@@ -76,6 +76,9 @@ namespace CarSim::Audio
         };
         /// Adds (mixes) into `out`.
         void Render(float* out, int frames, const Input& target);
+        /// Adds road/contact and air-flow noise to separate outputs for category-aware cabin
+        /// mixing. Passing the same buffer for both preserves the combined Render path.
+        void RenderComponents(float* roadOut, float* windOut, int frames, const Input& target);
 
     private:
         int sampleRate_;

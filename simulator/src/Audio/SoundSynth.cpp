@@ -165,6 +165,11 @@ namespace CarSim::Audio
 
     void RollingNoise::Render(float* out, const int frames, const Input& target)
     {
+        RenderComponents(out, out, frames, target);
+    }
+
+    void RollingNoise::RenderComponents(float* roadOut, float* windOut, const int frames, const Input& target)
+    {
         if (!primed_) {
             previous_ = target;
             primed_ = true;
@@ -193,7 +198,11 @@ namespace CarSim::Audio
             const float textureGain = contact * (0.035f * std::clamp(rough - 1.0f, 0.0f, 1.0f) + 0.075f * snow);
             const float texture = textureLp_.Process(textureNoise_.Next()) * textureGain;
             const float scrub = scrubHp_.Process(textureNoise_.Next()) * contact * slip * (0.060f - 0.035f * snow);
-            out[i] += tyre + wind + texture + scrub;
+            if (roadOut == windOut) roadOut[i] += tyre + wind + texture + scrub;
+            else {
+                roadOut[i] += tyre + texture + scrub;
+                windOut[i] += wind;
+            }
         }
         previous_ = target;
     }
