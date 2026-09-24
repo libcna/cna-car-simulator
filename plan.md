@@ -1566,9 +1566,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   tests and the complete suite pass. The four body selection/spawn/despawn methods (120 lines)
   then moved byte-identically into `TrafficSpawning.cpp`; the population, visibility and
   heavy-vehicle junction tests and the complete six-part suite, including all soaks, pass.
+  Four intersection-admission methods (`BoxClearFor`, heavy-body sweep, exit clearance and
+  entry priority; 220 lines) then moved byte-identically into `TrafficJunctions.cpp`.
+  Six focused junction and heavy-vehicle tests and the complete six-part suite, including all
+  traffic soaks and the simulator smoke run, pass.
   Acceptance for completion:
-  further meaningful junction/query ownership separation with signal, heavy-vehicle and
-  pedestrian tests plus all soaks still passing.
+  review remaining route/following/recovery ownership with signal and pedestrian tests plus
+  all soaks still passing.
 - [~] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
   replacement architecture. The four existing scenery builders (buildings/props, lamp geometry,
   tree cards, signs) moved byte-identically into `WorldRendererScenery.cpp` while the render

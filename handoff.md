@@ -265,9 +265,12 @@ listening result or recorded engine samples are claimed; see `docs/audio-design.
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,
-including all traffic soaks, pass. Traffic routing,
-following, intersection admission and recovery still share `TrafficSystem.cpp` and remain
-the next candidate for careful extraction.
+including all traffic soaks, pass. The four existing intersection-admission methods then
+moved byte-identically into `TrafficJunctions.cpp` (220 method lines): box clearance,
+heavy-vehicle swept clearance, exit clearance and priority/admission. Six focused junction
+tests and the complete six-part suite, including all traffic soaks and the simulator smoke
+run, pass. Traffic routing, following and
+recovery remain together in `TrafficSystem.cpp` for further ownership review.
 
 ## Working conventions that kept things sane
 

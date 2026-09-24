@@ -47,6 +47,7 @@ add_library(carsim_core STATIC
     src/Traffic/SignalController.cpp
     src/Traffic/TrafficSystem.cpp
     src/Traffic/TrafficSpawning.cpp
+    src/Traffic/TrafficJunctions.cpp
     src/Traffic/TrafficOvertaking.cpp
 )
 target_include_directories(carsim_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
