@@ -225,3 +225,18 @@ missing vegetation. Against OPENGLES3, mean absolute RGB difference was
 2.528 / 2.371 / 1.222 on SOFTWARE (0.442% >32). The Vulkan and SOFTWARE differences are
 concentrated around foliage edges, filtering and ground texture; no renderer-specific
 project fix was needed. These are conformance frames, not performance comparisons.
+
+### Phase 14 cockpit trim checkpoint (2026-09-25)
+
+After the centre radio gained a moulded surround and physical controls, the cockpit was
+captured at 13:00, clear weather, square spawn, frame 3, 1280 × 720 on all four supported
+renderers. All binaries include the subsequent byte-identical car geometry helper extraction.
+The retained frames are [OPENGLES3](screenshots/renderers/phase14-console-gles3.jpg),
+[OPENGL33](screenshots/renderers/phase14-console-gl33.jpg),
+[Vulkan](screenshots/renderers/phase14-console-vulkan.jpg) and
+[SOFTWARE](screenshots/renderers/phase14-console-software.jpg).
+
+The controls, cluster, mirrors and road appear in all four. OPENGL33 differs from OPENGLES3
+by at most one RGB level; the mean absolute RGB differences are 0.864 / 0.826 / 0.788 for
+Vulkan and 1.966 / 2.110 / 1.703 for SOFTWARE. The differences are in shading and edge
+coverage; no content is missing and no renderer-specific project code was added.

@@ -295,6 +295,14 @@ frames and a 22:00 check are `docs/screenshots/phase14/console-*.jpg`; the night
 controls remain subdued with the engine/ignition off. Cockpit weather and more material
 work remain.
 
+The 313-line shared procedural car geometry helper block was moved byte-identically from
+`ProceduralCar.cpp` to `CarBodyGeometry.cpp` with explicit CMake ownership. This separates
+skin sampling, mesh primitives and part construction from body-shape assembly. Fifteen
+focused car/shadow tests pass; a fixed Radeon cockpit screenshot differs in only one pixel
+after recompilation. All six project checks pass, including traffic soaks, smoke, static API,
+map and asset checks. OPENGL33, Vulkan and SOFTWARE builds and matched cockpit captures
+also pass visual inspection; see `docs/renderer-conformance.md`.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,

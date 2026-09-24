@@ -1592,6 +1592,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   byte-identically into `VehicleGroundEffects.cpp`; eight focused shadow/beam tests passed,
   and the fixed Radeon night capture retained SHA-256
   `d20fe5cacdaafdf2288ea91cab3114fa37faf97b8c5241f5f78fcbd6c733ad6a` before/after.
+  The shared body skin, curves, mesh helper and part-construction methods (313 lines) now
+  live byte-identically in `CarBodyGeometry.cpp`, bringing `ProceduralCar.cpp` from 1427 to
+  1111 lines. Fifteen focused car/shadow tests pass; the matched Radeon cockpit frame differs
+  in only one pixel after recompilation. The complete suite including soaks and smoke passes.
+  All four available renderers build and show the same cockpit controls in matched frames;
+  see `docs/renderer-conformance.md`.
   Broader vehicle and road ownership are still open.
   Acceptance: normal car, boosts, flight, damage and all rendering
   modes retain their behavior; before/after captures and renderer checks show no regression.

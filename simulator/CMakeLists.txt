@@ -78,6 +78,7 @@ add_library(carsim_render STATIC
     src/Render/MirrorView.cpp
     src/Render/PlateRenderer.cpp
     src/Render/CarTextures.cpp
+    src/Render/CarBodyGeometry.cpp
     src/Render/CarWheels.cpp
     src/Render/ExhaustSmoke.cpp
     src/Render/WheelSpray.cpp
