@@ -162,6 +162,9 @@ namespace CarSim::Traffic
         /// Where a vehicle on the opposite lane is, in our lane's s (the lanes of a piece run opposite ways).
         [[nodiscard]] float OppositeS(const TrafficVehicle& o, int ourLane) const;
         [[nodiscard]] bool BoxClearFor(const TrafficVehicle& v) const;
+        /// A bus or a lorry at a junction: its body, all the way through, would touch somebody
+        /// standing still.
+        [[nodiscard]] bool HeavySweepHitsStanding(const TrafficVehicle& v) const;
         [[nodiscard]] bool MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const;
         [[nodiscard]] float DesiredSpeedAhead(const TrafficVehicle& v) const;
         void SpawnAroundPlayer(const PlayerProbe& player);
@@ -171,6 +174,26 @@ namespace CarSim::Traffic
         [[nodiscard]] bool PathPointAhead(const TrafficVehicle& v, float ahead, Map::LanePoint& out) const;
         /// Path distance at which `other`'s footprint blocks `v`'s path within `maxAhead`, or -1.
         [[nodiscard]] float PathBlockedBy(const TrafficVehicle& v, const TrafficVehicle& other, float maxAhead) const;
+        /// The same for a body with the other vehicle's size at a given pose.
+        [[nodiscard]] float PathBlockedByBody(const TrafficVehicle& v, const TrafficVehicle& other, const Microsoft::Xna::Framework::Vector3& centre,
+                                              float headingRad, float maxAhead) const;
+        /// PathBlockedBy for a bus or a lorry on its lane, over where its body will be along the
+        /// rest of the lane as well as where it is now.
+        [[nodiscard]] float SweptPathBlockedBy(const TrafficVehicle& v, const TrafficVehicle& heavy, float maxAhead) const;
+        /// Pose of a bus's or a lorry's body `ahead` metres further along its path, as UpdatePose
+        /// poses it (along the chord between the axles).
+        [[nodiscard]] bool HeavyPoseAhead(const TrafficVehicle& heavy, float ahead, Microsoft::Xna::Framework::Vector3& centre, float& headingRad) const;
+        /// For a car on the opposite lane of a bus or a lorry: how far on along its lane the
+        /// heavy vehicle's body first touches the car as it stands, or -1. The one test both of
+        /// them decide by, so that they never both wait for each other.
+        [[nodiscard]] float HeavySwingMeets(const TrafficVehicle& heavy, const TrafficVehicle& car) const;
+        /// Two buses or lorries meeting at a bend: whether `a` has it (exactly one of a pair does).
+        [[nodiscard]] bool HeavyGoesFirst(const TrafficVehicle& a, const TrafficVehicle& b) const;
+        /// How far `v` (a bus or a lorry) can go before its body meets where `heavy`'s body is going
+        /// to be; -1 when not within `reach`.
+        [[nodiscard]] float BodiesMeetAhead(const TrafficVehicle& v, const TrafficVehicle& heavy, float reach) const;
+        /// How far on a bus's or a lorry's centre can go along its lane: the reach of those tests.
+        [[nodiscard]] float SwingHorizon(const TrafficVehicle& heavy) const;
         [[nodiscard]] const TrafficVehicle* FindVehicle(int id) const;
         [[nodiscard]] bool LaneOccupiedNear(int lane, float s, float radius, int ignoreId) const;
 

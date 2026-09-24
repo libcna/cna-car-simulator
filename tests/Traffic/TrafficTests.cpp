@@ -499,3 +499,189 @@ TEST(TrafficSystem, NobodyOvertakesIntoOncomingTraffic)
     EXPECT_EQ(run.closeCalls, 0);
     EXPECT_EQ(run.overlaps, 0);
 }
+
+namespace
+{
+    Collision::Obb BodyOf(const Traffic::TrafficVehicle& c)
+    {
+        return Collision::Obb::FromHeading(c.position + Vector3(0.0f, 0.5f * c.heightM, 0.0f),
+                                           Vector3(0.5f * c.widthM, 0.5f * c.heightM, 0.5f * c.lengthM), c.headingRad);
+    }
+
+    int CountOverlaps(const std::vector<Traffic::TrafficVehicle>& cars)
+    {
+        int overlaps = 0;
+        for (std::size_t a = 0; a < cars.size(); ++a) {
+            for (std::size_t b = a + 1; b < cars.size(); ++b) {
+                Collision::Contact contact;
+                if (Collision::IntersectObbObb(BodyOf(cars[a]), BodyOf(cars[b]), contact)) ++overlaps;
+            }
+        }
+        return overlaps;
+    }
+
+    const Traffic::TrafficVehicle* Find(const Traffic::TrafficSystem& traffic, const int id)
+    {
+        for (const auto& v : traffic.Vehicles()) {
+            if (v.id == id) return &v;
+        }
+        return nullptr;
+    }
+}
+
+TEST(TrafficSystem, NobodyStartsAnOvertakeItCannotFinishBeforeTheJunction)
+{
+    // The lorry is slow, but not by much, and the junction is 125 m on: passing it takes some
+    // 200 m of road. The car stays behind -- it does not go out and reach the junction on the
+    // wrong side of the road, or pull in sideways into the lorry when it runs out of room.
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 11);
+    traffic.SetDensity(0);
+    const int east = LaneOf(*world, "main", true, 0);
+    const Map::Lane& lane = world->Lanes().LaneAt(east);
+    const int lorry = traffic.SpawnOn(east, lane.length - 125.0f, 17.0f, Sim::CarStyle::Body::Truck);
+    const int car = traffic.SpawnOn(east, lane.length - 150.0f, 18.0f, Sim::CarStyle::Body::Hatchback);
+    ASSERT_GE(lorry, 0);
+    ASSERT_GE(car, 0);
+    int overlaps = 0;
+    float furthestOut = 0.0f;
+    for (int i = 0; i < 30 * 30; ++i) {
+        traffic.Update(1.0f / 30.0f, NoPlayer());
+        overlaps += CountOverlaps(traffic.Vehicles());
+        const auto* c = Find(traffic, car);
+        if (!c) break;
+        if (c->link < 0 && c->lane == east) furthestOut = std::max(furthestOut, c->lateral);
+    }
+    EXPECT_EQ(overlaps, 0);
+    EXPECT_LT(furthestOut, 1.0f) << "the car went out to pass";
+}
+
+TEST(TrafficSystem, AnOvertakerMeetingOncomingTrafficGetsBackWithoutTouchingAnybody)
+{
+    // The car is out level with the lorry when a car comes the other way. The oncoming car stops
+    // short, the overtaker finishes or drops back, and nobody touches anybody.
+    // (Closer than 45 m the two could not stop in time even braking as hard as they can.)
+    for (const float oncomingAt : {45.0f, 60.0f, 80.0f}) {
+        auto world = CrossWorld(true);
+        ASSERT_TRUE(world);
+        Traffic::TrafficSystem traffic(*world, 11);
+        traffic.SetDensity(0);
+        const int east = LaneOf(*world, "main", true, 0);
+        const int west = LaneOf(*world, "main", false, 0);
+        const int lorry = traffic.SpawnOn(east, 60.0f, 8.3f, Sim::CarStyle::Body::Truck);
+        const int car = traffic.SpawnOn(east, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
+        ASSERT_GE(lorry, 0);
+        ASSERT_GE(car, 0);
+        bool spawned = false;
+        int overlaps = 0;
+        for (int i = 0; i < 30 * 30; ++i) {
+            traffic.Update(1.0f / 30.0f, NoPlayer());
+            overlaps += CountOverlaps(traffic.Vehicles());
+            const auto* c = Find(traffic, car);
+            const auto* l = Find(traffic, lorry);
+            if (!c || !l) break;
+            // Out and already level with the lorry: too far on to simply tuck back in behind it.
+            if (!spawned && c->lateral > 2.0f && c->s > l->s - 1.0f) {
+                // In the westbound lane's own s: its lanes run the other way.
+                const float s = world->Lanes().LaneAt(west).length - (c->s + oncomingAt);
+                ASSERT_GE(traffic.SpawnOn(west, s, 14.0f, Sim::CarStyle::Body::Sedan), 0);
+                spawned = true;
+            }
+        }
+        EXPECT_TRUE(spawned) << "oncoming at " << oncomingAt << " m: the car never went out";
+        EXPECT_EQ(overlaps, 0) << "oncoming at " << oncomingAt << " m";
+    }
+}
+
+namespace
+{
+    // One two-lane village road with a right-angled bend of a tight radius in the middle.
+    std::unique_ptr<Map::MapWorld> BendWorld()
+    {
+        Map::MapData data;
+        data.info.id = "bend";
+        data.terrain.sizeX = data.terrain.sizeZ = 1000.0f;
+        data.terrain.cellSize = 10.0f;
+        data.terrain.noiseAmplitude = 0.0f;
+        data.nodes = {Node("a", -300, 0), Node("b", 0, 0), Node("c", 0, 300)};
+        data.nodes[1].cornerRadius = 12.0f;
+        Map::RoadSpec road = Road("bend", {"a", "b", "c"}, 50.0f);
+        road.laneWidth = 2.75f;
+        data.roads = {road};
+        data.traffic.maxVehicles = 0;
+        std::vector<std::string> errors;
+        auto world = Map::MapWorld::Build(std::move(data), errors);
+        EXPECT_TRUE(errors.empty());
+        return world;
+    }
+}
+
+TEST(TrafficSystem, CarsWaitForABusSwingingRoundATightBend)
+{
+    // A bus's body cuts across the centre line in the bend. A car coming the other way sees
+    // where the body is going, not only where it is, and waits before the bend for it; one
+    // that is in the bend first drives on out of it, and the bus waits for it.
+    for (const float carStart : {200.0f, 215.0f, 230.0f, 245.0f, 260.0f, 275.0f}) {
+        auto world = BendWorld();
+        ASSERT_TRUE(world);
+        Traffic::TrafficSystem traffic(*world, 5);
+        traffic.SetDensity(0);
+        const int there = LaneOf(*world, "bend", true, 0);
+        const int back = LaneOf(*world, "bend", false, 0);
+        ASSERT_GE(there, 0);
+        ASSERT_GE(back, 0);
+        const int bus = traffic.SpawnOn(there, 240.0f, 9.0f, Sim::CarStyle::Body::Bus);
+        const int car = traffic.SpawnOn(back, carStart, 12.0f, Sim::CarStyle::Body::Hatchback);
+        ASSERT_GE(bus, 0);
+        ASSERT_GE(car, 0);
+        int overlaps = 0;
+        for (int i = 0; i < 30 * 30; ++i) {
+            traffic.Update(1.0f / 30.0f, NoPlayer());
+            overlaps += CountOverlaps(traffic.Vehicles());
+        }
+        EXPECT_EQ(overlaps, 0) << "car starting at s " << carStart;
+        const auto* b = Find(traffic, bus);
+        const auto* c = Find(traffic, car);
+        EXPECT_TRUE(!b || b->s > 350.0f) << "the bus got round (car starting at s " << carStart << ")";
+        EXPECT_TRUE(!c || c->s > 350.0f) << "the car got round (car starting at s " << carStart << ")";
+    }
+}
+
+namespace
+{
+    /// How far short of the lane end the nose of a vehicle of `body` stops when it gives way on
+    /// the minor road to a stream of main-road traffic.
+    float NoseGapGivingWay(const Sim::CarStyle::Body body)
+    {
+        auto world = CrossWorld(true);
+        EXPECT_TRUE(world);
+        Traffic::TrafficSystem traffic(*world, 13);
+        traffic.SetDensity(0);
+        const int minorSouth = LaneOf(*world, "minor", true, 0);
+        const int mainEast = LaneOf(*world, "main", true, 0);
+        const Map::Lane& lane = world->Lanes().LaneAt(minorSouth);
+        const int id = traffic.SpawnOn(minorSouth, lane.length - 60.0f, 8.0f, body);
+        EXPECT_GE(id, 0);
+        for (int i = 0; i < 5; ++i) traffic.SpawnOn(mainEast, 200.0f + 25.0f * static_cast<float>(i), 12.0f, Sim::CarStyle::Body::Sedan);
+        float closest = 1e9f;
+        for (int i = 0; i < 30 * 12; ++i) {
+            traffic.Update(1.0f / 30.0f, NoPlayer());
+            const auto* v = Find(traffic, id);
+            if (!v || v->link >= 0 || v->lane != minorSouth) break;
+            if (v->speed < 0.05f) closest = std::min(closest, lane.length - v->s - 0.5f * v->lengthM);
+        }
+        return closest;
+    }
+}
+
+TEST(TrafficSystem, BusesAndLorriesStopFurtherBackFromTheLine)
+{
+    // A lorry is wider than the room that turning traffic leaves at the line, and it clipped
+    // the nose of one waiting there: it stops a good way further back than a car.
+    const float car = NoseGapGivingWay(Sim::CarStyle::Body::Hatchback);
+    const float lorry = NoseGapGivingWay(Sim::CarStyle::Body::Truck);
+    ASSERT_LT(car, 1e8f) << "the car never stopped at the line";
+    ASSERT_LT(lorry, 1e8f) << "the lorry never stopped at the line";
+    EXPECT_GT(lorry, car + 1.5f) << "car " << car << " m, lorry " << lorry << " m";
+}
