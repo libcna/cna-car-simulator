@@ -54,6 +54,12 @@ namespace CarSim::Audio
         }
     }
 
+    float VehicleAudio::BurstRandom()
+    {
+        burstSeed_ = burstSeed_ * 1664525u + 1013904223u;
+        return static_cast<float>((burstSeed_ >> 8) & 0xFFFFu) / 65535.0f;
+    }
+
     void VehicleAudio::SetWeather(const float rain, const float wetness)
     {
         rain_ = std::clamp(rain, 0.0f, 1.0f);
@@ -184,6 +190,81 @@ namespace CarSim::Audio
             }
             rainGain_ = roof;
             sprayGain_ = spray;
+        }
+        // Raindrops on the roof: sparse short ticks on top of the hiss, so light rain patters
+        // and heavy rain drums. Inside the car they are what you hear most.
+        {
+            const float rate = Layers::RainDropRate(rain_, state.speedKmh);
+            dropHp_.SetCutoff(1800.0f, kSampleRate);
+            const float level = cockpit ? 0.30f : 0.10f;
+            for (int i = 0; i < kBlockFrames; ++i) {
+                dropCredit_ += rate / static_cast<float>(kSampleRate);
+                if (dropCredit_ >= 1.0f && drops_.size() < 24) {
+                    dropCredit_ -= 1.0f;
+                    Burst b;
+                    b.amplitude = level * (0.3f + 0.7f * BurstRandom());
+                    b.decay = 1.0f - 1.0f / (kSampleRate * (0.002f + 0.004f * BurstRandom()));
+                    drops_.push_back(b);
+                }
+                float env = 0.0f;
+                for (auto& b : drops_) {
+                    env += b.amplitude;
+                    b.amplitude *= b.decay;
+                }
+                effects[static_cast<std::size_t>(i)] += dropHp_.Process(dropNoise_.Next()) * env;
+                if ((i & 63) == 0) {
+                    drops_.erase(std::remove_if(drops_.begin(), drops_.end(), [](const Burst& b) { return b.amplitude < 1e-4f; }), drops_.end());
+                }
+            }
+            dropCredit_ = std::min(dropCredit_, 2.0f);
+        }
+        // Puddles: the odd low whoosh as a wheel ploughs through standing water.
+        {
+            const float rate = grounded ? Layers::SplashRate(wetness_, state.speedKmh) : 0.0f;
+            splashLp_.SetCutoff(900.0f, kSampleRate);
+            for (int i = 0; i < kBlockFrames; ++i) {
+                splashCredit_ += rate / static_cast<float>(kSampleRate) * (0.5f + BurstRandom());
+                if (splashCredit_ >= 1.0f && splashes_.size() < 4) {
+                    splashCredit_ -= 1.0f;
+                    Burst b;
+                    b.amplitude = (0.10f + 0.12f * BurstRandom()) * std::clamp(state.speedKmh / 70.0f, 0.3f, 1.2f);
+                    b.decay = 1.0f - 1.0f / (kSampleRate * (0.12f + 0.10f * BurstRandom()));
+                    splashes_.push_back(b);
+                }
+                float env = 0.0f;
+                for (auto& b : splashes_) {
+                    env += b.amplitude;
+                    b.amplitude *= b.decay;
+                }
+                effects[static_cast<std::size_t>(i)] += splashLp_.Process(splashNoise_.Next()) * env;
+            }
+            splashes_.erase(std::remove_if(splashes_.begin(), splashes_.end(), [](const Burst& b) { return b.amplitude < 1e-4f; }), splashes_.end());
+        }
+        // Wipers: the rubber swishing across the glass with the blade's speed, the motor's hum
+        // under it, and a knock where the blades turn round and where they park.
+        {
+            const float blockSeconds = static_cast<float>(kBlockFrames) / static_cast<float>(kSampleRate);
+            const float delta = state.wiperPosition - prevWiper_;
+            const float bladeSpeed = std::fabs(delta) / blockSeconds;
+            const float direction = delta > 1e-5f ? 1.0f : (delta < -1e-5f ? -1.0f : 0.0f);
+            if (direction != 0.0f && wiperDirection_ > 0.0f && direction < 0.0f) Trigger(clunk_, 0.08f);          // far end
+            if (prevWiper_ > 0.0f && state.wiperPosition <= 0.0f) Trigger(clunk_, 0.06f);                          // parked
+            if (direction != 0.0f) wiperDirection_ = direction;
+            prevWiper_ = state.wiperPosition;
+            const float target = Layers::WiperSwishGain(bladeSpeed, wetness_) * (cockpit ? 1.0f : 0.3f);
+            wiperLp_.SetCutoff(2600.0f, kSampleRate);
+            wiperHp_.SetCutoff(500.0f, kSampleRate);
+            const float step = (target - wiperGain_) / static_cast<float>(kBlockFrames);
+            const double motorStep = 2.0 * 3.14159265358979 * 95.0 / kSampleRate;
+            for (int i = 0; i < kBlockFrames; ++i) {
+                wiperGain_ += step;
+                const float swish = wiperHp_.Process(wiperLp_.Process(wiperNoise_.Next()));
+                const float motor = static_cast<float>(std::sin(wiperMotorPhase_)) * 0.35f;
+                wiperMotorPhase_ += motorStep;
+                effects[static_cast<std::size_t>(i)] += (swish + motor) * wiperGain_;
+            }
+            if (wiperMotorPhase_ > 1e6) wiperMotorPhase_ = std::fmod(wiperMotorPhase_, 2.0 * 3.14159265358979);
+            wiperGain_ = target;
         }
         // Brake hiss: band-limited noise that grows with pedal travel and speed.
         {

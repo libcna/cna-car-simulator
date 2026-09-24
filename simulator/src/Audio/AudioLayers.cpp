@@ -43,6 +43,25 @@ namespace CarSim::Audio::Layers
         return 0.16f * pedal * pedal * speed;
     }
 
+    float RainDropRate(const float rain, const float speedKmh)
+    {
+        if (rain <= 0.02f) return 0.0f;
+        return rain * (60.0f + 220.0f * rain) * (1.0f + std::clamp(speedKmh / 90.0f, 0.0f, 1.0f));
+    }
+
+    float WiperSwishGain(const float bladeSpeed, const float wetness)
+    {
+        const float speed = std::clamp(bladeSpeed / 2.0f, 0.0f, 1.0f);
+        return speed * (0.05f + 0.04f * (1.0f - std::clamp(wetness, 0.0f, 1.0f)));
+    }
+
+    float SplashRate(const float wetness, const float speedKmh)
+    {
+        const float standing = std::clamp((wetness - 0.35f) / 0.65f, 0.0f, 1.0f);
+        if (standing <= 0.0f || speedKmh < 10.0f) return 0.0f;
+        return standing * std::clamp(speedKmh / 60.0f, 0.0f, 1.5f) * 1.6f;
+    }
+
     float SurfaceRoughness(const Sim::SurfaceType surface)
     {
         switch (surface) {

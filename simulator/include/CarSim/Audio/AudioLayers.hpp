@@ -21,4 +21,15 @@ namespace CarSim::Audio::Layers
 
     /// Rolling-noise roughness of a surface (1 = asphalt).
     [[nodiscard]] float SurfaceRoughness(Sim::SurfaceType surface);
+
+    /// Drops hitting the roof per second: none without rain, a patter in drizzle, a drumming
+    /// in a downpour; more land on a moving car.
+    [[nodiscard]] float RainDropRate(float rain, float speedKmh);
+
+    /// Gain of the wiper swish: follows blade speed (sweep fraction per second); a dry screen
+    /// squeaks louder than a wet one wipes.
+    [[nodiscard]] float WiperSwishGain(float bladeSpeed, float wetness);
+
+    /// Puddle splashes per second under the wheels of a car on a soaked road.
+    [[nodiscard]] float SplashRate(float wetness, float speedKmh);
 }

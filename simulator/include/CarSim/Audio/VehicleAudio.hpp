@@ -100,6 +100,29 @@ namespace CarSim::Audio
         OnePoleLowPass rainLp_;
         OnePoleHighPass rainHp_;
         OnePoleLowPass sprayLp_;
+        // Individual raindrops on the roof, puddle splashes, and the wipers.
+        struct Burst
+        {
+            float amplitude = 0.0f;
+            float decay = 0.0f;   // per sample
+        };
+        std::vector<Burst> drops_;
+        NoiseSource dropNoise_{7717u};
+        OnePoleHighPass dropHp_;
+        float dropCredit_ = 0.0f;
+        std::vector<Burst> splashes_;
+        NoiseSource splashNoise_{3301u};
+        OnePoleLowPass splashLp_;
+        float splashCredit_ = 0.0f;
+        unsigned burstSeed_ = 12345u;
+        float prevWiper_ = 0.0f;
+        float wiperDirection_ = 0.0f;
+        float wiperGain_ = 0.0f;
+        NoiseSource wiperNoise_{2203u};
+        OnePoleLowPass wiperLp_;
+        OnePoleHighPass wiperHp_;
+        double wiperMotorPhase_ = 0.0;
+        [[nodiscard]] float BurstRandom();
         // Edge detection.
         bool prevLeft_ = false;
         bool prevRight_ = false;
