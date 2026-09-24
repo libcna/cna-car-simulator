@@ -3,9 +3,9 @@
 Measured with `--benchmark --frames 400 --auto-drive 8` (statistics start after 30 warm-up
 frames) on the development container: Xvfb + Mesa llvmpipe **software** OpenGL ES 3.2, four
 CPU threads, 1280 x 720, sample map "Lipová", spawn "square", chase camera, traffic enabled.
-Software rasterisation dominates these numbers; a discrete or integrated GPU renders the same
-frame in a few milliseconds, so the wall-clock figures below are an upper bound that mainly
-tracks triangle and draw-call counts.
+Software rasterisation dominates these historical numbers. The measured Radeon 780M results
+for Phase 14 are at the end of this document; its project draw submission is 9–17 ms in the
+eight town scenes, so the old expectation of just a few milliseconds was optimistic.
 
 | Build state | update avg | draw submission avg | frame wall avg | draw calls | triangles |
 | --- | --- | --- | --- | --- | --- |
@@ -114,8 +114,8 @@ cannot do eight scenes at 1280 x 720 in a sensible time.
 
 **Every table on this page is the container's software rasteriser (Mesa llvmpipe, four CPU
 threads, no GPU).** They are an upper bound dominated by fill rate and say very little about a
-real machine. `docs/real-hardware-validation.md` is the procedure for producing the ones that
-matter; no run on real GPU hardware has been recorded yet.
+real machine. `docs/real-hardware-validation.md` is the procedure for reproducing hardware
+results. Phase 14's first real GPU run is recorded below.
 
 ### The rear-view mirror
 
@@ -175,3 +175,39 @@ simulation is a bottleneck at this world size; every lever that matters is in th
 
 The extra pass costs one more submission of each non-marking road batch while the road is wet
 (77 batches on the town route, about 1.5 ms on llvmpipe) and nothing at all when it is dry.
+
+## Phase 14: first real GPU baseline
+
+Measured at commit `2fa9ddd` on Debian 13, AMD Radeon 780M (`radeonsi`, Mesa 25.0.7), CNA
+OPENGLES3 / OpenGL ES 3.2, actual desktop display `:0`, 1280 × 720, high quality. The command
+was `DISPLAY=:0 SDL_VIDEODRIVER=x11 SDL_AUDIODRIVER=dummy scripts/benchmark_suite.sh
+--out build/benchmarks/p14-gpu-baseline --frames 240`. Each deterministic town-route scene has
+30 warm-up frames and 210 measured frames, 60 simulated seconds of traffic warm-up and about
+20 traffic cars. Audio was disabled in this controlled graphics run.
+
+| Town route | Project draw submission | Frame wall clock | Instrumented draws | Instrumented triangles | World pass | Traffic pass | Mirror pass |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Clear day, exterior | 10.53 ms | 17.59 ms | 1345 | 1.41 M | 6.44 ms | 3.03 ms | 0 |
+| Clear day, cockpit | 16.26 ms | 19.39 ms | 1376 | 1.41 M | 6.78 ms | 3.09 ms | 5.33 ms |
+| Rain, exterior | 8.86 ms | 17.49 ms | 1082 | 1.85 M | 4.50 ms | 3.03 ms | 0 |
+| Rain, cockpit | 14.18 ms | 18.08 ms | 1097 | 1.85 M | 4.44 ms | 3.05 ms | 5.41 ms |
+| Clear night, exterior | 13.32 ms | unreliable | 1273 | 1.59 M | 6.73 ms | 3.41 ms | 0 |
+| Clear night, cockpit | 15.88 ms | unreliable | 1293 | 1.59 M | 5.56 ms | 2.83 ms | 4.70 ms |
+| Rainy night, exterior | 14.30 ms | unreliable | 1153 | 1.82 M | 5.76 ms | 4.18 ms | 0 |
+| Rainy night, cockpit | 16.59 ms | 19.81 ms | 1166 | 1.82 M | 4.79 ms | 3.08 ms | 5.32 ms |
+
+The desktop intermittently throttled an unfocused simulator window to roughly one present per
+second: wall-clock averages reached 537 ms in clear night exterior and 1022 ms in rainy night
+exterior even though their project draw submission stayed at 13–14 ms. Those wall times are
+**not GPU performance measurements**. The other wall times were stable at 17–20 ms, but a
+foreground, unthrottled repeat is required before quoting a reliable night FPS. Project
+timers measure CPU submission; they do not isolate GPU execution or present/compositor time.
+
+The existing `drawCallsAvg` and `trianglesAvg` counters include the main-view world, traffic
+and player vehicle instrumentation. They omit some submissions, including pedestrians,
+signals, weather and mirror re-draws, so they are not whole-frame GPU draw counts. They are
+useful for same-scene changes to those instrumented systems, not a global submission budget.
+In clear day, the main-view world pass (6.4–6.8 ms), traffic pass (~3.0 ms) and cockpit mirror
+(5.3 ms) dominate the project draw timer. No Phase 14 batching has been performed from these
+numbers alone. Forest, snow, fog, walking, aerial and pedestrian-heavy cases remain to be
+measured before a global draw-call decision.

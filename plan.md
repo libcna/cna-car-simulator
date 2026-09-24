@@ -1566,7 +1566,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [ ] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
   replacement architecture. Acceptance: normal car, boosts, flight, damage and all rendering
   modes retain their behavior; before/after captures and renderer checks show no regression.
-- [ ] `P14-020` Improve building facades and Czech settlement details using reusable parts.
+- [~] `P14-020` Improve building facades and Czech settlement details using reusable parts.
+  A shared framed/panelled door kit replaces flat door quads without adding a material pass;
+  plaster no longer repeats a high-contrast stain motif over whole walls. The fixed town
+  camera at `--view -78 9 -30 50 -6` was captured before and after on Radeon 780M and visually
+  inspected. More facade variety and authored frontage context remain.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [ ] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Acceptance: town,
@@ -1588,8 +1592,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   prevent starting a pass through a crossing. Parser, mesh and deterministic traffic tests pass;
   see `docs/research/czech-overtaking.md`. Acceptance for completion: authored local restriction
   ranges and signs, junction/crossing edge cases and rendered agreement in screenshots.
-- [ ] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
+- [~] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
+  Initiation now estimates passing time from the actual car's acceleration, accounts for
+  oncoming closure over that time and scales clearance with wetness, snow and fog sight range.
+  Clear, rainy, snowy, foggy, crossing, line-marking, oncoming and abort regression tests pass;
+  road signs and phase-change decisions still need work.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or
   overlap, and the 30-minute soak passes.
 - [ ] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
@@ -1603,11 +1611,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P3 — measure, then optimize
 
-- [ ] `P14-050` Record real-GPU hardware/driver/renderer, FPS, frame, CPU update, project draw
+- [~] `P14-050` Record real-GPU hardware/driver/renderer, FPS, frame, CPU update, project draw
   submission, object, submission, triangle, mirror, traffic and pedestrian counts for exterior,
   cockpit, dense town, forest, night, rain, snow, fog, pedestrian, walking, helicopter and a
   realistic worst case. Acceptance: same seed/settings/camera are reproducible; unavailable
   hardware is recorded as unavailable, never substituted with software figures.
+  First eight town scenes measured on Debian 13/Radeon 780M/Mesa 25.0.7/OPENGLES3 at
+  `2fa9ddd`, documented in `docs/performance.md`. Clear day: 10.53 ms exterior and 16.26 ms
+  cockpit project draw submission; mirror 5.33 ms. Night wall-clock FPS is invalid where the
+  desktop throttled the unfocused window. Counts omit some passes; remaining scenarios and
+  corrected whole-frame instrumentation are open.
 - [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.

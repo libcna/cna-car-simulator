@@ -204,13 +204,15 @@ older phase records in `plan.md` describe what existed *then*; their deferred li
 remove features delivered later. Phase 14 in section 27 of `plan.md` tracks the current
 architecture, fidelity, traffic-rule and audio work.
 
-Current gaps: building facades remain plain at driving distance, cockpit materials and controls
-need another pass, overtaking lacks explicit road-rule semantics beyond existing geometry and
-traffic checks, and audio remains predominantly synthesised. **No real GPU run has been
-recorded yet.** The restricted development shell has no `/dev/dri`, but the actual desktop
-`:0` outside it reports an accelerated AMD Radeon 780M. Phase 14 can run the benchmark there;
-`docs/real-hardware-validation.md` has the procedure. Do not infer batching wins from Mesa
-llvmpipe.
+Current Phase 14 progress: HUD/map/help/debug drawing and overtaking were extracted into
+coherent translation units without changing their existing algorithms; the overtake planner
+now reads authored directional centre lines, road-wide bans and pedestrian crossings, with
+weather and acceleration checks under test. A close town facade now has a framed, panelled
+door and quieter plaster. The first real GPU baseline was run at `2fa9ddd` on the accelerated
+AMD Radeon 780M desktop: clear-town project draw submission was 10.5 ms exterior and 16.3 ms
+cockpit, of which the mirror took 5.3 ms. See `docs/performance.md` for all eight scenes and
+window-throttling caveats. The restricted shell itself has no `/dev/dri`; desktop `:0` does.
+Cockpit, pedestrian, walking, audio, forest, snow and fog work remain open in `plan.md`.
 
 ## Working conventions that kept things sane
 
@@ -223,5 +225,5 @@ llvmpipe.
   `docs/cameras.md`, `docs/performance.md` (numbers per scene), `docs/audio-design.md`,
   `docs/renderer-conformance.md`, `docs/real-hardware-validation.md`,
   `docs/map-generation.md` (anything under `tools/maps`).
-- Never write a performance figure or a picture caption that implies GPU hardware. Everything
-  here is a software rasteriser until somebody runs the real-hardware procedure and adds a row.
+- Label renderer, device, driver and display alongside each performance figure or image. Older
+  curated images use llvmpipe; the Phase 14 baseline in `docs/performance.md` uses the Radeon.

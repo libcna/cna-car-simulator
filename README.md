@@ -49,11 +49,10 @@ architecture, world, cockpit, traffic rules, audio and measured performance, is 
 [`plan.md`](plan.md) is the task ledger. The newer features listed below are accepted product
 scope, including work added after the Phase 13 audit.
 
-**All performance figures and every picture in this repository come from a headless container
-with no GPU** (Xvfb, Mesa llvmpipe software rasterisation). They describe a software rasteriser,
-not a graphics card. [`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) is
-the copy-and-paste procedure for producing figures on a real machine; no such run has been
-recorded yet.
+The curated pictures below and the older Phase 13 performance tables were captured with Mesa
+llvmpipe software rendering. Phase 14 has now measured eight deterministic scenes on the
+Debian 13 desktop's AMD Radeon 780M; the GPU numbers and the desktop window-pacing caveat are
+in [`docs/performance.md`](docs/performance.md).
 
 What you get today:
 
@@ -418,11 +417,11 @@ Screenshots were reviewed for every rendering change; the headless workflow is
 
 ## Performance
 
-Everything measured here is the development container: Mesa llvmpipe **software** rendering, four
-threads, no GPU. The update half of a frame stays below 0.5 ms (vehicle physics 0.19 ms,
-collision 0.01 ms, traffic AI 0.18 ms, audio 0.001 ms) at every world size the map reaches; all
-the cost is in the draw half, which on a software rasteriser is rasterisation rather than
-submission. The cockpit's rear-view mirror was the largest single lever -- a second full world
+The Phase 13 figures below are from Mesa llvmpipe **software** rendering, four threads. In the
+new Phase 14 AMD Radeon 780M run, clear-town CPU update averaged 1.74–1.80 ms and project draw
+submission 10.5 ms exterior / 16.3 ms cockpit at 1280 × 720. The mirror alone submitted for
+5.3 ms in the cockpit. The older cockpit rear-view mirror optimization capped its draw distance
+at 300 m and reduced the software measurement from 58.9 ms to
 pass into a 200-pixel strip -- and capping its draw distance at 300 m took it from 58.9 ms to
 45.5 ms. Three graphics tiers (`--quality low|medium|high`, `settings.graphicsQuality`) trade
 draw distance, vegetation distance and mirror rate; `high` is the default and is what every
@@ -431,8 +430,8 @@ commands that reproduce them are in [`docs/performance.md`](docs/performance.md)
 `--benchmark-json` writes them as JSON. The same scenes were built and compared on the
 OPENGLES3, OPENGL33 and SOFTWARE renderers
 ([`docs/renderer-conformance.md`](docs/renderer-conformance.md)), and
-[`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) is the procedure for a
-first run on a real PC with a GPU.
+[`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) describes reproduction
+on a real PC with a GPU.
 
 ## Licensing and provenance
 

@@ -1,9 +1,9 @@
 # Real-hardware validation
 
-Everything in this repository is developed in a headless container: Xvfb, Mesa **llvmpipe**,
-no GPU, no sound card. Every picture and every frame time produced there describes a software
-rasteriser. **Nothing on this page may be filled in from the container.** A number that was not
-measured on the machine it claims to describe is worse than no number at all.
+The older curated screenshots and Phase 13 measurements were made with Xvfb and Mesa
+**llvmpipe**. Phase 14 also has a first run on the actual Radeon 780M desktop; see
+`docs/performance.md`. Keep the renderer and hardware with every measurement. A number that
+was not measured on the machine it claims to describe is worse than no number at all.
 
 The reference machine for this project's real-hardware runs is a **Debian 13 desktop with an
 AMD Radeon 780M** (integrated RDNA 3), a real display, normal audio and a keyboard and mouse.
@@ -31,7 +31,7 @@ have useful results inside half an hour.
 
 ```bash
 git clone <this repository> cna-car-simulator && cd cna-car-simulator
-git checkout claude/cna-car-simulator-project-scx0ij
+git checkout main
 
 cmake --preset opengles3 -DCARSIM_CNA_ROOT=../cna -DCARSIM_SHARP_RUNTIME_ROOT=../sharp-runtime
 cmake --build build/opengles3 -j"$(nproc)"
@@ -80,9 +80,11 @@ project's own instrumentation (no renderer internals are read):
 | `environment` | clock, weather preset, cloud/rain/wetness, sun elevation, lamp factor |
 | `world` | drawn and culled batches, traffic alive/drawn per LOD, draw calls and triangles |
 
-On a GPU the `draw` number is CPU submission only and should be a few ms; if it is tens of ms
-the driver is falling back to software. The `frame` number includes the present, so with
-vertical sync on it settles at the refresh interval.
+On a GPU the `draw` number is CPU submission only; 10–17 ms was measured on the reference
+Radeon 780M in the first Phase 14 town suite. It does not isolate GPU execution. The `frame`
+number includes presentation and can be badly distorted if the desktop throttles an unfocused
+window; some first-run night scenes were limited to one present per second despite much shorter
+project draw times. Confirm the window is active before treating frame wall time as FPS.
 
 **Record** a photo or `F12` screenshot of the overlay in town, and the renderer line CNA prints
 on stdout at start-up.
