@@ -97,6 +97,7 @@ add_library(carsim_render STATIC
     src/Render/TrafficRenderer.cpp
     src/Render/VegetationGenerator.cpp
     src/Render/VehicleRenderer.cpp
+    src/Render/VehicleGroundEffects.cpp
     src/Render/WorldRenderer.cpp
     src/Render/WorldRendererScenery.cpp
 )

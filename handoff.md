@@ -49,20 +49,21 @@ plan.md      ledger; section 24 = Phase 11, 25 = Phase 12 (day/night, weather, s
 
 ## Building and testing in this environment
 
-Dependencies are NOT sibling checkouts here; they live under `/home/user/deps`:
+This checkout has CNA `next` and Sharp Runtime `next` in sibling directories. In the
+restricted shell, use a writable ccache directory and SDL's offscreen video driver for tests:
 
 ```bash
-cmake --preset opengles3 -DCARSIM_CNA_ROOT=/home/user/deps/cna -DCARSIM_SHARP_RUNTIME_ROOT=/home/user/deps/sharp-runtime
-cmake --build build/opengles3 -j4            # targets: cna-car-simulator, carsim_tests, tools
-./build/opengles3/bin/carsim_tests           # unit + scenario tests (~20 s)
-ctest --preset opengles3                     # also the headless smoke tests (needs Xvfb)
-/usr/bin/python3.12 scripts/check_xna_only.py && /usr/bin/python3.12 scripts/check_assets.py
+cmake --preset opengles3
+CCACHE_DIR=/tmp/carsim-ccache cmake --build --preset opengles3 -j4
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy ctest --preset opengles3 --output-on-failure
+python3 scripts/check_xna_only.py && python3 scripts/check_assets.py
 ```
 
-Other presets (`opengl33`, `software`) configure the same way; both were built and run
-(`docs/renderer-conformance.md`). `vulkan` has no ICD in the container. A full CNA build takes
-about 15 minutes with `-j2`. Use `/usr/bin/python3.12` for anything needing Pillow (the other
-Pythons lack it).
+Other presets (`opengl33`, `software`, `vulkan`) configure the same way. All four renderer
+paths have been built and captured in Phase 14 (`docs/renderer-conformance.md`); Vulkan uses
+RADV on the Radeon 780M desktop. Fresh CNA renderer builds take several minutes and may reuse
+the SDL prebuilt root from `build/opengles3` via `-DCNA_SDL_PREBUILT_ROOT=...`. The current
+`python3` has Pillow installed.
 
 The simulator binary reads `build/opengles3/bin/content` (copied at build time) and falls back
 to the source `content/`; after editing content JSON either rebuild or pass `--content content`.
@@ -237,6 +238,16 @@ temporary. It now owns the immutable definition used by its subcomponents. The f
 instrumented core run passed 213 tests in 640.35 s, including all three traffic soaks, with
 leak detection enabled; the normal six CTest registrations also pass. Procedure and the
 initial finding are in `docs/sanitizers.md`.
+
+The player vehicle's existing contact shadow and projected headlamp-pool methods were moved
+byte-identically from `VehicleRenderer.cpp` to `VehicleGroundEffects.cpp`. Eight focused
+shadow/beam tests and the full six-test suite passed, and the fixed Radeon night screenshot
+is byte-identical before and after. The four current renderer paths (OPENGLES3, OPENGL33,
+VULKAN and SOFTWARE) rendered matched town scenes with identical project draw and triangle
+counts. Paired town, cockpit and cluster captures were inspected, with pixel differences
+recorded in `docs/renderer-conformance.md`; OPENGLES3 and OPENGL33 were byte-identical on
+this Radeon. The renderer check is a Phase 14 checkpoint and must be repeated after later
+visual or draw-submission changes.
 
 ## Working conventions that kept things sane
 

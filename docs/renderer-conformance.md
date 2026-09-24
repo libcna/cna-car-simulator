@@ -7,7 +7,7 @@ container and what differed between them. There is no renderer-specific code in 
 the renderer is chosen with CNA's `CNA_GRAPHICS_RENDERER` cache variable through the CMake
 presets (`opengles3`, `opengl33`, `software`, `vulkan`, `default`).
 
-Environment: Linux container, Xvfb 1280 x 720, Mesa llvmpipe (software OpenGL, 4 threads),
+Phase 13 environment (historical results below): Linux container, Xvfb 1280 x 720, Mesa llvmpipe (software OpenGL, 4 threads),
 no GPU, no audio device (`SDL_AUDIODRIVER=dummy`), CNA `next` with `easy-gl` and `meta-gl`
 checked out beside it.
 
@@ -143,3 +143,64 @@ be isolated and documented there, never worked around with renderer-specific app
   (`docs/real-hardware-validation.md`, section 3).
 - Multisampling: `PreferMultiSampling` is left at CNA's default; the captures above are not
   multisampled.
+
+## Phase 14: Radeon 780M desktop conformance
+
+The Phase 13 section above describes the old Xvfb container. This Phase 14 run used the
+actual Debian 13 desktop (`DISPLAY=:0`), AMD Radeon 780M, Mesa 25.0.7, `radeonsi` for
+OpenGL ES and RADV PHOENIX for Vulkan, 1280 × 720. Vulkan now configures, compiles, starts
+and renders on this machine. `vulkaninfo --summary` and the CNA startup log both identify
+the Radeon 780M; the run used `MESA_VK_DEVICE_SELECT=1002:15bf`. No project code selected a
+renderer or accessed its internals.
+
+The fixed town scene used `--no-save --no-audio --lockstep --spawn square --frames 40
+--traffic-warmup 20 --time 13:00 --time-scale 0 --weather cloudy --view -78 9 -30 50 -6
+--benchmark --screenshot` on both builds at the same source commit (`f61e7ed`). The
+benchmark excludes 30 warmup frames and measures 10 frames. Both report 1215 project draw
+submissions, 1,450,306 triangles, 203 visible terrain chunks, 84 road batches, 370 object
+batches, 40 tree batches, 20 traffic cars (four drawn), and 36 pedestrians (four drawn).
+Project draw submission averaged 9.46 ms on OPENGLES3 and 7.59 ms on Vulkan. These are
+short conformance captures, not a renderer speed ranking: the desktop throttled this
+unfocused window to about 1.1 seconds of wall time per frame.
+
+The corresponding cockpit and 1024 × 448 live instrument-cluster targets were also captured
+on both renderers from the same two-frame startup state. Manual side-by-side inspection found
+the same world objects, glass, mirror, wheel, controls, gauge labels and lamps. The images
+are close, not pixel-identical; edge coverage, filtering and antialiasing differ. Pixel
+comparison uses maximum absolute RGB channel difference per pixel:
+
+| OPENGLES3 vs Vulkan | Mean absolute RGB difference (R/G/B, of 255) | Pixels > 32 | Pixels > 96 |
+| --- | --- | --- | --- |
+| Town fixed camera | 0.716 / 0.683 / 0.680 | 0.65% | 0.196% |
+| Cockpit startup | 0.899 / 0.873 / 0.819 | 0.687% | 0.252% |
+| Instrument cluster target | 1.292 / 1.258 / 1.201 | 1.422% | 0.320% |
+
+The current OPENGL33 build, running on the same Radeon through desktop OpenGL 4.6, reported
+the same 1215 submissions and 1,450,306 triangles in the fixed town scene. Its town,
+cockpit and cluster PNGs are byte-identical to OPENGLES3 (SHA-256 comparisons). Its 10-frame
+project draw submission average was 11.73 ms under the same unfocused-window throttling;
+that number cannot establish a performance ranking.
+
+The SOFTWARE renderer also built and completed the same 40-frame town scene offscreen with
+1215 submissions and 1,450,306 triangles. Its project draw submission averaged 3802.73 ms
+per measured frame; this CPU rasterisation result is not a Radeon GPU timing. Compared with
+OPENGLES3, mean absolute RGB difference was 3.978 / 4.031 / 3.975 levels of 255, with
+0.968% of pixels differing by more than 32 and 0.049% by more than 96 in any channel.
+The [paired town capture](screenshots/renderers/phase14-gles-software-town.jpg) (OPENGLES3
+left, SOFTWARE right) shows the same geometry, surface colours and scene content. Differences
+are mainly filtering and edge coverage. The startup cockpit and cluster targets were also
+captured and visually inspected. The [cockpit pair](screenshots/renderers/phase14-gles-software-cockpit.jpg)
+has the same mirror, road, controls and gauges; its mean RGB difference is 1.863 / 2.026 /
+1.623 levels, with 1.925% of pixels over 32 and 0.068% over 96. The
+[cluster pair](screenshots/renderers/phase14-gles-software-cluster.png) differs by just
+0.006 / 0.005 / 0.006 mean levels, with no pixel over 32. Small differences are visible on
+green terrain and edges, but no content is absent.
+
+The three paired captures show OPENGLES3 on the left and Vulkan on the right:
+[town](screenshots/renderers/phase14-gles-vulkan-town.jpg),
+[cockpit](screenshots/renderers/phase14-gles-vulkan-cockpit.jpg), and
+[cluster](screenshots/renderers/phase14-gles-vulkan-cluster.png).
+
+There is no missing pass or renderer-specific application fix. The matched geometry and
+inspected images matter more for conformance than matched draw counts alone. The historical
+tables above remain labelled as Phase 13 results.

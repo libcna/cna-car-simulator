@@ -1574,6 +1574,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `VehicleFlight.cpp` (flight stepping byte-identical); the four existing helicopter/boost
   drive tests passed and a fixed aerial screenshot has identical SHA-256
   `2ef7dd8520a9a577fbfeb4cedbf9dfb768c63f8992ffd542651b01561468e787` before/after.
+  The 254-line player vehicle ground-shadow/headlamp-pool implementation was then moved
+  byte-identically into `VehicleGroundEffects.cpp`; eight focused shadow/beam tests passed,
+  and the fixed Radeon night capture retained SHA-256
+  `d20fe5cacdaafdf2288ea91cab3114fa37faf97b8c5241f5f78fcbd6c733ad6a` before/after.
   Broader vehicle and road ownership are still open.
   Acceptance: normal car, boosts, flight, damage and all rendering
   modes retain their behavior; before/after captures and renderer checks show no regression.
@@ -1655,9 +1659,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.
-- [ ] `P14-052` Recheck all available CNA renderers after visual/performance changes through
+- [~] `P14-052` Recheck all available CNA renderers after visual/performance changes through
   the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
-  renderer-specific application branch.
+  renderer-specific application branch. On the real Radeon 780M desktop, OPENGLES3 and the
+  now-available Vulkan RADV path both built and rendered the same fixed town scene with
+  identical 1215 project submissions and 1,450,306 triangles. Town, cockpit and live cluster
+  captures were compared visually and by pixel difference; see `docs/renderer-conformance.md`.
+  OPENGL33 also produced byte-identical town, cockpit and cluster captures to OPENGLES3 on
+  the Radeon. SOFTWARE rendered the same 1215 submissions/1,450,306 triangles offscreen;
+  town, cockpit and cluster captures were visually inspected and pixel differences recorded.
+  Repeat this checkpoint after later Phase 14 rendering or batching changes.
 
 #### P4 — final audit
 
