@@ -70,6 +70,8 @@ namespace CarSim::Audio
         {
             float speedKmh = 0.0f;
             float surfaceRoughness = 1.0f;   // 1 = asphalt, 1.8 gravel, 1.4 grass
+            float snowCover = 0.0f;         // packed snow/slush on the road, 0..1
+            float slip = 0.0f;              // contact-patch slip magnitude, 0..1
             bool grounded = true;
         };
         /// Adds (mixes) into `out`.
@@ -84,6 +86,9 @@ namespace CarSim::Audio
         OnePoleHighPass windHp_;
         OnePoleLowPass windLp_;
         OnePoleLowPass windLp2_;
+        NoiseSource textureNoise_{1709u};
+        OnePoleLowPass textureLp_;
+        OnePoleHighPass scrubHp_;
         Input previous_{};
         bool primed_ = false;
     };

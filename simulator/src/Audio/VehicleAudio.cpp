@@ -60,10 +60,11 @@ namespace CarSim::Audio
         return static_cast<float>((burstSeed_ >> 8) & 0xFFFFu) / 65535.0f;
     }
 
-    void VehicleAudio::SetWeather(const float rain, const float wetness)
+    void VehicleAudio::SetWeather(const float rain, const float wetness, const float snowCover)
     {
         rain_ = std::clamp(rain, 0.0f, 1.0f);
         wetness_ = std::clamp(wetness, 0.0f, 1.0f);
+        snowCover_ = std::clamp(snowCover, 0.0f, 1.0f);
     }
 
     void VehicleAudio::Trigger(const Clip& clip, const float gain)
@@ -156,19 +157,23 @@ namespace CarSim::Audio
 
         RollingNoise::Input rolling;
         rolling.speedKmh = state.speedKmh;
+        rolling.snowCover = snowCover_;
         bool grounded = false;
         for (const auto& w : state.wheels) grounded = grounded || w.grounded;
         rolling.grounded = grounded;
         // Roughness of the surface under the grounded wheels (average), so gravel and grass
         // roar while asphalt hisses.
         float roughness = 0.0f;
+        float slip = 0.0f;
         int groundedWheels = 0;
         for (const auto& w : state.wheels) {
             if (!w.grounded) continue;
             roughness += Layers::SurfaceRoughness(w.surface);
+            slip += std::clamp(std::max(std::fabs(w.slipRatio), std::fabs(w.slipAngle) * 2.0f), 0.0f, 1.0f);
             ++groundedWheels;
         }
         rolling.surfaceRoughness = groundedWheels > 0 ? roughness / static_cast<float>(groundedWheels) : 1.0f;
+        rolling.slip = groundedWheels > 0 ? slip / static_cast<float>(groundedWheels) : 0.0f;
         std::vector<float> effects(static_cast<std::size_t>(kBlockFrames), 0.0f);
         rolling_.Render(effects.data(), kBlockFrames, rolling);
         // Rain: a broadband hiss on the roof and the screen (louder inside the car, where the

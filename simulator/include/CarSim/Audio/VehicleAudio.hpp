@@ -49,7 +49,7 @@ namespace CarSim::Audio
         AudioLevels levels;
         /// Falling rain (0..1) and how wet the road is (0..1): rain hisses on the roof and the
         /// screen, a wet road adds spray under the wheels. Set once per frame from the weather.
-        void SetWeather(float rain, float wetness);
+        void SetWeather(float rain, float wetness, float snowCover = 0.0f);
         [[nodiscard]] bool Enabled() const { return enabled_; }
         [[nodiscard]] int BlocksSubmitted() const { return blocksSubmitted_; }
         [[nodiscard]] int Underruns() const { return underruns_; }
@@ -93,6 +93,7 @@ namespace CarSim::Audio
         OnePoleLowPass brakeLp_;
         float rain_ = 0.0f;                  // falling rain, 0..1
         float wetness_ = 0.0f;               // wet road, 0..1
+        float snowCover_ = 0.0f;             // packed snow, 0..1
         float rainGain_ = 0.0f;              // smoothed rain hiss gain
         float sprayGain_ = 0.0f;             // smoothed spray gain
         NoiseSource rainNoise_{9137u};

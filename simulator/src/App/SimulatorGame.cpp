@@ -945,7 +945,7 @@ namespace CarSim::App
             rain_->Update(dt, weather_);
         }
         if (audio_) {
-            audio_->SetWeather(weather_.rain, weather_.wetness);
+            audio_->SetWeather(weather_.rain, weather_.wetness, weather_.snowCover);
         }
     }
 

@@ -159,6 +159,8 @@ namespace CarSim::Audio
         windHp_.SetCutoff(250.0f, sampleRate_);
         windLp_.SetCutoff(1400.0f, sampleRate_);
         windLp2_.SetCutoff(1400.0f, sampleRate_);
+        textureLp_.SetCutoff(1100.0f, sampleRate_);
+        scrubHp_.SetCutoff(550.0f, sampleRate_);
     }
 
     void RollingNoise::Render(float* out, const int frames, const Input& target)
@@ -171,6 +173,8 @@ namespace CarSim::Audio
             const float t = frames > 1 ? static_cast<float>(i) / static_cast<float>(frames - 1) : 1.0f;
             const float v = std::max(0.0f, previous_.speedKmh + (target.speedKmh - previous_.speedKmh) * t);
             const float rough = previous_.surfaceRoughness + (target.surfaceRoughness - previous_.surfaceRoughness) * t;
+            const float snow = std::clamp(previous_.snowCover + (target.snowCover - previous_.snowCover) * t, 0.0f, 1.0f);
+            const float slip = std::clamp(previous_.slip + (target.slip - previous_.slip) * t, 0.0f, 1.0f);
             if ((i & 63) == 0) {
                 tyreLp_.SetCutoff(250.0f + 6.0f * v, sampleRate_);
                 tyreLp2_.SetCutoff(250.0f + 6.0f * v, sampleRate_);
@@ -183,7 +187,13 @@ namespace CarSim::Audio
             const float tyre = tyreLp2_.Process(tyreLp_.Process(n)) * tyreGain * rough * (target.grounded ? 1.0f : 0.2f);
             const float windGain = std::min(0.25f, std::pow(v / 130.0f, 3.0f) * 0.25f);
             const float wind = windLp2_.Process(windLp_.Process(windHp_.Process(noise_.Next()))) * windGain;
-            out[i] += tyre + wind;
+            // Coarse surfaces and packed snow make a low, granular tread sound instead of only
+            // increasing the asphalt hiss. A slipping tyre adds a brighter but bounded scrub.
+            const float contact = target.grounded ? std::clamp(v / 55.0f, 0.0f, 1.0f) : 0.0f;
+            const float textureGain = contact * (0.035f * std::clamp(rough - 1.0f, 0.0f, 1.0f) + 0.075f * snow);
+            const float texture = textureLp_.Process(textureNoise_.Next()) * textureGain;
+            const float scrub = scrubHp_.Process(textureNoise_.Next()) * contact * slip * (0.060f - 0.035f * snow);
+            out[i] += tyre + wind + texture + scrub;
         }
         previous_ = target;
     }

@@ -168,6 +168,35 @@ TEST(RollingNoise, IsARoadRoarNotAHissAndStaysBelowTheEngineInTown)
     EXPECT_LT(hiss, roar * 0.01f) << "the 3-6 kHz hiss band must sit at least 20 dB under the roar";
 }
 
+TEST(RollingNoise, SnowGravelAndWheelSlipHaveDistinctAudibleTextures)
+{
+    const auto render = [](const RollingNoise::Input& input) {
+        RollingNoise rolling(kRate);
+        std::vector<float> samples(static_cast<std::size_t>(kRate), 0.0f);
+        for (std::size_t at = 0; at < samples.size(); at += 1024) {
+            rolling.Render(samples.data() + at, static_cast<int>(std::min<std::size_t>(1024, samples.size() - at)), input);
+        }
+        return samples;
+    };
+    RollingNoise::Input asphalt;
+    asphalt.speedKmh = 70.0f;
+    const auto dry = render(asphalt);
+    RollingNoise::Input gravel = asphalt;
+    gravel.surfaceRoughness = 1.8f;
+    RollingNoise::Input snow = asphalt;
+    snow.snowCover = 1.0f;
+    RollingNoise::Input sliding = asphalt;
+    sliding.slip = 1.0f;
+    const std::size_t steady = dry.size() / 2;
+    EXPECT_GT(Rms(render(gravel), steady), Rms(dry, steady));
+    EXPECT_GT(Rms(render(snow), steady), Rms(dry, steady));
+    EXPECT_GT(Rms(render(sliding), steady), Rms(dry, steady));
+    EXPECT_LT(Rms(render(sliding), steady), 0.12f);
+    RollingNoise::Input airborne = snow;
+    airborne.grounded = false;
+    EXPECT_LT(Rms(render(airborne), steady), Rms(dry, steady));
+}
+
 TEST(EngineSynth, IdleHasNoContinuousHighFrequencyHiss)
 {
     EngineSynth synth(kRate);
