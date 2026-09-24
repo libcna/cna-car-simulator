@@ -107,6 +107,10 @@ namespace CarSim::Traffic
         void SetDensity(int maxVehicles) { maxVehicles_ = maxVehicles; }
         [[nodiscard]] int MaxVehicles() const { return maxVehicles_; }
 
+        /// Conditions for new overtakes. Existing manoeuvres keep their collision-aware return
+        /// logic when weather changes during a pass.
+        void SetOvertakeWeather(float wetness, float fog, float snowCover);
+
         /// Advances all cars; the parked/driven car and optional walker are separate obstacles.
         void Update(float dt, const PlayerProbe& player, const PlayerProbe& pedestrian = {});
 
@@ -201,6 +205,10 @@ namespace CarSim::Traffic
         [[nodiscard]] float SwingHorizon(const TrafficVehicle& heavy) const;
         [[nodiscard]] const TrafficVehicle* FindVehicle(int id) const;
         [[nodiscard]] bool LaneOccupiedNear(int lane, float s, float radius, int ignoreId) const;
+
+        float overtakeWetness_ = 0.0f;
+        float overtakeFog_ = 0.0f;
+        float overtakeSnow_ = 0.0f;
 
         const Map::MapWorld& world_;
         const Map::LaneGraph& lanes_;

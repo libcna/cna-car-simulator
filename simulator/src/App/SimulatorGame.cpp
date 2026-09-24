@@ -551,6 +551,9 @@ namespace CarSim::App
         if (vehicle_) {
             vehicle_->SetRoadWetness(weather_.wetness);
         }
+        if (traffic_) {
+            traffic_->SetOvertakeWeather(weather_.wetness, weather_.fog, weather_.snowCover);
+        }
         if (worldRenderer_) {
             worldRenderer_->SetWetness(weather_.wetness);
         }
@@ -926,6 +929,9 @@ namespace CarSim::App
         }
         if (vehicle_) {
             vehicle_->SetRoadSnow(weather_.snowCover);
+        }
+        if (traffic_) {
+            traffic_->SetOvertakeWeather(weather_.wetness, weather_.fog, weather_.snowCover);
         }
         if (std::fabs(weather_.cloudCover - lastWeatherCover_) > 0.01f || std::fabs(weather_.rain - lastWeatherRain_) > 0.01f ||
             std::fabs(weather_.fog - lastWeatherFog_) > 0.01f || std::fabs(weather_.snowCover - lastWeatherSnow_) > 0.01f) {

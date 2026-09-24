@@ -10,6 +10,13 @@ namespace CarSim::Traffic
     using Map::Lane;
     using Microsoft::Xna::Framework::Vector2;
 
+    void TrafficSystem::SetOvertakeWeather(const float wetness, const float fog, const float snowCover)
+    {
+        overtakeWetness_ = std::clamp(wetness, 0.0f, 1.0f);
+        overtakeFog_ = std::clamp(fog, 0.0f, 1.0f);
+        overtakeSnow_ = std::clamp(snowCover, 0.0f, 1.0f);
+    }
+
     float TrafficSystem::OppositeS(const TrafficVehicle& o, const int ourLane) const
     {
         const Lane& ours = lanes_.LaneAt(ourLane);
@@ -56,12 +63,12 @@ namespace CarSim::Traffic
         };
 
         // Oncoming traffic on the opposite lane, nearest first: distance ahead and speed.
-        const auto oncomingClear = [&](const float required) {
+        const auto oncomingClear = [&](const float required, const float seconds, const float buffer) {
             if (lane.oppositeLane < 0) return false;
             for (const auto& o : vehicles_) {
                 if (o.id == v.id || o.link >= 0 || o.lane != lane.oppositeLane) continue;
                 const float ahead = OppositeS(o, v.lane) - v.s;
-                if (ahead > -8.0f && ahead < required + o.speed * 3.0f) return false;
+                if (ahead > -8.0f && ahead < required + o.speed * seconds + buffer) return false;
             }
             // Traffic that will come onto the opposite lane from the junction ahead.
             for (const auto& o : vehicles_) {
@@ -70,13 +77,14 @@ namespace CarSim::Traffic
             }
             if (player.valid && player.blocksTraffic && playerLane_ == lane.oppositeLane) {
                 const float ahead = lane.length - playerS_ * (lane.length / std::max(1.0f, lanes_.LaneAt(playerLane_).length)) - v.s;
-                if (ahead > -8.0f && ahead < required + 90.0f) return false;
+                if (ahead > -8.0f && ahead < required + std::max(0.0f, player.speed) * seconds + buffer + 30.0f) return false;
             }
             return true;
         };
 
         if (v.overtaking < 0) {
             if (v.Heavy() || lane.oppositeLane < 0 || !leader.found || leader.id < 0 || leader.onConflict ||
+                road.laneWidth < 0.5f * (v.widthM + 1.0f) ||
                 road.noOvertaking || !Map::MayCrossCentreLine(road.centreLine, lane.forward)) return;
             const TrafficVehicle* target = FindVehicle(leader.id);
             if (!target || target->link >= 0 || target->lane != v.lane || target->overtaking >= 0) return;
@@ -101,19 +109,36 @@ namespace CarSim::Traffic
                 return;
             }
             const float passLength = leader.gap + target->lengthM + v.lengthM + 14.0f;
-            const float closing = std::max(4.0f, desired - target->speed);
-            const float passTime = passLength / closing + 2.0f;
+            // Solve the distance gained on the slower car while accelerating. The old constant
+            // closing speed assumed the passing car could instantly reach its desired speed,
+            // which especially underestimated the time needed behind a long lorry.
+            const float gripFactor = 1.0f - 0.18f * overtakeWetness_ - 0.38f * overtakeSnow_;
+            const float acceleration = std::max(0.2f, params.maxAccel * gripFactor);
+            const float initialClosing = std::max(0.0f, v.speed - target->speed);
+            const float attainable = std::max(v.speed, desired);
+            const float finalClosing = attainable - target->speed;
+            if (finalClosing < 3.0f) return;
+            const float accelerationTime = std::max(0.0f, attainable - v.speed) / acceleration;
+            const float gainedWhileAccelerating = initialClosing * accelerationTime + 0.5f * acceleration * accelerationTime * accelerationTime;
+            const float passTime = (passLength <= gainedWhileAccelerating
+                ? (std::sqrt(initialClosing * initialClosing + 2.0f * acceleration * passLength) - initialClosing) / acceleration
+                : accelerationTime + (passLength - gainedWhileAccelerating) / finalClosing) + 2.0f;
+            if (passTime > 18.0f) return;
             // No overtaking into a junction: what counts is the road we cover while passing, not
             // the few metres we gain on it.
-            const float travel = passTime * std::max(desired, v.speed) + 30.0f;
+            const float travel = passTime * std::max(desired, v.speed) + 30.0f + 15.0f * overtakeWetness_ + 35.0f * overtakeSnow_;
             if (toEnd < travel) return;
+            // In fog, the entire passing and return path must be visible before committing.
+            const float sightDistance = 450.0f - 320.0f * overtakeFog_;
+            if (travel > sightDistance) return;
             if (crossingAhead(travel)) return;
             // Nor into a bend: nobody passes where they cannot see round, and a bus's body swings
             // across the centre line in one.
             for (float d = 0.0f; d <= travel; d += 5.0f) {
                 if (std::fabs(lane.Evaluate(v.s + d).curvature) > 1.0f / 150.0f) return;
             }
-            if (!oncomingClear(passLength + desired * passTime)) return;
+            const float buffer = 20.0f + 20.0f * overtakeWetness_ + 35.0f * overtakeSnow_ + 25.0f * overtakeFog_;
+            if (!oncomingClear(travel, passTime, buffer)) return;
             v.overtaking = target->id;
             v.returning = false;
             return;
@@ -128,7 +153,8 @@ namespace CarSim::Traffic
             const float stillToGo = closing > 0.5f ? (clearOfIt - v.s) / closing * std::max(v.speed, desired) : 1e6f;
             if (v.s > clearOfIt) {
                 v.returning = true;   // past it: back in
-            } else if (!oncomingClear(clearOfIt - v.s + 20.0f)) {
+            } else if (!oncomingClear(clearOfIt - v.s + 20.0f,
+                                      std::clamp(stillToGo / std::max(1.0f, v.speed), 1.0f, 8.0f), 12.0f)) {
                 v.returning = true;   // something is coming after all: give it up
             } else if (v.s + stillToGo + 30.0f > lane.length) {
                 v.returning = true;   // it will not be done before the junction (or it has sped up)

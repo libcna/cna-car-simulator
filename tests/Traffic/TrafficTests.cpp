@@ -441,17 +441,19 @@ namespace
 
     OvertakeRun RunOvertake(const bool oncoming, const Map::CentreLineMarking marking = Map::CentreLineMarking::Dashed,
                             const bool forward = true, const std::vector<Map::SignSpec>& signs = {}, const bool noOvertaking = false,
-                            const int seconds = 25)
+                            const int seconds = 25, const float wetness = 0.0f, const float fog = 0.0f,
+                            const float snow = 0.0f, const float startOffset = 0.0f)
     {
         auto world = CrossWorld(true, {}, marking, signs, noOvertaking);
         EXPECT_TRUE(world);
         Traffic::TrafficSystem traffic(*world, 11);
         traffic.SetDensity(0);
+        traffic.SetOvertakeWeather(wetness, fog, snow);
         const int east = LaneOf(*world, "main", forward, 0);
         const int west = LaneOf(*world, "main", !forward, 0);
         // A lorry crawling at 30 km/h with a car behind it, 350 m of road ahead.
-        const int lorry = traffic.SpawnOn(east, 60.0f, 8.3f, Sim::CarStyle::Body::Truck);
-        const int car = traffic.SpawnOn(east, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
+        const int lorry = traffic.SpawnOn(east, 60.0f + startOffset, 8.3f, Sim::CarStyle::Body::Truck);
+        const int car = traffic.SpawnOn(east, 30.0f + startOffset, 12.0f, Sim::CarStyle::Body::Hatchback);
         if (oncoming) {
             for (int i = 0; i < 6; ++i) traffic.SpawnOn(west, 20.0f + 55.0f * static_cast<float>(i), 14.0f, Sim::CarStyle::Body::Sedan);
         }
@@ -536,6 +538,35 @@ TEST(TrafficSystem, NobodyOvertakesIntoOncomingTraffic)
     const OvertakeRun run = RunOvertake(true);
     EXPECT_EQ(run.closeCalls, 0);
     EXPECT_EQ(run.overlaps, 0);
+}
+
+TEST(TrafficSystem, DenseFogBlocksPassBeyondAvailableSightDistance)
+{
+    EXPECT_TRUE(RunOvertake(false).overtook);
+    const OvertakeRun fog = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 0.0f, 1.0f);
+    EXPECT_FALSE(fog.wentOut);
+    EXPECT_EQ(fog.overlaps, 0);
+}
+
+TEST(TrafficSystem, SnowGripRequiresMorePassingRoom)
+{
+    const OvertakeRun dry = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 0.0f, 0.0f, 0.0f, 110.0f);
+    const OvertakeRun snow = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 0.0f, 0.0f, 1.0f, 110.0f);
+    EXPECT_TRUE(dry.overtook);
+    EXPECT_FALSE(snow.wentOut);
+    EXPECT_EQ(snow.overlaps, 0);
+}
+
+TEST(TrafficSystem, HeavyRainNeedsMoreRoomButDoesNotForbidEveryPass)
+{
+    const OvertakeRun room = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 1.0f);
+    EXPECT_TRUE(room.wentOut);
+    EXPECT_EQ(room.overlaps, 0);
+    const OvertakeRun dryNearJunction = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 0.0f, 0.0f, 0.0f, 130.0f);
+    const OvertakeRun nearJunction = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 1.0f, 0.0f, 0.0f, 130.0f);
+    EXPECT_TRUE(dryNearJunction.wentOut);
+    EXPECT_FALSE(nearJunction.wentOut);
+    EXPECT_EQ(nearJunction.overlaps, 0);
 }
 
 namespace
