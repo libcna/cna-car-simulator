@@ -184,7 +184,7 @@ namespace CarSim::Core
                     if (WeatherFromName(std::string(*value), kind)) {
                         options.weather = std::string(*value);
                     } else {
-                        result.errors.push_back("--weather expects clear, cloudy, overcast or rain, got '" +
+                        result.errors.push_back("--weather expects clear, cloudy, overcast, rain, fog or snow, got '" +
                                                 std::string(*value) + "'");
                     }
                 }
@@ -308,7 +308,7 @@ namespace CarSim::Core
             "  --lights              Switch the headlights on at start (captures)\n"
             "  --time <hh:mm>        Clock the world starts at (also accepts decimal hours)\n"
             "  --time-scale <x>      Simulated seconds of the clock per real second (0 freezes the sky)\n"
-            "  --weather <name>      clear, cloudy, overcast or rain (the weather starts settled)\n"
+            "  --weather <name>      clear, cloudy, overcast, rain, fog or snow (the weather starts settled)\n"
             "  --wipers <mode>       off, int, slow or fast (starts the engine if needed)\n"
             "  --help-overlay        Start with the help overlay open\n"
             "  --debug-overlay       Start with the debug overlay open\n"

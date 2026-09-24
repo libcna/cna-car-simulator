@@ -44,6 +44,8 @@ namespace CarSim::Render
         /// How wet the road is (0..1). Wet asphalt is darker and picks up the colour of the sky;
         /// call before ApplyLighting, which folds it into the effects.
         void SetWetness(float wetness) { wetness_ = wetness; }
+        /// Snow lying on the ground, the roads and the roofs (0..1).
+        void SetSnow(float cover) { snow_ = cover; }
         /// Re-applies the current rig to the world effects. The terrain macro, the road vertex
         /// colours and the tree cards carry lighting baked under `LightingRig::BakeReference()`,
         /// so they are scaled by the ratio between the two rigs instead of being re-baked.
@@ -104,6 +106,7 @@ namespace CarSim::Render
             Microsoft::Xna::Framework::Vector3 specular{0.05f, 0.05f, 0.05f};
             float specularPower = 8.0f;
             float cullDistance = 0.0f;   // > 0: skipped when the batch sphere is farther than this
+            bool roof = false;           // takes a layer of snow
         };
         struct TreeBatch
         {
@@ -180,6 +183,9 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> roadSheenEffect_;    // wet-road sky sheen
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> puddleEffect_;       // additive sky in standing water
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> puddleMask_;
+        float snow_ = 0.0f;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> snowEffect_;       // alpha-blended white over ground, roads, roofs
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> snowTexture_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> roofTextures_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> windowTexture_;

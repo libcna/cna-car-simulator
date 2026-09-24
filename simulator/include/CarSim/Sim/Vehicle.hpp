@@ -147,6 +147,8 @@ namespace CarSim::Sim
         /// How wet the road is (0..1). Wet asphalt loses roughly a third of its peak grip, so
         /// the car slides earlier and takes longer to stop.
         void SetRoadWetness(float wetness);
+        /// Snow lying on the road (0..1): packed snow and slush take up to half the grip.
+        void SetRoadSnow(float snow);
         [[nodiscard]] float RoadWetness() const { return roadWetness_; }
 
         [[nodiscard]] const VehicleDefinition& Definition() const { return def_; }
@@ -243,6 +245,7 @@ namespace CarSim::Sim
         bool clutchLocked_ = false;
         bool startRefused_ = false;
         float roadWetness_ = 0.0f;
+        float roadSnow_ = 0.0f;
         float accumulator_ = 0.0f;
         float lastSpeedMs_ = 0.0f;
         bool flightMode_ = false;

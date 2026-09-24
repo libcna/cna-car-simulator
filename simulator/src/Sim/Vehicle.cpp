@@ -119,6 +119,11 @@ namespace CarSim::Sim
         lastSpeedMs_ = 0.0f;
     }
 
+    void Vehicle::SetRoadSnow(const float snow)
+    {
+        roadSnow_ = std::clamp(snow, 0.0f, 1.0f);
+    }
+
     void Vehicle::SetRoadWetness(const float wetness)
     {
         roadWetness_ = std::clamp(wetness, 0.0f, 1.0f);
@@ -615,7 +620,7 @@ namespace CarSim::Sim
         const float load = w.suspensionForce;
         // The boosted driveline needs matching tyre traction to turn its extra torque into
         // acceleration instead of permanent wheelspin.
-        const float baseSurfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_);
+        const float baseSurfaceFactor = SurfaceFrictionFactor(w.hit.surface) * (1.0f - 0.30f * roadWetness_) * (1.0f - 0.5f * roadSnow_);
         const float ultraUltraGrip = engine_.TurboSetting() == TurboMode::UltraUltra ? 8.0f : 1.0f;
         const float longitudinalSurfaceFactor = baseSurfaceFactor * ultraUltraGrip;
         const float lowSpeed = std::max(0.1f, def_.tyres.lowSpeedMs);

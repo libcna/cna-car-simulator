@@ -58,6 +58,7 @@ namespace CarSim::Render
                                (Hash01(u, 3u) * 2.0f - 1.0f) * kSlabM);
             d.lengthM = 0.45f + 0.55f * Hash01(u, 4u);
             d.alpha = 0.35f + 0.45f * Hash01(u, 5u);
+            d.phase = Hash01(u, 6u) * 6.2831853f;
         }
 
         // A soft vertical streak: bright core, transparent edges, fading at both ends.
@@ -69,6 +70,15 @@ namespace CarSim::Render
             return Color(230, 236, 245, static_cast<int>(a * 255.0f));
         });
         texture_ = UploadTexture(device, streak, true);
+        // A snowflake: a soft round dot.
+        Image flake(32, 32, Color(255, 255, 255, 0));
+        flake.Generate([](int, int, const float u, const float v) {
+            const float x = u * 2.0f - 1.0f;
+            const float y = v * 2.0f - 1.0f;
+            const float a = std::clamp(1.0f - std::sqrt(x * x + y * y), 0.0f, 1.0f);
+            return Color(250, 252, 255, static_cast<int>(std::min(1.0f, a * 1.8f) * 255.0f));
+        });
+        flakeTexture_ = UploadTexture(device, flake, true);
 
         const int vertexCount = kDropCount * 6;
         vertices_ = std::make_unique<VertexBuffer>(device, VertexPositionColorTexture::getVertexDeclarationStatic(), vertexCount,
@@ -89,6 +99,22 @@ namespace CarSim::Render
     void RainRenderer::Update(const float dt, const Core::WeatherState& weather)
     {
         rain_ = weather.rain;
+        snow_ = weather.snow;
+        time_ += dt;
+        if (snow_ > rain_ && snow_ > 0.001f && dt > 0.0f) {
+            // Snow drifts down at a walking pace and flutters in the wind.
+            const float wind = weather.windSpeedMs * 0.7f;
+            const float bearing = weather.windFromDeg * 3.14159265f / 180.0f;
+            fall_ = Vector3(-std::sin(bearing) * wind, -1.2f, std::cos(bearing) * wind);
+            for (Drop& d : drops_) {
+                const float sway = std::sin(time_ * 1.3f + d.phase) * 0.45f;
+                d.offset += (fall_ + Vector3(sway, 0.0f, std::cos(time_ * 1.1f + d.phase) * 0.45f)) * dt;
+                d.offset.X = Wrap(d.offset.X, kSlabM);
+                d.offset.Y = Wrap(d.offset.Y, kSlabM);
+                d.offset.Z = Wrap(d.offset.Z, kSlabM);
+            }
+            return;
+        }
         if (rain_ <= 0.001f || dt <= 0.0f) {
             return;
         }
@@ -109,12 +135,17 @@ namespace CarSim::Render
                             const Vector3& fogColor)
     {
         drawCalls_ = 0;
-        if (rain_ <= 0.02f || !vertices_ || !indices_) {
+        const bool snowing = snow_ > rain_;
+        if (snowing ? snow_ <= 0.02f : rain_ <= 0.02f) {
+            return;
+        }
+        if (!vertices_ || !indices_) {
             return;
         }
         // Only as many drops as the rain deserves, always the same ones, so light rain is a
         // subset of heavy rain rather than a different pattern.
-        const int count = std::clamp(static_cast<int>(static_cast<float>(kDropCount) * rain_), 1, kDropCount);
+        const float amount = snowing ? snow_ : rain_;
+        const int count = std::clamp(static_cast<int>(static_cast<float>(kDropCount) * amount), 1, kDropCount);
 
         // Streaks lean along the fall direction and face the camera: the card's long axis is the
         // fall, its width is across the line of sight.
@@ -133,9 +164,18 @@ namespace CarSim::Render
             Vector3 across = Vector3::Cross(fall, toCamera);
             if (across.LengthSquared() < 1e-6f) continue;
             across.Normalize();
-            const Vector3 half = fall * (d.lengthM * (0.7f + 0.6f * rain_) * 0.5f);
-            const Vector3 side = across * 0.018f;
-            const float a = d.alpha * std::clamp(rain_ * 1.4f, 0.0f, 1.0f);
+            // Rain: a streak along the fall; snow: a small round flake facing the camera.
+            Vector3 half = fall * (d.lengthM * (0.7f + 0.6f * rain_) * 0.5f);
+            Vector3 side = across * 0.018f;
+            float a = d.alpha * std::clamp(rain_ * 1.4f, 0.0f, 1.0f);
+            if (snowing) {
+                const float size = 0.03f + 0.035f * d.lengthM;
+                Vector3 up = Vector3::Cross(toCamera, across);
+                up.Normalize();
+                half = up * size;
+                side = across * size;
+                a = std::clamp(0.55f + 0.45f * d.alpha, 0.0f, 1.0f) * std::clamp(snow_ * 1.4f, 0.0f, 1.0f);
+            }
             const Color colour(static_cast<int>(tint.X * 255.0f), static_cast<int>(tint.Y * 255.0f), static_cast<int>(tint.Z * 255.0f),
                                static_cast<int>(a * 255.0f));
             const Vector3 a0 = centre - half - side;
@@ -162,7 +202,7 @@ namespace CarSim::Render
         device.setIndicesProperty(indices_.get());
         effect_->setViewProperty(view);
         effect_->setProjectionProperty(projection);
-        effect_->setTextureProperty(texture_.get());
+        effect_->setTextureProperty(snowing ? flakeTexture_.get() : texture_.get());
         auto& passes = effect_->getCurrentTechniqueProperty()->getPassesProperty();
         for (int i = 0; i < passes.getCountProperty(); ++i) {
             passes[i]->Apply();

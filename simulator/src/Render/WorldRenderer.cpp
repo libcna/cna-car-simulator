@@ -109,6 +109,12 @@ namespace CarSim::Render
         // puts exactly that sheen on it: nothing near, sky far. No renderer internals, no custom
         // shader, and it costs one extra pass over the road batches only while the road is wet.
         puddleMask_ = UploadTexture(device, Textures::PuddleMask(256, 71u), true);
+        snowTexture_ = UploadTexture(device, Textures::SnowLayer(256, 29u), true);
+        snowEffect_ = std::make_unique<BasicEffect>(device);
+        snowEffect_->setLightingEnabledProperty(false);
+        snowEffect_->setTextureEnabledProperty(true);
+        snowEffect_->setVertexColorEnabledProperty(false);
+        snowEffect_->setFogEnabledProperty(true);
         puddleEffect_ = std::make_unique<BasicEffect>(device);
         puddleEffect_->setLightingEnabledProperty(false);
         puddleEffect_->setTextureEnabledProperty(true);
@@ -747,7 +753,9 @@ namespace CarSim::Render
                 push(bm.walls[static_cast<std::size_t>(i)], wallTextures_[static_cast<std::size_t>(i)].get(), one, matte, 6.0f);
             }
             for (int i = 0; i < BuildingPalette::kRoofColours; ++i) {
+                const std::size_t before = objectBatches_.size();
                 push(bm.roofs[static_cast<std::size_t>(i)], roofTextures_[static_cast<std::size_t>(i)].get(), one, Vector3(0.10f, 0.10f, 0.10f), 12.0f);
+                if (objectBatches_.size() > before) objectBatches_.back().roof = true;
             }
             push(bm.windows, windowTexture_.get(), one, Vector3(0.6f, 0.6f, 0.6f), 40.0f);
             push(bm.glassDark, white_.get(), Vector3(0.20f, 0.25f, 0.30f), Vector3(0.8f, 0.8f, 0.8f), 60.0f);
@@ -1079,6 +1087,33 @@ namespace CarSim::Render
         terrainEffect_->setViewProperty(view);
         terrainEffect_->setProjectionProperty(projection);
         const Vector3 eye = Matrix::Invert(view).getTranslationProperty();
+        // Lying snow: the same surfaces again, alpha-blended white, pulled forward by the
+        // marking depth bias so they win the depth test against themselves.
+        const auto beginSnow = [&](const float alpha) {
+            snowEffect_->setWorldProperty(Matrix::getIdentityProperty());
+            snowEffect_->setViewProperty(view);
+            snowEffect_->setProjectionProperty(projection);
+            snowEffect_->setTextureProperty(snowTexture_.get());
+            // Snow reflects most of the light the baked ground absorbed: well above the grass.
+            snowEffect_->setDiffuseColorProperty(Vector3(std::min(1.0f, bakedScale_.X * 1.55f), std::min(1.0f, bakedScale_.Y * 1.58f),
+                                                         std::min(1.0f, bakedScale_.Z * 1.66f)));
+            snowEffect_->setAlphaProperty(std::clamp(alpha, 0.0f, 1.0f));
+            snowEffect_->setFogColorProperty(rig_.fogColor);
+            snowEffect_->setFogStartProperty(rig_.fogStart);
+            snowEffect_->setFogEndProperty(rig_.fogEnd);
+            device.setBlendStateProperty(BlendState::NonPremultiplied);
+            device.setDepthStencilStateProperty(DepthStencilState::DepthRead);
+            device.setRasterizerStateProperty(mirrored ? *markingStateMirrored_ : *markingState_);
+            device.getSamplerStatesProperty()[0] = SamplerState::LinearWrap;
+        };
+        const auto endSnow = [&]() {
+            device.setBlendStateProperty(BlendState::Opaque);
+            device.setDepthStencilStateProperty(DepthStencilState::Default);
+            device.setRasterizerStateProperty(solid);
+            device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+        };
+        const bool snowing = snow_ > 0.01f && snowEffect_ && snowTexture_;
+        std::vector<const GpuMesh*> snowTerrain;
         if (terrainSkirt_) {
             ApplyAll(*terrainEffect_, device, *terrainSkirt_);
             ++stats_.drawCalls;
@@ -1098,6 +1133,15 @@ namespace CarSim::Render
             ++stats_.terrainChunksDrawn;
             ++stats_.drawCalls;
             stats_.triangles += mesh->PrimitiveCount();
+            if (snowing) snowTerrain.push_back(mesh);
+        }
+        if (snowing) {
+            beginSnow(snow_);
+            for (const GpuMesh* mesh : snowTerrain) {
+                ApplyAll(*snowEffect_, device, *mesh);
+                ++stats_.drawCalls;
+            }
+            endSnow();
         }
 
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
@@ -1204,6 +1248,18 @@ namespace CarSim::Render
             device.setDepthStencilStateProperty(DepthStencilState::Default);
         }
 
+        // Snow on the roads and pavements: a little thinner than on the fields, where the
+        // traffic has worn it into slush.
+        if (snowing) {
+            beginSnow(snow_ * 0.78f);
+            for (const auto& b : roadBatches_) {
+                if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) continue;
+                ApplyAll(*snowEffect_, device, *b.mesh);
+                ++stats_.drawCalls;
+            }
+            endSnow();
+        }
+
         // Static objects: buildings, props, trunks (lit, textured).
         device.setRasterizerStateProperty(solid);
         roadEffect_->setWorldProperty(Matrix::getIdentityProperty());
@@ -1236,6 +1292,17 @@ namespace CarSim::Render
         roadEffect_->setEmissiveColorProperty(Vector3(0.0f, 0.0f, 0.0f));
         roadEffect_->setSpecularColorProperty(Vector3(0.06f, 0.06f, 0.06f));
         roadEffect_->setSpecularPowerProperty(10.0f);
+        // Snow on the roofs.
+        if (snowing) {
+            beginSnow(snow_);
+            for (const auto& b : objectBatches_) {
+                if (!b.roof || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) continue;
+                if (Vector3::Distance(eye, b.mesh->Sphere().Center) - b.mesh->Sphere().Radius > horizon) continue;
+                ApplyAll(*snowEffect_, device, *b.mesh);
+                ++stats_.drawCalls;
+            }
+            endSnow();
+        }
 
         // Trees: alpha-tested cards, both windings present, distance culled.
         const Vector3 cameraPosition = Matrix::Invert(view).getTranslationProperty();

@@ -79,8 +79,8 @@ What you get today:
   junction to themselves and make oncoming cars wait in tight bends; cars parked on the town
   square that are as solid as any other obstacle.
 - A day and night cycle with a real solar path, street lamps, lit windows and headlamp pools
-  after dark, and weather -- clear, scattered cloud, overcast or rain, with wet roads that take
-  a third off the grip, puddles, tyre spray, a darker and glossier wet world, raindrops on the
+  after dark, and weather -- clear, scattered cloud, overcast, rain, fog or snow, with wet roads
+  that take a third off the grip, snow that settles on fields, roads and roofs and halves it, puddles, tyre spray, a darker and glossier wet world, raindrops on the
   windscreen and wipers.
 - Physical collisions with buildings, street furniture, trees and traffic cars.
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
@@ -148,7 +148,7 @@ cna-car-simulator [options]
   --mirror-every <n>                        redraw the rear-view mirror every n frames
   --time <hh:mm> --time-scale <x>           clock the world starts at, and how fast it runs
                                             (60 = a day in 24 minutes, 0 freezes the sky)
-  --weather <name>                          clear, cloudy, overcast or rain
+  --weather <name>                          clear, cloudy, overcast, rain, fog or snow
   --wipers <mode>                           off, int, slow or fast (starts the engine if needed)
   --frames <n> --screenshot <file>          run n frames, save the last one, exit
   --screenshot-cluster <file>               also save the instrument cluster texture
@@ -216,7 +216,7 @@ Defaults from `Input::InputMapper`; the in-game help (`F1`) always shows the liv
 | Master volume | `Page Up` / `Page Down` |
 | Reset vehicle to the road, reset trip meter | `Backspace`, `F5` |
 | Clock back / forward an hour, freeze the clock | `F6` / `F7`, `F8` |
-| Next weather (clear, cloud, overcast, rain) | `F4` |
+| Next weather (clear, cloud, overcast, rain, fog, snow) | `F4` |
 | Help overlay, debug overlay, screenshot | `F1`, `F3`, `F12` |
 | Quit | `Esc` |
 

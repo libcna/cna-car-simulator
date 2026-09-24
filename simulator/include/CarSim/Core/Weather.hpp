@@ -14,12 +14,15 @@ namespace CarSim::Core
         FewClouds,   // scattered fair-weather cloud (the default)
         Overcast,    // solid grey lid, no direct sun
         Rain,        // overcast and raining
+        Fog,         // still air, visibility down to about 150 m
+        Snow,        // overcast and snowing; the snow settles and takes grip off the road
         Count
     };
 
     [[nodiscard]] const char* ToString(WeatherKind kind);
     [[nodiscard]] const char* Describe(WeatherKind kind);
-    /// Case-insensitive; accepts "clear", "few", "fewclouds", "cloudy", "overcast", "rain".
+    /// Case-insensitive; accepts "clear", "few", "fewclouds", "cloudy", "overcast", "rain", "fog",
+    /// "snow".
     [[nodiscard]] bool WeatherFromName(const std::string& name, WeatherKind& out);
 
     struct WeatherState
@@ -31,6 +34,11 @@ namespace CarSim::Core
         /// How wet the road is. It rises while it rains and dries out over the following minutes,
         /// so the road still shines after a shower has passed.
         float wetness = 0.0f;
+        float fog = 0.0f;           // 0 = clear air, 1 = dense fog
+        float snow = 0.0f;          // 0 = none, 1 = heavy snowfall
+        /// Snow lying on the ground and the roads. It builds up over a few minutes of snowfall
+        /// and melts away slowly afterwards (the melt wets the road).
+        float snowCover = 0.0f;
         float windFromDeg = 250.0f; // bearing the wind blows from, degrees clockwise from north
         float windSpeedMs = 3.0f;
 
@@ -46,5 +54,7 @@ namespace CarSim::Core
         [[nodiscard]] static float TargetCloudCover(WeatherKind kind);
         [[nodiscard]] static float TargetRain(WeatherKind kind);
         [[nodiscard]] static float TargetWindSpeed(WeatherKind kind);
+        [[nodiscard]] static float TargetFog(WeatherKind kind);
+        [[nodiscard]] static float TargetSnow(WeatherKind kind);
     };
 }

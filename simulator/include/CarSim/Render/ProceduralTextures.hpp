@@ -51,6 +51,9 @@ namespace CarSim::Render::Textures
     /// Tileable puddle mask for wet asphalt: grey where water stands (the brightness is the
     /// share of the sky it reflects), black elsewhere. `coverage` is the wet area share.
     [[nodiscard]] Image PuddleMask(int size, std::uint32_t seed, float coverage = 0.14f);
+    /// Tileable lying snow: near-white with faint blue shade, alpha thinning in patches so
+    /// the ground shows through where the layer is thin.
+    [[nodiscard]] Image SnowLayer(int size, std::uint32_t seed);
     /// Car interior fabric/plastic grain.
     [[nodiscard]] Image InteriorGrain(int size, const Rgb& base, std::uint32_t seed);
 }

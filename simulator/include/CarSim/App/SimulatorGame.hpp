@@ -151,6 +151,8 @@ namespace CarSim::App
         Core::WeatherState weather_;
         float lastWeatherCover_ = -1.0f;   // cover the rig was last rebuilt for
         float lastWeatherRain_ = -1.0f;
+        float lastWeatherFog_ = -1.0f;
+        float lastWeatherSnow_ = -1.0f;
         float lastLightingElevationDeg_ = -999.0f;
         float lastEnvironmentElevationDeg_ = -999.0f;
         float lastEnvironmentCover_ = -999.0f;

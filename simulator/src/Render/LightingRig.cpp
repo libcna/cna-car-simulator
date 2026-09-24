@@ -125,11 +125,25 @@ namespace CarSim::Render
         SetTimeOfDay(timeOfDayHours);
     }
 
+    void LightingRig::SetAtmosphere(const float fog, const float snow)
+    {
+        fogAmount = Clamp01(fog);
+        snowCover = Clamp01(snow);
+        SetTimeOfDay(timeOfDayHours);
+    }
+
     void LightingRig::ApplyWeather(const float day)
     {
         const float cover = Clamp01(cloudCover);
         const float rain = Clamp01(rainAmount);
-        if (cover <= 0.001f && rain <= 0.001f) {
+        const float mist = Clamp01(fogAmount);
+        // Lying snow throws light back up: brighter, cooler bounce under every sky.
+        const float snowBounce = Clamp01(snowCover);
+        if (snowBounce > 0.001f) {
+            groundBounceColor = groundBounceColor + Vector3(0.10f, 0.105f, 0.12f) * (snowBounce * day);
+            skyAmbient = skyAmbient * (1.0f + 0.12f * snowBounce);
+        }
+        if (cover <= 0.001f && rain <= 0.001f && mist <= 0.001f) {
             return;
         }
         // Cloud moves the key light into the dome: the sun collapses and most of what it loses
@@ -158,6 +172,18 @@ namespace CarSim::Render
         horizonColor = Mix(horizonColor, Mix(Vector3(0.020f, 0.022f, 0.027f), Vector3(0.62f, 0.64f, 0.67f), day), cover * 0.92f);
         fogStart *= 1.0f - 0.45f * cover - 0.35f * rain;
         fogEnd *= 1.0f - 0.50f * cover - 0.32f * rain;
+        // Fog: the air turns a flat pale grey and closes to about 150 m, the far end of the
+        // road dissolving rather than stopping.
+        if (mist > 0.001f) {
+            const Vector3 fogGrey = Mix(Vector3(0.035f, 0.038f, 0.045f), Vector3(0.72f, 0.73f, 0.74f), day);
+            fogColor = Mix(fogColor, fogGrey, mist * 0.9f);
+            horizonColor = Mix(horizonColor, fogGrey, mist * 0.85f);
+            zenithColor = Mix(zenithColor, fogGrey * 0.92f, mist * 0.6f);
+            const float close = std::pow(mist, 0.7f);
+            fogStart = fogStart + (2.0f - fogStart) * close;
+            fogEnd = fogEnd + (150.0f - fogEnd) * close;
+            sunColor = sunColor * (1.0f - 0.6f * mist);
+        }
     }
 
     float LightingRig::RefreshStepDeg(const float elevationDeg)

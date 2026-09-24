@@ -44,6 +44,7 @@ namespace CarSim::Render
             Microsoft::Xna::Framework::Vector3 offset;   // relative to the camera, wrapped into the slab
             float lengthM = 0.6f;
             float alpha = 1.0f;
+            float phase = 0.0f;                          // snow: flutter phase
         };
 
         std::vector<Drop> drops_;
@@ -51,6 +52,9 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> indices_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> effect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> texture_;
+        std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> flakeTexture_;
+        float snow_ = 0.0f;
+        float time_ = 0.0f;
         Microsoft::Xna::Framework::Vector3 fall_{0.0f, -18.0f, 0.0f};
         float rain_ = 0.0f;
         int drawCalls_ = 0;

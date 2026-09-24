@@ -837,8 +837,11 @@ namespace CarSim::App
     void SimulatorGame::ApplyWeatherToWorld()
     {
         rig_.SetWeather(weather_.cloudCover, weather_.rain);
+        rig_.SetAtmosphere(weather_.fog, weather_.snowCover);
         lastWeatherCover_ = weather_.cloudCover;
         lastWeatherRain_ = weather_.rain;
+        lastWeatherFog_ = weather_.fog;
+        lastWeatherSnow_ = weather_.snowCover;
         if (worldRenderer_) {
             worldRenderer_->SetWetness(weather_.wetness);
         }
@@ -869,7 +872,14 @@ namespace CarSim::App
         if (vehicle_) {
             vehicle_->SetRoadWetness(weather_.wetness);
         }
-        if (std::fabs(weather_.cloudCover - lastWeatherCover_) > 0.01f || std::fabs(weather_.rain - lastWeatherRain_) > 0.01f) {
+        if (worldRenderer_) {
+            worldRenderer_->SetSnow(weather_.snowCover);
+        }
+        if (vehicle_) {
+            vehicle_->SetRoadSnow(weather_.snowCover);
+        }
+        if (std::fabs(weather_.cloudCover - lastWeatherCover_) > 0.01f || std::fabs(weather_.rain - lastWeatherRain_) > 0.01f ||
+            std::fabs(weather_.fog - lastWeatherFog_) > 0.01f || std::fabs(weather_.snowCover - lastWeatherSnow_) > 0.01f) {
             ApplyWeatherToWorld();
         }
         if (rain_) {
@@ -1148,7 +1158,8 @@ namespace CarSim::App
         if (windscreenRain_) {
             // The screen keeps its drops whichever camera is in use; under the helicopter or
             // with the driver out walking nothing new lands on it that matters.
-            windscreenRain_->Rain().Update(dt, state.flightMode ? 0.0f : weather_.rain, state.speedKmh / 3.6f, state.wiperPosition);
+            windscreenRain_->Rain().Update(dt, state.flightMode ? 0.0f : std::max(weather_.rain, 0.6f * weather_.snow), state.speedKmh / 3.6f,
+                                           state.wiperPosition);
         }
         if (exhaustSmoke_) {
             const float bearing = weather_.windFromDeg * std::numbers::pi_v<float> / 180.0f;

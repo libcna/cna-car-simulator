@@ -188,3 +188,40 @@ TEST(Weather, EveryTransitionEasesAndNothingPops)
     EXPECT_GT(fastestSettle, 20.0f) << "the weather switches rather than changing";
     EXPECT_LT(slowestSettle, 15.0f * 60.0f) << "a front that never settles is not a front";
 }
+
+TEST(Weather, SnowSettlesOverMinutesAndItsMeltWetsTheRoad)
+{
+    Core::WeatherState w;
+    w.Snap(Core::WeatherKind::Overcast);
+    w.Set(Core::WeatherKind::Snow);
+    for (int i = 0; i < 60; ++i) w.Update(1.0f);
+    EXPECT_GT(w.snow, 0.7f);
+    EXPECT_LT(w.snowCover, 0.5f) << "a minute of snowfall does not whiten the fields yet";
+    for (int i = 0; i < 600; ++i) w.Update(1.0f);
+    EXPECT_GT(w.snowCover, 0.9f);
+    EXPECT_LT(w.wetness, 0.1f) << "fresh snow is not a wet road";
+    w.Set(Core::WeatherKind::Overcast);
+    for (int i = 0; i < 300; ++i) w.Update(1.0f);
+    EXPECT_GT(w.snowCover, 0.5f) << "it melts slowly";
+    EXPECT_GT(w.wetness, 0.5f) << "and the melt wets the road";
+    for (int i = 0; i < 6000; ++i) w.Update(1.0f);
+    EXPECT_FLOAT_EQ(w.snowCover, 0.0f);
+}
+
+TEST(Weather, FogClosesTheViewAndGreysTheAir)
+{
+    Render::LightingRig clear;
+    clear.SetTimeOfDay(12.0f);
+    Render::LightingRig foggy;
+    foggy.SetTimeOfDay(12.0f);
+    foggy.SetWeather(0.9f, 0.0f);
+    foggy.SetAtmosphere(1.0f, 0.0f);
+    EXPECT_LT(foggy.fogEnd, 200.0f);
+    EXPECT_LT(foggy.fogEnd, clear.fogEnd * 0.3f);
+    EXPECT_NEAR(foggy.fogColor.X, foggy.fogColor.Z, 0.05f) << "fog is a neutral grey";
+    Core::WeatherKind kind;
+    EXPECT_TRUE(Core::WeatherFromName("fog", kind));
+    EXPECT_EQ(kind, Core::WeatherKind::Fog);
+    EXPECT_TRUE(Core::WeatherFromName("snow", kind));
+    EXPECT_EQ(kind, Core::WeatherKind::Snow);
+}

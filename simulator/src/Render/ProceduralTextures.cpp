@@ -309,6 +309,21 @@ namespace CarSim::Render::Textures
         return img;
     }
 
+    Image SnowLayer(const int size, const std::uint32_t seed)
+    {
+        Image img(size, size);
+        img.Generate([&](int, int, float u, float v) {
+            const float drift = Noise::Fbm(u * 6.0f, v * 6.0f, 6, 3, 0.5f, seed);
+            const float grain = Noise::Value(u * 96.0f, v * 96.0f, 96, seed + 5);
+            const float shade = 0.90f + 0.08f * drift + 0.03f * (grain - 0.5f);
+            const float alpha = std::clamp(0.80f + 0.45f * (drift - 0.35f), 0.55f, 0.98f);
+            Color c = ToColor({shade * 0.97f, shade * 0.98f, std::min(1.0f, shade * 1.03f)});
+            c.setAProperty(static_cast<std::uint8_t>(alpha * 255.0f));
+            return c;
+        });
+        return img;
+    }
+
     Image CloudLayer(const int size, const std::uint32_t seed, const float coverage)
     {
         Image img(size, size, Color(255, 255, 255, 0));

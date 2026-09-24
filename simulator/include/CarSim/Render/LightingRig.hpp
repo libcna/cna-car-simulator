@@ -22,6 +22,8 @@ namespace CarSim::Render
         /// greys the air and shortens the view. Both are applied inside SetTimeOfDay.
         float cloudCover = 0.0f;
         float rainAmount = 0.0f;
+        float fogAmount = 0.0f;        // 0 clear air .. 1 dense fog
+        float snowCover = 0.0f;        // snow lying on the ground: brightens the bounce light
 
         Vector3 sunDirection;            // unit vector pointing FROM the key light towards the scene
         float sunElevationDeg = 0.0f;    // of the sun itself, negative at night (the key light is the moon then)
@@ -55,6 +57,8 @@ namespace CarSim::Render
         void SetTimeOfDay(float hours);
         /// Sets the cloud cover and rain (0..1) and recomputes the palette at the current hour.
         void SetWeather(float cover, float rain);
+        /// Fog and lying snow on top of SetWeather (both 0..1).
+        void SetAtmosphere(float fog, float snow);
         /// How far the sun may move before the palette has to be re-applied. The whole sky
         /// turns over in the twenty minutes around sunrise and sunset, so near the horizon the
         /// step is much finer than it is in the middle of the day, where an hour of sun barely
