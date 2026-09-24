@@ -105,6 +105,7 @@ add_library(carsim_render STATIC
     src/Render/VehicleRenderer.cpp
     src/Render/VehicleGroundEffects.cpp
     src/Render/WorldRenderer.cpp
+    src/Render/WorldRendererGeometry.cpp
     src/Render/WorldRendererScenery.cpp
 )
 target_include_directories(carsim_render PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

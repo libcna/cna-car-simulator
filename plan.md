@@ -1609,6 +1609,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   byte-identically in `VehicleWheels.cpp`, leaving `Vehicle.cpp` focused on control and
   driveline coordination at about 631 lines. Thirty-seven focused drive, ground and damage
   tests pass, including normal, turbo and extreme modes; a 120-frame auto-drive runtime works.
+  Eight static terrain, road, macro-colour and paved-area construction methods (468 method
+  lines) then moved byte-identically to `WorldRendererGeometry.cpp`. `WorldRenderer.cpp` is
+  now about 703 lines and retains rendering, lighting and frame composition. Eleven focused
+  road, ground-shadow and square tests pass; a fixed Radeon square frame is byte-identical
+  before and after (`4a4191f323c93682e0dcf2080abf32893ec1e635640774ae5ec2558bb2dcf234`).
   All four available renderers build and show the same cockpit controls in matched frames;
   see `docs/renderer-conformance.md`.
   Broader vehicle and road ownership are still open.

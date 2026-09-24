@@ -278,3 +278,14 @@ is 0.625 / 0.625 / 0.623 for Vulkan and 5.591 / 5.653 / 5.278 for SOFTWARE; 0.59
 mainly foliage and paved-surface tone. The same fixed view was also inspected in snow;
 the shrubs remain dark green, matching the current forest foliage treatment but still
 needing a future accumulation pass. No renderer-specific project code was added.
+
+### Phase 14 static geometry extraction checkpoint (2026-09-25)
+
+After the eight existing `WorldRenderer` terrain, road and paving builders moved verbatim
+to `WorldRendererGeometry.cpp`, the fixed square scene above was rebuilt and captured
+again on all four available renderers. The post-extraction PNG is byte-identical to its
+own pre-extraction PNG on each path: OPENGLES3 and OPENGL33
+`4a4191f323c93682e0dcf2080abf32893ec1e635640774ae5ec2558bb2dcf234`,
+Vulkan RADV `6aec07ae1c6814cdd9d0cc168b42e35a4a9286f1cf51f0251edb1d0c28cdf8db`,
+SOFTWARE `87007d0687853b28cbc952a274a9f39e2e5d95f1bb472732538b530a678a6ae6`.
+This checks the rendered outcome as well as the unchanged method text.

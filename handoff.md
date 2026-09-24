@@ -341,6 +341,12 @@ colliders. The fixed 13:00 Radeon before/after comparison is in
 also inspected. This is local square detail, not a finished settlement fidelity pass;
 seasonal accumulation on low vegetation remains open.
 
+Eight static terrain, road, macro-colour and paved-area construction methods (468 lines)
+moved verbatim from `WorldRenderer.cpp` to `WorldRendererGeometry.cpp`. The main renderer
+retains frame drawing, lighting and composition at 703 lines. Eleven focused road,
+ground-shadow and square tests pass; the same 13:00 Radeon square frame is byte-identical
+before and after (`4a4191f323c93682e0dcf2080abf32893ec1e635640774ae5ec2558bb2dcf234`).
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map
