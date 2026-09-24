@@ -40,6 +40,7 @@ add_library(carsim_core STATIC
     src/Sim/Tyre.cpp
     src/Sim/Vehicle.cpp
     src/Sim/VehicleFlight.cpp
+    src/Sim/VehicleWheels.cpp
     src/Sim/VehicleDefinition.cpp
     src/Traffic/Pedestrians.cpp
     src/Traffic/PlateGenerator.cpp

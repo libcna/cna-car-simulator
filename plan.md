@@ -1605,6 +1605,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   live byte-identically in `CarBodyGeometry.cpp`, bringing `ProceduralCar.cpp` from 1427 to
   1111 lines. Fifteen focused car/shadow tests pass; the matched Radeon cockpit frame differs
   in only one pixel after recompilation. The complete suite including soaks and smoke passes.
+  Suspension, tyre contact and wheel torque integration (273 method lines) now live
+  byte-identically in `VehicleWheels.cpp`, leaving `Vehicle.cpp` focused on control and
+  driveline coordination at about 631 lines. Thirty-seven focused drive, ground and damage
+  tests pass, including normal, turbo and extreme modes; a 120-frame auto-drive runtime works.
   All four available renderers build and show the same cockpit controls in matched frames;
   see `docs/renderer-conformance.md`.
   Broader vehicle and road ownership are still open.

@@ -322,6 +322,12 @@ lighting, spray and wet-reflection tests pass; a fixed rainy dusk Radeon screens
 pixel-identical before and after. All four renderer executables build and the complete
 six-part suite passes. The game class still orchestrates these existing systems.
 
+Suspension, tyre contact and wheel torque integration (273 method lines) moved byte-identically
+from `Vehicle.cpp` to `VehicleWheels.cpp`. Thirty-seven focused drive, ground and damage tests
+pass, including normal, turbo and extreme modes; a 120-frame auto-drive runtime works. The
+remaining `Vehicle.cpp` owns controls and driveline coordination, with flight already isolated
+in `VehicleFlight.cpp`.
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map
