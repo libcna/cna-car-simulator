@@ -44,6 +44,10 @@ namespace CarSim::Map
         float halfDepth = 4.5f;
         float height = 6.0f;                            // eaves height above position
         float roofHeight = 3.0f;                        // ridge above the eaves
+
+        /// Half the width of the drive-through passage in the middle of the facade (the arch of a
+        /// castle gatehouse, which is built over its road), or 0 for a solid building.
+        float PassageHalfWidth() const;
     };
 
     /// A parked car: a static body drawn like a traffic car and solid in the collision world.

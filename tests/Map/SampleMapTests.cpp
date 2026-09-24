@@ -151,6 +151,7 @@ TEST(SampleMap, BuildingsAndTreeTrunksStayOutOfRoads)
             for (int ix = 0; ix <= nx; ++ix) {
                 const float x = -b.halfWidth + 2.0f * b.halfWidth * static_cast<float>(ix) / nx;
                 const float z = -b.halfDepth + 2.0f * b.halfDepth * static_cast<float>(iz) / nz;
+                if (std::fabs(x) < b.PassageHalfWidth()) continue;   // a gatehouse arch spans its road
                 const auto point = centre + right * x + fwd * z;
                 if (onRoad(point)) { overlap = true; overlapPoint = point; break; }
             }

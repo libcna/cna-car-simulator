@@ -378,9 +378,12 @@ def build(out_dir, log=print):
         traffic["playerSpawns"].append({"name": spec["name"], "position": list(p), "headingDeg": round(h, 1)})
 
     # The map card describes the region, not just the town, and the road length is measured from
-    # what this stage has just written rather than copied from an older note.
+    # what this stage has just written rather than copied from an older note. Roads a later stage
+    # added carry its "generated-by" marker and are left out, so that rerunning this stage over
+    # the finished map gives the same card.
     km = sum(math.dist(ALL_NODES[a], ALL_NODES[b])
-             for road in roads["roads"] for a, b in zip(road["nodes"], road["nodes"][1:])) / 1000.0
+             for road in roads["roads"] if "generated-by" not in road
+             for a, b in zip(road["nodes"], road["nodes"][1:])) / 1000.0
     card = load("map.json")
     card["description"] = (
         f"Fictional Czech region {TERRAIN_SIZE[0] / 1000:.1f} x {TERRAIN_SIZE[1] / 1000:.1f} km: the town of "

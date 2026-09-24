@@ -69,7 +69,9 @@ What you get today:
   Four more places on the roads out of it -- the street village of **Březí**, the village of
   **Podhájí** on the southern ring, the small town of **Nové Město** in the north-east with its
   own square, and the hamlet of **Kamenice** in the western hills -- plus tree avenues, fields,
-  meadows and a forest with a gravel forest track. About 27 km of roads, 22 intersections,
+  meadows and a forest with a gravel forest track. West of the town the medieval castle
+  **Hrad Lipník** stands on a wooded hill, reached by a 2 km gravel track that winds up through
+  the forest and once round the walls to the gatehouse. About 27 km of roads, 22 intersections,
   Czech traffic signs and road markings.
 - Cockpit camera with a live instrument cluster, rotating steering wheel, a working rear-view
   mirror and live wing mirrors; exterior chase camera.
@@ -142,7 +144,7 @@ cna-car-simulator [options]
   --content <dir>                           content root (vehicles, maps, fonts)
   --vehicle <name> --map <name>             vehicle definition and map to load
   --spawn <name>                            player spawn point: square, forest, fields, east,
-                                            kostel, brezi, podhaji, mesto, kamenice
+                                            kostel, brezi, podhaji, mesto, kamenice, hrad
   --route <name> [--route-stay]             drive a named route (town, country, forest) with the
                                             autopilot and exit at its end; --route-stay keeps going
   --quality <tier>                          graphics tier: low, medium or high (default: saved)

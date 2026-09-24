@@ -2,7 +2,7 @@
  "schemaVersion": 1,
  "id": "lipova",
  "displayName": "Lipová",
- "description": "Fictional Czech region 6.4 x 7.6 km: the town of Lipová (square, residential streets, prefab estate, filling station) with the villages of Březí, Podhájí and Kamenice and the small town of Nové Město, linked by 27 km of roads through fields, meadows and spruce forest.",
+ "description": "Fictional Czech region 6.4 x 7.6 km: the town of Lipová (square, residential streets, prefab estate, filling station) with the villages of Březí, Podhájí and Kamenice and the small town of Nové Město, linked by 27 km of roads through fields, meadows and spruce forest. On a wooded hill west of Lipová stands the medieval castle Hrad Lipník, reached by a forest track.",
  "author": "cna-car-simulator contributors",
  "license": "MIT (see LICENSE); all content is procedural or authored in this repository",
  "files": {

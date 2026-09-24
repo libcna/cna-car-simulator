@@ -811,7 +811,9 @@ namespace CarSim::Render
     {
         // Textures per material.
         for (int i = 0; i < BuildingPalette::kWallColours; ++i) {
-            wallTextures_.push_back(UploadTexture(device, Textures::Plaster(256, BuildingPalette::Wall(i), 20u + static_cast<unsigned>(i)), true));
+            wallTextures_.push_back(UploadTexture(device, i == BuildingPalette::kStoneWall ? Textures::Masonry(256, BuildingPalette::Wall(i), 31u)
+                                                                                          : Textures::Plaster(256, BuildingPalette::Wall(i), 20u + static_cast<unsigned>(i)),
+                                                  true));
         }
         for (int i = 0; i < BuildingPalette::kRoofColours; ++i) {
             roofTextures_.push_back(UploadTexture(device, Textures::RoofTiles(256, BuildingPalette::Roof(i), 40u + static_cast<unsigned>(i)), true));

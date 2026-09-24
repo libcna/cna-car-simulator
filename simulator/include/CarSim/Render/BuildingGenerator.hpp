@@ -14,7 +14,8 @@ namespace CarSim::Render
 {
     struct BuildingPalette
     {
-        static constexpr int kWallColours = 8;
+        static constexpr int kWallColours = 9;
+        static constexpr int kStoneWall = 8;   // castle masonry (a stone texture, not plaster)
         static constexpr int kRoofColours = 4;
         [[nodiscard]] static Rgb Wall(int index);
         [[nodiscard]] static Rgb Roof(int index);

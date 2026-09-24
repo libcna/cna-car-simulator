@@ -8,6 +8,7 @@ generator script plus hand edits that preceded it.
 ```
 source definition            tools/maps/generate_lipova.py  (stage 1)
                              tools/maps/add_settlements.py  (stage 2)
+                             tools/maps/add_castle.py       (stage 3)
         |
         v
 generation pipeline          tools/maps/build_map.py
@@ -55,7 +56,8 @@ order, the clock, or the file system.
 | Stage | Module | Writes | Idempotent because |
 | --- | --- | --- | --- |
 | 1 | `generate_lipova.py` | all five files, from scratch | it replaces the whole map |
-| 2 | `add_settlements.py` | four of the five, in place | it deletes its own output first |
+| 2 | `add_settlements.py` | all five, in place | it deletes its own output first |
+| 3 | `add_castle.py` | all five, in place | it deletes its own output first |
 
 **Stage 1 — `generate_lipova.py`** writes the complete base map: the nodes and roads of Lipová
 and its countryside, the terrain, the paved town square with its frontages, limes, benches and
@@ -69,10 +71,23 @@ under them, and a spawn in each. It is *additive*: it reads what stage 1 left, r
 entries it wrote on an earlier run — every one of them carries a `"generated-by":
 "add_settlements"` key, or a node/road id from its own list — and appends the current ones. It
 also rewrites the map card's description, measuring the road length from the roads it has just
-written rather than repeating a number from a comment. Running it twice in a row is the same as
-running it once; there is a test for that.
+written rather than repeating a number from a comment (roads that a later stage marks as its own
+are not counted, so the card does not change when stage 2 is run again over the finished map).
+Running it twice in a row is the same as running it once; there is a test for that.
 
-Neither stage may be run by accident: both refuse without `--stage-only`, and point at
+**Stage 3 — `add_castle.py`** adds Hrad Lipník west of Lipová: a 72 m wooded hill, a ring of
+mixed forest over its slopes with a clearing on the top, the castle itself (curtain walls with
+battlements, four round towers, a gatehouse over the track, the keep and the palace, as
+`castle_*` building types), and `castle_track`, a 2 km gravel track from the junction W3 that
+climbs the hill in two hairpins and goes once round the castle below its walls to the gate, at
+no more than about 11.5 %. It also adds the signs at W3 and the `hrad` spawn below the gate, and
+appends one sentence to the map card. It follows the same contract as stage 2: everything it
+writes carries `"generated-by": "add_castle"` or an id from its own list.
+
+`--check` tests the contract of both additive stages: it runs each of them again over the
+finished map, followed by the stages after it, and requires the same bytes.
+
+No stage may be run by accident: each refuses without `--stage-only`, and points at
 `build_map.py`. This is deliberate. Before this pipeline existed, `generate_lipova.py` was
 several passes of content out of date and re-running it silently destroyed the square, the
 chapel, the filling station and the parked cars. Nothing in this repository should ever again be
@@ -90,7 +105,8 @@ a script you are warned not to run.
 | Signs and props along the original roads | 1 |
 | Březí, Podhájí, Nové Město, Kamenice and their roads, signs, props, avenues | 2 |
 | Outer terrain regions and hills | 2 |
-| Map card description and measured road length | 2 |
+| Map card description and measured road length | 2 (stage 3 appends its sentence) |
+| Hrad Lipník: the hill, its forest and clearing, the castle, `castle_track`, its signs, the `hrad` spawn | 3 |
 
 Region order matters at runtime (a later region wins where two overlap), which is why stage 2
 puts its outer regions *in front of* the inner ones: the town, the square and the station
@@ -109,6 +125,6 @@ forecourt must stay on top.
 ## Adding a settlement or a feature later
 
 Add it to stage 2 if it is new content in the wider region; add it to stage 1 if it belongs to
-Lipová itself. If a third stage is ever wanted, register it in `STAGES` in `build_map.py` and
-give it the same contract: deterministic, idempotent, and marking its own output so a re-run can
-find it.
+Lipová itself. A self-contained feature such as the castle can be a stage of its own: register
+it in `STAGES` in `build_map.py` and give it the same contract -- deterministic, idempotent, and
+marking its own output so a re-run can find it.

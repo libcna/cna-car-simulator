@@ -6,6 +6,16 @@
    "position": [
     -1500,
     300
+   ],
+   "mainRoads": [
+    "main",
+    "south"
+   ],
+   "control": [
+    {
+     "road": "castle_track",
+     "control": "stop"
+    }
    ]
   },
   {
@@ -414,6 +424,98 @@
     1700
    ],
    "urban": true
+  },
+  {
+   "id": "HT1",
+   "position": [
+    -1720,
+    160
+   ]
+  },
+  {
+   "id": "HT2",
+   "position": [
+    -1770,
+    -250
+   ]
+  },
+  {
+   "id": "HT3",
+   "position": [
+    -1964,
+    -472
+   ]
+  },
+  {
+   "id": "HT4",
+   "position": [
+    -2169,
+    -469
+   ]
+  },
+  {
+   "id": "HT5",
+   "position": [
+    -2007,
+    -332
+   ]
+  },
+  {
+   "id": "HT6",
+   "position": [
+    -2033,
+    -207
+   ]
+  },
+  {
+   "id": "HT7",
+   "position": [
+    -2131,
+    -140
+   ]
+  },
+  {
+   "id": "HT8",
+   "position": [
+    -2227,
+    -186
+   ]
+  },
+  {
+   "id": "HT9",
+   "position": [
+    -2235,
+    -273
+   ]
+  },
+  {
+   "id": "HT10",
+   "position": [
+    -2182,
+    -319
+   ]
+  },
+  {
+   "id": "HT11",
+   "position": [
+    -2128,
+    -310
+   ]
+  },
+  {
+   "id": "HGO",
+   "position": [
+    -2140.4,
+    -276.3
+   ]
+  },
+  {
+   "id": "HGI",
+   "position": [
+    -2148.6,
+    -253.8
+   ],
+   "name": "Hrad Lipník"
   }
  ],
  "roads": [
@@ -779,6 +881,36 @@
    "centreLine": "none",
    "edgeLines": false,
    "cornerRadius": 45
+  },
+  {
+   "generated-by": "add_castle",
+   "id": "castle_track",
+   "name": "lesní cesta k hradu",
+   "class": "track",
+   "nodes": [
+    "W3",
+    "HT1",
+    "HT2",
+    "HT3",
+    "HT4",
+    "HT5",
+    "HT6",
+    "HT7",
+    "HT8",
+    "HT9",
+    "HT10",
+    "HT11",
+    "HGO",
+    "HGI"
+   ],
+   "laneWidth": 1.75,
+   "edgeStripWidth": 0.0,
+   "shoulderWidth": 0.3,
+   "surface": "gravel",
+   "speedLimitKmh": 30,
+   "centreLine": "none",
+   "edgeLines": false,
+   "cornerRadius": 14
   }
  ]
 }

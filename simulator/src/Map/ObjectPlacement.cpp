@@ -100,6 +100,11 @@ namespace CarSim::Map
 
     bool IsConifer(const TreeSpecies s) { return s == TreeSpecies::Spruce || s == TreeSpecies::Pine; }
 
+    float PlacedBuilding::PassageHalfWidth() const
+    {
+        return spec && spec->type == "castle_gate" ? std::min(2.3f, halfWidth * 0.45f) : 0.0f;
+    }
+
     float PlacedTree::Height() const
     {
         switch (species) {
@@ -489,7 +494,8 @@ namespace CarSim::Map
             PlacedBuilding b = planned[i];
             const BuildingSpec& spec = *b.spec;
             Vector2 centre = spec.position;
-            if (!BuildingRoadClear(world, b, centre)) {
+            // A gatehouse is built over its road on purpose: the road runs through the arch.
+            if (b.PassageHalfWidth() == 0.0f && !BuildingRoadClear(world, b, centre)) {
                 // Some authored rows cross a different road from the one they face. Keep the
                 // building in its neighbourhood by finding the closest free plot nearby.
                 RoadHit hit;

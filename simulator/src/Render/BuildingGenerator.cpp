@@ -277,6 +277,151 @@ namespace CarSim::Render
             Window(windows, centre, 0.9f, 0.9f, Vector3(0, 0, 1));
             Frame(frames, dark, centre, 0.9f, 0.9f, Vector3(0, 0, 1));
         }
+
+        // ------------------------------------------------------------------ castle pieces
+        constexpr float kStoneTileM = 3.0f;   // one masonry texture tile
+
+        /// Merlons standing on the outer edge of a straight parapet from x0 to x1 (local x), at
+        /// height y, the outer face at z = zOuter (facing +z).
+        void Merlons(MeshData& walls, const float x0, const float x1, const float y, const float zOuter, const Matrix& place)
+        {
+            MeshData m;
+            const float pitch = 1.7f, width = 0.95f;
+            const int n = std::max(1, static_cast<int>((x1 - x0) / pitch));
+            const float step = (x1 - x0) / static_cast<float>(n);
+            for (int i = 0; i < n; ++i) {
+                const float x = x0 + step * (static_cast<float>(i) + 0.5f);
+                m.AddBox(Vector3(x - width * 0.5f, y, zOuter - 0.55f), Vector3(x + width * 0.5f, y + 0.95f, zOuter), kStoneTileM);
+            }
+            walls.Append(m, place);
+        }
+
+        /// Arrow slits: narrow dark openings on the +z face at z = zFace.
+        void Slits(MeshData& dark, const float x0, const float x1, const float y, const float zFace, const float spacing, const Matrix& place)
+        {
+            MeshData m;
+            const int n = std::max(1, static_cast<int>((x1 - x0) / spacing));
+            const float step = (x1 - x0) / static_cast<float>(n);
+            for (int i = 0; i < n; ++i) {
+                const float x = x0 + step * (static_cast<float>(i) + 0.5f);
+                m.AddBox(Vector3(x - 0.09f, y, zFace), Vector3(x + 0.09f, y + 1.15f, zFace + 0.04f), 1.0f);
+            }
+            dark.Append(m, place);
+        }
+
+        /// Battlements round a rectangle (all four sides) with their parapet walk behind.
+        void Battlements(MeshData& walls, const float hw, const float hd, const float y)
+        {
+            const Matrix sides[4] = {Matrix::getIdentityProperty(), Matrix::CreateRotationY(3.14159265f),
+                                     Matrix::CreateRotationY(3.14159265f * 0.5f), Matrix::CreateRotationY(-3.14159265f * 0.5f)};
+            const float along[4] = {hw, hw, hd, hd};
+            const float out[4] = {hd, hd, hw, hw};
+            for (int s = 0; s < 4; ++s) {
+                MeshData parapet;
+                parapet.AddBox(Vector3(-along[s], y, out[s] - 0.55f), Vector3(along[s], y + 1.0f, out[s]), kStoneTileM);
+                walls.Append(parapet, sides[s]);
+                Merlons(walls, -along[s], along[s], y + 1.0f, out[s], sides[s]);
+            }
+        }
+
+        /// A cone (both windings, so it shows from any side) from a ring of `radius` at y0 up to
+        /// the apex at y1.
+        void Cone(MeshData& roof, const float radius, const float y0, const float y1, const int segments)
+        {
+            const Vector3 apex(0.0f, y1, 0.0f);
+            for (int i = 0; i < segments; ++i) {
+                const float a0 = 6.2831853f * static_cast<float>(i) / static_cast<float>(segments);
+                const float a1 = 6.2831853f * static_cast<float>(i + 1) / static_cast<float>(segments);
+                const Vector3 p0(std::cos(a0) * radius, y0, std::sin(a0) * radius);
+                const Vector3 p1(std::cos(a1) * radius, y0, std::sin(a1) * radius);
+                const float am = 0.5f * (a0 + a1);
+                Vector3 n(std::cos(am) * (y1 - y0), radius, std::sin(am) * (y1 - y0));
+                n.Normalize();
+                const float slant = std::hypot(radius, y1 - y0);
+                const float u0 = radius * a0 / 2.0f, u1 = radius * a1 / 2.0f;
+                const std::uint32_t i0 = roof.AddVertex(p0, n, Vector2(u0, slant), kWhite);
+                const std::uint32_t i1 = roof.AddVertex(p1, n, Vector2(u1, slant), kWhite);
+                const std::uint32_t i2 = roof.AddVertex(apex, n, Vector2(0.5f * (u0 + u1), 0.0f), kWhite);
+                roof.AddTriangle(i0, i1, i2);
+                roof.AddTriangle(i0, i2, i1);
+            }
+        }
+
+        void CastlePiece(const Map::PlacedBuilding& b, MeshData& walls, MeshData& roof, MeshData& windows, MeshData& trim,
+                         MeshData& frames, MeshData& metal, MeshData& dark)
+        {
+            const std::string& type = b.spec->type;
+            const float hw = b.halfWidth, hd = b.halfDepth, h = b.height, drop = b.foundationDrop, ridge = b.roofHeight;
+            const Matrix id = Matrix::getIdentityProperty();
+            if (type == "castle_wall") {
+                // Curtain wall: the masonry, a breastwork with merlons on the outer (+z) side, a
+                // low rail on the inner side, slits in the outer face.
+                walls.AddBox(Vector3(-hw, -drop, -hd), Vector3(hw, h, hd), kStoneTileM);
+                walls.AddBox(Vector3(-hw, h, hd - 0.55f), Vector3(hw, h + 1.0f, hd), kStoneTileM);
+                walls.AddBox(Vector3(-hw, h, -hd), Vector3(hw, h + 0.5f, -hd + 0.35f), kStoneTileM);
+                Merlons(walls, -hw, hw, h + 1.0f, hd, id);
+                Slits(dark, -hw + 2.0f, hw - 2.0f, h * 0.45f, hd, 5.5f, id);
+            } else if (type == "castle_tower") {
+                // Round tower: a slightly battered drum, a corbelled crown, a tall cone.
+                const float r = std::min(hw, hd);
+                walls.AddCylinder(Vector3(0.0f, -drop, 0.0f), Vector3(0.0f, 1.0f, 0.0f), r + 0.25f, drop + 2.0f, 18, false,
+                                  Color(255, 255, 255, 255), kStoneTileM);
+                walls.AddCylinder(Vector3(0.0f, 1.9f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), r, h - 3.0f, 18, false, Color(255, 255, 255, 255), kStoneTileM);
+                walls.AddCylinder(Vector3(0.0f, h - 1.2f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), r + 0.4f, 1.2f, 18, true, Color(255, 255, 255, 255), kStoneTileM);
+                Cone(roof, r + 0.7f, h - 0.1f, h + std::max(ridge, 3.0f), 18);
+                for (int k = 0; k < 4; ++k) {
+                    const Matrix turn = Matrix::CreateRotationY(0.4f + 1.5708f * static_cast<float>(k));
+                    MeshData slit;
+                    for (const float y : {h * 0.35f, h * 0.65f}) {
+                        slit.AddBox(Vector3(-0.09f, y, r - 0.02f), Vector3(0.09f, y + 1.1f, r + 0.03f), 1.0f);
+                    }
+                    dark.Append(slit, turn);
+                }
+            } else if (type == "castle_keep") {
+                // Keep (bergfried): a tall square tower, a corbelled crown with battlements and a
+                // steep hipped roof inside them; slits and a door high up the front.
+                walls.AddBox(Vector3(-hw, -drop, -hd), Vector3(hw, h, hd), kStoneTileM);
+                walls.AddBox(Vector3(-hw - 0.35f, h - 0.9f, -hd - 0.35f), Vector3(hw + 0.35f, h, hd + 0.35f), kStoneTileM);
+                Battlements(walls, hw + 0.35f, hd + 0.35f, h);
+                if (ridge > 0.1f) Roof(roof, walls, frames, metal, hw - 0.3f, hd - 0.3f, h + 0.4f, ridge, true, 0.2f, 0.12f, h);
+                const Matrix faces[4] = {id, Matrix::CreateRotationY(3.14159265f), Matrix::CreateRotationY(1.5708f), Matrix::CreateRotationY(-1.5708f)};
+                for (int s = 0; s < 4; ++s) {
+                    const float along = s < 2 ? hw : hd;
+                    const float out = s < 2 ? hd : hw;
+                    for (const float y : {h * 0.3f, h * 0.55f, h * 0.8f}) Slits(dark, -along + 1.5f, along - 1.5f, y, out, 3.5f, faces[s]);
+                }
+                trim.AddBox(Vector3(-0.7f, 8.0f, hd), Vector3(0.7f, 10.2f, hd + 0.05f), 1.0f);
+            } else if (type == "castle_gate") {
+                // Gatehouse: two towers with the passage between them, the chamber over the
+                // arch, battlements, and the portcullis hanging in the mouth.
+                const float gap = b.PassageHalfWidth();
+                walls.AddBox(Vector3(-hw, -drop, -hd), Vector3(-gap, h, hd), kStoneTileM);
+                walls.AddBox(Vector3(gap, -drop, -hd), Vector3(hw, h, hd), kStoneTileM);
+                walls.AddBox(Vector3(-gap, 5.2f, -hd), Vector3(gap, h, hd), kStoneTileM);
+                dark.AddBox(Vector3(-gap + 0.02f, 5.05f, -hd + 0.02f), Vector3(gap - 0.02f, 5.2f, hd - 0.02f), 1.0f);
+                for (float x = -gap + 0.35f; x < gap - 0.2f; x += 0.45f) {
+                    metal.AddBox(Vector3(x - 0.04f, 4.1f, hd - 0.35f), Vector3(x + 0.04f, 5.1f, hd - 0.27f), 1.0f);
+                }
+                metal.AddBox(Vector3(-gap, 4.2f, hd - 0.35f), Vector3(gap, 4.3f, hd - 0.27f), 1.0f);
+                Battlements(walls, hw, hd, h);
+                Slits(dark, -hw + 0.8f, -gap - 0.8f, h * 0.55f, hd, 2.0f, id);
+                Slits(dark, gap + 0.8f, hw - 0.8f, h * 0.55f, hd, 2.0f, id);
+            } else {
+                // Palace (palác): the lord's hall, stone, a steep tiled roof, tall paired windows
+                // on the upper floors, slits below, a door on the courtyard side.
+                walls.AddBox(Vector3(-hw, -drop, -hd), Vector3(hw, h, hd), kStoneTileM);
+                Roof(roof, walls, frames, metal, hw, hd, h, ridge, false, 0.35f, 0.12f, -drop + 0.3f);
+                const int floors = std::max(1, b.spec->floors);
+                const float floorH = h / static_cast<float>(floors);
+                for (int f = 1; f < floors; ++f) {
+                    const float y = static_cast<float>(f) * floorH + 0.8f;
+                    WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.9f, 0.75f, 3.4f, Vector3(0, 0, 1), true);
+                    WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.9f, 0.75f, 3.4f, Vector3(0, 0, -1), true);
+                }
+                Slits(dark, -hw + 2.0f, hw - 2.0f, 1.6f, hd, 4.0f, id);
+                Door(trim, Vector3(0.0f, 0.0f, hd), 1.8f, 2.8f, Vector3(0, 0, 1));
+            }
+        }
     }
 
     Rgb BuildingPalette::Wall(const int index)
@@ -290,6 +435,7 @@ namespace CarSim::Render
             Rgb::FromBytes(240, 238, 230),   // white
             Rgb::FromBytes(204, 204, 200),   // grey
             Rgb::FromBytes(180, 194, 208),   // blue-grey
+            Rgb::FromBytes(168, 160, 146),   // weathered stone (castle masonry)
         };
         return palette[std::clamp(index, 0, kWallColours - 1)];
     }
@@ -308,6 +454,7 @@ namespace CarSim::Render
     int BuildingPalette::WallIndex(const Map::PlacedBuilding& b)
     {
         const std::string& type = b.spec->type;
+        if (type.rfind("castle_", 0) == 0) return kStoneWall;
         if (type == "block") return 6;
         if (type == "church" || type == "chapel") return 5;
         if (type == "barn") return 1;
@@ -317,6 +464,8 @@ namespace CarSim::Render
     int BuildingPalette::RoofIndex(const Map::PlacedBuilding& b)
     {
         const std::string& type = b.spec->type;
+        if (type == "castle_palace") return 0;
+        if (type.rfind("castle_", 0) == 0) return 2;
         if (type == "block") return 2;
         if (type == "church" || type == "chapel") return 2;
         if (type == "barn") return 1;
@@ -360,6 +509,26 @@ namespace CarSim::Render
         const Vector3 right(1.0f, 0.0f, 0.0f);
         const int floors = std::max(1, b.spec->floors);
         const float floorH = h / static_cast<float>(floors);
+
+        if (type.rfind("castle_", 0) == 0) {
+            // Castle pieces are masonry throughout, with their own shapes.
+            CastlePiece(b, walls, roof, windows, trim, frames, metal, dark);
+            const Matrix place = Matrix::CreateRotationY(-b.headingRad + 3.14159265f) * Matrix::CreateTranslation(b.position);
+            out.walls[static_cast<std::size_t>(BuildingPalette::WallIndex(b))].Append(walls, place);
+            out.roofs[static_cast<std::size_t>(BuildingPalette::RoofIndex(b))].Append(roof, place);
+            out.windows.Append(windows, place);
+            out.trim.Append(trim, place);
+            out.frames.Append(frames, place);
+            out.metal.Append(metal, place);
+            out.dark.Append(dark, place);
+            (void)glass;
+            (void)concrete;
+            (void)front;
+            (void)back;
+            (void)left;
+            (void)right;
+            return;
+        }
 
         // Main body.
         Box(walls, Vector3(-hw, -drop, -hd), Vector3(hw, h, hd), 0.35f);

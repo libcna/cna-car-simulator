@@ -135,6 +135,16 @@ namespace CarSim::Collision
             const float bottom = -b.foundationDrop;
             const Vector3 centre = b.position + Vector3(0.0f, 0.5f * (top + bottom), 0.0f);
             // The generator's local +z is the facade; FromHeading uses the same convention.
+            if (const float gap = b.PassageHalfWidth(); gap > 0.0f) {
+                // Two towers with the passage between them (the arch is overhead).
+                const float half = 0.5f * (b.halfWidth - gap);
+                const Vector3 right(std::cos(b.headingRad), 0.0f, std::sin(b.headingRad));
+                for (const float side : {-1.0f, 1.0f}) {
+                    AddStatic(BoxCollider(ColliderKind::Building, centre + right * (side * (gap + half)),
+                                          Vector3(half, 0.5f * (top - bottom), b.halfDepth), b.headingRad));
+                }
+                continue;
+            }
             AddStatic(BoxCollider(ColliderKind::Building, centre, Vector3(b.halfWidth, 0.5f * (top - bottom), b.halfDepth), b.headingRad));
         }
         for (const auto& t : objects.Trees()) {

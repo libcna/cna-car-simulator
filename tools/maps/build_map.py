@@ -16,6 +16,8 @@ against what is in the repository.
     stage 2  add_settlements   grows that into the wider region (Březí, Podhájí, Nové Město,
                                Kamenice). Additive and idempotent: it replaces only its own
                                output, marked with a "generated-by" key
+    stage 3  add_castle        adds Hrad Lipník on its wooded hill west of Lipová and the forest
+                               track up to it. Additive and idempotent like stage 2
 
 Usage:
 
@@ -43,10 +45,11 @@ SHIPPED = ROOT / "content" / "maps" / "lipova"
 FILES = ["map.json", "terrain.json", "roads.json", "objects.json", "traffic.json"]
 
 sys.path.insert(0, str(HERE))
+import add_castle                                                 # noqa: E402
 import add_settlements                                            # noqa: E402
 import generate_lipova                                            # noqa: E402
 
-STAGES = [("generate_lipova", generate_lipova.build), ("add_settlements", add_settlements.build)]
+STAGES = [("generate_lipova", generate_lipova.build), ("add_settlements", add_settlements.build), ("add_castle", add_castle.build)]
 
 
 def build(out_dir, log=print):
@@ -126,15 +129,19 @@ def main(argv=None):
     if args.check:
         with tempfile.TemporaryDirectory(prefix="lipova-rebuild-") as tmp:
             build(tmp, log=log)
-            # The additive stages must be idempotent: running stage 2 again over its own output
-            # has to be a no-op, or a second run of the pipeline would keep growing the map.
+            # The additive stages must be idempotent: running any of them again, followed by the
+            # stages after it, has to give the same map, or a second run of the pipeline would
+            # keep growing it. Checked from the last stage back, so the first failure names the
+            # stage at fault.
             snapshot = {name: (pathlib.Path(tmp) / name).read_bytes() for name in FILES}
-            add_settlements.build(tmp, log=None)
-            repeated = [name for name in FILES if (pathlib.Path(tmp) / name).read_bytes() != snapshot[name]]
-            if repeated:
-                print(f"map-regeneration: FAILED (add_settlements is not idempotent; it changed "
-                      f"{', '.join(repeated)} on a second run)")
-                return 1
+            for first in range(len(STAGES) - 1, 0, -1):
+                for _, stage in STAGES[first:]:
+                    stage(tmp, log=None)
+                repeated = [f for f in FILES if (pathlib.Path(tmp) / f).read_bytes() != snapshot[f]]
+                if repeated:
+                    print(f"map-regeneration: FAILED ({STAGES[first][0]} is not idempotent; it changed "
+                          f"{', '.join(repeated)} on a second run)")
+                    return 1
             drift = differences(tmp)
             if args.validate and validate(tmp, log=log) is False:
                 print("map-regeneration: FAILED (the rebuilt map does not validate)")

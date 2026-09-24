@@ -31,6 +31,9 @@ namespace CarSim::Render::Textures
     [[nodiscard]] Image MarkingPaint(int size, std::uint32_t seed);
     /// Rendered plaster facade in a base colour with weathering. Tile ~ 3 m.
     [[nodiscard]] Image Plaster(int size, const Rgb& base, std::uint32_t seed);
+    /// Rubble-coursed stone masonry, eight courses per tile, blocks of uneven length with dark
+    /// mortar joints and weathering (castle walls).
+    [[nodiscard]] Image Masonry(int size, const Rgb& base, std::uint32_t seed);
     /// Clay roof tiles. Tile ~ 2 m.
     [[nodiscard]] Image RoofTiles(int size, const Rgb& base, std::uint32_t seed);
     /// Tree bark. Tile ~ 1 m around the trunk.

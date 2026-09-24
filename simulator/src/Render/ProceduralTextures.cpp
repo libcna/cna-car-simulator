@@ -282,6 +282,33 @@ namespace CarSim::Render::Textures
         return faces;
     }
 
+    Image Masonry(const int size, const Rgb& base, const std::uint32_t seed)
+    {
+        Image img(size, size);
+        constexpr int kCourses = 8;
+        img.Generate([&](int, int, float u, float v) {
+            const float course = v * kCourses;
+            const int row = static_cast<int>(course);
+            const float inRow = course - static_cast<float>(row);
+            // Blocks of uneven length: the joints of a course sit at hashed positions that tile.
+            const float shift = Noise::Hash(row, 0, seed);
+            const float along = u * 4.0f + shift;
+            const int block = static_cast<int>(std::floor(along));
+            const float inBlock = along - std::floor(along);
+            const float lengthJitter = 0.18f * Noise::Hash(block & 3, row, seed + 3);
+            const bool joint = inRow < 0.07f || inBlock < 0.035f + lengthJitter * 0.1f;
+            const float tone = 0.86f + 0.22f * Noise::Hash(block & 3, row, seed + 7);
+            const float grain = 0.92f + 0.12f * Noise::Value(u * 64.0f, v * 64.0f, 64, seed + 11);
+            const float weather = 0.9f + 0.1f * Noise::Fbm(u * 4.0f, v * 4.0f, 4, 3, 0.5f, seed + 13);
+            float k = tone * grain * weather;
+            if (joint) k *= 0.55f;
+            // The upper edge of each stone catches the light a little.
+            if (!joint && inRow > 0.88f) k *= 1.06f;
+            return ToColor({std::clamp(base.r * k, 0.0f, 1.0f), std::clamp(base.g * k, 0.0f, 1.0f), std::clamp(base.b * k, 0.0f, 1.0f)});
+        });
+        return img;
+    }
+
     Image PuddleMask(const int size, const std::uint32_t seed, const float coverage)
     {
         // Low-frequency blobs thresholded at the quantile that leaves `coverage` of the area
