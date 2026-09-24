@@ -685,3 +685,48 @@ TEST(TrafficSystem, BusesAndLorriesStopFurtherBackFromTheLine)
     ASSERT_LT(lorry, 1e8f) << "the lorry never stopped at the line";
     EXPECT_GT(lorry, car + 1.5f) << "car " << car << " m, lorry " << lorry << " m";
 }
+
+TEST(TrafficSystem, ABusGivingWayToAStreamGetsThroughInTheEnd)
+{
+    // A bus on the minor road, and a car every few seconds on the main road from either side:
+    // never a gap long enough for a twelve-metre body. After a long wait it claims the junction,
+    // the main road holds back, and it gets through -- touching nobody.
+    auto world = CrossWorld(true);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 17);
+    traffic.SetDensity(0);
+    const int mainEast = LaneOf(*world, "main", true, 0);
+    const int mainWest = LaneOf(*world, "main", false, 0);
+    const int minorSouth = LaneOf(*world, "minor", true, 0);
+    const Map::Lane& minor = world->Lanes().LaneAt(minorSouth);
+    int bus = -1;
+    int overlaps = 0;
+    float throughAt = -1.0f;
+    const float dt = 1.0f / 30.0f;
+    const int busAt = 30 * 25;   // once the stream is running
+    for (int i = 0; i < busAt + 30 * 180 && throughAt < 0.0f; ++i) {
+        // A new car at the far end of the main road, where there is room for one. The roads end
+        // in turning places, so the cars come round again: ten at most.
+        const auto feed = [&](const int lane, const Sim::CarStyle::Body body) {
+            if (traffic.Vehicles().size() >= 11) return;
+            for (const auto& o : traffic.Vehicles()) {
+                if (o.link < 0 && o.lane == lane && std::fabs(o.s - 150.0f) < 25.0f) return;
+            }
+            traffic.SpawnOn(lane, 150.0f, 13.0f, body);
+        };
+        if (i % (30 * 4) == 0) feed(mainEast, Sim::CarStyle::Body::Sedan);
+        if (i % (30 * 4) == 60) feed(mainWest, Sim::CarStyle::Body::Hatchback);
+        if (i == busAt) {
+            bus = traffic.SpawnOn(minorSouth, minor.length - 40.0f, 6.0f, Sim::CarStyle::Body::Bus);
+            ASSERT_GE(bus, 0);
+        }
+        traffic.Update(dt, NoPlayer());
+        overlaps += CountOverlaps(traffic.Vehicles());
+        const auto* b = bus >= 0 ? Find(traffic, bus) : nullptr;
+        if (b && b->link >= 0) throughAt = static_cast<float>(i - busAt) * dt;
+    }
+    std::printf("  the bus got in after %.1f s\n", static_cast<double>(throughAt));
+    EXPECT_EQ(overlaps, 0);
+    ASSERT_GE(throughAt, 0.0f) << "the bus never got into the junction in three minutes";
+    EXPECT_LT(throughAt, 90.0f);
+}

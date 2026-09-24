@@ -50,6 +50,7 @@ namespace CarSim::Traffic
         // State.
         bool waiting = false;         // held at an intersection
         float waitTime = 0.0f;
+        float standingAtLine = 0.0f;  // seconds at the line ahead, across light changes, until into the junction
         bool stoppedAtLine = false;   // stop sign: full stop registered
         bool committed = false;
         bool claimed = false;
@@ -162,6 +163,8 @@ namespace CarSim::Traffic
         /// Where a vehicle on the opposite lane is, in our lane's s (the lanes of a piece run opposite ways).
         [[nodiscard]] float OppositeS(const TrafficVehicle& o, int ourLane) const;
         [[nodiscard]] bool BoxClearFor(const TrafficVehicle& v) const;
+        /// Nobody standing on our exit lane or at the far end of our connector.
+        [[nodiscard]] bool ExitFreeFor(const TrafficVehicle& v) const;
         /// A bus or a lorry at a junction: its body, all the way through, would touch somebody
         /// standing still.
         [[nodiscard]] bool HeavySweepHitsStanding(const TrafficVehicle& v) const;
@@ -192,6 +195,8 @@ namespace CarSim::Traffic
         /// How far `v` (a bus or a lorry) can go before its body meets where `heavy`'s body is going
         /// to be; -1 when not within `reach`.
         [[nodiscard]] float BodiesMeetAhead(const TrafficVehicle& v, const TrafficVehicle& heavy, float reach) const;
+        /// A bus or a lorry inside a junction or on its way through it.
+        [[nodiscard]] bool GoingThrough(const TrafficVehicle& heavy) const;
         /// How far on a bus's or a lorry's centre can go along its lane: the reach of those tests.
         [[nodiscard]] float SwingHorizon(const TrafficVehicle& heavy) const;
         [[nodiscard]] const TrafficVehicle* FindVehicle(int id) const;

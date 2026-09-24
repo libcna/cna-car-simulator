@@ -179,26 +179,42 @@ namespace CarSim::Traffic
         // a car waiting in the box for a bus that was itself waiting at the line for the box
         // locked the two for good -- unless it is going through: then all the way through and
         // out, which is where its body swings over the end of the next approach. A car that
-        // came up to its line there after the bus had gone for the junction stopped right in it.
+        // came up to its line there after the bus had gone for the junction (or crept over its
+        // own line) stopped right in it.
         const float half = 0.5f * heavy.lengthM;
         if (heavy.link >= 0) {
             return std::min(40.0f, lanes_.LinkAt(heavy.link).length - heavy.s + half);
         }
         const Lane& lane = lanes_.LaneAt(heavy.lane);
         if (lane.toIntersection < 0) return std::min(40.0f, lane.length - heavy.s - 0.5f * heavy.wheelbaseM);
-        if ((heavy.committed || heavy.claimed) && heavy.nextLink >= 0) {
+        if (GoingThrough(heavy)) {
             return std::min(60.0f, lane.length - heavy.s + lanes_.LinkAt(heavy.nextLink).length + half);
         }
         return std::min(40.0f, lane.length - heavy.s - LineSetback(heavy));
     }
 
+    bool TrafficSystem::GoingThrough(const TrafficVehicle& heavy) const
+    {
+        // Inside the junction, committed to it, on the move with a claim on it, or over its line.
+        // A claim alone is not going: a bus standing on one after a long wait is still waiting
+        // for the box to empty, and the cars in the box giving way to its way through never did.
+        if (heavy.link >= 0) return true;
+        if (heavy.lane < 0 || heavy.nextLink < 0) return false;
+        const bool overTheLine = DistanceToEnd(heavy) < 1.0f + 0.5f * heavy.lengthM;
+        return heavy.committed || (heavy.claimed && heavy.speed > 0.5f) || overTheLine;
+    }
+
     float TrafficSystem::HeavySwingMeets(const TrafficVehicle& heavy, const TrafficVehicle& car) const
     {
         if (heavy.link >= 0 || heavy.lane < 0 || car.link >= 0 || car.lane != lanes_.LaneAt(heavy.lane).oppositeLane) return -1.0f;
+        // The car a little larger than it is and the swing finely sampled: on the edge of it the
+        // answer flickered as the bus crept on, and each moment it said no the bus crept further
+        // into the bend, until it stood in the car's way.
         const Collision::Obb theirs = Collision::Obb::FromHeading(car.position + Vector3(0.0f, 0.5f * car.heightM, 0.0f),
-                                                                  Vector3(0.5f * car.widthM, 0.5f * car.heightM, 0.5f * car.lengthM), car.headingRad);
+                                                                  Vector3(0.5f * car.widthM + 0.25f, 0.5f * car.heightM, 0.5f * car.lengthM + 0.25f),
+                                                                  car.headingRad);
         const float horizon = SwingHorizon(heavy);
-        for (float f = 2.0f; f <= horizon; f += 2.0f) {
+        for (float f = 1.0f; f <= horizon; f += 1.0f) {
             Vector3 centre;
             float heading = 0.0f;
             if (!HeavyPoseAhead(heavy, f, centre, heading)) break;
@@ -564,7 +580,15 @@ namespace CarSim::Traffic
                 // One inside a junction, or on its way through it, swings its body over the ends of
                 // the approaches: a bus coming up to one of them stops short of that, as a car
                 // does, instead of pulling up at its line right in the way.
-                const bool goingThrough = v.link < 0 && (o.link >= 0 || o.committed || o.claimed);
+                bool goingThrough = v.link < 0 && GoingThrough(o);
+                // Both on their way into the same junction: one of the two goes first, the one
+                // committed to it, else the lower id; each waiting for the other's swing stood
+                // them both at the mouth for good.
+                if (goingThrough && o.link < 0 && (v.committed || v.claimed) && o.nextLink >= 0 && v.nextLink >= 0 &&
+                    lanes_.LinkAt(o.nextLink).intersection == lanes_.LinkAt(v.nextLink).intersection) {
+                    const bool weGo = v.committed != o.committed ? v.committed : v.id < o.id;
+                    if (weGo) goingThrough = false;
+                }
                 if (!(meeting && !HeavyGoesFirst(v, o)) && !goingThrough) continue;
                 // Body against body, with no margin: two of them on a narrow village road pass
                 // with a hand's breadth to spare, which a path check a little wider than the body
@@ -574,7 +598,8 @@ namespace CarSim::Traffic
                 if (d >= 0.0f) consider(d + 0.5f * v.lengthM, 0.0f, 0.0f, o.id, true);
                 continue;
             } else {
-                blockedAt = HeavySwingMeets(o, v) >= 0.0f ? PathBlockedBy(v, o, reach) : SweptPathBlockedBy(v, o, reach);
+                // Inside the junction a car clears it, minding only where the body is now.
+                blockedAt = v.link >= 0 || HeavySwingMeets(o, v) >= 0.0f ? PathBlockedBy(v, o, reach) : SweptPathBlockedBy(v, o, reach);
             }
             if (blockedAt < 0.0f) continue;
             consider(blockedAt + 0.5f * o.lengthM, o.lengthM, std::max(0.0f, Vector3::Dot(o.Velocity(), v.forward)), o.id, true);
@@ -750,7 +775,9 @@ namespace CarSim::Traffic
             const TrafficVehicle* beside = nullptr;
             for (const auto& o : vehicles_) {
                 if (o.id == v.id || o.link >= 0 || o.lane != v.lane || o.lateral >= 0.8f) continue;
-                if (std::fabs(o.s - v.s) < 0.5f * (o.lengthM + v.lengthM) + 1.5f) {
+                // Further on than it, clear of its front is enough to pull in ahead of it.
+                const float margin = v.s > o.s ? 0.0f : 1.5f;
+                if (std::fabs(o.s - v.s) < 0.5f * (o.lengthM + v.lengthM) + margin) {
                     beside = &o;
                     break;
                 }
@@ -795,9 +822,14 @@ namespace CarSim::Traffic
                 }
             }
         }
-        // Cars that have claimed the junction on the way in count as inside.
+        // Cars that have claimed the junction on the way in count as inside -- except, for a bus
+        // or a lorry already over its line, ones standing still short of it: they are waiting
+        // for it (they keep clear of where its body is going), and it waiting for them locked the
+        // two for good.
+        const bool overTheLine = v.Heavy() && v.link < 0 && DistanceToEnd(v) < 1.0f + 0.5f * v.lengthM;
         for (const auto& o : vehicles_) {
             if (o.id == v.id || !o.claimed || o.link >= 0 || o.nextLink < 0) continue;
+            if (overTheLine && o.speed < 0.5f) continue;
             const LaneLink& theirs = lanes_.LinkAt(o.nextLink);
             if (std::find(link.conflicts.begin(), link.conflicts.end(), o.nextLink) != link.conflicts.end()) return false;
             if ((v.Heavy() || o.Heavy()) && theirs.intersection == link.intersection && o.nextLink != v.nextLink) return false;
@@ -822,6 +854,9 @@ namespace CarSim::Traffic
         // approach next to its exit, where a car may be standing at the line. It waits at its own
         // line until its way through, body and all, is clear of anybody standing still.
         if (!v.Heavy() || v.link >= 0 || v.lane < 0 || v.nextLink < 0) return false;
+        // Already over its line it cannot back out of the way: it goes, and the others keep
+        // clear of where it is going (SwingHorizon).
+        if (DistanceToEnd(v) < 1.0f + 0.5f * v.lengthM) return false;
         const float through = DistanceToEnd(v) + lanes_.LinkAt(v.nextLink).length + 0.5f * v.lengthM;
         for (const auto& o : vehicles_) {
             if (o.id == v.id || o.speed > 0.5f) continue;
@@ -842,14 +877,12 @@ namespace CarSim::Traffic
         return false;
     }
 
-    bool TrafficSystem::MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const
+    bool TrafficSystem::ExitFreeFor(const TrafficVehicle& v) const
     {
-        if (v.nextLink < 0) {
-            return true;
-        }
-        const LaneLink& link = lanes_.LinkAt(v.nextLink);
         // Exit must be free (keep the junction box clear): no stopped car on the exit lane within
         // our own length, and no stopped car at the far end of our connector.
+        if (v.nextLink < 0) return true;
+        const LaneLink& link = lanes_.LinkAt(v.nextLink);
         for (const auto& o : vehicles_) {
             if (o.id == v.id || o.speed >= 0.5f) continue;
             if (o.link < 0 && o.lane == link.toLane && o.s < v.lengthM + 0.5f * o.lengthM + 3.0f) {
@@ -859,7 +892,16 @@ namespace CarSim::Traffic
                 return false;
             }
         }
-        if (!BoxClearFor(v)) {
+        return true;
+    }
+
+    bool TrafficSystem::MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const
+    {
+        if (v.nextLink < 0) {
+            return true;
+        }
+        const LaneLink& link = lanes_.LinkAt(v.nextLink);
+        if (!ExitFreeFor(v) || !BoxClearFor(v)) {
             return false;
         }
         // A car standing on any crossing connector: the box is not clear, entering would only add
@@ -881,17 +923,27 @@ namespace CarSim::Traffic
             // away slowly: it needs a much longer gap than a car does.
             crossingSeconds = std::min(8.0f, 1.2f * (link.length + v.lengthM) / entrySpeed);
         }
+        // A bus or a lorry over its line already, or one that has claimed the junction after a
+        // long wait (UpdateVehicle), no longer waits for anybody standing at theirs: they are
+        // waiting for it.
+        const bool claimedIt = v.Heavy() && v.claimed && v.standingAtLine > 2.0f * params.deadlockSeconds;
+        const bool overTheLine = v.Heavy() && v.link < 0 && (DistanceToEnd(v) < 1.0f + 0.5f * v.lengthM || claimedIt);
         // A bus or a lorry also waits for anything arriving fast from any approach: its body can
         // reach paths the car-sized conflict map does not list.
         if (v.Heavy() && link.intersection >= 0) {
             for (const auto& o : vehicles_) {
                 if (o.id == v.id || o.link >= 0 || o.nextLink < 0 || o.lane == v.lane) continue;
+                if (overTheLine && o.speed < 0.5f) continue;
                 const LaneLink& theirs = lanes_.LinkAt(o.nextLink);
                 if (theirs.intersection != link.intersection) continue;
                 if (theirs.control == Map::ApproachControl::Signal && theirs.signalGroup >= 0 &&
                     AspectOf(theirs.intersection, theirs.signalGroup) != SignalAspect::Green) continue;   // held at its red
                 const float remaining = lanes_.LaneAt(o.lane).length - o.s;
                 const float eta = remaining / std::max(1.0f, o.speed);
+                // Having claimed the junction, it waits only for those too close to stop for the
+                // claim; the rest hold at their lines (on a busy green there was always one more
+                // on its way, and the bus waited cycle after cycle).
+                if (claimedIt && remaining > o.speed * o.speed / (2.0f * params.comfortDecel) + 3.0f) continue;
                 if (remaining < 6.0f || (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds)) {
                     return false;
                 }
@@ -908,9 +960,12 @@ namespace CarSim::Traffic
                 if (o.link == mId) {
                     return false;   // already crossing
                 }
-                if (o.link < 0 && o.lane == m.fromLane && o.nextLink == mId && !heldBySignal) {
+                if (o.link < 0 && o.lane == m.fromLane && o.nextLink == mId && !heldBySignal && !(overTheLine && o.speed < 0.5f)) {
                     const float remaining = lanes_.LaneAt(o.lane).length - o.s;
                     const float eta = remaining / std::max(1.0f, o.speed);
+                    // Having claimed the junction (a bus or a lorry after a long wait), only those
+                    // too close to stop for the claim still count.
+                    if (claimedIt && remaining > o.speed * o.speed / (2.0f * params.comfortDecel) + 3.0f) continue;
                     if (remaining < 6.0f || (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds)) {
                         return false;
                     }
@@ -918,7 +973,7 @@ namespace CarSim::Traffic
                 // Still in the previous junction on its way onto the approach lane: it has not
                 // chosen its next connector yet, so assume it may be coming our way. Without this
                 // a short approach lane hides a priority car until it is too close to give way.
-                if (o.link >= 0 && lanes_.LinkAt(o.link).toLane == m.fromLane && !heldBySignal) {
+                if (o.link >= 0 && lanes_.LinkAt(o.link).toLane == m.fromLane && !heldBySignal && !claimedIt) {
                     const float remaining = lanes_.LinkAt(o.link).length - o.s + lanes_.LaneAt(m.fromLane).length;
                     const float eta = remaining / std::max(1.0f, o.speed);
                     if (o.speed > 0.8f && eta < params.yieldTimeGap + crossingSeconds) {
@@ -986,6 +1041,15 @@ namespace CarSim::Traffic
             return;
         }
         const float distanceToEnd = DistanceToEnd(v);
+        // Nobody ahead of us on our lane: the first in the queue at the junction. Commitment on
+        // green is for that one only; one committed while still behind another crept after it
+        // and crossed on the red that came meanwhile.
+        const auto headOfLane = [&]() {
+            for (const auto& o : vehicles_) {
+                if (o.id != v.id && o.link < 0 && o.lane == v.lane && o.s > v.s) return false;
+            }
+            return true;
+        };
         float desired = DesiredSpeedAhead(v);
         Leader leader = FindLeader(v, player, pedestrian);
         UpdateOvertake(v, leader, dt, desired, player);
@@ -1111,7 +1175,8 @@ namespace CarSim::Traffic
                         gap = lineGap;
                         leaderSpeed = 0.0f;
                     }
-                } else if (distanceToEnd < 12.0f && (link.yieldTo.empty() || MayEnterIntersection(v, player)) && !HeavySweepHitsStanding(v)) {
+                } else if (distanceToEnd < 12.0f && headOfLane() && (link.yieldTo.empty() || MayEnterIntersection(v, player)) &&
+                           !HeavySweepHitsStanding(v)) {
                     // Through on green: do not stop halfway on a change. A turn that gives way
                     // on green (left across the oncoming stream) commits only once it may go.
                     v.committed = true;
@@ -1146,13 +1211,22 @@ namespace CarSim::Traffic
                     // Deadlock breaker: after a long wait with nothing moving inside the junction,
                     // the car that has waited longest commits and goes; the others keep waiting
                     // until it is through (the released car stays committed until it is on the link).
-                    if (v.waitTime > params.deadlockSeconds) {
+                    // Only for the one standing at the line: released while still queued behind
+                    // another, a car crept up to the junction over several seconds, too late for
+                    // the traffic that had meanwhile come too close to stop for it.
+                    const bool atTheLine = distanceToEnd - LineSetback(v) < 3.0f;
+                    if (v.waitTime > params.deadlockSeconds && atTheLine) {
                         bool anyoneInside = false;
                         bool someoneElseFirst = false;
                         for (const auto& o : vehicles_) {
                             if (o.id == v.id) continue;
                             if (o.link >= 0 && lanes_.LinkAt(o.link).intersection == link.intersection &&
                                 (o.speed > 0.3f || std::find(link.conflicts.begin(), link.conflicts.end(), o.link) != link.conflicts.end())) {
+                                anyoneInside = true;
+                            }
+                            // A bus or a lorry standing over its line has its nose in the junction.
+                            if (o.Heavy() && o.link < 0 && o.nextLink >= 0 && lanes_.LinkAt(o.nextLink).intersection == link.intersection &&
+                                DistanceToEnd(o) < 1.0f + 0.5f * o.lengthM) {
                                 anyoneInside = true;
                             }
                             if (o.link < 0 && o.nextLink >= 0 && lanes_.LinkAt(o.nextLink).intersection == link.intersection) {
@@ -1217,7 +1291,9 @@ namespace CarSim::Traffic
                 // the line; past that point it is committed like any driver would be.
                 const float lineGap = distanceToEnd - LineSetback(v);
                 const float stopping = v.speed * v.speed / (2.0f * params.comfortDecel);
-                if (!v.committed && lineGap > 0.0f && lineGap > stopping - 1.0f && distanceToEnd < 60.0f && !BoxClearFor(v)) {
+                // Looked at from far enough out to stop: from a fixed 60 m a car doing 60 km/h had
+                // no stopping distance left by the time it looked, and never did.
+                if (!v.committed && lineGap > 0.0f && lineGap > stopping - 1.0f && distanceToEnd < std::max(60.0f, stopping + 20.0f) && !BoxClearFor(v)) {
                     if (lineGap < gap) {
                         gap = std::max(0.05f, lineGap);
                         leaderSpeed = 0.0f;
@@ -1225,6 +1301,9 @@ namespace CarSim::Traffic
                 }
             }
         }
+        // Time spent at the line, creeping included, until into the junction.
+        const bool atLine = v.link < 0 && v.nextLink >= 0 && distanceToEnd < LineSetback(v) + 10.0f;
+        v.standingAtLine = atLine ? v.standingAtLine + dt : 0.0f;
         // A car that will not stop at the line this frame and is inside its stopping distance
         // has claimed its way through the junction: BoxClearFor treats it as already inside, so
         // two cars cannot both decide on the same empty box.
@@ -1239,6 +1318,32 @@ namespace CarSim::Traffic
             // Told to give way too late to stop even hard: it is going in regardless, so it had
             // better be seen as going in.
             if (v.speed > 1.0f && lineGap < v.speed * v.speed / (2.0f * 6.0f) + 0.5f) v.claimed = true;
+            // A bus or a lorry needs the junction to itself, and on a busy road somebody always
+            // has a claim on it: one waited there cycle after cycle. After a long wait at the
+            // line (the time there, not the current wait, which starts again with every green and
+            // every moment the way looked clear), when its own light is not red, its exit is free
+            // and its way through touches nobody standing, it claims the junction: the others
+            // hold back until it is through.
+            const bool longWait = v.standingAtLine > 2.0f * params.deadlockSeconds;
+            if (v.Heavy() && longWait && ExitFreeFor(v) && !HeavySweepHitsStanding(v)) {
+                const LaneLink& ours = lanes_.LinkAt(v.nextLink);
+                const bool red = ours.control == Map::ApproachControl::Signal && ours.signalGroup >= 0 &&
+                                 AspectOf(ours.intersection, ours.signalGroup) != SignalAspect::Green;
+                // One at a time, and only the one at the head of its lane: two of them claiming
+                // the same junction held each other off, and one queued behind another held the
+                // whole junction for nothing.
+                bool another = false;
+                for (const auto& o : vehicles_) {
+                    if (o.id == v.id) continue;
+                    if ((o.Heavy() && o.claimed && o.link < 0 && o.nextLink >= 0 &&
+                         lanes_.LinkAt(o.nextLink).intersection == ours.intersection) ||
+                        (o.link < 0 && o.lane == v.lane && o.s > v.s) || o.link == v.nextLink) {
+                        another = true;
+                        break;
+                    }
+                }
+                if (!red && !another) v.claimed = true;
+            }
         }
         // Buses call at the stops on their lane: indicate right, pull in, stand a while with
         // the doors open, indicate left and go.
@@ -1490,6 +1595,18 @@ namespace CarSim::Traffic
                 const float os = opposite.Project(Vector2(p.position.X, p.position.Z), lateral);
                 if (LaneOccupiedNear(opposite.id, os, 12.0f, -1)) continue;
             }
+            // Not in a bend, nor close to anybody: a bus appearing in a tight bend beside a car
+            // coming the other way had nowhere to go.
+            bool crowded = false;
+            for (float d = -20.0f; d <= 20.0f && !crowded; d += 5.0f) {
+                const float at = std::clamp(s + d, 0.0f, lane.length);
+                crowded = std::fabs(lane.Evaluate(at).curvature) > 1.0f / 60.0f;
+            }
+            for (const auto& o : vehicles_) {
+                if (crowded) break;
+                crowded = Vector3::DistanceSquared(o.position, p.position) < 25.0f * 25.0f;
+            }
+            if (crowded) continue;
             const float speed = p.speedLimitKmh * kKmhToMs * (0.6f + 0.3f * unit(rng_));
             // Not within reach of the junction ahead: a car appearing there cannot stop for
             // traffic already on its way into the box, and drove into a car crossing it.
