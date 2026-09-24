@@ -8,6 +8,7 @@
 namespace CarSim::Traffic
 {
     using Map::Lane;
+    using Microsoft::Xna::Framework::Vector2;
 
     float TrafficSystem::OppositeS(const TrafficVehicle& o, const int ourLane) const
     {
@@ -35,6 +36,24 @@ namespace CarSim::Traffic
         const Lane& lane = lanes_.LaneAt(v.lane);
         const float spacing = 2.0f * std::fabs(lane.lateralOffset);
         const float toEnd = lane.length - v.s;
+        const Map::RoadSpec& road = *world_.Roads().Roads()[static_cast<std::size_t>(lane.road)].spec;
+
+        // The same IP 6 placements generate the V 7 zebra markings. Project to the lane only
+        // after confirming the sign belongs to this road, so a crossing on a nearby street does
+        // not veto a pass here. The small margins cover the crossing's four-metre painted span.
+        const auto crossingAhead = [&](const float distance) {
+            for (const auto& sign : world_.Objects().Signs()) {
+                if (!sign.spec || sign.spec->code != "IP6") continue;
+                const Vector2 position(sign.position.X, sign.position.Z);
+                Map::RoadHit hit;
+                if (!world_.Roads().NearestRoad(position, 14.0f, hit) || hit.road != lane.road) continue;
+                float lateral = 0.0f;
+                const float at = lane.Project(position, lateral);
+                if (std::fabs(lateral) > 14.0f) continue;
+                if (at - v.s >= -6.0f && at - v.s <= distance + 8.0f) return true;
+            }
+            return false;
+        };
 
         // Oncoming traffic on the opposite lane, nearest first: distance ahead and speed.
         const auto oncomingClear = [&](const float required) {
@@ -57,7 +76,8 @@ namespace CarSim::Traffic
         };
 
         if (v.overtaking < 0) {
-            if (v.Heavy() || lane.oppositeLane < 0 || !leader.found || leader.id < 0 || leader.onConflict) return;
+            if (v.Heavy() || lane.oppositeLane < 0 || !leader.found || leader.id < 0 || leader.onConflict ||
+                road.noOvertaking || !Map::MayCrossCentreLine(road.centreLine, lane.forward)) return;
             const TrafficVehicle* target = FindVehicle(leader.id);
             if (!target || target->link >= 0 || target->lane != v.lane || target->overtaking >= 0) return;
             // Worth passing: a bus at a stop, a lorry or bus holding the traffic up, or a car
@@ -87,6 +107,7 @@ namespace CarSim::Traffic
             // the few metres we gain on it.
             const float travel = passTime * std::max(desired, v.speed) + 30.0f;
             if (toEnd < travel) return;
+            if (crossingAhead(travel)) return;
             // Nor into a bend: nobody passes where they cannot see round, and a bus's body swings
             // across the centre line in one.
             for (float d = 0.0f; d <= travel; d += 5.0f) {

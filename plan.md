@@ -1576,10 +1576,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P2 — rules and sound
 
-- [ ] `P14-030` Model direction-aware centre-line and no-overtaking semantics in map data and
-  render from the same source. Document the implemented subset of Czech Act 361/2000 §17 and
-  Decree 294/2015 markings. Acceptance: deterministic tests for broken/solid/combined lines,
-  junction and crossing restrictions, plus rendered agreement.
+- [~] `P14-030` Model direction-aware centre-line and no-overtaking semantics in map data and
+  render from the same source. `centreLine` now supports solid, dashed and both V 3 directions;
+  `noOvertaking` is an independent road-wide restriction; the planner reads them and the
+  renderer paints the corresponding strokes. IP 6 sign placements shared with the zebra renderer
+  prevent starting a pass through a crossing. Parser, mesh and deterministic traffic tests pass;
+  see `docs/research/czech-overtaking.md`. Acceptance for completion: authored local restriction
+  ranges and signs, junction/crossing edge cases and rendered agreement in screenshots.
 - [ ] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or

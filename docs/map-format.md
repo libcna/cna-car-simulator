@@ -116,9 +116,17 @@ kerb of every signalised approach, facing the traffic coming towards the junctio
 `roads[]`: `id`, `name`, `number`, `class` (`I|II|III|local|residential|forest|track`),
 `nodes[]` (>= 2, consecutive nodes >= 4 m apart), `lanesPerDirection`, `laneWidth`,
 `edgeStripWidth`, `shoulderWidth`, `surface` (`asphalt|concrete|cobbles|gravel|dirt`),
-`speedLimitKmh`, `urbanSpeedLimitKmh`, `centreLine` (`none|solid|dashed`), `edgeLines`,
+`speedLimitKmh`, `urbanSpeedLimitKmh`, `centreLine`
+(`none|solid|dashed|solid-forward|solid-reverse`), `noOvertaking` (default false), `edgeLines`,
 `sidewalk` (`width`, `left`, `right`, `kerbHeight`; applied on urban stretches only),
 `cornerRadius` (fillet at interior non-junction nodes), `oneWay`.
+
+`centreLine` is both painted on the road and consulted by ambient traffic before crossing into
+the opposing lane. `solid-forward` and `solid-reverse` represent the paired V 3 marking: the
+solid stroke is next to traffic travelling towards increasing/decreasing road arc length,
+respectively. Only traffic next to the broken stroke may cross it. `noOvertaking` is an explicit
+road-wide restriction independent of the paint. These fields currently apply to the whole road;
+local restriction ranges and roadside B 21a/B 21b signs still need an authored representation.
 
 Derived at load time (`RoadNetwork`): straight-and-arc centrelines through the nodes, heights
 from the terrain (80 m low-pass, pinned to node heights, flattened across intersections),

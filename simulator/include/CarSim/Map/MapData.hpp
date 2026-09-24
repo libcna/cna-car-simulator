@@ -34,8 +34,20 @@ namespace CarSim::Map
     {
         None,
         Solid,
-        Dashed
+        Dashed,
+        SolidForward, // V 3: solid beside the lane travelling towards increasing road s
+        SolidReverse  // V 3: solid beside the lane travelling towards decreasing road s
     };
+
+    /// Whether a driver may cross the centre line from this side. This is shared by traffic
+    /// planning and the road renderer's authored marking; other overtaking restrictions still
+    /// apply even where there is no painted centre line.
+    [[nodiscard]] constexpr bool MayCrossCentreLine(const CentreLineMarking marking, const bool forward)
+    {
+        return marking == CentreLineMarking::None || marking == CentreLineMarking::Dashed ||
+               (marking == CentreLineMarking::SolidForward && !forward) ||
+               (marking == CentreLineMarking::SolidReverse && forward);
+    }
 
     /// Traffic control applied to one road approaching an intersection node.
     enum class ApproachControl
@@ -97,6 +109,7 @@ namespace CarSim::Map
         float speedLimitKmh = 90.0f;      // outside built-up areas
         float urbanSpeedLimitKmh = 50.0f;
         CentreLineMarking centreLine = CentreLineMarking::Dashed;
+        bool noOvertaking = false;        // authored road-wide B 21a-style restriction
         bool edgeLines = true;
         SidewalkSpec sidewalk;
         float cornerRadius = 40.0f;       // smoothing radius applied at interior nodes

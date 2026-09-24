@@ -35,6 +35,22 @@ TEST(MapDocument, ParsesMinimalMap)
     EXPECT_FLOAT_EQ(result.data.terrain.noiseAmplitude, 0.0f);
 }
 
+TEST(MapDocument, ParsesDirectionalCentreLineAndRoadOvertakingRestriction)
+{
+    auto s = Sources();
+    s.roads = R"({"schemaVersion": 1,
+        "nodes": [{"id": "a", "position": [0, 0]}, {"id": "b", "position": [0, -400]}],
+        "roads": [{"id": "r1", "class": "III", "nodes": ["a", "b"],
+                   "centreLine": "solid-forward", "noOvertaking": true}]})";
+    const auto result = Map::ParseMapSources(s);
+    ASSERT_TRUE(result.ok()) << (result.errors.empty() ? "" : result.errors.front());
+    ASSERT_EQ(result.data.roads.size(), 1u);
+    EXPECT_EQ(result.data.roads[0].centreLine, Map::CentreLineMarking::SolidForward);
+    EXPECT_TRUE(result.data.roads[0].noOvertaking);
+    EXPECT_FALSE(Map::MayCrossCentreLine(result.data.roads[0].centreLine, true));
+    EXPECT_TRUE(Map::MayCrossCentreLine(result.data.roads[0].centreLine, false));
+}
+
 TEST(MapDocument, RejectsNewerSchemaVersion)
 {
     auto s = Sources();

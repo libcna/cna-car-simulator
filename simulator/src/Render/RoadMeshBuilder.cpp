@@ -300,18 +300,29 @@ namespace CarSim::Render
         };
         const bool paintable = profile.surface == Sim::SurfaceType::Asphalt || profile.surface == Sim::SurfaceType::Concrete;
         if (paintable && spec.centreLine != Map::CentreLineMarking::None && profile.lanesPerDirection >= 1 && !spec.oneWay) {
-            if (spec.centreLine == Map::CentreLineMarking::Solid) {
-                addLine(0.0f, piece.s0, piece.s1);
-            } else {
+            const auto addDashed = [&](const float lateral) {
                 // V 2b 3/6 m outside, V 2a 1.5/1.5 m inside built-up areas.
                 float s = piece.s0 + 1.0f;
                 while (s < piece.s1 - 1.0f) {
                     const bool urban = road.curve.Evaluate(s).urban;
                     const float dash = urban ? 1.5f : 3.0f;
                     const float gap = urban ? 1.5f : 6.0f;
-                    addLine(0.0f, s, std::min(piece.s1 - 0.5f, s + dash));
+                    addLine(lateral, s, std::min(piece.s1 - 0.5f, s + dash));
                     s += dash + gap;
                 }
+            };
+            switch (spec.centreLine) {
+                case Map::CentreLineMarking::Solid: addLine(0.0f, piece.s0, piece.s1); break;
+                case Map::CentreLineMarking::Dashed: addDashed(0.0f); break;
+                case Map::CentreLineMarking::SolidForward:
+                    addLine(0.12f, piece.s0, piece.s1);
+                    addDashed(-0.12f);
+                    break;
+                case Map::CentreLineMarking::SolidReverse:
+                    addLine(-0.12f, piece.s0, piece.s1);
+                    addDashed(0.12f);
+                    break;
+                case Map::CentreLineMarking::None: break;
             }
         }
         if (paintable && spec.edgeLines && !urbanPiece) {

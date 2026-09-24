@@ -202,7 +202,10 @@ namespace CarSim::Map
                     if (centre == "none") road.centreLine = CentreLineMarking::None;
                     else if (centre == "solid") road.centreLine = CentreLineMarking::Solid;
                     else if (centre == "dashed") road.centreLine = CentreLineMarking::Dashed;
-                    else r.Error(rp + ".centreLine: expected none|solid|dashed");
+                    else if (centre == "solid-forward") road.centreLine = CentreLineMarking::SolidForward;
+                    else if (centre == "solid-reverse") road.centreLine = CentreLineMarking::SolidReverse;
+                    else r.Error(rp + ".centreLine: expected none|solid|dashed|solid-forward|solid-reverse");
+                    r.Bool(e, "noOvertaking", road.noOvertaking, rp);
                     r.Bool(e, "edgeLines", road.edgeLines, rp);
                     JsonElement sidewalk;
                     if (r.HasObject(e, "sidewalk", sidewalk)) {

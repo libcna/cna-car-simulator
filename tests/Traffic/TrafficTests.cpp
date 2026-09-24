@@ -34,7 +34,9 @@ namespace
         return r;
     }
 
-    std::unique_ptr<Map::MapWorld> CrossWorld(bool priority, const std::vector<Map::PropSpec>& props = {})
+    std::unique_ptr<Map::MapWorld> CrossWorld(bool priority, const std::vector<Map::PropSpec>& props = {},
+                                               Map::CentreLineMarking marking = Map::CentreLineMarking::Dashed,
+                                               const std::vector<Map::SignSpec>& signs = {}, bool noOvertaking = false)
     {
         Map::MapData data;
         data.info.id = "cross";
@@ -44,8 +46,11 @@ namespace
         data.nodes = {Node("w", -400, 0), Node("c", 0, 0), Node("e", 400, 0), Node("n", 0, -400), Node("s", 0, 400)};
         if (priority) data.nodes[1].mainRoads = {"main"};
         data.roads = {Road("main", {"w", "c", "e"}), Road("minor", {"n", "c", "s"})};
+        data.roads[0].centreLine = marking;
+        data.roads[0].noOvertaking = noOvertaking;
         data.traffic.maxVehicles = 0;
         data.objects.props = props;
+        data.objects.signs = signs;
         std::vector<std::string> errors;
         auto world = Map::MapWorld::Build(std::move(data), errors);
         EXPECT_TRUE(errors.empty());
@@ -434,14 +439,16 @@ namespace
         int closeCalls = 0;   // frames out in the other lane with a car coming within 45 m
     };
 
-    OvertakeRun RunOvertake(const bool oncoming)
+    OvertakeRun RunOvertake(const bool oncoming, const Map::CentreLineMarking marking = Map::CentreLineMarking::Dashed,
+                            const bool forward = true, const std::vector<Map::SignSpec>& signs = {}, const bool noOvertaking = false,
+                            const int seconds = 25)
     {
-        auto world = CrossWorld(true);
+        auto world = CrossWorld(true, {}, marking, signs, noOvertaking);
         EXPECT_TRUE(world);
         Traffic::TrafficSystem traffic(*world, 11);
         traffic.SetDensity(0);
-        const int east = LaneOf(*world, "main", true, 0);
-        const int west = LaneOf(*world, "main", false, 0);
+        const int east = LaneOf(*world, "main", forward, 0);
+        const int west = LaneOf(*world, "main", !forward, 0);
         // A lorry crawling at 30 km/h with a car behind it, 350 m of road ahead.
         const int lorry = traffic.SpawnOn(east, 60.0f, 8.3f, Sim::CarStyle::Body::Truck);
         const int car = traffic.SpawnOn(east, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
@@ -453,7 +460,7 @@ namespace
                                                Vector3(0.5f * c.widthM, 0.5f * c.heightM, 0.5f * c.lengthM), c.headingRad);
         };
         OvertakeRun run;
-        for (int i = 0; i < 30 * 25; ++i) {
+        for (int i = 0; i < 30 * seconds; ++i) {
             traffic.Update(1.0f / 30.0f, NoPlayer());
             const auto& cars = traffic.Vehicles();
             const Traffic::TrafficVehicle* l = nullptr;
@@ -489,6 +496,37 @@ TEST(TrafficSystem, CarsOvertakeASlowLorryWhenTheOtherLaneIsClear)
     EXPECT_TRUE(run.overtook);
     EXPECT_EQ(run.overlaps, 0);
     EXPECT_EQ(run.closeCalls, 0);
+}
+
+TEST(TrafficSystem, SolidCentreLineAndAuthoredNoOvertakingForbidPass)
+{
+    const OvertakeRun solid = RunOvertake(false, Map::CentreLineMarking::Solid);
+    EXPECT_FALSE(solid.wentOut);
+    EXPECT_EQ(solid.overlaps, 0);
+    const OvertakeRun restricted = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, true);
+    EXPECT_FALSE(restricted.wentOut);
+    EXPECT_EQ(restricted.overlaps, 0);
+}
+
+TEST(TrafficSystem, CombinedCentreLineAllowsPassOnlyFromBrokenSide)
+{
+    EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::SolidForward, true).wentOut);
+    EXPECT_TRUE(RunOvertake(false, Map::CentreLineMarking::SolidForward, false).wentOut);
+    EXPECT_TRUE(RunOvertake(false, Map::CentreLineMarking::SolidReverse, true).wentOut);
+    EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::SolidReverse, false).wentOut);
+}
+
+TEST(TrafficSystem, PedestrianCrossingAheadForbidsStartingPass)
+{
+    Map::SignSpec crossing;
+    crossing.code = "IP6";
+    crossing.position = Vector2(-300.0f, 4.0f);
+    // Inspect the approach to the crossing. After the zebra is behind the car a new pass may
+    // legitimately begin, so a 25-second "never overtakes" assertion would test the wrong rule.
+    EXPECT_TRUE(RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 5).wentOut);
+    const OvertakeRun run = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {crossing}, false, 5);
+    EXPECT_FALSE(run.wentOut);
+    EXPECT_EQ(run.overlaps, 0);
 }
 
 TEST(TrafficSystem, NobodyOvertakesIntoOncomingTraffic)

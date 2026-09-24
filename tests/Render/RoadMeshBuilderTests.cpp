@@ -10,11 +10,13 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <utility>
 #include <iostream>
 #include <vector>
 
 using namespace CarSim;
 using namespace CarSim::Render;
+using Microsoft::Xna::Framework::Vector2;
 using Microsoft::Xna::Framework::Vector3;
 
 namespace
@@ -62,6 +64,44 @@ TEST(RoadMeshBuilder, PavedSurfaceCarriesWheelTrackWearInItsVertexColours)
         if (++checked >= 6) break;
     }
     EXPECT_GE(checked, 3);
+}
+
+TEST(RoadMeshBuilder, CombinedCentreLinePaintsSolidStrokeBesideRestrictedDirection)
+{
+    const auto strokeCounts = [](const Map::CentreLineMarking marking) {
+        Map::MapData data;
+        data.nodes.resize(2);
+        data.nodes[0].id = "a";
+        data.nodes[0].position = Vector2(-200.0f, 0.0f);
+        data.nodes[1].id = "b";
+        data.nodes[1].position = Vector2(200.0f, 0.0f);
+        Map::RoadSpec road;
+        road.id = "road";
+        road.nodes = {"a", "b"};
+        road.centreLine = marking;
+        road.edgeLines = false;
+        data.roads.push_back(road);
+        Map::RoadNetwork network;
+        std::vector<std::string> errors;
+        EXPECT_TRUE(network.Build(data, [](float, float) { return 0.0f; }, errors));
+        EXPECT_TRUE(errors.empty());
+        if (network.Pieces().empty()) return std::pair<int, int>{0, 0};
+        RoadMeshBuilder builder(network);
+        const auto mesh = builder.BuildPiece(network.Pieces().front());
+        int forwardSide = 0, reverseSide = 0;
+        // This road runs east (+x), so +z is its right/forward lane side.
+        for (const auto& v : mesh.markings.vertices) {
+            if (v.position.Z > 0.03f) ++forwardSide;
+            if (v.position.Z < -0.03f) ++reverseSide;
+        }
+        return std::pair{forwardSide, reverseSide};
+    };
+    const auto forwardSolid = strokeCounts(Map::CentreLineMarking::SolidForward);
+    const auto reverseSolid = strokeCounts(Map::CentreLineMarking::SolidReverse);
+    EXPECT_GT(forwardSolid.first, forwardSolid.second);
+    EXPECT_GT(reverseSolid.second, reverseSolid.first);
+    EXPECT_GT(forwardSolid.second, 0);
+    EXPECT_GT(reverseSolid.first, 0);
 }
 
 TEST(RoadMeshBuilder, RuralVergesDrapeFromTheShoulderToTheTerrain)
