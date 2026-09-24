@@ -1404,7 +1404,9 @@ Recorded so the next pass does not have to rediscover the reasoning.
 - **Traffic bodies were not changed.** Five silhouettes, two variants each and sixteen paint
   colours give 160 combinations, which reads as varied from a driving distance in the traffic
   and town captures. A bus or lorry class is still open work from Phase 12.
-- **Baked shadow direction still does not follow the sun** (only its strength). Re-baking the
+- ~~**Baked shadow direction still does not follow the sun**~~ Closed after Phase 13: the ground
+  shadows are baked again on a worker thread (about 0.8 s) whenever the sun has turned 10
+  degrees, and swapped in over a few frames; the web build keeps the load-time bake. Re-baking the
   terrain macro and the road vertex colours per hour is the only real fix and costs seconds per
   change of hour; it stays a documented limitation.
 ### 26.5 Against the success criteria

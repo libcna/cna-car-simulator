@@ -21,6 +21,10 @@
 #include "Microsoft/Xna/Framework/Graphics/SamplerStateCollection.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <iostream>
+#include <chrono>
+#include <thread>
 #include <cmath>
 #include <map>
 
@@ -64,6 +68,7 @@ namespace CarSim::Render
         const int macroW = std::min(2048, std::max(1, 2 * terrain.Columns()));
         const int macroH = std::min(2048, std::max(1, 2 * terrain.Rows()));
         const Image shadow = GroundShadows::Bake(world_, bakeRig_.sunDirection, macroW, macroH);
+        shadowSun_ = bakeRig_.sunDirection;
         Image tint(macroW, macroH);
         BuildMacroTexture(device, shadow, tint);
         BuildTerrain(device);
@@ -197,6 +202,96 @@ namespace CarSim::Render
         }
     }
 
+    struct WorldRenderer::ShadowBakeJob
+    {
+        Vector3 sun;
+        Image macro;
+        std::vector<std::vector<Color>> colours;   // per road batch, in batch order
+        std::atomic<bool> done{false};
+        std::thread worker;
+        double seconds = 0.0;
+    };
+
+    WorldRenderer::~WorldRenderer()
+    {
+        if (bakeJob_ && bakeJob_->worker.joinable()) bakeJob_->worker.join();
+    }
+
+    void WorldRenderer::UpdateSunShadows(GraphicsDevice& device, const Vector3& sunDirection)
+    {
+#if defined(__EMSCRIPTEN__)
+        // No worker threads in the browser build: the shadows stay as baked at load.
+        (void)device;
+        (void)sunDirection;
+        return;
+#else
+        if (bakeJob_) {
+            if (!bakeJob_->done.load()) return;
+            if (bakeJob_->worker.joinable()) bakeJob_->worker.join();
+            // Swap the result in: the terrain macro at once, the road batches a few per frame so
+            // re-uploading them does not stall a frame.
+            if (swapNext_ == 0 && bakeJob_->macro.Width() > 0) {
+                macro_ = UploadTexture(device, bakeJob_->macro, true);
+                terrainEffect_->setTexture2Property(macro_.get());
+            }
+            constexpr std::size_t kBatchesPerFrame = 48;
+            const std::size_t end = std::min(roadBatches_.size(), swapNext_ + kBatchesPerFrame);
+            for (; swapNext_ < end; ++swapNext_) {
+                Batch& b = roadBatches_[swapNext_];
+                if (!b.source || swapNext_ >= bakeJob_->colours.size() || bakeJob_->colours[swapNext_].empty()) continue;
+                MeshData m = *b.source;
+                const auto& colours = bakeJob_->colours[swapNext_];
+                for (std::size_t i = 0; i < m.vertices.size() && i < colours.size(); ++i) m.vertices[i].color = colours[i];
+                b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
+            }
+            if (swapNext_ >= roadBatches_.size()) {
+                std::cout << "shadows: re-baked for the sun at " << std::lround(std::asin(std::clamp(-bakeJob_->sun.Y, -1.0f, 1.0f)) * 57.2958f)
+                          << " degrees in " << bakeJob_->seconds << " s\n";
+                shadowSun_ = bakeJob_->sun;
+                bakeJob_.reset();
+                swapNext_ = 0;
+            }
+            return;
+        }
+        // Only a sun well up casts the shadows worth moving; below that they are faint and
+        // long, and at night the last bake simply stays.
+        const Vector3 toSun = -sunDirection;
+        if (toSun.Y < 0.06f) return;
+        const float turned = std::acos(std::clamp(Vector3::Dot(sunDirection, shadowSun_), -1.0f, 1.0f));
+        if (turned < 10.0f * 3.14159265f / 180.0f) return;
+
+        bakeJob_ = std::make_unique<ShadowBakeJob>();
+        bakeJob_->sun = sunDirection;
+        swapNext_ = 0;
+        std::vector<std::pair<std::shared_ptr<const MeshData>, bool>> sources;
+        sources.reserve(roadBatches_.size());
+        for (const auto& b : roadBatches_) sources.emplace_back(b.source, b.verge);
+        ShadowBakeJob* job = bakeJob_.get();
+        job->worker = std::thread([this, job, sources = std::move(sources)]() {
+            const auto started = std::chrono::steady_clock::now();
+            const auto& terrain = world_.Terrain();
+            const int macroW = std::min(2048, std::max(1, 2 * terrain.Columns()));
+            const int macroH = std::min(2048, std::max(1, 2 * terrain.Rows()));
+            const Image shadow = GroundShadows::Bake(world_, job->sun, macroW, macroH);
+            Image macro(macroW, macroH);
+            Image tint(macroW, macroH);
+            ComputeMacro(shadow, macro, tint);
+            job->colours.resize(sources.size());
+            for (std::size_t i = 0; i < sources.size(); ++i) {
+                if (!sources[i].first) continue;
+                MeshData m = *sources[i].first;
+                BakeRoadColours(m, shadow, sources[i].second ? &tint : nullptr);
+                auto& out = job->colours[i];
+                out.reserve(m.vertices.size());
+                for (const auto& v : m.vertices) out.push_back(v.color);
+            }
+            job->macro = std::move(macro);
+            job->seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
+            job->done.store(true);
+        });
+#endif
+    }
+
     void WorldRenderer::SetHeadlights(const Vector3& position, const Vector3& forward,
                                       const float intensity, const bool highBeam)
     {
@@ -210,12 +305,18 @@ namespace CarSim::Render
 
     void WorldRenderer::BuildMacroTexture(GraphicsDevice& device, const Image& shadow, Image& tintOut)
     {
+        Image macro(shadow.Width(), shadow.Height());
+        ComputeMacro(shadow, macro, tintOut);
+        macro_ = UploadTexture(device, macro, true);
+    }
+
+    void WorldRenderer::ComputeMacro(const Image& shadow, Image& macro, Image& tintOut) const
+    {
         // Two texels per terrain cell (capped at 2048): region tint x baked sun lighting x
         // occlusion near roads x ground shadows.
         const auto& terrain = world_.Terrain();
         const int width = shadow.Width();
         const int height = shadow.Height();
-        Image macro(width, height);
         const Vector3 toSun = -bakeRig_.sunDirection;
         const float sizeX = terrain.MaxX() - terrain.MinX();
         const float sizeZ = terrain.MaxZ() - terrain.MinZ();
@@ -298,7 +399,6 @@ namespace CarSim::Render
                 tintOut.Set(x, y, value);   // what the terrain shows here before the grass detail
             }
         }
-        macro_ = UploadTexture(device, macro, true);
     }
 
     void WorldRenderer::BuildTerrain(GraphicsDevice& device)
@@ -463,8 +563,10 @@ namespace CarSim::Render
                                              ? Surface::Gravel : Surface::Asphalt;
             const auto push = [&](MeshData& m, Surface s, const Image* vergeTint) {
                 if (m.TriangleCount() == 0) return;
-                BakeRoadColours(m, shadow, vergeTint);
                 Batch b;
+                b.source = std::make_shared<MeshData>(m);
+                b.verge = vergeTint != nullptr;
+                BakeRoadColours(m, shadow, vergeTint);
                 b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
                 b.surface = s;
                 roadBatches_.push_back(std::move(b));
@@ -509,8 +611,9 @@ namespace CarSim::Render
         }
         const auto push = [&](MeshData& m, Surface s) {
             if (m.TriangleCount() == 0) return;
-            BakeRoadColours(m, shadow, nullptr);
             Batch b;
+            b.source = std::make_shared<MeshData>(m);
+            BakeRoadColours(m, shadow, nullptr);
             b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
             b.surface = s;
             roadBatches_.push_back(std::move(b));
@@ -651,8 +754,9 @@ namespace CarSim::Render
         }
         const auto push = [&](MeshData& m, const Surface surface) {
             if (m.TriangleCount() == 0) return;
-            BakeRoadColours(m, shadow, nullptr);
             Batch b;
+            b.source = std::make_shared<MeshData>(m);
+            BakeRoadColours(m, shadow, nullptr);
             b.mesh = GpuMesh::Create(device, m, VertexLayout::PositionColorTexture);
             b.surface = surface;
             roadBatches_.push_back(std::move(b));

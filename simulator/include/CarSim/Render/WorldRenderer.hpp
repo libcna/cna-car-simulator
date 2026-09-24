@@ -48,6 +48,17 @@ namespace CarSim::Render
         void SetSnow(float cover) { snow_ = cover; }
         /// Street lanterns (world positions), for the reflections on a wet road.
         [[nodiscard]] const std::vector<Microsoft::Xna::Framework::Vector3>& Lanterns() const { return lanterns_; }
+
+        /// Keeps the baked ground shadows of buildings and trees under the sun: once the sun has
+        /// moved far enough, they are baked again on a worker thread and swapped in over the
+        /// next frames. Call once per frame. Only the shadows move; the baked light keeps its
+        /// reference so the per-frame scale stays right.
+        void UpdateSunShadows(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
+                              const Microsoft::Xna::Framework::Vector3& sunDirection);
+        /// Direction the current ground shadows were cast along.
+        [[nodiscard]] const Microsoft::Xna::Framework::Vector3& ShadowSunDirection() const { return shadowSun_; }
+        [[nodiscard]] bool ShadowBakeRunning() const { return bakeJob_ != nullptr; }
+        ~WorldRenderer();
         /// Re-applies the current rig to the world effects. The terrain macro, the road vertex
         /// colours and the tree cards carry lighting baked under `LightingRig::BakeReference()`,
         /// so they are scaled by the ratio between the two rigs instead of being re-baked.
@@ -95,6 +106,10 @@ namespace CarSim::Render
             /// Asphalt only: the same surface with its texture coordinates stretched so the
             /// puddle mask repeats every 16 x 16 m instead of every texture tile.
             std::unique_ptr<GpuMesh> puddles;
+            /// The mesh before its light and ground shadows were baked in, kept so the shadows
+            /// can be baked again when the sun has moved.
+            std::shared_ptr<const MeshData> source;
+            bool verge = false;   // blends into the terrain macro tint at its outer edge
         };
 
         struct ObjectBatch
@@ -134,6 +149,7 @@ namespace CarSim::Render
         /// Region tint x baked sun light x ground shadows; also returns the tint map used to
         /// blend road verges into the terrain.
         void BuildMacroTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow, Image& tintOut);
+        void ComputeMacro(const Image& shadow, Image& macro, Image& tintOut) const;
         void BuildRoads(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow, const Image& tint);
         void BuildIntersections(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& shadow);
         /// Paves every `RegionType::Square` region with cobbles, draped on the terrain and cut
@@ -187,6 +203,10 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> puddleMask_;
         float snow_ = 0.0f;
         std::vector<Microsoft::Xna::Framework::Vector3> lanterns_;
+        struct ShadowBakeJob;
+        std::unique_ptr<ShadowBakeJob> bakeJob_;
+        Microsoft::Xna::Framework::Vector3 shadowSun_{0.0f, -1.0f, 0.0f};
+        std::size_t swapNext_ = 0;   // next road batch to swap in from a finished bake
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> snowEffect_;       // alpha-blended white over ground, roads, roofs
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> snowTexture_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;
