@@ -224,7 +224,7 @@ namespace CarSim::Render
     void WorldRenderer::BuildTrees(GraphicsDevice& device)
     {
         for (int i = 0; i < VegetationGenerator::kSpeciesCount; ++i) {
-            Image card = VegetationGenerator::CardTexture(static_cast<Map::TreeSpecies>(i), 256, 512, 100u + static_cast<unsigned>(i));
+            Image card = VegetationGenerator::CardAtlasTexture(static_cast<Map::TreeSpecies>(i), 100u + static_cast<unsigned>(i));
             DilateColour(card, 8);
             treeCards_.push_back(UploadTexture(device, card, true));
         }

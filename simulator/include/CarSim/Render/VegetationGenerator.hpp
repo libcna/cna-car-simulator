@@ -1,6 +1,5 @@
-// Trees as crossed alpha-tested cards: one silhouette texture per species, three quads per
-// tree with a per-tree shade in the vertex colour. Cheap enough for the forests of the sample
-// map; drawn with AlphaTestEffect (no sorting).
+// Trees as crossed alpha-tested cards: two silhouettes in one atlas per species, three quads
+// per tree with a per-tree shade in the vertex colour. Drawn with AlphaTestEffect (no sorting).
 #pragma once
 
 #include "CarSim/Map/ObjectPlacement.hpp"
@@ -13,9 +12,15 @@ namespace CarSim::Render
     {
     public:
         static constexpr int kSpeciesCount = 8;
+        static constexpr int kCardWidth = 256;
+        static constexpr int kCardHeight = 512;
+        static constexpr int kAtlasPadding = 16;
+        static constexpr int kAtlasWidth = 2 * kCardWidth + 3 * kAtlasPadding;
 
         /// Silhouette texture (RGBA, premultiplied not required: alpha test) for a species.
         [[nodiscard]] static Image CardTexture(Map::TreeSpecies species, int width, int height, unsigned seed);
+        /// Two seeded silhouettes separated by transparent gutters in one species texture.
+        [[nodiscard]] static Image CardAtlasTexture(Map::TreeSpecies species, unsigned seed);
 
         /// Appends the crossed cards of one tree (world space) to `mesh`; vertex colour = shade.
         static void AppendTree(const Map::PlacedTree& tree, MeshData& mesh);

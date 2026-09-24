@@ -204,3 +204,24 @@ The three paired captures show OPENGLES3 on the left and Vulkan on the right:
 There is no missing pass or renderer-specific application fix. The matched geometry and
 inspected images matter more for conformance than matched draw counts alone. The historical
 tables above remain labelled as Phase 13 results.
+
+### Phase 14 tree atlas checkpoint (2026-09-25)
+
+After adding two seeded silhouettes per tree species in one XNA texture atlas, all four
+available renderers built and captured the same two-frame forest view at 1280 × 720:
+`--no-save --no-audio --lockstep --spawn forest --frames 2 --time 13:00 --time-scale 0
+--weather clear --view -228 5 -1280 0 -4`. OPENGLES3, OPENGL33 and Vulkan RADV used the
+Radeon 780M desktop; SOFTWARE used CNA's offscreen CPU path. No project renderer branch or
+renderer-native API was added. The four retained captures are
+[OPENGLES3](screenshots/renderers/phase14-forest-gles3.png),
+[OPENGL33](screenshots/renderers/phase14-forest-gl33.png),
+[Vulkan](screenshots/renderers/phase14-forest-vulkan.png) and
+[SOFTWARE](screenshots/renderers/phase14-forest-software.png).
+
+The OPENGL33 frame is byte-identical to OPENGLES3. Visual inspection found the same crown
+variants, trunk positions and alpha edges on Vulkan and SOFTWARE, without atlas seams or
+missing vegetation. Against OPENGLES3, mean absolute RGB difference was
+0.545 / 0.490 / 0.594 on Vulkan (0.694% of pixels differ by >32 in any channel) and
+2.528 / 2.371 / 1.222 on SOFTWARE (0.442% >32). The Vulkan and SOFTWARE differences are
+concentrated around foliage edges, filtering and ground texture; no renderer-specific
+project fix was needed. These are conformance frames, not performance comparisons.

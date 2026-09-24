@@ -274,3 +274,17 @@ batches. Project draw submission was 11.78 versus 12.00 ms across ten measured f
 desktop throttled both unfocused runs to about 1.13 s wall time per frame, and this small
 CPU timer difference cannot be attributed to the facade. The [paired screenshots](screenshots/phase14/README.md)
 show the visible change; the large paved square and surrounding facades still need work.
+
+### Phase 14 forest silhouette atlas cost
+
+Two deterministic silhouette variants now share each species' tree-card atlas, so tree seed
+changes crown shape without multiplying tree batches. A fixed Radeon 780M OPENGLES3 forest
+edge (`--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, 1280 × 720, 40 frames,
+20-second traffic warmup) retained **443 instrumented draws, 720,585 triangles and 88 visible
+tree batches** before and after. Project draw submission was 5.77 versus 4.96 ms over ten
+measured frames; the desktop throttled both unfocused windows to about 1.12 s/frame, so
+this is not evidence of a speedup. The source RGBA8 cards grow from 4.00 to 8.75 MiB for
+eight species, an estimated 6.33 MiB increase including full mip chains. One-off world
+construction was 4.02 versus 4.48 s, too few runs to attribute the difference. The paired
+[forest frames](screenshots/phase14/README.md) show varied crowns at the same camera;
+the snow check has no atlas seam but still exposes the need for canopy snow treatment.

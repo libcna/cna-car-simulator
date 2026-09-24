@@ -70,13 +70,16 @@ namespace CarSim::Render
         switch (species) {
             case TreeSpecies::Spruce: {
                 Trunk(img, cx, H * 0.55f, H, W * 0.035f, W * 0.06f, Rgb::FromBytes(96, 70, 52), Rgb::FromBytes(52, 38, 28), seed);
-                // Layered triangular crown from the tip down.
-                const int layers = 9;
+                // Layered triangular crown from the tip down. The second seeded silhouette
+                // is narrower and lifts the lowest boughs to expose more trunk at the edge.
+                const bool narrow = (seed & 1u) == 0u;
+                const int layers = narrow ? 8 : 9;
                 for (int i = 0; i < layers; ++i) {
                     const float t = static_cast<float>(i) / static_cast<float>(layers - 1);
                     const float yTop = H * (0.02f + 0.86f * t * 0.9f);
-                    const float layerH = H * 0.16f;
-                    const float halfW = W * (0.06f + 0.42f * std::pow(t, 0.85f));
+                    const float layerH = H * (narrow ? 0.14f : 0.16f);
+                    const float halfW = W * (narrow ? 0.05f + 0.34f * std::pow(t, 0.90f)
+                                                    : 0.06f + 0.42f * std::pow(t, 0.85f));
                     const Rgb dark = Rgb::FromBytes(22, 46, 26);
                     const Rgb light = Rgb::FromBytes(64, 98, 50);
                     for (int k = 0; k < 7; ++k) {
@@ -169,6 +172,22 @@ namespace CarSim::Render
         return img;
     }
 
+    Image VegetationGenerator::CardAtlasTexture(const TreeSpecies species, const unsigned seed)
+    {
+        Image atlas(kAtlasWidth, kCardHeight, Color(0, 0, 0, 0));
+        for (int variant = 0; variant < 2; ++variant) {
+            // Keep the original first silhouette; vary the second with a separate seed. The
+            // 16-pixel gutters let the uploader's mip chain filter each card independently.
+            const Image card = CardTexture(species, kCardWidth, kCardHeight,
+                                           seed + static_cast<unsigned>(variant) * 2017u);
+            const int left = kAtlasPadding + variant * (kCardWidth + kAtlasPadding);
+            for (int y = 0; y < kCardHeight; ++y) {
+                for (int x = 0; x < kCardWidth; ++x) atlas.At(left + x, y) = card.At(x, y);
+            }
+        }
+        return atlas;
+    }
+
     void VegetationGenerator::AppendTree(const Map::PlacedTree& tree, MeshData& mesh)
     {
         const float h = tree.Height();
@@ -176,15 +195,18 @@ namespace CarSim::Render
         const float shade = 0.72f + 0.28f * Core::Noise::Hash(static_cast<int>(tree.seed), 9, 3u);
         const Color colour(static_cast<int>(shade * 255.0f), static_cast<int>(shade * 255.0f), static_cast<int>(shade * 255.0f), 255);
         const Vector3 base = tree.position - Vector3(0.0f, 0.15f, 0.0f);
+        const int left = kAtlasPadding + static_cast<int>(tree.seed & 1u) * (kCardWidth + kAtlasPadding);
+        const float u0 = (static_cast<float>(left) + 0.5f) / static_cast<float>(kAtlasWidth);
+        const float u1 = (static_cast<float>(left + kCardWidth) - 0.5f) / static_cast<float>(kAtlasWidth);
         for (int k = 0; k < 3; ++k) {
             const float a = tree.rotationRad + static_cast<float>(k) * std::numbers::pi_v<float> / 3.0f;
             const Vector3 right(std::cos(a) * halfW, 0.0f, std::sin(a) * halfW);
             const Vector3 up(0.0f, h, 0.0f);
             const Vector3 n(-std::sin(a), 0.0f, std::cos(a));
-            const std::uint32_t i0 = mesh.AddVertex(base - right, n, Vector2(0.0f, 1.0f), colour);
-            const std::uint32_t i1 = mesh.AddVertex(base + right, n, Vector2(1.0f, 1.0f), colour);
-            const std::uint32_t i2 = mesh.AddVertex(base + right + up, n, Vector2(1.0f, 0.0f), colour);
-            const std::uint32_t i3 = mesh.AddVertex(base - right + up, n, Vector2(0.0f, 0.0f), colour);
+            const std::uint32_t i0 = mesh.AddVertex(base - right, n, Vector2(u0, 1.0f), colour);
+            const std::uint32_t i1 = mesh.AddVertex(base + right, n, Vector2(u1, 1.0f), colour);
+            const std::uint32_t i2 = mesh.AddVertex(base + right + up, n, Vector2(u1, 0.0f), colour);
+            const std::uint32_t i3 = mesh.AddVertex(base - right + up, n, Vector2(u0, 0.0f), colour);
             // Both windings so the cards are visible from both sides even with culling on.
             mesh.AddQuad(i0, i1, i2, i3);
             mesh.AddQuad(i1, i0, i3, i2);

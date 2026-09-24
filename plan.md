@@ -1612,7 +1612,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   repaired pieces, fixed it. The full-map test found 20 repaired pieces and 43,232 extra
   snow-overlay vertices (7.2% of the 599,752 detailed paved vertices), while the fixed town
   GPU capture retained 1215 instrumented draws and added 600 triangles (+0.041%). See
-  `docs/performance.md`. Vegetation, forest edges, broader road texture/shoulder work remain.
+  `docs/performance.md`. Forest trees now select one of two seeded silhouettes from a shared
+  per-species atlas; the alternate spruce has a narrower crown and more exposed trunk. A
+  fixed Radeon forest edge kept 443 instrumented draws, 720,585 triangles and 88 visible
+  tree batches while eight RGBA8 atlases grew by 4.75 MiB at base level (about 6.33 MiB
+  with mips). Clear and snow captures show no atlas seam. Deeper forest ground, canopy snow,
+  broader road texture/shoulder and vegetation placement work remain.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
@@ -1696,6 +1701,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   OPENGL33 also produced byte-identical town, cockpit and cluster captures to OPENGLES3 on
   the Radeon. SOFTWARE rendered the same 1215 submissions/1,450,306 triangles offscreen;
   town, cockpit and cluster captures were visually inspected and pixel differences recorded.
+  After the two-variant tree atlas, fixed forest frames were inspected on all four paths;
+  OPENGL33 remained byte-identical to OPENGLES3, while Vulkan and SOFTWARE retained the
+  same foliage content with small edge/filter differences. See `docs/renderer-conformance.md`.
   Repeat this checkpoint after later Phase 14 rendering or batching changes.
 
 #### P4 — final audit

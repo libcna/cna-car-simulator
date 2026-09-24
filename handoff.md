@@ -261,6 +261,15 @@ round cross-barred window and a stone entrance portal. Fixed Radeon before/after
 are in `docs/screenshots/phase14/`; the scene retained 1215 instrumented draws and added
 about 540 triangles. The large square and surrounding facades still need visual work.
 
+The forest cards now use two seeded crown silhouettes per species in one atlas, preserving
+the same tree batches and card geometry. The alternate spruce is narrower with a higher
+lowest bough. A fixed Radeon forest edge retained 443 instrumented draws, 720,585 triangles
+and 88 visible tree batches; the eight RGBA8 atlases cost an estimated 6.33 MiB more with
+mips. Clear before/after and snow checks are in `docs/screenshots/phase14/`. Forest ground
+and canopy snow remain visible quality gaps. A fixed forest view also passed visual
+conformance on OPENGLES3, OPENGL33, Vulkan RADV and SOFTWARE; see
+`docs/renderer-conformance.md` for retained frames and pixel differences.
+
 Helicopter sound now has its own pure-DSP `RotorSynth` instead of an inline sine loop in
 `VehicleAudio`. The accepted turbo-dependent blade cadence and fade remain under integrated
 tests; a filtered blade sweep and restrained turbine layer improve the tonal-only rotor.
@@ -274,8 +283,8 @@ including all traffic soaks, pass. The four existing intersection-admission meth
 moved byte-identically into `TrafficJunctions.cpp` (220 method lines): box clearance,
 heavy-vehicle swept clearance, exit clearance and priority/admission. Six focused junction
 tests and the complete six-part suite, including all traffic soaks and the simulator smoke
-run, pass. Traffic routing, following and
-recovery remain together in `TrafficSystem.cpp` for further ownership review. The existing
+run, pass. Traffic routing, following and recovery remain together in `TrafficSystem.cpp`
+for further ownership review. The existing
 path, footprint and heavy-vehicle spatial queries then moved byte-identically (226 method
 lines) into `TrafficSpatialQueries.cpp`; the shared `LineSetback` formula is now a private
 static member. Five focused following, bend and heavy-junction tests and the complete

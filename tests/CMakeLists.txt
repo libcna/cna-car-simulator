@@ -32,6 +32,7 @@ add_executable(carsim_tests
     Sim/VehicleDefinitionTests.cpp
     Sim/VehicleDriveTests.cpp
     Render/MeshDataTests.cpp
+    Render/VegetationGeneratorTests.cpp
     Render/ProceduralCarTests.cpp
     Render/LightingRigTests.cpp
     Render/NightLightingTests.cpp

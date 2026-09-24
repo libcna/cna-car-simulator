@@ -16,10 +16,13 @@ OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit 
 | [Cluster before](cluster-before.png) / [after](cluster-after.png) | Fewer colliding speed labels; odometer and trip fit the centre screen | Same 420 km/h instrument scale |
 | [Road before](road-repair-before.jpg) / [after](road-repair-after.jpg) | Sparse resurfaced utility cuts in the existing asphalt mesh | `--view -145 7 4 90 -25`, 13:00, two frames |
 | [Church before](church-before.png) / [after](church-after.png) | Square-facing tower pilasters, circular window and stone entrance portal | `--view -78 9 -30 50 -6`, 13:00, scattered cloud, 40 frames |
+| [Forest before](forest-before.png) / [after](forest-after.png) | Two seeded crown silhouettes per species in one tree-card atlas; narrower alternate spruce with more visible trunk | `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, 40 frames |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
-[helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg) and
-[road repair under snow](road-repair-snow.jpg). The cluster is shown while stationary with its engine
+[helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg),
+[road repair under snow](road-repair-snow.jpg), and [forest atlas under snow](forest-snow.png).
+The snow frame checks that the atlas has no transparent seams; the crowns still need
+weather-specific snow accumulation. The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin
 visibility; live illumination under every weather combination still needs review.
 
