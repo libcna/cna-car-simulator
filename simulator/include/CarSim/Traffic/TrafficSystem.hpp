@@ -156,16 +156,20 @@ namespace CarSim::Traffic
             bool onConflict = false;   // the leader stands on a crossing connector, not on our path
         };
 
+        /// Distance from a vehicle's centre to the lane end when it stands at the stop line. A
+        /// bus or a lorry keeps four metres more for its swept body and the crossing lanes.
+        [[nodiscard]] static float LineSetback(const TrafficVehicle& v);
+
         void UpdateVehicle(TrafficVehicle& v, float dt, const PlayerProbe& player, const PlayerProbe& pedestrian);
         void UpdatePose(TrafficVehicle& v);
         void ChooseNextLink(TrafficVehicle& v);
         [[nodiscard]] Leader FindLeader(const TrafficVehicle& v, const PlayerProbe& player, const PlayerProbe& pedestrian) const;
-        /// No conflicting car still crossing the junction, and no bus or lorry inside it (or, for
-        /// one, nobody at all): the box is free for `v` to enter.
         /// Starts, steers and ends an overtake on a two-way road; adjusts the desired speed.
         void UpdateOvertake(TrafficVehicle& v, const Leader& leader, float dt, float& desired, const PlayerProbe& player);
         /// Where a vehicle on the opposite lane is, in our lane's s (the lanes of a piece run opposite ways).
         [[nodiscard]] float OppositeS(const TrafficVehicle& o, int ourLane) const;
+        /// No conflicting car still crossing the junction, and no bus or lorry inside it (or, for
+        /// one, nobody at all): the box is free for `v` to enter.
         [[nodiscard]] bool BoxClearFor(const TrafficVehicle& v) const;
         /// Nobody standing on our exit lane or at the far end of our connector.
         [[nodiscard]] bool ExitFreeFor(const TrafficVehicle& v) const;

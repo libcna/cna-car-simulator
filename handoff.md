@@ -275,7 +275,12 @@ moved byte-identically into `TrafficJunctions.cpp` (220 method lines): box clear
 heavy-vehicle swept clearance, exit clearance and priority/admission. Six focused junction
 tests and the complete six-part suite, including all traffic soaks and the simulator smoke
 run, pass. Traffic routing, following and
-recovery remain together in `TrafficSystem.cpp` for further ownership review.
+recovery remain together in `TrafficSystem.cpp` for further ownership review. The existing
+path, footprint and heavy-vehicle spatial queries then moved byte-identically (226 method
+lines) into `TrafficSpatialQueries.cpp`; the shared `LineSetback` formula is now a private
+static member. Five focused following, bend and heavy-junction tests and the complete
+six-part suite, including the long soaks and smoke run, pass. `TrafficSystem.cpp` is now
+921 lines.
 
 ## Working conventions that kept things sane
 

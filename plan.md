@@ -1570,6 +1570,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   entry priority; 220 lines) then moved byte-identically into `TrafficJunctions.cpp`.
   Six focused junction and heavy-vehicle tests and the complete six-part suite, including all
   traffic soaks and the simulator smoke run, pass.
+  The path/body-footprint and heavy-vehicle spatial queries (226 method lines) then moved
+  byte-identically into `TrafficSpatialQueries.cpp`; `LineSetback` became a shared private
+  static member with its formula unchanged. Five focused following, bend and heavy-junction
+  tests and the complete six-part suite, including the long soaks and smoke run, pass.
+  `TrafficSystem.cpp` is now
+  921 lines, with routing, following, pose/update and recovery logic still together.
   Acceptance for completion:
   review remaining route/following/recovery ownership with signal and pedestrian tests plus
   all soaks still passing.
