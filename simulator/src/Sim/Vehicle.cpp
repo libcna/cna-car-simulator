@@ -62,14 +62,14 @@ namespace CarSim::Sim
 
     Vehicle::Vehicle(const VehicleDefinition& definition, const TransmissionMode mode)
         : def_(definition),
-          body_(definition.chassis.massKg, definition.chassis.inertia),
-          engine_(definition.engine),
-          clutch_(definition.clutch),
-          transmission_(MakeTransmission(definition.gearbox, mode)),
-          tyreModel_(definition.tyres),
-          fuel_(definition.fuel, definition.engine.fuel),
-          thermal_(definition.engine.thermal),
-          electrics_(definition.electrics)
+          body_(def_.chassis.massKg, def_.chassis.inertia),
+          engine_(def_.engine),
+          clutch_(def_.clutch),
+          transmission_(MakeTransmission(def_.gearbox, mode)),
+          tyreModel_(def_.tyres),
+          fuel_(def_.fuel, def_.engine.fuel),
+          thermal_(def_.engine.thermal),
+          electrics_(def_.electrics)
     {
         frontLeft_ = std::max(0, WheelIndex(def_, "FL"));
         frontRight_ = std::max(0, WheelIndex(def_, "FR"));

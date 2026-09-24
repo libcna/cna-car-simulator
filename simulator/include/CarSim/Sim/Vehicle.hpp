@@ -224,7 +224,9 @@ namespace CarSim::Sim
         [[nodiscard]] float CouplingCapacity() const;
         [[nodiscard]] float SpeedFactor() const;
 
-        const VehicleDefinition& def_;
+        // Own the immutable definition: the engine, driveline, tyres and wheel runtime keep
+        // references/pointers into it, so a caller's temporary must never outlive them.
+        const VehicleDefinition def_;
         RigidBody body_;
         Engine engine_;
         Clutch clutch_;
