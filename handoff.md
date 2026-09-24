@@ -328,6 +328,12 @@ pass, including normal, turbo and extreme modes; a 120-frame auto-drive runtime 
 remaining `Vehicle.cpp` owns controls and driveline coordination, with flight already isolated
 in `VehicleFlight.cpp`.
 
+A combined 22:30 rainy cockpit run on the Radeon 780M at `5a88b8b` has its JSON and method
+in `docs/performance.md`: 20 traffic cars, 36 pedestrians and the mirror active; 16.06 ms
+average project draw submission, with 6.58 ms in the mirror pass. Desktop presentation was
+throttled to about one second/frame, so its wall-clock FPS is unusable and no draw-call
+optimization was inferred from it.
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map

@@ -1,0 +1,21 @@
+{
+  "frames": 120,
+  "warmupFrames": 30,
+  "width": 1280,
+  "height": 720,
+  "updateMsAvg": 0.537,
+  "updateMsMax": 0.931,
+  "drawMsAvg": 16.058,
+  "drawMsMax": 18.679,
+  "frameMsAvg": 1026.445,
+  "frameMsWorst1pc": 1020.284,
+  "scene": "22:30 rain cockpit",
+  "updateMsAvgSplit": {"vehicle": 0.180, "collision": 0.014, "traffic": 0.299, "audio": 0.001},
+  "drawCallsAvg": 1134.717,
+  "trianglesAvg": 1844657.733,
+  "passesMsAvg": {"cluster": 0.316, "mirror": 6.580, "sky": 0.040, "world": 4.477, "traffic": 2.509, "vehicle": 2.026, "hud": 0.097},
+  "visibleAvg": {"terrainChunks": 209.967, "roadBatches": 77.000, "objectBatches": 98.000, "treeBatches": 6.000},
+  "trafficAvg": {"cars": 20.000, "drawn": 8.083, "parkedDrawn": 13.000, "lod0": 0.000, "lod1": 0.000, "lod2": 8.083},
+  "pedestriansAvg": {"alive": 36.000, "drawn": 7.000, "drawCalls": 77.000, "triangles": 11172.000},
+  "mirrorUpdateEvery": 1
+}

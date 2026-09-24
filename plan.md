@@ -1727,10 +1727,15 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   desktop throttled the unfocused window. Supplemental forest, snow, fog, pedestrian, walking
   and aerial views are now documented; pedestrian main-view counts are exported separately.
   Counts still omit some passes, and worst-case, controlled whole-frame and unthrottled night
-  measurements are open.
+  measurements are open. A combined rainy-night town cockpit run at `5a88b8b` with 20 cars,
+  36 pedestrians and the live mirror measured 16.06 ms project draw submission, of which
+  6.58 ms was mirror. The desktop again throttled presentation near one second/frame, so
+  its wall-time FPS is invalid. The JSON and method are retained in `docs/performance.md`.
 - [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.
+  Current combined-scene evidence points to the mirror as the largest project submission pass,
+  but cannot distinguish CPU draw submission from GPU execution or compositor throttling.
 - [~] `P14-052` Recheck all available CNA renderers after visual/performance changes through
   the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
   renderer-specific application branch. On the real Radeon 780M desktop, OPENGLES3 and the

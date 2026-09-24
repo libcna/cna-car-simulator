@@ -240,6 +240,29 @@ the table does not assign its whole 3 ms difference to the pedestrian change. Ae
 is the highest measured project submission case here, with both world and traffic needing
 further investigation before batching decisions.
 
+### Phase 14 rainy-night combined graphics checkpoint
+
+At commit `5a88b8b`, a deterministic town-route run combined 22:30, rain, cockpit, headlights,
+high graphics, the live rear-view mirror, 60 simulated seconds of warmed traffic and the
+pedestrian population. It ran on the Debian 13 desktop's AMD Radeon 780M with Mesa 25.0.7,
+CNA OPENGLES3, 1280 × 720. Audio was disabled to isolate graphics. The command used
+`--no-save --no-audio --lockstep --route town --route-stay --frames 150 --traffic-warmup 60
+--time 22:30 --time-scale 0 --weather rain --lights --cockpit --width 1280 --height 720
+--quality high --benchmark`. The retained machine-readable result is
+[p14-rainynight-cockpit-5a88b8b.json](performance-data/p14-rainynight-cockpit-5a88b8b.json).
+
+Across 120 measured frames after 30 warm-up frames, project draw submission averaged
+**16.06 ms** (18.68 ms maximum), while update averaged **0.537 ms**. The mirror pass was
+**6.58 ms**, about 41% of the project draw timer; world was 4.48 ms, traffic 2.51 ms and
+player vehicle 2.03 ms. The instrumentation reported 1,135 main-view draws and 1.845 M
+triangles on average, 20 traffic cars (8.1 drawn plus 13 parked), and 36 pedestrians alive
+(7 drawn). The `drawCallsAvg` counter still omits mirror and pedestrian submissions, so it is
+not a whole-frame draw count. The desktop again held the window near one present per second
+(1026 ms reported average wall frame), even after an attempted focus change. That wall figure
+cannot be used as GPU FPS. This combined scene identifies the mirror as the largest measured
+project submission pass; it does not prove that draw calls or GPU execution are the bottleneck,
+so no batching change follows from this single run.
+
 ### Phase 14 urban asphalt repair cost
 
 The deterministic repair cuts added to urban asphalt reuse each piece's existing road batch;
