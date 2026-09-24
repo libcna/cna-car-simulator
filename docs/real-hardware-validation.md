@@ -105,7 +105,14 @@ Tick each; note anything that differs. (Keys are the defaults; `F1` shows the cu
 - [ ] `,` `.` `H` indicators; `L` headlights, `K` high beam; `B` horn.
 - [ ] Traffic keeps lane and distance, yields correctly, stops at red and goes at green at the
       signalised junction east of the square (`--spawn kostel` starts 90 m short of it).
-- [ ] Weather cycles with `F4`; rain visibly changes the scene and the braking distance.
+- [ ] Cars overtake a slow bus/lorry only with enough sight and return room, and respect solid
+      and direction-specific centre lines plus pedestrian crossings.
+- [ ] `G` enters/exits walking from a parked car with the engine off; movement starts and stops
+      smoothly, slopes and nearby traffic remain solid, and footsteps track distance walked.
+- [ ] `J` enters/exits helicopter mode without altering normal-car controls afterward; `O`
+      still cycles the optional turbo, ultra and ultra ultra modes in both modes.
+- [ ] Weather cycles with `F4`; rain, snow and fog all render and sound coherently, rain changes
+      braking, snow changes grip, and fog remains drivable with headlamps and traffic signals.
 - [ ] Time: `F6` and `F7` move the clock an hour, `F8` freezes it; sunset and night look
       continuous, with no step in the sky or on the ground at any hour.
 - [ ] `Backspace` puts the car back on the road; `F5` resets the trip meter; `F12` screenshots.

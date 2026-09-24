@@ -71,7 +71,13 @@ TEST(SampleMap, LipovaLoadsAndIsFullyConnected)
         EXPECT_GE(lane, 0) << "spawn " << spawn.name;
     }
     // Build time budget for the sample map (plan section 17).
+#if defined(CARSIM_SANITIZED_BUILD)
+    // Instrumentation checks memory behavior, not production loading speed. Keep a generous
+    // bound here so a stalled loader still fails without treating ASan overhead as a regression.
+    EXPECT_LT(world->Stats().loadSeconds, 30.0);
+#else
     EXPECT_LT(world->Stats().loadSeconds, 6.0);
+#endif
 }
 
 TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)

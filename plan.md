@@ -1661,9 +1661,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P4 — final audit
 
-- [ ] `P14-060` Run clean configure/build, complete tests and static checks, map validation,
+- [~] `P14-060` Run clean configure/build, complete tests and static checks, map validation,
   smoke, 30-minute traffic soak, representative runtime and practical ASan/UBSan core suites;
-  fix findings. Acceptance: command log and exceptions are explicit.
+  fix findings. The normal six CTest registrations pass. The project-only `asan-ubsan` preset
+  passed 213 core tests in 640.35 s with leak detection, including all three long traffic
+  soaks; it found a real dangling `VehicleDefinition` reference from a temporary, fixed by
+  owning an immutable definition. See `docs/sanitizers.md`. Final clean/fresh-clone and
+  broader renderer checks remain.
+  Acceptance: command log and exceptions are explicit.
 - [ ] `P14-061` Curate before/after screenshots and update architecture, audio provenance,
   performance, conformance, README and handoff. Acceptance: docs distinguish measured GPU
   results from software runs and agree on accepted features.

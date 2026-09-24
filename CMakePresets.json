@@ -46,6 +46,16 @@
       "displayName": "Debug build, CNA default renderer",
       "inherits": "base",
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "asan-ubsan",
+      "displayName": "Project ASan and UBSan, CNA OpenGL ES 3",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CNA_GRAPHICS_RENDERER": "OPENGLES3",
+        "CARSIM_SANITIZERS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -54,13 +64,15 @@
     { "name": "opengl33",  "configurePreset": "opengl33" },
     { "name": "vulkan",    "configurePreset": "vulkan" },
     { "name": "software",  "configurePreset": "software" },
-    { "name": "debug",     "configurePreset": "debug" }
+    { "name": "debug",     "configurePreset": "debug" },
+    { "name": "asan-ubsan", "configurePreset": "asan-ubsan" }
   ],
   "testPresets": [
     { "name": "default",   "configurePreset": "default",   "output": { "outputOnFailure": true } },
     { "name": "opengles3", "configurePreset": "opengles3", "output": { "outputOnFailure": true } },
     { "name": "opengl33",  "configurePreset": "opengl33",  "output": { "outputOnFailure": true } },
     { "name": "software",  "configurePreset": "software",  "output": { "outputOnFailure": true } },
-    { "name": "debug",     "configurePreset": "debug",     "output": { "outputOnFailure": true } }
+    { "name": "debug",     "configurePreset": "debug",     "output": { "outputOnFailure": true } },
+    { "name": "asan-ubsan", "configurePreset": "asan-ubsan", "output": { "outputOnFailure": true } }
   ]
 }

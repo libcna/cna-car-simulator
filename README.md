@@ -49,6 +49,9 @@ architecture, world, cockpit, traffic rules, audio and measured performance, is 
 [`plan.md`](plan.md) is the task ledger. The newer features listed below are accepted product
 scope, including work added after the Phase 13 audit.
 
+Developer memory checks use the project-only `asan-ubsan` preset described in
+[`docs/sanitizers.md`](docs/sanitizers.md).
+
 The curated pictures below and the older Phase 13 performance tables were captured with Mesa
 llvmpipe software rendering. Phase 14 has now measured eight deterministic scenes on the
 Debian 13 desktop's AMD Radeon 780M; the GPU numbers and the desktop window-pacing caveat are

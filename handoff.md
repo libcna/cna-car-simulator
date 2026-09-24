@@ -231,6 +231,13 @@ stereo placement, smooth entry/exit and stronger cabin attenuation, with determi
 tests. A 90-frame dummy-audio runtime with 19–20 traffic cars reported a 0.37 ms mean audio
 update; no real-speaker listening review has been claimed yet.
 
+The new project-only `asan-ubsan` developer preset found and drove a real fix: `Vehicle`
+previously retained a reference to a caller-owned definition, which failed when passed a
+temporary. It now owns the immutable definition used by its subcomponents. The final
+instrumented core run passed 213 tests in 640.35 s, including all three traffic soaks, with
+leak detection enabled; the normal six CTest registrations also pass. Procedure and the
+initial finding are in `docs/sanitizers.md`.
+
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,

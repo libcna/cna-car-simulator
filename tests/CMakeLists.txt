@@ -58,6 +58,8 @@ add_executable(carsim_tests
     Audio/EngineSynthTests.cpp
     Audio/AudioLayersTests.cpp
     Audio/TrafficAudioTests.cpp
+    Audio/VehicleAudioRainTests.cpp
+    Audio/VehicleAudioTrafficTests.cpp
     Render/ImageTests.cpp
 )
 target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtest GTest::gtest_main)
@@ -65,6 +67,49 @@ target_compile_definitions(carsim_tests PRIVATE CARSIM_TEST_CONTENT_DIR="${CMAKE
 carsim_apply_warnings(carsim_tests)
 add_test(NAME carsim_unit_tests COMMAND carsim_tests)
 set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 300 LABELS "unit")
+
+# A practical sanitizer gate that does not pull in the graphics/audio device libraries.
+# It still runs the complete vehicle, map, collision and traffic suites (including the
+# simulated 30-minute soak), plus the pure audio DSP tests. Device mixer tests remain in
+# carsim_tests and the regular full suite.
+if(CARSIM_SANITIZERS)
+    add_executable(carsim_core_tests
+        App/WalkingModeTests.cpp
+        CommandLineTests.cpp
+        Core/PiecewiseLinearTests.cpp
+        Sim/ClutchTests.cpp
+        Sim/ElectricsTests.cpp
+        Sim/VehicleDamageTests.cpp
+        Sim/EngineTests.cpp
+        Sim/FuelThermalTests.cpp
+        Sim/FuelCycleTests.cpp
+        Sim/RigidBodyTests.cpp
+        Sim/TransmissionTests.cpp
+        Sim/TyreGroundTests.cpp
+        Sim/VehicleDefinitionTests.cpp
+        Sim/VehicleDriveTests.cpp
+        Map/MapDocumentTests.cpp
+        Map/RoadNetworkTests.cpp
+        Map/LaneGraphTests.cpp
+        Map/TerrainAndGroundTests.cpp
+        Map/SampleMapTests.cpp
+        Collision/CollisionTests.cpp
+        Traffic/PlateTests.cpp
+        Traffic/SignalTests.cpp
+        Traffic/TrafficTests.cpp
+        Traffic/PedestrianTests.cpp
+        Traffic/RouteDriverTests.cpp
+        Traffic/TrafficSoakTests.cpp
+        Audio/EngineSynthTests.cpp
+        Audio/AudioLayersTests.cpp
+        Audio/TrafficAudioTests.cpp
+    )
+    target_link_libraries(carsim_core_tests PRIVATE carsim_core GTest::gtest GTest::gtest_main)
+    target_compile_definitions(carsim_core_tests PRIVATE CARSIM_TEST_CONTENT_DIR="${CMAKE_SOURCE_DIR}/content" CARSIM_SANITIZED_BUILD=1)
+    carsim_apply_warnings(carsim_core_tests)
+    add_test(NAME carsim_core_sanitizer_tests COMMAND carsim_core_tests)
+    set_tests_properties(carsim_core_sanitizer_tests PROPERTIES TIMEOUT 1800 LABELS "unit;sanitizer")
+endif()
 
 # Static guard: project code may use only the XNA 4.0-compatible API surface
 # of CNA plus Sharp Runtime. See docs/api-boundary.md.

@@ -34,6 +34,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(CARSIM_BUILD_TESTS "Build the cna-car-simulator unit tests" ON)
 option(CARSIM_BUILD_TOOLS "Build the cna-car-simulator command-line tools" ON)
 option(CARSIM_WARNINGS_AS_ERRORS "Treat warnings in project code as errors" OFF)
+option(CARSIM_SANITIZERS "Instrument simulator targets with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
 set(CARSIM_CNA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../cna" CACHE PATH
     "Path to the CNA framework checkout (branch: next)")
@@ -106,6 +107,18 @@ message(STATUS "cna-car-simulator: CNA at ${CARSIM_CNA_ROOT}")
 message(STATUS "cna-car-simulator: Sharp Runtime at ${CARSIM_SHARP_RUNTIME_ROOT}")
 
 include(CarSimWarnings)
+
+if(CARSIM_SANITIZERS)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(FATAL_ERROR "CARSIM_SANITIZERS requires GCC or Clang")
+    endif()
+    # Project targets only: CNA and Sharp Runtime are separate upstream checkouts. Propagating
+    # this interface through carsim_core covers the render library, tools, simulator and tests.
+    add_library(carsim_sanitizers INTERFACE)
+    target_compile_options(carsim_sanitizers INTERFACE
+        -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
+    target_link_options(carsim_sanitizers INTERFACE -fsanitize=address,undefined)
+endif()
 
 add_subdirectory(simulator)
 

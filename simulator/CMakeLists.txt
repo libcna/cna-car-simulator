@@ -49,6 +49,9 @@ add_library(carsim_core STATIC
 )
 target_include_directories(carsim_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(carsim_core PUBLIC CNA::Math CNA::CoreHeaders SharpRuntime::Text.Json)
+if(CARSIM_SANITIZERS)
+    target_link_libraries(carsim_core PUBLIC carsim_sanitizers)
+endif()
 carsim_apply_warnings(carsim_core)
 
 # -----------------------------------------------------------------------------
