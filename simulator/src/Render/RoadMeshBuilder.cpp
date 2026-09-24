@@ -203,6 +203,72 @@ namespace CarSim::Render
         std::size_t urbanRows = 0;
         for (const auto& r : rows) urbanRows += r.urban ? 1u : 0u;
         const bool urbanPiece = urbanRows * 2 > rows.size();
+        if (paved && urbanPiece) {
+            // Occasional resurfaced cuts in a town lane. They share the asphalt mesh and
+            // texture, so rain/puddles and lying snow cover them exactly as they cover the
+            // road. A narrow dark seam surrounds the slightly fresher fill. Global road
+            // stations and a road-local hash keep placement stable across piece boundaries.
+            const auto patchRow = [&](const float s) {
+                const Map::RoadSample sample = road.curve.Evaluate(s);
+                Row r;
+                r.centre = sample.position;
+                Vector3 tangent(sample.tangent.X, 0.0f, sample.tangent.Z);
+                if (tangent.LengthSquared() < 1e-8f) tangent = Vector3(0.0f, 0.0f, -1.0f);
+                tangent.Normalize();
+                r.right = Vector3(-tangent.Z, 0.0f, tangent.X);
+                r.up = Vector3(0.0f, 1.0f, 0.0f);
+                r.s = s;
+                return r;
+            };
+            const auto corner = [&](const Row& r, const float lat, const Color colour) {
+                const Vector3 p = r.centre + r.right * lat +
+                    Vector3(0.0f, surfaceHeight(r, lat) - r.centre.Y + 0.004f, 0.0f);
+                return out.paved.AddVertex(p, r.up,
+                    Vector2((lat + hp) / kAsphaltTileM, r.s / kAsphaltTileM), colour);
+            };
+            constexpr float kSpacing = 91.0f;
+            const float phase = 25.0f + static_cast<float>(roadSeed % 37u);
+            const int first = std::max(0, static_cast<int>(std::floor((piece.s0 - phase) / kSpacing)) - 1);
+            const int last = static_cast<int>(std::ceil((piece.s1 - phase) / kSpacing)) + 1;
+            for (int k = first; k <= last; ++k) {
+                const unsigned hash = (roadSeed + static_cast<unsigned>(k) * 2654435761u) * 2246822519u;
+                const float s = phase + static_cast<float>(k) * kSpacing + static_cast<float>(hash % 27u) - 13.0f;
+                if (s < piece.s0 + 9.0f || s > piece.s1 - 9.0f || !road.curve.Evaluate(s).urban) continue;
+                const float halfLength = 1.25f + static_cast<float>((hash >> 8) % 5u) * 0.12f;
+                const float halfWidth = std::min(1.05f, profile.laneWidth * 0.32f);
+                const float lane = (hash & 1u ? 1.0f : -1.0f) * profile.laneWidth * 0.5f;
+                const float inset = 0.075f;
+                // Lying snow must cover the road only once; drawing this cut and the original
+                // strip again in the snow pass would make a bright white rectangle.
+                if (out.snowBase.TriangleCount() == 0) {
+                    // The overlay needs the crown and bends, not the 25 cm wheel-track
+                    // colour columns. Reuse the longitudinal rows with five lateral points
+                    // instead of duplicating the detailed paved mesh in GPU memory.
+                    const float weatherLats[] = {-hp, -profile.laneWidth, 0.0f, profile.laneWidth, hp};
+                    for (int j = 0; j < 4; ++j) {
+                        AddStrip(out.snowBase, rows, weatherLats[j], weatherLats[j + 1], surfaceHeight,
+                                 (weatherLats[j] + hp) / kAsphaltTileM,
+                                 (weatherLats[j + 1] + hp) / kAsphaltTileM, kAsphaltTileM);
+                    }
+                }
+                const Row near = patchRow(s - halfLength), far = patchRow(s + halfLength);
+                const Row nearInner = patchRow(s - halfLength + inset), farInner = patchRow(s + halfLength - inset);
+                const auto outer = Grey(0.78f), inner = Grey(0.86f);
+                const std::uint32_t o0 = corner(near, lane - halfWidth, outer);
+                const std::uint32_t o1 = corner(near, lane + halfWidth, outer);
+                const std::uint32_t o2 = corner(far, lane + halfWidth, outer);
+                const std::uint32_t o3 = corner(far, lane - halfWidth, outer);
+                const std::uint32_t i0 = corner(nearInner, lane - halfWidth + inset, inner);
+                const std::uint32_t i1 = corner(nearInner, lane + halfWidth - inset, inner);
+                const std::uint32_t i2 = corner(farInner, lane + halfWidth - inset, inner);
+                const std::uint32_t i3 = corner(farInner, lane - halfWidth + inset, inner);
+                out.paved.AddQuad(o0, o1, i1, i0);
+                out.paved.AddQuad(i1, o1, o2, i2);
+                out.paved.AddQuad(i3, i2, o2, o3);
+                out.paved.AddQuad(o0, i0, i3, o3);
+                out.paved.AddQuad(i0, i1, i2, i3);
+            }
+        }
         for (const float side : {-1.0f, 1.0f}) {
             const bool right = side > 0.0f;
             const bool sidewalk = urbanPiece && profile.sidewalk.width > 0.0f && (right ? profile.sidewalk.right : profile.sidewalk.left);

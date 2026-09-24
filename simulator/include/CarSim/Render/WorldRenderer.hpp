@@ -103,6 +103,9 @@ namespace CarSim::Render
         {
             std::unique_ptr<GpuMesh> mesh;
             Surface surface = Surface::Asphalt;
+            /// For repaired asphalt only: unpatched road surface for lying snow, so it is
+            /// not blended twice over the repair geometry.
+            std::unique_ptr<GpuMesh> snowBase;
             /// Asphalt only: the same surface with its texture coordinates stretched so the
             /// puddle mask repeats every 16 x 16 m instead of every texture tile.
             std::unique_ptr<GpuMesh> puddles;

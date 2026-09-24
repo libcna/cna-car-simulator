@@ -66,6 +66,47 @@ TEST(RoadMeshBuilder, PavedSurfaceCarriesWheelTrackWearInItsVertexColours)
     EXPECT_GE(checked, 3);
 }
 
+TEST(RoadMeshBuilder, ResurfacedAreasStaySparseAndInsideUrbanAsphaltLanes)
+{
+    auto world = LoadLipova();
+    ASSERT_TRUE(world);
+    RoadMeshBuilder builder(world->Roads());
+    int seamVertices = 0;
+    int pavedVertices = 0;
+    int snowVertices = 0;
+    int patchedPieces = 0;
+    for (const auto& piece : world->Roads().Pieces()) {
+        const auto& road = world->Roads().Roads()[static_cast<std::size_t>(piece.road)];
+        if (road.profile.surface != Sim::SurfaceType::Asphalt) continue;
+        const RoadPieceMeshes meshes = builder.BuildPiece(piece);
+        pavedVertices += static_cast<int>(meshes.paved.vertices.size());
+        int pieceSeams = 0;
+        for (const auto& v : meshes.paved.vertices) {
+            if (Grey(v) > 0.80f) continue;  // the seam is darker than the ordinary wear colours
+            ++seamVertices;
+            ++pieceSeams;
+            float s = 0.0f, lateral = 0.0f;
+            road.curve.Project(Vector2(v.position.X, v.position.Z), s, lateral);
+            EXPECT_GT(s, piece.s0 + 6.0f);
+            EXPECT_LT(s, piece.s1 - 6.0f);
+            EXPECT_TRUE(road.curve.Evaluate(s).urban);
+            EXPECT_LT(std::fabs(lateral), road.profile.laneWidth + 0.1f);
+        }
+        if (pieceSeams > 0) {
+            ASSERT_GT(meshes.snowBase.TriangleCount(), 0u);
+            snowVertices += static_cast<int>(meshes.snowBase.vertices.size());
+            ++patchedPieces;
+            EXPECT_LT(meshes.snowBase.TriangleCount(), meshes.paved.TriangleCount());
+        } else {
+            EXPECT_EQ(meshes.snowBase.TriangleCount(), 0u);
+        }
+    }
+    EXPECT_GT(seamVertices, 0);
+    EXPECT_LT(seamVertices, pavedVertices / 100);  // occasional roadworks, not a tiled pattern
+    EXPECT_LT(snowVertices, pavedVertices / 5); // duplicate only pieces that contain a cut
+    EXPECT_GT(patchedPieces, 0);
+}
+
 TEST(RoadMeshBuilder, CombinedCentreLinePaintsSolidStrokeBesideRestrictedDirection)
 {
     const auto strokeCounts = [](const Map::CentreLineMarking marking) {

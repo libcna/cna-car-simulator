@@ -3,7 +3,9 @@
 These are 1280 × 720 captures from CNA OPENGLES3 on the Debian 13 desktop's AMD Radeon
 780M (Mesa 25.0.7), with a fixed camera and clock for each pair. JPEG quality 88 was used
 for scene frames; the instrument texture remains PNG. The JPEGs are review evidence, not
-texture assets shipped by the simulator.
+texture assets shipped by the simulator. The road-repair **before** frame used OPENGL33 on
+the same Radeon while the older code was built there; the Phase 14 renderer comparison found
+OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit scenes.
 
 | Pair | What changed | Fixed view / scene |
 | --- | --- | --- |
@@ -12,9 +14,11 @@ texture assets shipped by the simulator.
 | [Fog before](fog-before.jpg) / [after](fog-after.jpg) | Distant tree batches culled at dense-fog visibility range | Same fixed town camera and fog preset |
 | [Cockpit before](cockpit-before.jpg) / [after](cockpit-after.jpg) | Steering wheel position, material separation and dashboard visibility | Stationary noon cockpit at the square |
 | [Cluster before](cluster-before.png) / [after](cluster-after.png) | Fewer colliding speed labels; odometer and trip fit the centre screen | Same 420 km/h instrument scale |
+| [Road before](road-repair-before.jpg) / [after](road-repair-after.jpg) | Sparse resurfaced utility cuts in the existing asphalt mesh | `--view -145 7 4 90 -25`, 13:00, two frames |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
-[helicopter aerial view](flight.jpg). The cluster is shown while stationary with its engine
+[helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg) and
+[road repair under snow](road-repair-snow.jpg). The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin
 visibility; live illumination under every weather combination still needs review.
 

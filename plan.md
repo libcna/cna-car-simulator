@@ -1588,9 +1588,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   inspected. More facade variety and authored frontage context remain.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
-- [ ] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Acceptance: town,
-  countryside and forest comparison images look less tiled/repetitive; no collision or lane
-  geometry change; wet and snow variants remain coherent.
+- [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic
+  resurfaced cuts now share the urban asphalt road mesh without changing collision or lane
+  geometry. A fixed Radeon road view has before/after captures plus rain/snow checks. The
+  first snow pass exposed double overlay on cuts; a coarse unpatched overlay mesh, only for
+  repaired pieces, fixed it. The full-map test found 20 repaired pieces and 43,232 extra
+  snow-overlay vertices (7.2% of the 599,752 detailed paved vertices), while the fixed town
+  GPU capture retained 1215 instrumented draws and added 600 triangles (+0.041%). See
+  `docs/performance.md`. Vegetation, forest edges, broader road texture/shoulder work remain.
+  Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
+  collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
   readability. The 420 km/h scale now uses legible label spacing while keeping fine ticks;
   odometer/trip text fits its display, and the wheel position and night cabin illumination

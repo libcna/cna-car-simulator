@@ -249,6 +249,13 @@ recorded in `docs/renderer-conformance.md`; OPENGLES3 and OPENGL33 were byte-ide
 this Radeon. The renderer check is a Phase 14 checkpoint and must be repeated after later
 visual or draw-submission changes.
 
+Urban asphalt now has sparse resurfaced cuts built into the existing road batches. The
+first snow screenshot exposed double snow blending on the overlapping cut geometry; only
+repaired pieces now retain a coarse, unpatched snow surface. The fixed Radeon town benchmark
+kept 1215 instrumented draws and added 600 triangles; the map geometry test found 20
+repaired pieces and 43,232 coarse overlay vertices. Dry, rain and snow captures are in
+`docs/screenshots/phase14/`; the measured cost and timing limits are in `docs/performance.md`.
+
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,

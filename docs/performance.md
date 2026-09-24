@@ -239,3 +239,26 @@ silhouette; the project draw timer varied with world/traffic work and window sch
 the table does not assign its whole 3 ms difference to the pedestrian change. Aerial viewing
 is the highest measured project submission case here, with both world and traffic needing
 further investigation before batching decisions.
+
+### Phase 14 urban asphalt repair cost
+
+The deterministic repair cuts added to urban asphalt reuse each piece's existing road batch;
+they do not create a draw submission or alter collision/lane geometry. A fixed Radeon 780M,
+OPENGLES3, 1280 × 720 town scene (`--view -78 9 -30 50 -6`, 13:00 cloudy, 40 frames with
+30 benchmark warmup frames) was repeated against the pre-repair `f61e7ed` capture:
+
+| Scene | Instrumented draws | Triangles | Project draw submission |
+| --- | ---: | ---: | ---: |
+| Before repair cuts | 1215 | 1,450,306 | 9.46 ms |
+| After repair cuts | 1215 | 1,450,906 | 11.10 ms |
+
+The change is **0 draws** and **+600 triangles** (+0.041%). The 1.64 ms draw-timer difference
+is not assigned to the repair geometry: these ten-frame desktop captures are affected by
+unfocused-window throttling and natural pass-time variation. The offscreen map geometry test
+found repairs in 20 asphalt pieces. Their coarse snow-only base surfaces add 43,232 vertices
+compared with 599,752 detailed paved vertices across the full map (7.2%); retaining a full
+duplicate of each repaired piece would have added 254,392 vertices (42.4%). The lower-detail
+surface changed the fixed snow capture by less than 0.001 mean RGB level per channel while
+preventing the overlapping repair quad from receiving snow twice. Rain continues to use the
+detailed road surface. [Before/after and weather captures](screenshots/phase14/README.md)
+document the visible result.

@@ -15,6 +15,7 @@ namespace CarSim::Render
     struct RoadPieceMeshes
     {
         MeshData paved;      // asphalt/gravel surface including edge strips, lateral columns with wheel-track wear
+        MeshData snowBase;  // coarse unpatched asphalt for snow; empty when no cuts were added
         MeshData shoulder;   // unpaved shoulders (gravel texture)
         MeshData sidewalk;   // paving slabs (urban stretches with sidewalks)
         MeshData kerb;       // concrete kerb faces

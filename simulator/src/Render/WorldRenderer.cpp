@@ -569,7 +569,11 @@ namespace CarSim::Render
             push(meshes.verge, Surface::Grass, &tint);
             push(meshes.paved, pavedSurface, nullptr);
             if (pavedSurface == Surface::Asphalt && !roadBatches_.empty() && roadBatches_.back().surface == Surface::Asphalt) {
-                AddPuddleMesh(device, meshes.paved, roadBatches_.back());
+                Batch& asphalt = roadBatches_.back();
+                if (meshes.snowBase.TriangleCount() > 0) {
+                    asphalt.snowBase = GpuMesh::Create(device, meshes.snowBase, VertexLayout::PositionColorTexture);
+                }
+                AddPuddleMesh(device, meshes.paved, asphalt);
             }
             push(meshes.shoulder, Surface::Gravel, nullptr);
             push(meshes.sidewalk, Surface::Paving, nullptr);
@@ -1072,7 +1076,7 @@ namespace CarSim::Render
             beginSnow(snow_ * 0.78f);
             for (const auto& b : roadBatches_) {
                 if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) continue;
-                ApplyAll(*snowEffect_, device, *b.mesh);
+                ApplyAll(*snowEffect_, device, b.snowBase ? *b.snowBase : *b.mesh);
                 ++stats_.drawCalls;
             }
             endSnow();
