@@ -82,13 +82,14 @@ What you get today:
   after dark, and weather -- clear, scattered cloud, overcast, rain, fog or snow, with wet roads
   that take a third off the grip, snow that settles on fields, roads and roofs and halves it, puddles, tyre spray, a darker and glossier wet world, raindrops on the
   windscreen and wipers.
-- Physical collisions with buildings, street furniture, trees and traffic cars.
+- Physical collisions with buildings, street furniture, trees and traffic cars; hard knocks dent
+  the body where it was hit and break the lamps (`Backspace` puts the car back on the road repaired).
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
   horn, gear and impact sounds.
 - Persistent odometer, trip, transmission mode and settings; key bindings configurable in the
   save file; in-game help and debug overlays.
 
-Not included (by design or deferred, see `plan.md` sections 2 and 23): damage, pedestrians,
+Not included (by design or deferred, see `plan.md` sections 2 and 23): mechanical damage, pedestrians,
 overtaking traffic, real-brand car models (no legally redistributable Škoda
 model was available; the car is procedural).
 

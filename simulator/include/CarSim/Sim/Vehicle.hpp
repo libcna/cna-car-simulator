@@ -5,6 +5,7 @@
 #include "CarSim/Sim/Clutch.hpp"
 #include "CarSim/Sim/DriverControls.hpp"
 #include "CarSim/Sim/Electrics.hpp"
+#include "CarSim/Sim/VehicleDamage.hpp"
 #include "CarSim/Sim/Engine.hpp"
 #include "CarSim/Sim/EngineThermal.hpp"
 #include "CarSim/Sim/FuelSystem.hpp"
@@ -78,6 +79,8 @@ namespace CarSim::Sim
         TurboMode turboMode = TurboMode::Off;
         bool limitedSlip = false;
         bool autoClutch = false;
+        bool headlampsBroken = false;
+        bool tailLampsBroken = false;
         bool flightMode = false;
         float rotorAngle = 0.0f;
         float throttlePedal = 0.0f;
@@ -175,6 +178,11 @@ namespace CarSim::Sim
         [[nodiscard]] float BrakePedal() const { return brakePedal_; }
         [[nodiscard]] float ClutchPedal() const { return clutchPedal_; }
         [[nodiscard]] bool LimitedSlip() const { return limitedSlip_; }
+        /// A collision contact (world point, normal pointing into the car, closing speed) that
+        /// may dent the body or break a lamp.
+        void ApplyImpact(const Vector3& worldPoint, const Vector3& worldNormal, float closingSpeed);
+        [[nodiscard]] const VehicleDamage& Damage() const { return damage_; }
+        void Repair() { damage_.Repair(); }
         /// Manual gearbox with the clutch worked for the driver: it goes down for every shift,
         /// at a standstill in gear and before the engine would stall, and comes up through the
         /// bite point on its own. The driver's clutch key still works on top.
@@ -229,6 +237,7 @@ namespace CarSim::Sim
         std::vector<int> drivenWheels_;
         bool limitedSlip_ = false;
         bool autoClutch_ = false;
+        VehicleDamage damage_;
         float autoClutchShiftTimer_ = 0.0f;
         int grindCount_ = 0;
         /// Clutch demand of the automatic clutch for this frame (0..1).

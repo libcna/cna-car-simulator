@@ -663,6 +663,7 @@ namespace CarSim::App
             const Vector3 forward = s.worldMatrix.getForwardProperty();
             const float y = map_ ? map_->Ground().HeightAt(s.originPosition.X, s.originPosition.Z) : 0.0f;
             vehicle_->PlaceAt(Vector3(s.originPosition.X, y, s.originPosition.Z), std::atan2(-forward.X, -forward.Z));
+            vehicle_->Repair();   // back on the road, and back from the body shop
         }
     }
 
@@ -787,7 +788,7 @@ namespace CarSim::App
             }
         }
         // The player's own lamps, while they are on.
-        if (state.lowBeam && !state.flightMode) {
+        if (state.lowBeam && !state.headlampsBroken && !state.flightMode) {
             const Vector3 forward = Vector3::TransformNormal(Vector3(0.0f, 0.0f, -1.0f), state.worldMatrix);
             const Vector3 right = Vector3::TransformNormal(Vector3(1.0f, 0.0f, 0.0f), state.worldMatrix);
             for (const float side : {-1.0f, 1.0f}) {
@@ -1199,6 +1200,7 @@ namespace CarSim::App
                 ++collisionCount_;
                 lastImpactSpeed_ = std::max(lastImpactSpeed_, e.closingSpeed);
             }
+            vehicle_->ApplyImpact(e.point, e.normal, e.closingSpeed);
         }
 
         const auto state = vehicle_->Snapshot();
@@ -1250,7 +1252,7 @@ namespace CarSim::App
         const auto state = vehicle_->Snapshot();
         if (worldRenderer_) {
             worldRenderer_->SetHeadlights(state.originPosition, state.worldMatrix.getForwardProperty(),
-                                           state.lowBeam || state.flightMode ? rig_.LampFactor() : 0.0f, state.highBeam);
+                                           (state.lowBeam && !state.headlampsBroken) || state.flightMode ? rig_.LampFactor() : 0.0f, state.highBeam);
         }
         Render::GaugePose gauges;
         gauges.speed = state.speedKmh / definition_.dashboard.speedometerMaxKmh;
@@ -1374,10 +1376,11 @@ namespace CarSim::App
                                          camera.position, rig_, groundQuery, false);
         }
         lap(kPassTraffic);
+        vehicleRenderer_->ApplyDamage(device, vehicle_->Damage());
         vehicleRenderer_->SetPlateTexture(playerPlate_);
         vehicleRenderer_->DrawOpaque(device, state, view, projection, cockpit, gauges);
         vehicleRenderer_->DrawShadow(device, state, view, projection, rig_.sunDirection, groundQuery);
-        vehicleRenderer_->DrawHeadlightPool(device, state, view, projection, groundQuery, rig_.LampFactor());
+        vehicleRenderer_->DrawHeadlightPool(device, state, view, projection, groundQuery, state.headlampsBroken ? 0.0f : rig_.LampFactor());
         vehicleRenderer_->DrawTransparent(device, state, view, projection, false, cockpit);
         if (windscreenRain_ && !state.flightMode) {
             const Vector3 light = rig_.fogColor * 0.85f + Vector3(0.08f, 0.08f, 0.08f);

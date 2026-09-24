@@ -27,6 +27,7 @@ add_library(carsim_core STATIC
     src/Sim/CarStyle.cpp
     src/Sim/Clutch.cpp
     src/Sim/Electrics.cpp
+    src/Sim/VehicleDamage.cpp
     src/Sim/Engine.cpp
     src/Sim/EngineThermal.cpp
     src/Sim/FuelSystem.cpp

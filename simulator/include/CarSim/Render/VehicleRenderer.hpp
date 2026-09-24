@@ -147,6 +147,8 @@ namespace CarSim::Render
                                const GroundQuery& ground, float intensity);
         /// Transparent parts (glass), drawn after all opaque geometry. `fromInside` (cockpit camera)
         /// uses the light tint without reflections; from outside the glass reflects the sky.
+        /// Deforms the body by the vehicle's dents (only when the damage changed).
+        void ApplyDamage(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleDamage& damage);
         void DrawTransparent(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
                              const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection, bool mirrored = false,
                              bool fromInside = false);
@@ -164,6 +166,7 @@ namespace CarSim::Render
         {
             const CarPart* part = nullptr;
             std::unique_ptr<GpuMesh> mesh;
+            bool dented = false;
         };
         /// Extreme vertices of a rigid group (null part: the body) in that group's frame.
         struct ShadowCaster
@@ -216,6 +219,7 @@ namespace CarSim::Render
         Microsoft::Xna::Framework::Graphics::Texture2D* clusterTexture_ = nullptr;
         Microsoft::Xna::Framework::Graphics::Texture2D* mirrorTexture_ = nullptr;
         std::array<Microsoft::Xna::Framework::Graphics::Texture2D*, 2> wingTextures_{nullptr, nullptr};
+        int damageVersion_ = 0;
         int drawCalls_ = 0;
         int triangles_ = 0;
     };

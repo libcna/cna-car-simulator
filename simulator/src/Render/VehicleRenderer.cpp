@@ -159,7 +159,11 @@ namespace CarSim::Render
                     look.diffuse = Vector3(0.52f, 0.54f, 0.58f);
                     look.specular = Vector3(1.0f, 1.0f, 1.0f);
                     look.specularPower = 80.0f;
-                    if (state.lowBeam) {
+                    if (state.headlampsBroken) {
+                        // Smashed: the lens is gone, the bowl behind it dark and dead.
+                        look.diffuse = Vector3(0.14f, 0.14f, 0.15f);
+                        look.specularPower = 8.0f;
+                    } else if (state.lowBeam) {
                         look.diffuse = Vector3(0.92f, 0.93f, 0.95f);
                         look.emissive = state.highBeam ? Vector3(1.0f, 0.98f, 0.90f) : Vector3(0.78f, 0.77f, 0.70f);
                     }
@@ -168,7 +172,9 @@ namespace CarSim::Render
                     look.diffuse = Vector3(0.55f, 0.03f, 0.03f);
                     look.specular = Vector3(0.55f, 0.55f, 0.55f);
                     look.specularPower = 50.0f;
-                    if (state.brakeLights) {
+                    if (state.tailLampsBroken) {
+                        look.diffuse = Vector3(0.12f, 0.02f, 0.02f);
+                    } else if (state.brakeLights) {
                         look.emissive = Vector3(0.95f, 0.05f, 0.03f);
                     } else if (state.lowBeam) {
                         look.emissive = Vector3(0.38f, 0.02f, 0.01f);
@@ -1005,10 +1011,11 @@ namespace CarSim::Render
                 float size = 0.0f;
                 switch (lamp.kind) {
                     case CarMaterial::LampHead:
-                        if (state.lowBeam) { colour = state.highBeam ? Vector3(0.55f, 0.55f, 0.50f) : Vector3(0.30f, 0.30f, 0.27f); size = 0.55f; }
+                        if (state.lowBeam && !state.headlampsBroken) { colour = state.highBeam ? Vector3(0.55f, 0.55f, 0.50f) : Vector3(0.30f, 0.30f, 0.27f); size = 0.55f; }
                         break;
                     case CarMaterial::LampTail:
-                        if (state.brakeLights) { colour = Vector3(0.55f, 0.04f, 0.02f); size = 0.45f; }
+                        if (state.tailLampsBroken) {}
+                        else if (state.brakeLights) { colour = Vector3(0.55f, 0.04f, 0.02f); size = 0.45f; }
                         else if (state.lowBeam) { colour = Vector3(0.18f, 0.01f, 0.01f); size = 0.32f; }
                         break;
                     case CarMaterial::LampIndicator:
@@ -1042,6 +1049,38 @@ namespace CarSim::Render
         device.setDepthStencilStateProperty(DepthStencilState::Default);
         device.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
         device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
+    }
+
+    void VehicleRenderer::ApplyDamage(GraphicsDevice& device, const Sim::VehicleDamage& damage)
+    {
+        if (damage.Version() == damageVersion_) return;
+        damageVersion_ = damage.Version();
+        // Re-upload the rigid exterior with every vertex pushed in by the dents. Wheels and the
+        // cabin keep their shape; the model's own meshes stay pristine for the next rebuild.
+        for (auto& gpu : parts_) {
+            const CarPart& part = *gpu.part;
+            if (part.role != CarPart::Role::Static || IsInteriorPart(part) || part.mesh.vertices.empty()) continue;
+            if (damage.Dents().empty()) {
+                if (gpu.dented) {
+                    gpu.mesh = GpuMesh::Create(device, part.mesh, VertexLayout::PositionNormalTexture);
+                    gpu.dented = false;
+                }
+                continue;
+            }
+            bool touched = false;
+            MeshData bent = part.mesh;
+            for (auto& v : bent.vertices) {
+                const Vector3 push = damage.Displacement(v.position);
+                if (push.LengthSquared() > 1e-8f) {
+                    v.position += push;
+                    touched = true;
+                }
+            }
+            if (touched || gpu.dented) {
+                gpu.mesh = GpuMesh::Create(device, bent, VertexLayout::PositionNormalTexture);
+                gpu.dented = touched;
+            }
+        }
     }
 
     void VehicleRenderer::DrawTransparent(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,

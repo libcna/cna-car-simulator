@@ -1,5 +1,6 @@
 #include "CarSim/Sim/Vehicle.hpp"
 
+#include "CarSim/Sim/CarStyle.hpp"
 #include "CarSim/Sim/Units.hpp"
 
 #include <algorithm>
@@ -117,6 +118,17 @@ namespace CarSim::Sim
         clutchLocked_ = false;
         accumulator_ = 0.0f;
         lastSpeedMs_ = 0.0f;
+    }
+
+    void Vehicle::ApplyImpact(const Vector3& worldPoint, const Vector3& worldNormal, const float closingSpeed)
+    {
+        if (flightMode_) return;
+        const Matrix world = body_.Rotation() * Matrix::CreateTranslation(OriginPosition());
+        const Matrix toBody = Matrix::Invert(world);
+        const Vector3 local = Vector3::Transform(worldPoint, toBody);
+        const Vector3 inward = Vector3::TransformNormal(worldNormal, toBody);
+        const CarStyle style = CarStyle::FromDefinition(def_);
+        damage_.AddImpact(local, inward, closingSpeed, style.FrontZ(), style.RearZ());
     }
 
     void Vehicle::SetRoadSnow(const float snow)
@@ -895,6 +907,8 @@ namespace CarSim::Sim
         s.wiperMode = electrics_.Wipers();
         s.wiperPosition = electrics_.WiperPosition();
         s.limitedSlip = limitedSlip_;
+        s.headlampsBroken = damage_.HeadlampsBroken();
+        s.tailLampsBroken = damage_.TailLampsBroken();
         s.autoClutch = autoClutch_;
         s.flightMode = flightMode_;
         s.rotorAngle = rotorAngle_;

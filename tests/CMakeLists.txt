@@ -22,6 +22,7 @@ add_executable(carsim_tests
     Core/WeatherTests.cpp
     Sim/ClutchTests.cpp
     Sim/ElectricsTests.cpp
+    Sim/VehicleDamageTests.cpp
     Sim/EngineTests.cpp
     Sim/FuelThermalTests.cpp
     Sim/FuelCycleTests.cpp
