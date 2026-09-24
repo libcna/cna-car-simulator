@@ -209,6 +209,7 @@ namespace CarSim::Sim
     private:
         void ApplyDiscreteControls(const DriverControls& controls);
         void StepFlight(const DriverControls& controls, float dt, const GroundSurface& ground);
+        void ToggleFlight(const GroundSurface& ground);
         void UpdatePedals(const DriverControls& controls, float dt);
         void UpdateSteering(float dt);
         void UpdateSuspension(float dt, const GroundSurface& ground);

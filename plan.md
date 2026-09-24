@@ -1546,8 +1546,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [x] `P14-002` Reconcile README, handoff and plan with the accepted feature set without editing
   historical phase outcomes. Acceptance: no current-status prose says snow, fog, walking, heavy
   vehicles, pedestrians or overtaking are absent or deprecated.
-- [ ] `P14-003` Characterize fragile behavior before extraction: existing traffic soaks and mode
+- [~] `P14-003` Characterize fragile behavior before extraction: existing traffic soaks and mode
   tests retained; add deterministic coverage for any untested path selected for refactoring.
+  Overtaking scenarios, flight/boost drive tests and fixed before/after renderer captures now
+  guard the extracted paths. Further selected paths need their own characterization.
   Acceptance: pre-extraction failure would expose a behavior change.
 
 #### P1 — coherent ownership and visible world
@@ -1568,7 +1570,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   tree cards, signs) moved byte-identically into `WorldRendererScenery.cpp` while the render
   path remains in `WorldRenderer.cpp`. A fixed 1280 × 720 offscreen town capture before and
   after has identical SHA-256 `7e85dbe197249f600b147e77d0e1c47ea6b1ed5fda2b65e1ca48a49b7d462437`;
-  the complete suite passed. Vehicle and road ownership are still open.
+  the complete suite passed. The flight entry/exit and `StepFlight` methods then moved to
+  `VehicleFlight.cpp` (flight stepping byte-identical); the four existing helicopter/boost
+  drive tests passed and a fixed aerial screenshot has identical SHA-256
+  `2ef7dd8520a9a577fbfeb4cedbf9dfb768c63f8992ffd542651b01561468e787` before/after.
+  Broader vehicle and road ownership are still open.
   Acceptance: normal car, boosts, flight, damage and all rendering
   modes retain their behavior; before/after captures and renderer checks show no regression.
 - [~] `P14-020` Improve building facades and Czech settlement details using reusable parts.

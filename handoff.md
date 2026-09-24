@@ -222,6 +222,10 @@ snow, fog, pedestrian, walking and aerial measurements are in `docs/performance.
 six-test suite passed after these changes. Cockpit, pedestrian, audio, forest and weather
 quality still have substantial open work in `plan.md`.
 
+Flight entry/exit and flight stepping were subsequently isolated in `VehicleFlight.cpp`; the
+existing helicopter and turbo drive tests pass, and the fixed aerial frame is byte-identical
+before and after. Regular car stepping still lives in `Vehicle.cpp`.
+
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,
