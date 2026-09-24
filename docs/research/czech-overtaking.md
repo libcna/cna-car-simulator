@@ -18,5 +18,10 @@ V 3 pairs a continuous line with a broken line: only traffic on the broken-line 
 `noOvertaking` road field represents a restriction independent of the paint. The existing IP 6
 sign placements generate the V 7 zebra markings and now also prevent an AI car from starting a
 pass that would run through a crossing. These are road-wide or point semantics; locally changing
-markings, sight-distance zones, B 21a/B 21b roadside signs and weather-dependent gaps remain
-Phase 14 work.
+markings and sight-distance zones are now authored as ordered `centreLineSections`, each with
+`fromM`/`toM` measured along the smoothed road curve from its first node, a `centreLine` value
+and an optional independent `noOvertaking` restriction. The road mesh and planner read the
+same sections. A pass is rejected if any restricted interval lies within its estimated passing
+and return distance. `main` now has a 2750–3090 m solid/no-overtaking section around the E3
+junction approach; the fixed before/after view is in `docs/screenshots/phase14/`.
+B 21a/B 21b roadside signs and more sight-distance authoring remain Phase 14 work.

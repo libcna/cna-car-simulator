@@ -206,6 +206,32 @@ namespace CarSim::Map
                     else if (centre == "solid-reverse") road.centreLine = CentreLineMarking::SolidReverse;
                     else r.Error(rp + ".centreLine: expected none|solid|dashed|solid-forward|solid-reverse");
                     r.Bool(e, "noOvertaking", road.noOvertaking, rp);
+                    JsonElement sections;
+                    if (r.HasArray(e, "centreLineSections", sections)) {
+                        float previousEnd = 0.0f;
+                        std::size_t si = 0;
+                        for (const auto& item : sections.EnumerateArray()) {
+                            const std::string sp = rp + ".centreLineSections[" + std::to_string(si++) + "]";
+                            CentreLineSection section;
+                            section.marking = road.centreLine;
+                            r.Float(item, "fromM", section.fromM, sp);
+                            r.Float(item, "toM", section.toM, sp);
+                            std::string marking = centre;
+                            r.String(item, "centreLine", marking, sp);
+                            if (marking == "none") section.marking = CentreLineMarking::None;
+                            else if (marking == "solid") section.marking = CentreLineMarking::Solid;
+                            else if (marking == "dashed") section.marking = CentreLineMarking::Dashed;
+                            else if (marking == "solid-forward") section.marking = CentreLineMarking::SolidForward;
+                            else if (marking == "solid-reverse") section.marking = CentreLineMarking::SolidReverse;
+                            else r.Error(sp + ".centreLine: expected none|solid|dashed|solid-forward|solid-reverse");
+                            r.Bool(item, "noOvertaking", section.noOvertaking, sp);
+                            if (section.fromM < previousEnd || section.fromM < 0.0f || section.toM <= section.fromM) {
+                                r.Error(sp + ": expected ordered, non-overlapping fromM < toM in road metres");
+                            }
+                            previousEnd = section.toM;
+                            road.centreLineSections.push_back(section);
+                        }
+                    }
                     r.Bool(e, "edgeLines", road.edgeLines, rp);
                     JsonElement sidewalk;
                     if (r.HasObject(e, "sidewalk", sidewalk)) {

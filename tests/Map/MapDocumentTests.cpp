@@ -51,6 +51,46 @@ TEST(MapDocument, ParsesDirectionalCentreLineAndRoadOvertakingRestriction)
     EXPECT_TRUE(Map::MayCrossCentreLine(result.data.roads[0].centreLine, false));
 }
 
+TEST(MapDocument, ParsesLocalCentreLineSectionsAndChecksTheEntirePass)
+{
+    auto s = Sources();
+    s.roads = R"({"schemaVersion": 1,
+        "nodes": [{"id": "a", "position": [0, 0]}, {"id": "b", "position": [0, -400]}],
+        "roads": [{"id": "r1", "class": "III", "nodes": ["a", "b"], "centreLine": "dashed",
+                   "centreLineSections": [
+                       {"fromM": 100, "toM": 160, "centreLine": "solid"},
+                       {"fromM": 220, "toM": 280, "centreLine": "solid-forward"},
+                       {"fromM": 320, "toM": 350, "noOvertaking": true}]}]})";
+    const auto result = Map::ParseMapSources(s);
+    ASSERT_TRUE(result.ok()) << (result.errors.empty() ? "" : result.errors.front());
+    const auto& road = result.data.roads.front();
+    ASSERT_EQ(road.centreLineSections.size(), 3u);
+    EXPECT_EQ(road.CentreLineAt(120.0f), Map::CentreLineMarking::Solid);
+    EXPECT_EQ(road.CentreLineAt(180.0f), Map::CentreLineMarking::Dashed);
+    EXPECT_TRUE(road.MayOvertakeBetween(10.0f, 90.0f, true));
+    EXPECT_FALSE(road.MayOvertakeBetween(90.0f, 170.0f, true));
+    EXPECT_FALSE(road.MayOvertakeBetween(200.0f, 250.0f, true));
+    EXPECT_TRUE(road.MayOvertakeBetween(200.0f, 250.0f, false));
+    EXPECT_FALSE(road.MayOvertakeBetween(300.0f, 360.0f, false));
+    EXPECT_TRUE(road.MayOvertakeBetween(360.0f, 390.0f, true));
+    Map::RoadSpec limited = road;
+    limited.centreLine = Map::CentreLineMarking::Solid;
+    limited.centreLineSections = {{100.0f, 160.0f, Map::CentreLineMarking::Dashed, false}};
+    EXPECT_TRUE(limited.MayOvertakeBetween(110.0f, 150.0f, true));
+    EXPECT_FALSE(limited.MayOvertakeBetween(90.0f, 150.0f, true));
+}
+
+TEST(MapDocument, RejectsOverlappingCentreLineSections)
+{
+    auto s = Sources();
+    s.roads = R"({"schemaVersion": 1,
+        "nodes": [{"id": "a", "position": [0, 0]}, {"id": "b", "position": [0, -400]}],
+        "roads": [{"id": "r1", "nodes": ["a", "b"], "centreLineSections": [
+            {"fromM": 80, "toM": 140, "centreLine": "solid"},
+            {"fromM": 120, "toM": 180, "centreLine": "dashed"}]}]})";
+    EXPECT_FALSE(Map::ParseMapSources(s).ok());
+}
+
 TEST(MapDocument, RejectsNewerSchemaVersion)
 {
     auto s = Sources();

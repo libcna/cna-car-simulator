@@ -362,6 +362,14 @@ namespace CarSim::Map
                 continue;
             }
             road.curve.Build(points, radii, urban, sampleSpacing_, road.nodeS);
+            float previousSectionEnd = 0.0f;
+            for (const auto& section : spec.centreLineSections) {
+                if (section.fromM < previousSectionEnd || section.fromM < 0.0f || section.toM <= section.fromM ||
+                    section.toM > road.curve.Length() + 0.01f) {
+                    errors.push_back("road '" + spec.id + "': invalid centreLineSections range/order/length");
+                }
+                previousSectionEnd = section.toM;
+            }
             road.profile.lanesPerDirection = std::max(1, spec.lanesPerDirection);
             road.profile.laneWidth = spec.laneWidth;
             road.profile.edgeStripWidth = spec.edgeStripWidth;

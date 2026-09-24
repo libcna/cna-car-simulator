@@ -540,6 +540,14 @@
    "shoulderWidth": 0.5,
    "speedLimitKmh": 90,
    "centreLine": "dashed",
+   "centreLineSections": [
+    {
+     "fromM": 2750,
+     "toM": 3090,
+     "centreLine": "solid",
+     "noOvertaking": true
+    }
+   ],
    "edgeLines": true,
    "sidewalk": {
     "width": 1.8,

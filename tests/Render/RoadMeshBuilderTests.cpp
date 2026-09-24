@@ -145,6 +145,35 @@ TEST(RoadMeshBuilder, CombinedCentreLinePaintsSolidStrokeBesideRestrictedDirecti
     EXPECT_GT(reverseSolid.first, 0);
 }
 
+TEST(RoadMeshBuilder, LocalSolidSectionPaintsOnlyItsAuthoredRoadInterval)
+{
+    Map::MapData data;
+    data.nodes.resize(2);
+    data.nodes[0].id = "a";
+    data.nodes[0].position = Vector2(-200.0f, 0.0f);
+    data.nodes[1].id = "b";
+    data.nodes[1].position = Vector2(200.0f, 0.0f);
+    Map::RoadSpec road;
+    road.id = "road";
+    road.nodes = {"a", "b"};
+    road.centreLine = Map::CentreLineMarking::None;
+    road.centreLineSections = {{100.0f, 160.0f, Map::CentreLineMarking::Solid, false}};
+    road.edgeLines = false;
+    data.roads.push_back(road);
+    Map::RoadNetwork network;
+    std::vector<std::string> errors;
+    ASSERT_TRUE(network.Build(data, [](float, float) { return 0.0f; }, errors));
+    ASSERT_TRUE(errors.empty());
+    ASSERT_FALSE(network.Pieces().empty());
+    RoadMeshBuilder builder(network);
+    const auto mesh = builder.BuildPiece(network.Pieces().front());
+    ASSERT_GT(mesh.markings.vertices.size(), 4u);
+    for (const auto& vertex : mesh.markings.vertices) {
+        EXPECT_GE(vertex.position.X, -101.0f);
+        EXPECT_LE(vertex.position.X, -39.0f);
+    }
+}
+
 TEST(RoadMeshBuilder, RuralVergesDrapeFromTheShoulderToTheTerrain)
 {
     auto world = LoadLipova();

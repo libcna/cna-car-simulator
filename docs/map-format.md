@@ -117,7 +117,8 @@ kerb of every signalised approach, facing the traffic coming towards the junctio
 `nodes[]` (>= 2, consecutive nodes >= 4 m apart), `lanesPerDirection`, `laneWidth`,
 `edgeStripWidth`, `shoulderWidth`, `surface` (`asphalt|concrete|cobbles|gravel|dirt`),
 `speedLimitKmh`, `urbanSpeedLimitKmh`, `centreLine`
-(`none|solid|dashed|solid-forward|solid-reverse`), `noOvertaking` (default false), `edgeLines`,
+(`none|solid|dashed|solid-forward|solid-reverse`), `noOvertaking` (default false),
+`centreLineSections` (optional ordered ranges), `edgeLines`,
 `sidewalk` (`width`, `left`, `right`, `kerbHeight`; applied on urban stretches only),
 `cornerRadius` (fillet at interior non-junction nodes), `oneWay`.
 
@@ -125,8 +126,11 @@ kerb of every signalised approach, facing the traffic coming towards the junctio
 the opposing lane. `solid-forward` and `solid-reverse` represent the paired V 3 marking: the
 solid stroke is next to traffic travelling towards increasing/decreasing road arc length,
 respectively. Only traffic next to the broken stroke may cross it. `noOvertaking` is an explicit
-road-wide restriction independent of the paint. These fields currently apply to the whole road;
-local restriction ranges and roadside B 21a/B 21b signs still need an authored representation.
+road-wide restriction independent of the paint. Each `centreLineSections[]` entry has
+`fromM`, `toM`, optional `centreLine` and optional `noOvertaking`; metres run along the smoothed road
+curve from its first node. Ranges must be ordered, non-overlapping and within the road length.
+Outside them, the road-wide marking applies. The traffic planner checks the whole pass and
+return path against these ranges. Roadside B 21a/B 21b signs still need authored placement.
 
 Derived at load time (`RoadNetwork`): straight-and-arc centrelines through the nodes, heights
 from the terrain (80 m low-pass, pinned to node heights, flattened across intersections),

@@ -395,6 +395,9 @@ moves, and a nose-to-nose stand-off inside a junction is resolved by the yieldin
 out to its line. Plates come from a generator that follows the Czech `1A2 3456` series with
 regional letter weights (`docs/research/czech-plates.md`). A traffic car queues behind a
 player who stops in the lane; it does not overtake.
+It may pass slower AI traffic on clear two-lane roads after checking the full passing and
+return path against authored centre-line ranges, oncoming traffic, junctions, crossings,
+curvature and weather clearance.
 
 Traffic continues beneath an airborne helicopter; the helicopter still collides with car
 bodies when it actually touches them.

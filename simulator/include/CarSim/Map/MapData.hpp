@@ -49,6 +49,16 @@ namespace CarSim::Map
                (marking == CentreLineMarking::SolidReverse && forward);
     }
 
+    /// Metres along the authored road curve from its first node. Sections are ordered and
+    /// non-overlapping; outside them the road-wide centre line remains in effect.
+    struct CentreLineSection
+    {
+        float fromM = 0.0f;
+        float toM = 0.0f;
+        CentreLineMarking marking = CentreLineMarking::Dashed;
+        bool noOvertaking = false;  // sign/sight restriction independent of painted line
+    };
+
     /// Traffic control applied to one road approaching an intersection node.
     enum class ApproachControl
     {
@@ -110,10 +120,15 @@ namespace CarSim::Map
         float urbanSpeedLimitKmh = 50.0f;
         CentreLineMarking centreLine = CentreLineMarking::Dashed;
         bool noOvertaking = false;        // authored road-wide B 21a-style restriction
+        std::vector<CentreLineSection> centreLineSections;
         bool edgeLines = true;
         SidewalkSpec sidewalk;
         float cornerRadius = 40.0f;       // smoothing radius applied at interior nodes
         bool oneWay = false;
+
+        [[nodiscard]] CentreLineMarking CentreLineAt(float roadS) const;
+        /// Entire passing and return path must be legal, including short restricted sections.
+        [[nodiscard]] bool MayOvertakeBetween(float fromRoadS, float toRoadS, bool forward) const;
     };
 
     enum class TerrainFeatureType

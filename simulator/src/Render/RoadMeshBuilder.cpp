@@ -365,30 +365,41 @@ namespace CarSim::Render
             AddStrip(out.markings, sub, lat - kLineWidth * 0.5f, lat + kLineWidth * 0.5f, surfaceHeight, 0.0f, 1.0f, 1.0f, kMarkingLift, markingColour);
         };
         const bool paintable = profile.surface == Sim::SurfaceType::Asphalt || profile.surface == Sim::SurfaceType::Concrete;
-        if (paintable && spec.centreLine != Map::CentreLineMarking::None && profile.lanesPerDirection >= 1 && !spec.oneWay) {
-            const auto addDashed = [&](const float lateral) {
+        if (paintable && (spec.centreLine != Map::CentreLineMarking::None || !spec.centreLineSections.empty()) &&
+            profile.lanesPerDirection >= 1 && !spec.oneWay) {
+            const auto addDashed = [&](const float lateral, const float from, const float to) {
                 // V 2b 3/6 m outside, V 2a 1.5/1.5 m inside built-up areas.
-                float s = piece.s0 + 1.0f;
-                while (s < piece.s1 - 1.0f) {
+                float s = from + 1.0f;
+                while (s < to - 1.0f) {
                     const bool urban = road.curve.Evaluate(s).urban;
                     const float dash = urban ? 1.5f : 3.0f;
                     const float gap = urban ? 1.5f : 6.0f;
-                    addLine(lateral, s, std::min(piece.s1 - 0.5f, s + dash));
+                    addLine(lateral, s, std::min(to - 0.5f, s + dash));
                     s += dash + gap;
                 }
             };
-            switch (spec.centreLine) {
-                case Map::CentreLineMarking::Solid: addLine(0.0f, piece.s0, piece.s1); break;
-                case Map::CentreLineMarking::Dashed: addDashed(0.0f); break;
-                case Map::CentreLineMarking::SolidForward:
-                    addLine(0.12f, piece.s0, piece.s1);
-                    addDashed(-0.12f);
-                    break;
-                case Map::CentreLineMarking::SolidReverse:
-                    addLine(-0.12f, piece.s0, piece.s1);
-                    addDashed(0.12f);
-                    break;
-                case Map::CentreLineMarking::None: break;
+            std::vector<float> boundaries{piece.s0, piece.s1};
+            for (const auto& section : spec.centreLineSections) {
+                if (section.fromM > piece.s0 && section.fromM < piece.s1) boundaries.push_back(section.fromM);
+                if (section.toM > piece.s0 && section.toM < piece.s1) boundaries.push_back(section.toM);
+            }
+            std::sort(boundaries.begin(), boundaries.end());
+            for (std::size_t i = 1; i < boundaries.size(); ++i) {
+                const float from = boundaries[i - 1], to = boundaries[i];
+                if (to - from < 0.05f) continue;
+                switch (spec.CentreLineAt(0.5f * (from + to))) {
+                    case Map::CentreLineMarking::Solid: addLine(0.0f, from, to); break;
+                    case Map::CentreLineMarking::Dashed: addDashed(0.0f, from, to); break;
+                    case Map::CentreLineMarking::SolidForward:
+                        addLine(0.12f, from, to);
+                        addDashed(-0.12f, from, to);
+                        break;
+                    case Map::CentreLineMarking::SolidReverse:
+                        addLine(-0.12f, from, to);
+                        addDashed(0.12f, from, to);
+                        break;
+                    case Map::CentreLineMarking::None: break;
+                }
             }
         }
         if (paintable && spec.edgeLines && !urbanPiece) {

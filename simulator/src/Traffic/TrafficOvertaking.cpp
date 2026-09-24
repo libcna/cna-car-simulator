@@ -44,6 +44,12 @@ namespace CarSim::Traffic
         const float spacing = 2.0f * std::fabs(lane.lateralOffset);
         const float toEnd = lane.length - v.s;
         const Map::RoadSpec& road = *world_.Roads().Roads()[static_cast<std::size_t>(lane.road)].spec;
+        const Map::RoadPiece& piece = world_.Roads().Pieces()[static_cast<std::size_t>(lane.piece)];
+        const auto roadSAt = [&](const float laneS) {
+            const float t = std::clamp(laneS / std::max(1.0f, lane.length), 0.0f, 1.0f);
+            return lane.forward ? piece.s0 + (piece.s1 - piece.s0) * t :
+                                  piece.s1 - (piece.s1 - piece.s0) * t;
+        };
 
         // The same IP 6 placements generate the V 7 zebra markings. Project to the lane only
         // after confirming the sign belongs to this road, so a crossing on a nearby street does
@@ -84,8 +90,7 @@ namespace CarSim::Traffic
 
         if (v.overtaking < 0) {
             if (v.Heavy() || lane.oppositeLane < 0 || !leader.found || leader.id < 0 || leader.onConflict ||
-                road.laneWidth < 0.5f * (v.widthM + 1.0f) ||
-                road.noOvertaking || !Map::MayCrossCentreLine(road.centreLine, lane.forward)) return;
+                road.laneWidth < 0.5f * (v.widthM + 1.0f)) return;
             const TrafficVehicle* target = FindVehicle(leader.id);
             if (!target || target->link >= 0 || target->lane != v.lane || target->overtaking >= 0) return;
             // Worth passing: a bus at a stop, a lorry or bus holding the traffic up, or a car
@@ -127,7 +132,7 @@ namespace CarSim::Traffic
             // No overtaking into a junction: what counts is the road we cover while passing, not
             // the few metres we gain on it.
             const float travel = passTime * std::max(desired, v.speed) + 30.0f + 15.0f * overtakeWetness_ + 35.0f * overtakeSnow_;
-            if (toEnd < travel) return;
+            if (toEnd < travel || !road.MayOvertakeBetween(roadSAt(v.s), roadSAt(v.s + travel), lane.forward)) return;
             // In fog, the entire passing and return path must be visible before committing.
             const float sightDistance = 450.0f - 320.0f * overtakeFog_;
             if (travel > sightDistance) return;

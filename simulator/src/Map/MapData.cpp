@@ -14,6 +14,29 @@ namespace CarSim::Map
         }
     }
 
+    CentreLineMarking RoadSpec::CentreLineAt(const float roadS) const
+    {
+        for (const auto& section : centreLineSections) {
+            if (roadS >= section.fromM && roadS < section.toM) return section.marking;
+        }
+        return centreLine;
+    }
+
+    bool RoadSpec::MayOvertakeBetween(float fromRoadS, float toRoadS, const bool forward) const
+    {
+        if (noOvertaking) return false;
+        if (fromRoadS > toRoadS) std::swap(fromRoadS, toRoadS);
+        float cursor = fromRoadS;
+        for (const auto& section : centreLineSections) {
+            if (section.toM <= cursor) continue;
+            if (section.fromM >= toRoadS) break;
+            if (section.fromM > cursor && !MayCrossCentreLine(centreLine, forward)) return false;
+            if (section.noOvertaking || !MayCrossCentreLine(section.marking, forward)) return false;
+            cursor = std::min(toRoadS, section.toM);
+        }
+        return cursor >= toRoadS || MayCrossCentreLine(centreLine, forward);
+    }
+
     const RoadNodeSpec* MapData::FindNode(const std::string& id) const
     {
         for (const auto& n : nodes) {

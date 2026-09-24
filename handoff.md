@@ -316,6 +316,16 @@ deterministic map test moves the focus over 500 m and confirms that people repop
 the walker. Walking and traffic interaction tests and the complete six-part suite pass,
 including the traffic soaks, smoke and static checks.
 
+Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
+override road-wide paint and can independently forbid overtaking; the renderer and planner
+use the same data, and planning checks the whole pass/return path. The generated Lipová map
+now has a solid/no-overtaking stretch around E3 (2750–3090 m). Targeted parser, mesh and
+traffic tests pass; map validation and regeneration checks pass. Fixed Radeon before/after
+views are `docs/screenshots/phase14/centre-section-*.jpg`. The complete six-part suite
+passes, including the traffic soaks, smoke and static checks;
+all four renderers built and showed the same solid stroke. See
+`docs/renderer-conformance.md`.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,

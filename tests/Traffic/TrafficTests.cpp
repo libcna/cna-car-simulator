@@ -36,7 +36,8 @@ namespace
 
     std::unique_ptr<Map::MapWorld> CrossWorld(bool priority, const std::vector<Map::PropSpec>& props = {},
                                                Map::CentreLineMarking marking = Map::CentreLineMarking::Dashed,
-                                               const std::vector<Map::SignSpec>& signs = {}, bool noOvertaking = false)
+                                               const std::vector<Map::SignSpec>& signs = {}, bool noOvertaking = false,
+                                               const std::vector<Map::CentreLineSection>& sections = {})
     {
         Map::MapData data;
         data.info.id = "cross";
@@ -48,6 +49,7 @@ namespace
         data.roads = {Road("main", {"w", "c", "e"}), Road("minor", {"n", "c", "s"})};
         data.roads[0].centreLine = marking;
         data.roads[0].noOvertaking = noOvertaking;
+        data.roads[0].centreLineSections = sections;
         data.traffic.maxVehicles = 0;
         data.objects.props = props;
         data.objects.signs = signs;
@@ -443,9 +445,10 @@ namespace
                             const bool forward = true, const std::vector<Map::SignSpec>& signs = {}, const bool noOvertaking = false,
                             const int seconds = 25, const float wetness = 0.0f, const float fog = 0.0f,
                             const float snow = 0.0f, const float startOffset = 0.0f,
-                            const Sim::CarStyle::Body overtakerBody = Sim::CarStyle::Body::Hatchback)
+                            const Sim::CarStyle::Body overtakerBody = Sim::CarStyle::Body::Hatchback,
+                            const std::vector<Map::CentreLineSection>& sections = {})
     {
-        auto world = CrossWorld(true, {}, marking, signs, noOvertaking);
+        auto world = CrossWorld(true, {}, marking, signs, noOvertaking, sections);
         EXPECT_TRUE(world);
         Traffic::TrafficSystem traffic(*world, 11);
         traffic.SetDensity(0);
@@ -509,6 +512,23 @@ TEST(TrafficSystem, SolidCentreLineAndAuthoredNoOvertakingForbidPass)
     const OvertakeRun restricted = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, true);
     EXPECT_FALSE(restricted.wentOut);
     EXPECT_EQ(restricted.overlaps, 0);
+}
+
+TEST(TrafficSystem, AShortSolidSectionInsideTheReturnPathForbidsStartingAPass)
+{
+    const OvertakeRun clear = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 5);
+    const std::vector<Map::CentreLineSection> restriction = {
+        {120.0f, 180.0f, Map::CentreLineMarking::Solid, false}
+    };
+    const OvertakeRun solidAhead = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false,
+                                               5, 0.0f, 0.0f, 0.0f, 0.0f, Sim::CarStyle::Body::Hatchback, restriction);
+    const OvertakeRun solidBeyondPass = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false,
+                                                    5, 0.0f, 0.0f, 0.0f, 0.0f, Sim::CarStyle::Body::Hatchback,
+                                                    {{350.0f, 390.0f, Map::CentreLineMarking::Solid, false}});
+    EXPECT_TRUE(clear.wentOut);
+    EXPECT_FALSE(solidAhead.wentOut);
+    EXPECT_EQ(solidAhead.overlaps, 0);
+    EXPECT_TRUE(solidBeyondPass.wentOut);
 }
 
 TEST(TrafficSystem, CombinedCentreLineAllowsPassOnlyFromBrokenSide)

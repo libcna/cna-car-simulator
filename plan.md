@@ -1657,9 +1657,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   render from the same source. `centreLine` now supports solid, dashed and both V 3 directions;
   `noOvertaking` is an independent road-wide restriction; the planner reads them and the
   renderer paints the corresponding strokes. IP 6 sign placements shared with the zebra renderer
-  prevent starting a pass through a crossing. Parser, mesh and deterministic traffic tests pass;
-  see `docs/research/czech-overtaking.md`. Acceptance for completion: authored local restriction
-  ranges and signs, junction/crossing edge cases and rendered agreement in screenshots.
+  prevent starting a pass through a crossing. Ordered metre ranges now override the road-wide
+  marking; both the road mesh and the pass planner read them, and the latter checks the entire
+  return path. The `main` road has a 2750–3090 m solid/no-overtaking section near E3, with
+  matched Radeon before/after frames. Parser, mesh and deterministic traffic tests pass;
+  see `docs/research/czech-overtaking.md`. Acceptance for completion: roadside signs,
+  junction/crossing edge cases and wider authored local restrictions.
 - [~] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
   Initiation now estimates passing time from the actual car's acceleration, accounts for

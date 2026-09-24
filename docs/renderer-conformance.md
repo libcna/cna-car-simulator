@@ -240,3 +240,16 @@ The controls, cluster, mirrors and road appear in all four. OPENGL33 differs fro
 by at most one RGB level; the mean absolute RGB differences are 0.864 / 0.826 / 0.788 for
 Vulkan and 1.966 / 2.110 / 1.703 for SOFTWARE. The differences are in shading and edge
 coverage; no content is missing and no renderer-specific project code was added.
+
+### Phase 14 local solid-line checkpoint (2026-09-25)
+
+The newly authored solid centre-line section on `main` near E3 was captured at 13:00,
+clear weather, frame 2, 1280 × 720, from `--view 1300 15 -330 40 -8` on OPENGLES3,
+OPENGL33, Vulkan and SOFTWARE. The [before](screenshots/phase14/centre-section-before.jpg)
+and [after](screenshots/phase14/centre-section-after.jpg) Radeon OPENGLES3 frames show
+the dashed line changing to a continuous line on the same road geometry.
+
+All four renderers show the same continuous stroke and road scene. OPENGL33 is byte-identical
+to OPENGLES3. Mean absolute RGB differences against OPENGLES3 were 0.608 / 0.594 / 0.660
+for Vulkan and 2.797 / 2.450 / 1.186 for SOFTWARE, mainly from foliage and ground
+filtering. No renderer-specific application code was added.
