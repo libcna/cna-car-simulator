@@ -310,6 +310,12 @@ The fixed Radeon walking frame is pixel-identical before and after extraction. T
 six-part suite passes, including the traffic soaks, smoke run and static checks. All four
 renderer builds include the new source.
 
+During on-foot exploration, `SimulatorGame::UpdateTraffic` now uses the walking probe as
+the pedestrian population focus while retaining the car probe for crossing safety. A
+deterministic map test moves the focus over 500 m and confirms that people repopulate near
+the walker. Walking and traffic interaction tests and the complete six-part suite pass,
+including the traffic soaks, smoke and static checks.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,

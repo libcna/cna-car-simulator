@@ -1644,7 +1644,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
   torso and head geometry replaces box silhouettes; walking now accelerates and stops smoothly
   and a deterministic `--walk` capture path exists. Pedestrian draw cost is separately measured
-  on the GPU. See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
+  on the GPU. While walking, population now follows the player's on-foot position instead of
+  staying around the parked car; a deterministic long-distance recentering test passes.
+  See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
   pass; helicopter access remains unchanged.

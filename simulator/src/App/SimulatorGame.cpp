@@ -984,13 +984,18 @@ namespace CarSim::App
         if (!traffic_) {
             return;
         }
+        const Traffic::PlayerProbe player = PlayerProbe();
+        const Traffic::PlayerProbe onFoot = PedestrianProbe();
         if (pedestrians_) {
-            // People first, so the traffic sees who has just stepped onto a crossing.
-            const Traffic::PlayerProbe player = PlayerProbe();
-            pedestrians_->Update(dt, player.valid ? player.position : Vector3(0.0f, 0.0f, 0.0f), traffic_->Vehicles(), player);
+            // People first, so traffic sees who has just stepped onto a crossing. While
+            // exploring on foot, keep the pedestrian population around the walker rather
+            // than the parked car; retain the car probe for their crossing safety checks.
+            const Vector3 focus = onFoot.valid ? onFoot.position :
+                                  (player.valid ? player.position : Vector3(0.0f, 0.0f, 0.0f));
+            pedestrians_->Update(dt, focus, traffic_->Vehicles(), player);
             traffic_->SetPedestrians(pedestrians_->RoadProbes());
         }
-        traffic_->Update(dt, PlayerProbe(), PedestrianProbe());
+        traffic_->Update(dt, player, onFoot);
         // Resolve actual contact with traffic cars after they move. In flight the entire
         // swept helicopter body is checked, including when it crosses a car in one frame.
         const Vector3 playerPosition = vehicle_->OriginPosition();

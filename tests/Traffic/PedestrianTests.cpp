@@ -54,6 +54,32 @@ TEST(Pedestrians, TheTownHasPavementsAndCrossingsAndPeopleOnThem)
     }
 }
 
+TEST(Pedestrians, PopulationRecentresWhenTheWalkingFocusLeavesTheParkedCar)
+{
+    auto world = Lipova();
+    ASSERT_TRUE(world);
+    Traffic::Pedestrians people(*world, 23);
+    ASSERT_FALSE(people.Walkways().empty());
+    const auto midpoint = [&](const Traffic::Walkway& way) {
+        return world->Roads().Roads()[static_cast<std::size_t>(way.road)].curve.Evaluate(0.5f * (way.s0 + way.s1)).position;
+    };
+    const Vector3 parkedCar = midpoint(people.Walkways().front());
+    Vector3 walker = parkedCar;
+    for (const auto& way : people.Walkways()) {
+        const Vector3 candidate = midpoint(way);
+        if (Vector3::Distance(candidate, parkedCar) > Vector3::Distance(walker, parkedCar)) walker = candidate;
+    }
+    ASSERT_GT(Vector3::Distance(walker, parkedCar), 500.0f);
+    for (int i = 0; i < 80; ++i) people.Update(0.1f, parkedCar, {}, {}, 30);
+    ASSERT_GE(people.People().size(), 10u);
+    for (int i = 0; i < 160; ++i) people.Update(0.1f, walker, {}, {}, 30);
+    int nearby = 0;
+    for (const auto& p : people.People()) {
+        if (Vector3::Distance(p.position, walker) < 300.0f) ++nearby;
+    }
+    EXPECT_GE(nearby, 10) << "on-foot exploration should keep people near the player";
+}
+
 TEST(Pedestrians, APersonCrossesAtTheZebraWhenTheRoadIsClear)
 {
     auto world = Lipova();
