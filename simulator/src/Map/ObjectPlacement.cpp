@@ -148,6 +148,7 @@ namespace CarSim::Map
         else if (text == "timber_stack") out = PropType::TimberStack;
         else if (text == "hydrant") out = PropType::Hydrant;
         else if (text == "bin") out = PropType::Bin;
+        else if (text == "planter") out = PropType::Planter;
         else if (text == "delineator") out = PropType::Delineator;
         else if (text == "memorial") out = PropType::Memorial;
         else if (text == "fuel_canopy") out = PropType::FuelCanopy;

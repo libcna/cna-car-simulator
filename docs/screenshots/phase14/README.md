@@ -17,6 +17,7 @@ OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit 
 | [Road before](road-repair-before.jpg) / [after](road-repair-after.jpg) | Sparse resurfaced utility cuts in the existing asphalt mesh | `--view -145 7 4 90 -25`, 13:00, two frames |
 | [Church before](church-before.png) / [after](church-after.png) | Square-facing tower pilasters, circular window and stone entrance portal | `--view -78 9 -30 50 -6`, 13:00, scattered cloud, 40 frames |
 | [Forest before](forest-before.png) / [after](forest-after.png) | Two seeded crown silhouettes per species in one tree-card atlas; narrower alternate spruce with more visible trunk | `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, 40 frames |
+| [Square before](square-planters-before.jpg) / [after](square-planters-after.jpg) | Two low stone beds with shrubs frame the memorial; the open cobbled centre remains usable | `--spawn square --view -55 7 -65 180 -7`, clear 13:00, two frames |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
 [helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg),

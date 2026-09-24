@@ -410,6 +410,10 @@ def signs_and_props():
     for x in (-63, -35):
         place("bin", x, -26)
     place("memorial", -57, -40)
+    # Two low stone beds frame the memorial without interrupting the crossing routes or
+    # filling the paved centre at random.
+    place("planter", -64, -40)
+    place("planter", -50, -40)
     # Filling station: canopy over two pumps, a lamp at the entry and a bin by the shop door.
     place("fuel_canopy", 839.5, -119.7, 67.9)
     place("fuel_pump", 835.3, -118.0, 157.9)

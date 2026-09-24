@@ -60,8 +60,9 @@ order, the clock, or the file system.
 | 3 | `add_castle.py` | all five, in place | it deletes its own output first |
 
 **Stage 1 — `generate_lipova.py`** writes the complete base map: the nodes and roads of Lipová
-and its countryside, the terrain, the paved town square with its frontages, limes, benches and
-memorial, the wayside chapel at the signalised junction, the filling station and its forecourt,
+and its countryside, the terrain, the paved town square with its frontages, limes, benches,
+memorial and two flanking stone planters, the wayside chapel at the signalised junction,
+the filling station and its forecourt,
 the parked cars, every sign and prop, and the four original player spawns plus `kostel`. It
 truncates whatever was in the output directory, so it must be run first.
 
@@ -99,7 +100,7 @@ a script you are warned not to run.
 | --- | --- |
 | Lipová: nodes, roads, signals at E1 | 1 |
 | Terrain size, cell size, base features and regions of the inner map | 1 (stage 2 enlarges size/cell and prepends the outer regions) |
-| Town square: paving, frontages, limes, benches, bins, lamps, memorial | 1 |
+| Town square: paving, frontages, limes, benches, bins, lamps, memorial, planters | 1 |
 | Wayside chapel, filling station, forecourt paving, pumps, canopy | 1 |
 | Parked cars (`objects.vehicles`) | 1 |
 | Signs and props along the original roads | 1 |

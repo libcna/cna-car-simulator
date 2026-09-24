@@ -1622,6 +1622,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The square-facing church tower now has shallow pilasters, a round window and a restrained
   stone portal; fixed Radeon before/after frames are in `docs/screenshots/phase14/`. The
   matched scene kept 1215 instrumented draws and added about 540 triangles (<0.04%).
+  The Lipová square now has two low stone planters beside the memorial, with map-driven
+  solid beds. A fixed Radeon before/after view and a snow check were inspected. The beds
+  improve that one frontage; the larger paved area still needs a stronger authored layout,
+  and seasonal foliage accumulation remains open.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic

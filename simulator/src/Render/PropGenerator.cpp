@@ -1,5 +1,7 @@
 #include "CarSim/Render/PropGenerator.hpp"
 
+#include "CarBody.hpp"
+
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 
 #include <algorithm>
@@ -181,6 +183,21 @@ namespace CarSim::Render
                 metal.AddCylinder(Vector3(0, -0.1f, 0), Vector3(0, 1, 0), 0.03f, 1.1f, 8, false);
                 white.AddCylinder(Vector3(0, 0.55f, 0), Vector3(0, 1, 0), 0.2f, 0.5f, 12, true);
                 black.AddCylinder(Vector3(0, 1.05f, 0), Vector3(0, 1, 0), 0.21f, 0.04f, 12, true);
+                break;
+            }
+            case PropType::Planter: {
+                // A low stone border keeps the bed legible against cobbles. Organic clipped
+                // shrubs are shared with the existing hedge material, so the plaza gets depth
+                // without a new texture or material submission.
+                const float hw = 1.50f, hd = 0.65f;
+                concrete.AddBox(Vector3(-hw, -0.05f, -hd), Vector3(hw, 0.37f, -hd + 0.13f), 1.0f);
+                concrete.AddBox(Vector3(-hw, -0.05f, hd - 0.13f), Vector3(hw, 0.37f, hd), 1.0f);
+                concrete.AddBox(Vector3(-hw, -0.05f, -hd), Vector3(-hw + 0.13f, 0.37f, hd), 1.0f);
+                concrete.AddBox(Vector3(hw - 0.13f, -0.05f, -hd), Vector3(hw, 0.37f, hd), 1.0f);
+                black.AddBox(Vector3(-hw + 0.12f, 0.17f, -hd + 0.12f), Vector3(hw - 0.12f, 0.24f, hd - 0.12f), 1.0f);
+                for (const float x : {-1.0f, -0.30f, 0.35f, 1.02f}) {
+                    CarBody::AddEllipsoid(hedge, Vector3(x, 0.48f, 0.0f), Vector3(0.34f, 0.32f, 0.38f), 5, 7);
+                }
                 break;
             }
             case PropType::WireFence: {

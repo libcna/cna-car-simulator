@@ -90,6 +90,7 @@ namespace CarSim::Map
         TimberStack,
         Hydrant,
         Bin,
+        Planter,        // low stone flower bed on the paved town square
         Delineator,     // Z 11a/b roadside post (generated)
         WireFence,      // wire mesh fence on steel posts (generated around plots)
         Hedge,          // clipped hedge (generated around plots)

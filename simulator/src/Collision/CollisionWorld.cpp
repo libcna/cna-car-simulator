@@ -206,6 +206,10 @@ namespace CarSim::Collision
                 case PropType::Bin:
                     AddStatic(CylinderCollider(ColliderKind::Post, p.position - Vector3(0.0f, 0.2f, 0.0f), 0.22f, 1.3f));
                     break;
+                case PropType::Planter:
+                    AddStatic(BoxCollider(ColliderKind::Furniture, p.position + Vector3(0.0f, 0.24f, 0.0f),
+                                          Vector3(1.55f, 0.35f, 0.72f), p.headingRad));
+                    break;
                 case PropType::WireFence:
                     AddStatic(BoxCollider(ColliderKind::Wall, p.position + Vector3(0.0f, 0.72f, 0.0f),
                                           Vector3(std::max(1.0f, p.length * 0.5f), 0.8f, 0.035f), p.headingRad));

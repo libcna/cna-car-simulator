@@ -334,6 +334,13 @@ average project draw submission, with 6.58 ms in the mirror pass. Desktop presen
 throttled to about one second/frame, so its wall-clock FPS is unusable and no draw-call
 optimization was inferred from it.
 
+The Lipová memorial now has two flanking stone planter beds, authored in stage 1 of the map
+generator. Their shrubs use existing hedge material and the stone beds have furniture
+colliders. The fixed 13:00 Radeon before/after comparison is in
+`docs/screenshots/phase14/square-planters-*.jpg`; a snow view and all four renderers were
+also inspected. This is local square detail, not a finished settlement fidelity pass;
+seasonal accumulation on low vegetation remains open.
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map

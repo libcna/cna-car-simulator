@@ -264,3 +264,17 @@ beside the authored restriction. OPENGL33 was byte-identical. Mean absolute RGB 
 against OPENGLES3 was 0.719 / 0.702 / 0.726 for Vulkan RADV and
 7.766 / 7.745 / 4.515 for SOFTWARE. Visual inspection found the same plate and road
 marking in all four; the larger software difference is mainly surface and vegetation tone.
+
+### Phase 14 square planter checkpoint (2026-09-25)
+
+The stone planters around the Lipová memorial were captured at the same fixed 1280 × 720,
+13:00 clear, two-frame view (`--view -55 7 -65 180 -7`) with all four renderers. The
+[before](screenshots/phase14/square-planters-before.jpg) and
+[after](screenshots/phase14/square-planters-after.jpg) Radeon OPENGLES3 frames show the
+two beds framing the memorial. Both are present in OPENGL33, Vulkan RADV and SOFTWARE.
+OPENGL33 is byte-identical to OPENGLES3. Against OPENGLES3, mean absolute RGB difference
+is 0.625 / 0.625 / 0.623 for Vulkan and 5.591 / 5.653 / 5.278 for SOFTWARE; 0.590% and
+1.694% of pixels respectively differ by more than 32 in any channel. The differences are
+mainly foliage and paved-surface tone. The same fixed view was also inspected in snow;
+the shrubs remain dark green, matching the current forest foliage treatment but still
+needing a future accumulation pass. No renderer-specific project code was added.

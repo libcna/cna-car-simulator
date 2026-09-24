@@ -9554,6 +9554,22 @@
    "rotationDeg": 0.0
   },
   {
+   "type": "planter",
+   "position": [
+    -64.0,
+    -40.0
+   ],
+   "rotationDeg": 0.0
+  },
+  {
+   "type": "planter",
+   "position": [
+    -50.0,
+    -40.0
+   ],
+   "rotationDeg": 0.0
+  },
+  {
    "type": "fuel_canopy",
    "position": [
     839.5,

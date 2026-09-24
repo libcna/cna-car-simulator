@@ -154,6 +154,40 @@ TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)
     EXPECT_FLOAT_EQ(road->SpeedLimitAt(hit.s), 90.0f);
 }
 
+TEST(SampleMap, SquarePlantersFrameTheMemorialAndHaveSolidBeds)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    const Map::PlacedProp* memorial = nullptr;
+    std::vector<const Map::PlacedProp*> planters;
+    for (const auto& prop : world->Objects().Props()) {
+        if (prop.type == Map::PropType::Memorial) memorial = &prop;
+        if (prop.type == Map::PropType::Planter) planters.push_back(&prop);
+    }
+    ASSERT_NE(memorial, nullptr);
+    ASSERT_EQ(planters.size(), 2u);
+    std::sort(planters.begin(), planters.end(), [](const auto* a, const auto* b) { return a->position.X < b->position.X; });
+    for (const auto* planter : planters) {
+        EXPECT_EQ(world->Terrain().RegionAt(planter->position.X, planter->position.Z), Map::RegionType::Square);
+        EXPECT_NEAR(planter->position.Z, memorial->position.Z, 0.2f);
+        EXPECT_NEAR(std::fabs(planter->position.X - memorial->position.X), 7.0f, 0.2f);
+    }
+    EXPECT_LT(planters[0]->position.X, memorial->position.X);
+    EXPECT_GT(planters[1]->position.X, memorial->position.X);
+
+    Collision::CollisionWorld collision;
+    collision.Build(*world);
+    for (const auto* planter : planters) {
+        const auto found = std::find_if(collision.Statics().begin(), collision.Statics().end(), [&](const auto& collider) {
+            return collider.kind == Collision::ColliderKind::Furniture && collider.isBox &&
+                   std::fabs(collider.centre.X - planter->position.X) < 0.2f &&
+                   std::fabs(collider.centre.Z - planter->position.Z) < 0.2f;
+        });
+        EXPECT_NE(found, collision.Statics().end());
+    }
+}
+
 TEST(SampleMap, RightOfWayIsAntisymmetric)
 {
     std::vector<std::string> errors;
