@@ -102,7 +102,23 @@ active traffic voices. No traffic synthesis runs when audio is disabled.
 The fixed 90-frame offscreen runtime with 19–20 cars and the dummy audio device reported a
 0.37 ms mean project audio update (320 × 200, OPENGLES3 llvmpipe); this is CPU mixer time, not
 a real speaker listening review. The source remains fully procedural, and the wider engine,
-weather, cabin and helicopter sound goals in Phase 14 remain open.
+weather and cabin sound goals in Phase 14 remain open.
+
+## Helicopter rotor (Phase 14)
+
+`RotorSynth` now owns the helicopter audio path as pure DSP. Entering flight mode fades the
+car engine out while the rotor fades in over 0.12 s; leaving flight mode reverses that fade.
+The accepted 5/6/7/8 Hz normal/turbo/ultra/ultra-ultra rotor cadence is preserved. The
+existing low blade thrum remains, with a filtered noise sweep shaped at each blade passage
+and a quieter continuous turbine tone. The sweep is phase-continuous and shaped rather than
+a constant wideband hiss; the same cockpit low-pass and output ceiling still apply. The
+new component has no audio-device or renderer dependency, and `VehicleAudio` only chooses
+the current flight state and rotor speed.
+
+Two device-free integrated tests characterize fade-out, bounded samples, and the dominant
+blade cadence of normal and extreme flight modes. A 90-frame offscreen flight runtime with
+the dummy audio device, 320 × 200 low graphics and 60 measured frames reported 0.332 ms
+mean project audio update. This is a mixer CPU timing, not a speaker listening assessment.
 
 ## Levels
 
@@ -118,6 +134,8 @@ The Phase 14 rolling test compares steady dry asphalt, gravel, packed snow and f
 also checking bounded level and reduced airborne tyre sound.
 `tests/Audio/TrafficAudioTests.cpp` checks stereo direction, distance falloff, six-voice
 prioritisation, fade-out, finite level and cabin attenuation in the integrated vehicle mixer.
+`tests/Audio/VehicleAudioFlightTests.cpp` checks isolated rotor fade, bounded output, and
+normal versus extreme rotor cadence through the integrated mixer without an audio device.
 `tests/Audio/AudioLayersTests.cpp`: the shift dip cuts to 0.2 and recovers within 0.26 s; the
 overrun gate fires only on overrun and on 15-55 % of blocks; brake hiss grows with pedal and
 speed and is bounded; surface roughness ordering (gravel > grass > asphalt, cobbles > concrete).

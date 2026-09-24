@@ -8,7 +8,6 @@
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <numbers>
 
 namespace CarSim::Audio
 {
@@ -149,20 +148,11 @@ namespace CarSim::Audio
         if (state.flightMode) engineInput.state = EngineSoundState::Off;
         engine_.Render(mono_.data(), kBlockFrames, engineInput);
         for (float& s : mono_) s *= levels.engine;
-        // A helicopter has a low, periodic blade thrum. Keep it tonal so switching to flight
-        // does not reintroduce the broadband hiss removed from the car's engine layer.
-        const float rotorTarget = state.flightMode ? 1.0f : 0.0f;
+        // Flight owns its rotor layer; the car engine above fades off when flight starts.
         const float rotorHz = state.turboMode == Sim::TurboMode::UltraUltra ? 8.0f :
                               state.turboMode == Sim::TurboMode::Ultra ? 7.0f :
                               state.turboMode == Sim::TurboMode::Turbo ? 6.0f : 5.0f;
-        for (int i = 0; i < kBlockFrames; ++i) {
-            rotorGain_ += std::clamp(rotorTarget - rotorGain_, -1.0f / (0.12f * kSampleRate), 1.0f / (0.12f * kSampleRate));
-            rotorPhase_ += static_cast<double>(rotorHz) / kSampleRate;
-            if (rotorPhase_ >= 1.0) rotorPhase_ -= 1.0;
-            const float phase = static_cast<float>(rotorPhase_) * 2.0f * std::numbers::pi_v<float>;
-            mono_[static_cast<std::size_t>(i)] += rotorGain_ * levels.engine *
-                (0.14f * std::sin(phase * 2.0f) + 0.07f * std::sin(phase * 4.0f) + 0.04f * std::sin(phase * 9.0f));
-        }
+        rotor_.RenderAdd(mono_.data(), kBlockFrames, state.flightMode, rotorHz, levels.engine);
 
         RollingNoise::Input rolling;
         rolling.speedKmh = state.speedKmh;

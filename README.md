@@ -93,7 +93,8 @@ What you get today:
   the body where it was hit and break the lamps (`Backspace` puts the car back on the road repaired).
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
   horn, gear and impact sounds; tyre tread and scrub respond to rough ground, snow and slip,
-  and nearby traffic contributes spatially placed engine sound.
+  nearby traffic contributes spatially placed engine sound, and helicopter mode has its own
+  rotor and turbine layer.
 - Persistent odometer, trip, transmission mode and settings; key bindings configurable in the
   save file; in-game help and debug overlays.
 

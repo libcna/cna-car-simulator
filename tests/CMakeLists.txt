@@ -59,6 +59,7 @@ add_executable(carsim_tests
     Audio/AudioLayersTests.cpp
     Audio/TrafficAudioTests.cpp
     Audio/VehicleAudioRainTests.cpp
+    Audio/VehicleAudioFlightTests.cpp
     Audio/VehicleAudioTrafficTests.cpp
     Render/ImageTests.cpp
 )

@@ -256,6 +256,12 @@ kept 1215 instrumented draws and added 600 triangles; the map geometry test foun
 repaired pieces and 43,232 coarse overlay vertices. Dry, rain and snow captures are in
 `docs/screenshots/phase14/`; the measured cost and timing limits are in `docs/performance.md`.
 
+Helicopter sound now has its own pure-DSP `RotorSynth` instead of an inline sine loop in
+`VehicleAudio`. The accepted turbo-dependent blade cadence and fade remain under integrated
+tests; a filtered blade sweep and restrained turbine layer improve the tonal-only rotor.
+The 90-frame dummy-audio flight run reported 0.332 ms mean audio update. No real-speaker
+listening result or recorded engine samples are claimed; see `docs/audio-design.md`.
+
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,

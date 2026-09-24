@@ -1639,8 +1639,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   tests show gravel, snow and sliding differ from dry asphalt. Up to six nearby AI vehicles now
   contribute stereo, distance-faded engine voices (heavier for buses/lorries); the cabin
   attenuates these more than the player's car, and the F3 overlay shows the active count.
-  A 90-frame dummy-audio runtime with ~20 cars measured 0.37 ms mean mixer update. Engine,
-  wind, weather, cabin and rotor mixing still need substantial listening and development.
+  The helicopter rotor is now a separate project-owned DSP component with a filtered blade
+  sweep and turbine layer over its preserved low thrum and 5/6/7/8 Hz mode cadence.
+  Characterization tests cover fade, output bounds and turbo cadence. A 90-frame dummy-audio
+  runtime with ~20 cars measured 0.37 ms mean mixer update; a separate 90-frame flight run
+  measured 0.332 ms. Engine, wind, weather, cabin and rotor sound still need substantial
+  listening and development.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.
