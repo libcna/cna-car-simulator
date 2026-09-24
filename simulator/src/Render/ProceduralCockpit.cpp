@@ -219,7 +219,22 @@ namespace CarSim::Render::CarBody
 
             // Centre stack details: display, vents, knobs; outer vents at the dash ends; glovebox line.
             const float zStack = zFace + 0.075f + 0.004f;
+            // The radio sits in a shallow moulded surround rather than a dark rectangle
+            // painted directly onto the dashboard face. All trim joins existing material
+            // batches; only the surfaces seen from the driving position are modelled.
+            AddRoundedBox(mid.mesh, Vector3(0.275f, 0.091f, 0.012f), 0.012f,
+                          Matrix::CreateTranslation(0.0f, yFace + 0.005f, zStack - 0.012f));
             AddBoxTo(gloss, Vector3(0.0f, yFace + 0.005f, zStack - 0.002f), Vector3(0.22f, 0.07f, 0.008f));
+            for (const float side : {-1.0f, 1.0f}) {
+                chrome.mesh.AddCylinder(Vector3(side * 0.124f, yFace + 0.004f, zStack + 0.003f),
+                                        Vector3(0, 0, 1), 0.011f, 0.006f, 12, true);
+                AddRoundedBox(gloss.mesh, Vector3(0.019f, 0.013f, 0.004f), 0.003f,
+                              Matrix::CreateTranslation(side * 0.124f, yFace - 0.024f, zStack + 0.006f));
+            }
+            for (const float x : {-0.067f, -0.022f, 0.022f, 0.067f}) {
+                AddRoundedBox(chrome.mesh, Vector3(0.024f, 0.004f, 0.003f), 0.001f,
+                              Matrix::CreateTranslation(x, yFace - 0.051f, zStack + 0.035f));
+            }
             for (const float vx : {-0.085f, 0.085f}) {
                 vents.mesh.AddQuad(Vector3(vx - 0.045f, yFace + 0.05f, zStack + 0.004f), Vector3(vx + 0.045f, yFace + 0.05f, zStack + 0.004f),
                                    Vector3(vx + 0.045f, yFace + 0.10f, zStack + 0.004f), Vector3(vx - 0.045f, yFace + 0.10f, zStack + 0.004f),

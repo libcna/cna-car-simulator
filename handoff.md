@@ -289,6 +289,12 @@ Heavy vehicles retain their old 60% factor; vans, SUVs and estates have progress
 slower rates than hatchbacks/sedans. A near-junction regression shows the hatchback
 completing a lorry pass while the longer, slower van declines it.
 
+The cockpit radio has a shallow moulded surround, two side controls and a four-key
+preset strip, all in existing trim material batches. Fixed 13:00 Radeon before/after
+frames and a 22:00 check are `docs/screenshots/phase14/console-*.jpg`; the night
+controls remain subdued with the engine/ignition off. Cockpit weather and more material
+work remain.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,

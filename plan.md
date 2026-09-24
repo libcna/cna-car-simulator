@@ -1624,7 +1624,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   readability. The 420 km/h scale now uses legible label spacing while keeping fine ticks;
   odometer/trip text fits its display, and the wheel position and night cabin illumination
   expose more of the controls. Fixed noon and night GPU captures are in
-  `docs/screenshots/phase14/`. More geometry and weather review remain.
+  `docs/screenshots/phase14/`. The centre radio now has a moulded surround, side controls
+  and preset strip instead of an isolated black rectangle; fixed Radeon noon before/after
+  and night frames are saved as `console-*.jpg` in that directory. More geometry and
+  weather review remain.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
