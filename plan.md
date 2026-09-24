@@ -1648,6 +1648,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
   Initiation now estimates passing time from the actual car's acceleration, accounts for
   oncoming closure over that time and scales clearance with wetness, snow and fog sight range.
+  The passing estimate and free-flow dynamics now share body-specific acceleration factors:
+  vans and SUVs take longer to build speed, while the existing 60% heavy-vehicle rate is
+  preserved. A deterministic near-junction case lets a hatchback pass a lorry but holds
+  a longer, slower van back.
   Clear, rainy, snowy, foggy, crossing, line-marking, oncoming and abort regression tests pass;
   road signs and phase-change decisions still need work.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or

@@ -284,6 +284,11 @@ recordings but none has been imported without suitable stable RPM loops and list
 validation. A 90-frame dummy-audio square-start run measured 0.338 ms mean audio update
 with 20 warmed traffic cars. See `docs/audio-design.md`; a real-speaker review is still open.
 
+Overtake planning now uses the same body-specific acceleration factor as AI car-following.
+Heavy vehicles retain their old 60% factor; vans, SUVs and estates have progressively
+slower rates than hatchbacks/sedans. A near-junction regression shows the hatchback
+completing a lorry pass while the longer, slower van declines it.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,

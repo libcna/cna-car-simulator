@@ -39,6 +39,16 @@ namespace CarSim::Traffic
         int paletteIndex = 0;
         Sim::CarStyle::Body body = Sim::CarStyle::Body::Hatchback;   // body variant (dimensions follow the preset)
         [[nodiscard]] bool Heavy() const { return body == Sim::CarStyle::Body::Bus || body == Sim::CarStyle::Body::Truck; }
+        // Shared by free-flow dynamics and the overtake distance estimate. Keep heavy
+        // vehicles at their established 60% rate; a van and SUV need longer to pass.
+        [[nodiscard]] float AccelerationFactor() const
+        {
+            if (Heavy()) return 0.60f;
+            if (body == Sim::CarStyle::Body::Van) return 0.78f;
+            if (body == Sim::CarStyle::Body::Suv) return 0.86f;
+            if (body == Sim::CarStyle::Body::Estate) return 0.94f;
+            return 1.0f;
+        }
         unsigned styleSeed = 1;                                       // preset variation
         std::string plate;
         // Derived pose.

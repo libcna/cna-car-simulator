@@ -442,7 +442,8 @@ namespace
     OvertakeRun RunOvertake(const bool oncoming, const Map::CentreLineMarking marking = Map::CentreLineMarking::Dashed,
                             const bool forward = true, const std::vector<Map::SignSpec>& signs = {}, const bool noOvertaking = false,
                             const int seconds = 25, const float wetness = 0.0f, const float fog = 0.0f,
-                            const float snow = 0.0f, const float startOffset = 0.0f)
+                            const float snow = 0.0f, const float startOffset = 0.0f,
+                            const Sim::CarStyle::Body overtakerBody = Sim::CarStyle::Body::Hatchback)
     {
         auto world = CrossWorld(true, {}, marking, signs, noOvertaking);
         EXPECT_TRUE(world);
@@ -453,7 +454,7 @@ namespace
         const int west = LaneOf(*world, "main", !forward, 0);
         // A lorry crawling at 30 km/h with a car behind it, 350 m of road ahead.
         const int lorry = traffic.SpawnOn(east, 60.0f + startOffset, 8.3f, Sim::CarStyle::Body::Truck);
-        const int car = traffic.SpawnOn(east, 30.0f + startOffset, 12.0f, Sim::CarStyle::Body::Hatchback);
+        const int car = traffic.SpawnOn(east, 30.0f + startOffset, 12.0f, overtakerBody);
         if (oncoming) {
             for (int i = 0; i < 6; ++i) traffic.SpawnOn(west, 20.0f + 55.0f * static_cast<float>(i), 14.0f, Sim::CarStyle::Body::Sedan);
         }
@@ -555,6 +556,17 @@ TEST(TrafficSystem, SnowGripRequiresMorePassingRoom)
     EXPECT_TRUE(dry.overtook);
     EXPECT_FALSE(snow.wentOut);
     EXPECT_EQ(snow.overlaps, 0);
+}
+
+TEST(TrafficSystem, SlowerVanNeedsMoreRoadToPassTheSameLorry)
+{
+    const OvertakeRun hatchback = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false,
+                                             25, 0.0f, 0.0f, 0.0f, 130.0f);
+    const OvertakeRun van = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false,
+                                       25, 0.0f, 0.0f, 0.0f, 130.0f, Sim::CarStyle::Body::Van);
+    EXPECT_TRUE(hatchback.overtook);
+    EXPECT_FALSE(van.wentOut);
+    EXPECT_EQ(van.overlaps, 0);
 }
 
 TEST(TrafficSystem, HeavyRainNeedsMoreRoomButDoesNotForbidEveryPass)

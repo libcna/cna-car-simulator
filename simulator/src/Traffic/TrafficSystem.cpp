@@ -815,8 +815,8 @@ namespace CarSim::Traffic
         }
         // A lorry or a bus pulls away at about 60 % of a car's rate and keeps longer gaps.
         auto vehicleParams = params;
+        vehicleParams.maxAccel *= v.AccelerationFactor();
         if (v.Heavy()) {
-            vehicleParams.maxAccel *= 0.6f;
             vehicleParams.timeHeadway *= 1.3f;
             vehicleParams.minGap += 1.0f;
         }

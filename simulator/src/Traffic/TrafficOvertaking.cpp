@@ -113,7 +113,7 @@ namespace CarSim::Traffic
             // closing speed assumed the passing car could instantly reach its desired speed,
             // which especially underestimated the time needed behind a long lorry.
             const float gripFactor = 1.0f - 0.18f * overtakeWetness_ - 0.38f * overtakeSnow_;
-            const float acceleration = std::max(0.2f, params.maxAccel * gripFactor);
+            const float acceleration = std::max(0.2f, params.maxAccel * v.AccelerationFactor() * gripFactor);
             const float initialClosing = std::max(0.0f, v.speed - target->speed);
             const float attainable = std::max(v.speed, desired);
             const float finalClosing = attainable - target->speed;
