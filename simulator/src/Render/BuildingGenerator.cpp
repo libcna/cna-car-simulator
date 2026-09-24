@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <utility>
 
 namespace CarSim::Render
 {
@@ -240,12 +241,51 @@ namespace CarSim::Render
             }
         }
 
-        void Door(MeshData& trim, const Vector3& centreBase, const float w, const float h, const Vector3& n)
+        void Door(MeshData& trim, MeshData& frames, MeshData& metal, MeshData& dark,
+                  const Vector3& centreBase, const float w, const float h, const Vector3& n)
         {
             const Vector3 up(0.0f, 1.0f, 0.0f);
             const Vector3 right = Vector3::Cross(up, n);
             const Vector3 o = centreBase + n * 0.02f;
             Quad(trim, o - right * (w * 0.5f), o + right * (w * 0.5f), o + right * (w * 0.5f) + up * h, o - right * (w * 0.5f) + up * h, n, 1.0f, 2.0f);
+
+            // A single shallow kit works for cottages, shop/service doors and church entrances.
+            // It joins the existing per-chunk trim/material meshes, so hundreds of doors add
+            // geometry but no new material submissions. The proud frame and inset panel edges
+            // are especially important when a player walks up to an otherwise flat facade.
+            MeshData casing, panel, grooves, fittings;
+            const float jamb = std::clamp(w * 0.10f, 0.08f, 0.15f);
+            const float depth = 0.10f;
+            casing.AddBox(Vector3(-w * 0.5f - jamb, 0.0f, 0.0f), Vector3(-w * 0.5f, h + jamb, depth), 1.0f);
+            casing.AddBox(Vector3(w * 0.5f, 0.0f, 0.0f), Vector3(w * 0.5f + jamb, h + jamb, depth), 1.0f);
+            casing.AddBox(Vector3(-w * 0.5f - jamb, h, 0.0f), Vector3(w * 0.5f + jamb, h + jamb, depth + 0.035f), 1.0f);
+            casing.AddBox(Vector3(-w * 0.5f - jamb, -0.025f, 0.0f), Vector3(w * 0.5f + jamb, 0.035f, depth + 0.09f), 1.0f);
+
+            const int leaves = w > 1.45f ? 2 : 1;
+            const float leafW = w / static_cast<float>(leaves);
+            for (int leaf = 0; leaf < leaves; ++leaf) {
+                const float x = -w * 0.5f + (static_cast<float>(leaf) + 0.5f) * leafW;
+                const float panelHalf = std::max(0.12f, leafW * 0.5f - 0.14f);
+                const float inset = h > 2.7f ? 0.22f : 0.16f;
+                const float split = h * 0.52f;
+                for (const auto& [bottom, top] : {std::pair{inset, split - 0.09f}, std::pair{split + 0.09f, h - inset}}) {
+                    if (top <= bottom) continue;
+                    grooves.AddBox(Vector3(x - panelHalf - 0.025f, bottom - 0.025f, 0.019f),
+                                   Vector3(x + panelHalf + 0.025f, top + 0.025f, 0.030f), 1.0f);
+                    panel.AddBox(Vector3(x - panelHalf, bottom, 0.030f), Vector3(x + panelHalf, top, 0.055f), 1.0f);
+                }
+            }
+            const float handleX = leaves == 2 ? -0.055f : w * 0.5f - 0.14f;
+            const float handleY = std::min(1.02f, h * 0.48f);
+            fittings.AddCylinder(Vector3(handleX, handleY, 0.07f), Vector3(0, 0, 1), 0.025f, 0.035f, 8, true);
+            fittings.AddCylinder(Vector3(handleX - 0.075f, handleY, 0.105f), Vector3(1, 0, 0), 0.014f, 0.11f, 8, true);
+            fittings.AddBox(Vector3(-w * 0.5f + 0.055f, 0.05f, 0.055f),
+                            Vector3(w * 0.5f - 0.055f, 0.19f, 0.065f), 1.0f);
+            const Matrix basis = FaceBasis(n, centreBase + n * 0.025f);
+            frames.Append(casing, basis);
+            trim.Append(panel, basis);
+            dark.Append(grooves, basis);
+            metal.Append(fittings, basis);
         }
 
         void Chimney(MeshData& trim, MeshData& frames, MeshData& dark, const Vector3& base, const float size, const float height)
@@ -419,7 +459,7 @@ namespace CarSim::Render
                     WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.9f, 0.75f, 3.4f, Vector3(0, 0, -1), true);
                 }
                 Slits(dark, -hw + 2.0f, hw - 2.0f, 1.6f, hd, 4.0f, id);
-                Door(trim, Vector3(0.0f, 0.0f, hd), 1.8f, 2.8f, Vector3(0, 0, 1));
+                Door(trim, frames, metal, dark, Vector3(0.0f, 0.0f, hd), 1.8f, 2.8f, Vector3(0, 0, 1));
             }
         }
     }
@@ -567,7 +607,7 @@ namespace CarSim::Render
                     }
                 }
             }
-            Door(trim, Vector3(0.0f, -0.0f, hd), 1.6f, 2.3f, front);
+            Door(trim, frames, metal, dark, Vector3(0.0f, -0.0f, hd), 1.6f, 2.3f, front);
             Box(concrete, Vector3(-1.3f, 2.35f, hd), Vector3(1.3f, 2.5f, hd + 1.5f), 0.5f);   // entrance canopy
             Box(concrete, Vector3(-1.3f, -drop, hd), Vector3(1.3f, 0.02f, hd + 1.2f), 0.5f);  // entrance slab
         } else if (type == "church" || type == "chapel") {
@@ -606,7 +646,7 @@ namespace CarSim::Render
                 WindowRow(windows, trim, &frames, &dark, hw, hd - tw, h * 0.35f, h * 0.5f, 1.1f, 4.0f, n, false);
             }
             Window(glass, Vector3(0.0f, towerH - 2.0f, hd + tw * 1.5f), 1.0f, 2.2f, front);
-            Door(trim, Vector3(0.0f, 0.0f, hd + tw * 1.5f), chapel ? 1.2f : 2.2f, chapel ? 2.2f : 3.6f, front);
+            Door(trim, frames, metal, dark, Vector3(0.0f, 0.0f, hd + tw * 1.5f), chapel ? 1.2f : 2.2f, chapel ? 2.2f : 3.6f, front);
         } else {
             const unsigned seed = b.spec->seed;
             const bool hipped = type == "hall" || type == "shop" || (type == "house" && seed % 5u == 0u);
@@ -614,7 +654,7 @@ namespace CarSim::Render
             Roof(roof, walls, frames, metal, hw, hd, h, ridge, hipped, 0.45f, 0.12f, -drop + 0.3f);
             Chimney(trim, frames, dark, Vector3(hw * 0.4f, h + ridge * 0.55f, -hd * 0.3f), 0.5f, ridge * 0.6f + 0.8f);
             if (type == "barn") {
-                Door(trim, Vector3(0.0f, 0.0f, hd), 3.6f, 3.4f, front);
+                Door(trim, frames, metal, dark, Vector3(0.0f, 0.0f, hd), 3.6f, 3.4f, front);
                 WindowRow(windows, trim, nullptr, nullptr, hw, hd, h * 0.55f, 0.7f, 0.9f, 4.0f, back, false);
                 WindowRow(windows, trim, nullptr, nullptr, hw, hd, h * 0.55f, 0.7f, 0.9f, 4.0f, left, false);
             } else {
@@ -640,7 +680,7 @@ namespace CarSim::Render
                 const int count = std::max(1, static_cast<int>((hw * 2.0f - 0.8f) / 2.4f));
                 const float t = 0.5f / static_cast<float>(count) - 0.5f;
                 const float doorX = t * (hw * 2.0f - 0.8f);
-                Door(trim, Vector3(doorX, 0.0f, hd), 1.0f, 2.15f, front);
+                Door(trim, frames, metal, dark, Vector3(doorX, 0.0f, hd), 1.0f, 2.15f, front);
                 Box(concrete, Vector3(doorX - 0.8f, -drop, hd), Vector3(doorX + 0.8f, 0.03f, hd + 0.9f), 0.5f);
                 Box(frames, Vector3(doorX - 0.85f, 2.27f, hd), Vector3(doorX + 0.85f, 2.35f, hd + 0.75f), 1.0f);
                 // Cornice under the eaves and a string course between floors on town houses.

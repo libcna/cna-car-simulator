@@ -160,9 +160,12 @@ namespace CarSim::Render::Textures
     {
         Image img(size, size);
         img.Generate([&](int, int, float u, float v) {
-            const float grain = Noise::Value(u * 220.0f, v * 220.0f, 220, seed);
-            const float stains = Noise::Fbm(u * 4.0f, v * 4.0f, 4, 3, 0.5f, seed + 8);
-            const float shade = 0.94f + (grain - 0.5f) * 0.10f - Clamp01(stains - 0.6f) * 0.3f;
+            // Rendered over whole facades, the old high-contrast cellular stains repeated as a
+            // recognisable motif every texture tile. Plaster should read as one continuous
+            // surface at driving distance, with its aggregate visible only when walking close.
+            const float grain = Noise::Value(u * 180.0f, v * 180.0f, 180, seed);
+            const float mottling = Noise::Fbm(u * 7.0f, v * 7.0f, 7, 3, 0.5f, seed + 8);
+            const float shade = 0.97f + (grain - 0.5f) * 0.045f + (mottling - 0.5f) * 0.045f;
             return ToColor(base * shade);
         });
         return img;
