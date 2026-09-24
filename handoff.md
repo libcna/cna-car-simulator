@@ -89,7 +89,7 @@ scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --no-save --no-a
   `--eye dx dy dz yaw pitch` (cockpit eye offset), `--lights`, `--benchmark`,
   `--benchmark-json file`, `--mirror-every n`, `--debug-overlay`.
 - `--time <hh:mm>` and `--time-scale <x>` fix the clock (`--time-scale 0` freezes the sky, which
-  every deterministic capture wants), `--weather clear|cloudy|overcast|rain` fixes the weather,
+  every deterministic capture wants), `--weather clear|cloudy|overcast|rain|fog|snow` fixes the weather,
   `--quality low|medium|high` picks the graphics tier (default `high`, which is what every
   picture and table was taken at). `scripts/capture_set.sh` reproduces the whole curated set.
 - `--route town|country|forest` drives a route from `traffic.json` with the autopilot
@@ -197,21 +197,19 @@ What Phase 13 changed, in the order it matters:
   of *configures / compiles / starts / renders / visually inspected / performance tested* was
   actually done. None of the visual work introduced a renderer-specific divergence.
 
-Open / next ideas (nothing is blocking):
+Current scope (after the Phase 13 audit): cars, buses and lorries, overtaking, pedestrians,
+walking, helicopter mode, turbo through ultra ultra turbo, rain, snow, fog, dynamic time of day,
+traffic lights, wipers, tyre spray and visual body damage are all accepted functionality. The
+older phase records in `plan.md` describe what existed *then*; their deferred lists do not
+remove features delivered later. Phase 14 in section 27 of `plan.md` tracks the current
+architecture, fidelity, traffic-rule and audio work.
 
-- Traffic variety: there is no bus or lorry body class, and no overtaking or lane changing.
-- The fog lamp lens is dark gloss rather than a clear lens; shop fascia signs are missing.
-- Baked shadow *direction* does not follow the sun, only its strength (a known limitation of
-  scaling the bake instead of re-baking).
-- Snow and fog are not modelled; the weather is clear / cloud / overcast / rain.
-- Nové Město has a square laid out in buildings but no paved `square` region of its own.
-- Building facades are flat: windows are darker rectangles with no frame, sill or reveal at this
-  distance, which is the most obvious remaining "procedural" tell in a street scene.
-- The paved square and the station forecourt do not take the wet sheen (it runs over road
-  batches only).
-- **No run on real GPU hardware has been recorded.** Every picture and every number in this
-  repository is Mesa llvmpipe in a container. That is stated on every page that carries a figure,
-  and `docs/real-hardware-validation.md` has the procedure and an empty results table waiting.
+Current gaps: building facades remain plain at driving distance, cockpit materials and controls
+need another pass, overtaking lacks explicit road-rule semantics beyond existing geometry and
+traffic checks, and audio remains predominantly synthesised. **No real GPU run has been
+recorded.** The host advertises AMD Phoenix, but the development container has no `/dev/dri`,
+so GPU measurements need a desktop session with device access. `docs/real-hardware-validation.md`
+has the procedure. Do not infer batching wins from Mesa llvmpipe.
 
 ## Working conventions that kept things sane
 

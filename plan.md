@@ -4,7 +4,8 @@ This file is the authoritative plan for the project. Every task has an ID, a sta
 acceptance criteria. Statuses: `[ ]` open, `[~]` in progress, `[x]` done (verified, not merely
 skeleton code), `[-]` deferred (with reason). Update this file in the same commit as the work.
 
-Last synchronised with the repository: 2026-09-14 (M0-M10 complete, audit record in section 21; Phase 11 "Realism & Production Quality" opened in section 24).
+Current scope and Phase 14 are recorded in section 27. Earlier non-goal and deferred lists are
+historical records of the initial milestones, not current product exclusions.
 
 ---
 
@@ -1499,3 +1500,121 @@ and the dashboard night state all work and are covered by tests; the real-hardwa
 current; the screenshot set was re-shot on this build; every performance figure says which
 environment produced it; the renderer record says exactly what was done per renderer; `README.md`,
 `plan.md` and `handoff.md` match the repository; the branch is pushed; the working tree is clean.
+
+## 27. Phase 14 — Architecture, World Fidelity, Traffic Rules, Audio & GPU Performance (`P14`)
+
+This is the **current** product scope, superseding the historical initial non-goals in section 2
+and the then-current deferred lists in sections 23–26: ordinary car driving, buses and lorries,
+traffic and overtaking, traffic lights, pedestrians, player walking, helicopter mode, turbo,
+ultra and ultra ultra turbo, visual damage, wipers, spray, rain, snow, fog and dynamic time of day
+all remain supported. Do not disable or remove them to simplify a refactor. No missions, economy,
+police gameplay, multiplayer or additional aircraft class belong to this phase. The XNA 4.0
+public API boundary and its static check remain mandatory.
+
+### 27.1 Measured starting state (2026-09-24, `18b7d468ecf3afdf62e515adf21262f1bc822fd2`)
+
+- Branch `main`, clean against `origin/main` before Phase 14 changes. `cmake --build --preset
+  opengles3 -j2`: no work, exit 0. `ctest --preset opengles3`: unit suite and four non-display
+  registrations passed; display smoke lacked a video device in the shell. Repeated the display
+  smoke with `SDL_VIDEODRIVER=offscreen`: passed in 16.54 s. The unit registration, including
+  the 30-minute simulated traffic soak, took 104.27 s. Re-run after code changes.
+- Largest units at this SHA: `SimulatorGame.cpp` 1916 lines, `TrafficSystem.cpp` 1618,
+  `WorldRenderer.cpp` 1455, `ProceduralCar.cpp` 1427, `VehicleRenderer.cpp` 1107,
+  `Vehicle.cpp` 959. These numbers identify ownership candidates, not line limits.
+- Existing screenshots were inspected: town facades and cockpit trim read as broad flat surfaces;
+  forest silhouettes repeat; road texture streaks at shallow angles on llvmpipe. The old curated
+  images and three-renderer comparison remain the visual baseline until recaptured.
+- `docs/renderer-conformance.md` and `docs/performance.md` report software-renderer timings only.
+  In the comparable town chase scene the existing record is 1253 submissions, 1.242 M triangles
+  and 166 ms draw submission on OPENGLES3 llvmpipe. These are **prior recorded** measurements,
+  not new Phase 14 GPU results. `/dev/dri` is absent in this container despite an AMD Phoenix
+  PCI device. Real GPU profiling and any draw-call pass depend on device access.
+
+### 27.2 Task ledger
+
+Each checked item requires evidence in code/tests/screenshots/docs in the same commit. Extract
+one responsibility at a time: characterize, extract without changing the algorithm, build, run
+targeted and full tests, exercise the runtime, then commit. Preserve the 30-minute traffic soak.
+
+#### P0 — foundation and characterization
+
+- [x] `P14-001` Audit branch, status, history, build, complete suite, screenshots, conformance,
+  performance records and ownership of major systems; record actual baseline and environmental
+  limits in 27.1. Acceptance: reproducible commands and no GPU claim from llvmpipe.
+- [x] `P14-002` Reconcile README, handoff and plan with the accepted feature set without editing
+  historical phase outcomes. Acceptance: no current-status prose says snow, fog, walking, heavy
+  vehicles, pedestrians or overtaking are absent or deprecated.
+- [ ] `P14-003` Characterize fragile behavior before extraction: existing traffic soaks and mode
+  tests retained; add deterministic coverage for any untested path selected for refactoring.
+  Acceptance: pre-extraction failure would expose a behavior change.
+
+#### P1 — coherent ownership and visible world
+
+- [ ] `P14-010` Extract coherent SimulatorGame responsibilities (start with overlays or player
+  modes) while retaining orchestration. Acceptance: fewer unrelated reasons to edit the app
+  unit; walking, flight, weather, save and benchmark paths still work.
+- [~] `P14-011` Extract traffic planning/queries/spawning or junction ownership incrementally.
+  First step: the existing overtake and return-to-lane methods were moved unchanged into
+  `TrafficOvertaking.cpp` (130 lines identical to the old definitions); four targeted overtake
+  tests and the complete suite pass. Acceptance for completion: further meaningful ownership
+  separation with signal, heavy-vehicle and pedestrian tests plus all soaks still passing.
+- [ ] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
+  replacement architecture. Acceptance: normal car, boosts, flight, damage and all rendering
+  modes retain their behavior; before/after captures and renderer checks show no regression.
+- [ ] `P14-020` Improve building facades and Czech settlement details using reusable parts.
+  Acceptance: town and village before/after frames show depth, varied frontage and coherent
+  street furniture at normal driving distance, with measured geometry cost.
+- [ ] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Acceptance: town,
+  countryside and forest comparison images look less tiled/repetitive; no collision or lane
+  geometry change; wet and snow variants remain coherent.
+- [ ] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
+  readability. Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
+  fog and snow; gauges remain driven by simulation state.
+- [ ] `P14-023` Polish pedestrians and walking movement/collision/camera. Acceptance: people no
+  longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
+  pass; helicopter access remains unchanged.
+
+#### P2 — rules and sound
+
+- [ ] `P14-030` Model direction-aware centre-line and no-overtaking semantics in map data and
+  render from the same source. Document the implemented subset of Czech Act 361/2000 §17 and
+  Decree 294/2015 markings. Acceptance: deterministic tests for broken/solid/combined lines,
+  junction and crossing restrictions, plus rendered agreement.
+- [ ] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
+  return distance, oncoming speed, sight distance and weather; retain state hysteresis.
+  Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or
+  overlap, and the 30-minute soak passes.
+- [ ] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
+  verified redistribution rights and manifest provenance. Acceptance: reproducible audio
+  captures show smooth starts, sweeps, shifts and overrun without clipping or loop seams.
+- [ ] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
+  mixing. Acceptance: deterministic level/spectrum tests and listening review across modes;
+  debug telemetry exposes layer gains without normal-play clutter.
+- [ ] `P14-042` Polish snow and fog visual/audio integration without removing either.
+  Acceptance: captured rain, snow, fog, night combinations remain readable and performant.
+
+#### P3 — measure, then optimize
+
+- [ ] `P14-050` Record real-GPU hardware/driver/renderer, FPS, frame, CPU update, project draw
+  submission, object, submission, triangle, mirror, traffic and pedestrian counts for exterior,
+  cockpit, dense town, forest, night, rain, snow, fog, pedestrian, walking, helicopter and a
+  realistic worst case. Acceptance: same seed/settings/camera are reproducible; unavailable
+  hardware is recorded as unavailable, never substituted with software figures.
+- [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
+  batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
+  percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.
+- [ ] `P14-052` Recheck all available CNA renderers after visual/performance changes through
+  the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
+  renderer-specific application branch.
+
+#### P4 — final audit
+
+- [ ] `P14-060` Run clean configure/build, complete tests and static checks, map validation,
+  smoke, 30-minute traffic soak, representative runtime and practical ASan/UBSan core suites;
+  fix findings. Acceptance: command log and exceptions are explicit.
+- [ ] `P14-061` Curate before/after screenshots and update architecture, audio provenance,
+  performance, conformance, README and handoff. Acceptance: docs distinguish measured GPU
+  results from software runs and agree on accepted features.
+- [ ] `P14-062` Commit and push logical increments; from the *last* pushed SHA make a genuinely
+  fresh clone, configure, build, run all checks and representative scenes. Acceptance: clean
+  working tree and exactly one advertised final SHA, audited after the final commit.

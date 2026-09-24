@@ -43,6 +43,7 @@ add_library(carsim_core STATIC
     src/Traffic/RouteDriver.cpp
     src/Traffic/SignalController.cpp
     src/Traffic/TrafficSystem.cpp
+    src/Traffic/TrafficOvertaking.cpp
 )
 target_include_directories(carsim_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(carsim_core PUBLIC CNA::Math CNA::CoreHeaders SharpRuntime::Text.Json)

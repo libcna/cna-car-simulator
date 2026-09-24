@@ -44,12 +44,10 @@ filtering. Older sets are kept in `docs/screenshots/m10-baseline/` (before Phase
 
 ## Status
 
-The initial product milestone, the realism and production-quality phase (Phase 11), the living
-world (Phase 12: day and night, weather, traffic signals, four more settlements) and the real
-hardware, visual realism and driving polish pass (Phase 13) are all complete. Every feature
-listed below exists, runs from a clean checkout, is covered by automated tests where a test is
-meaningful, and was verified in screenshots. [`plan.md`](plan.md) is the authoritative task
-ledger; nothing in this README claims a feature that `plan.md` does not mark as done.
+The initial product milestone and Phases 11–13 are complete. Phase 14, which is improving the
+architecture, world, cockpit, traffic rules, audio and measured performance, is in progress.
+[`plan.md`](plan.md) is the task ledger. The newer features listed below are accepted product
+scope, including work added after the Phase 13 audit.
 
 **All performance figures and every picture in this repository come from a headless container
 with no GPU** (Xvfb, Mesa llvmpipe software rasterisation). They describe a software rasteriser,
@@ -61,7 +59,9 @@ What you get today:
 
 - One drivable car, the fictional **Lipan 1.2** (a small four-cylinder hatchback defined in
   `content/vehicles/lipan_12.json`), with a project-owned rigid-body, suspension, tyre,
-  engine, clutch, manual and automatic gearbox, fuel, thermal and electrical simulation.
+  engine, clutch, manual and automatic gearbox, fuel, thermal and electrical simulation. Turbo,
+  ultra turbo and ultra ultra turbo are intentional optional modes; the ordinary car remains the
+  baseline. A helicopter mode and an on-foot exploration mode are also available.
 - One map, a 6.4 x 7.6 km region around the town of **Lipová**: a cobbled square with the
   church, a memorial column, town houses and parked cars, a prefab estate, shops, a filling
   station on the eastern approach, bus stops and a wayside chapel at the signalised eastern
