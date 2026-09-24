@@ -211,3 +211,31 @@ In clear day, the main-view world pass (6.4–6.8 ms), traffic pass (~3.0 ms) an
 (5.3 ms) dominate the project draw timer. No Phase 14 batching has been performed from these
 numbers alone. Forest, snow, fog, walking, aerial and pedestrian-heavy cases remain to be
 measured before a global draw-call decision.
+
+### Phase 14 supplemental views and counter coverage
+
+The following fixed-camera runs use the same Radeon 780M, OPENGLES3, 1280 × 720 and high
+quality. They are shorter (30–60 measured frames after 30 warm-up frames) than the eight-scene
+suite and were used to locate visual/performance risks, not to claim a stable FPS ranking.
+The desktop sometimes throttled the unfocused window to one present per second. Project draw
+submission is CPU time inside `Draw`, not a GPU execution timer.
+
+| View | State | Project draw submission | Main-view instrumented draws / triangles | Extra evidence |
+| --- | --- | ---: | ---: | --- |
+| Forest roadside | clear | 5.84 ms | 485 / 533k | 80 visible tree batches, ~7 traffic cars; wall time throttled |
+| Forest roadside | snow | 6.30 ms | 703 / 531k | 80 tree batches; 17.09 ms wall average in this run |
+| Town fixed view | dense fog, before tree cull | 7.06 ms | 849 / 833k | 33 tree batches; white distant foliage in screenshot |
+| Town fixed view | dense fog, after tree cull | 12.24 ms | 822 / 829k | 6 tree batches; CPU timing varied, so no timing win is claimed |
+| Square pedestrian view | old people | 9.52 ms | not retained | 12 people drawn, 105 pedestrian submissions / 14.9k triangles |
+| Square pedestrian view | rounded people | 12.50–12.81 ms | not retained | 12 people drawn, 129 pedestrian submissions / 18.9k triangles; other passes varied |
+| Square walking camera | clear | 8.50 ms | 883 / 859k | 36 people alive, 4 drawn, 42 pedestrian submissions |
+| Helicopter aerial camera | clear | 19.26 ms | 1424 / 1.28M | World 9.84 ms, traffic 8.57 ms, 26 parked cars visible |
+
+The main-view draw and triangle columns still exclude pedestrians. A separate
+`pedestriansAvg` object in current benchmark JSON records alive/drawn people plus their
+main-view submissions and triangles. Mirror, signal and weather submissions are also not
+included in `drawCallsAvg`. The pedestrian comparison shows the geometry cost of a nicer
+silhouette; the project draw timer varied with world/traffic work and window scheduling, so
+the table does not assign its whole 3 ms difference to the pedestrian change. Aerial viewing
+is the highest measured project submission case here, with both world and traffic needing
+further investigation before batching decisions.

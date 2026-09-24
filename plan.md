@@ -1576,10 +1576,18 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [ ] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Acceptance: town,
   countryside and forest comparison images look less tiled/repetitive; no collision or lane
   geometry change; wet and snow variants remain coherent.
-- [ ] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
-  readability. Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
+- [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
+  readability. The 420 km/h scale now uses legible label spacing while keeping fine ticks;
+  odometer/trip text fits its display, and the wheel position and night cabin illumination
+  expose more of the controls. Fixed noon and night GPU captures are in
+  `docs/screenshots/phase14/`. More geometry and weather review remain.
+  Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
-- [ ] `P14-023` Polish pedestrians and walking movement/collision/camera. Acceptance: people no
+- [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
+  torso and head geometry replaces box silhouettes; walking now accelerates and stops smoothly
+  and a deterministic `--walk` capture path exists. Pedestrian draw cost is separately measured
+  on the GPU. See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
+  Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
   pass; helicopter access remains unchanged.
 
@@ -1603,10 +1611,17 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [ ] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
   verified redistribution rights and manifest provenance. Acceptance: reproducible audio
   captures show smooth starts, sweeps, shifts and overrun without clipping or loop seams.
-- [ ] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
-  mixing. Acceptance: deterministic level/spectrum tests and listening review across modes;
+- [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
+  mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
+  authored ground roughness and road snow cover for bounded tread and scrub textures; deterministic
+  tests show gravel, snow and sliding differ from dry asphalt. Wind, traffic, cabin and rotor
+  mixing still need substantial listening and development.
+  Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
-- [ ] `P14-042` Polish snow and fog visual/audio integration without removing either.
+- [~] `P14-042` Polish snow and fog visual/audio integration without removing either.
+  Dense fog now culls alpha-tested tree chunks with the visibility horizon; fixed-camera GPU
+  captures show fewer floating pale tree cards (33 to 6 visible tree batches). Snow gains a
+  separate tyre texture. The forest fog edge and mixed low-light conditions still need review.
   Acceptance: captured rain, snow, fog, night combinations remain readable and performant.
 
 #### P3 — measure, then optimize
@@ -1619,8 +1634,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   First eight town scenes measured on Debian 13/Radeon 780M/Mesa 25.0.7/OPENGLES3 at
   `2fa9ddd`, documented in `docs/performance.md`. Clear day: 10.53 ms exterior and 16.26 ms
   cockpit project draw submission; mirror 5.33 ms. Night wall-clock FPS is invalid where the
-  desktop throttled the unfocused window. Counts omit some passes; remaining scenarios and
-  corrected whole-frame instrumentation are open.
+  desktop throttled the unfocused window. Supplemental forest, snow, fog, pedestrian, walking
+  and aerial views are now documented; pedestrian main-view counts are exported separately.
+  Counts still omit some passes, and worst-case, controlled whole-frame and unthrottled night
+  measurements are open.
 - [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.

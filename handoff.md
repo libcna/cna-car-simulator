@@ -212,7 +212,12 @@ door and quieter plaster. The first real GPU baseline was run at `2fa9ddd` on th
 AMD Radeon 780M desktop: clear-town project draw submission was 10.5 ms exterior and 16.3 ms
 cockpit, of which the mirror took 5.3 ms. See `docs/performance.md` for all eight scenes and
 window-throttling caveats. The restricted shell itself has no `/dev/dri`; desktop `:0` does.
-Cockpit, pedestrian, walking, audio, forest, snow and fog work remain open in `plan.md`.
+The next increments polished walking acceleration, rounded pedestrian silhouettes, dense-fog
+foliage culling, cockpit label spacing and night visibility, and tyre textures for gravel, snow
+and wheel slip. Matched GPU screenshots are in `docs/screenshots/phase14/`; supplemental forest,
+snow, fog, pedestrian, walking and aerial measurements are in `docs/performance.md`. The full
+six-test suite passed after these changes. Cockpit, pedestrian, audio, forest and weather
+quality still have substantial open work in `plan.md`.
 
 ## Working conventions that kept things sane
 

@@ -30,8 +30,9 @@ ran dry during a slow frame and the stream played gaps.
   sample rate are skipped; a 1.8 kHz low-pass tames high rpm.
 - Exhaust pulse train: a short decaying noise burst with a resonant thump (about 95-160 Hz)
   triggered at every firing event; amplitude follows load.
-- Intake hiss (low-passed noise) follows the throttle; valve-train whine at order 7.5 follows
-  rpm.
+- A quiet valve-train whine at order 7.5 follows rpm. The older continuous broadband intake
+  hiss was removed because it made idle sound like a constant leak; the pulse train provides
+  the irregular exhaust texture.
 - Starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine model's
   cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition to
   `Running`.
@@ -54,7 +55,9 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
 - **Surface rolling noise** (`SurfaceRoughness`): the tyre noise amplitude is scaled by the
   average roughness of the grounded wheels' contact surfaces (asphalt 1.0, concrete 1.1,
   grass 1.4, dirt 1.6, cobbles 1.7, gravel 1.8). Surfaces come from the wheel snapshot
-  (`WheelPose::surface`), so leaving the road onto a verge is audible at once.
+  (`WheelPose::surface`), so leaving the road onto a verge is audible at once. Phase 14 also
+  adds a bounded granular tread layer on coarse surfaces and packed snow; the mean absolute
+  grounded-wheel slip drives a brighter scrub layer. Both fade across audio blocks.
 - **Brake hiss** (`BrakeHissGain`): noise low-passed at 1.4 kHz with gain
   0.16 x pedal^2 x min(speed/60, 1), silent when stopped; the gain ramps linearly across each
   block so pedal taps do not click.
@@ -64,7 +67,8 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
 
 - Tyres: white noise through two low-pass poles at 250 + 6 x km/h Hz (a roar, not a hiss),
   amplitude growing with speed to the power 1.5 up to its cap at 100 km/h, scaled by surface
-  roughness and muted in the air.
+  roughness and muted in the air. A separate low-passed granular layer responds to gravel,
+  cobbles and snow; a high-passed layer follows contact-patch slip and softens on snow.
 - Wind: noise high-passed at 250 Hz and low-passed twice at 1400 Hz, growing with the cube of
   speed up to its cap at 130 km/h.
 - `carsim-simtrace engine-sound` reports each layer's level and its share of energy above 2 and
@@ -85,13 +89,15 @@ follows camera switches over 0.25 s so `C` never clicks.
 ## Levels
 
 `AudioLevels`: master 0.8, engine 1.0, effects 1.0, cockpit attenuation 0.55, cockpit
-low-pass 1700 Hz. Settings persistence arrives with M9.
+low-pass 1700 Hz. Master, engine and effects levels persist in the save file.
 
 ## Tests
 
 `tests/Audio/EngineSynthTests.cpp`: silence when off and fade-in when running; the firing
 frequency dominates the spectrum at 1500/3000/4500 rpm; load increases loudness; block
 boundaries are continuous; clips are bounded and short; rolling noise grows with speed.
+The Phase 14 rolling test compares steady dry asphalt, gravel, packed snow and full slip,
+also checking bounded level and reduced airborne tyre sound.
 `tests/Audio/AudioLayersTests.cpp`: the shift dip cuts to 0.2 and recovers within 0.26 s; the
 overrun gate fires only on overrun and on 15-55 % of blocks; brake hiss grows with pedal and
 speed and is bounded; surface roughness ordering (gravel > grass > asphalt, cobbles > concrete).

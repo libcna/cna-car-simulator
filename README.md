@@ -89,7 +89,7 @@ What you get today:
 - Physical collisions with buildings, street furniture, trees and traffic cars; hard knocks dent
   the body where it was hit and break the lamps (`Backspace` puts the car back on the road repaired).
 - Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
-  horn, gear and impact sounds.
+  horn, gear and impact sounds; tyre tread and scrub respond to rough ground, snow and slip.
 - Persistent odometer, trip, transmission mode and settings; key bindings configurable in the
   save file; in-game help and debug overlays.
 
@@ -148,6 +148,7 @@ cna-car-simulator [options]
                                             autopilot and exit at its end; --route-stay keeps going
   --quality <tier>                          graphics tier: low, medium or high (default: saved)
   --cockpit                                 start in the cockpit camera
+  --walk                                    start on foot at a valid parked spawn
   --help-overlay --debug-overlay            start with an overlay open
   --benchmark [--benchmark-json <file>]     print frame-time statistics at exit (and write JSON)
   --mirror-every <n>                        redraw the rear-view mirror every n frames
