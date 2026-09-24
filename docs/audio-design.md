@@ -86,6 +86,24 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
 Inside the car the mix is attenuated to 55 % and low-passed at 1.7 kHz (one-pole); the blend
 follows camera switches over 0.25 s so `C` never clicks.
 
+## Nearby traffic (Phase 14)
+
+`TrafficAudio` is a device-independent spatial layer mixed into the same XNA stereo stream.
+The game supplies each active traffic vehicle's pose, velocity, speed, acceleration and heavy
+vehicle flag after traffic updates. At most six vehicles within 90 m are audible at once;
+another six voice slots allow departing cars to fade while new ones approach. Existing voice
+IDs keep their oscillator phase across blocks. Sound frequency follows speed with a small
+relative-velocity shift, buses and lorries have a lower/stronger engine, and left/right gain
+follows the vehicle's direction from the listener. A 90 ms gain envelope removes entry/exit
+clicks. The cabin attenuates this outdoor layer more than the player's own engine. A soft
+ceiling handles unusually loud overlaps instead of hard PCM clipping. The F3 overlay reports
+active traffic voices. No traffic synthesis runs when audio is disabled.
+
+The fixed 90-frame offscreen runtime with 19–20 cars and the dummy audio device reported a
+0.37 ms mean project audio update (320 × 200, OPENGLES3 llvmpipe); this is CPU mixer time, not
+a real speaker listening review. The source remains fully procedural, and the wider engine,
+weather, cabin and helicopter sound goals in Phase 14 remain open.
+
 ## Levels
 
 `AudioLevels`: master 0.8, engine 1.0, effects 1.0, cockpit attenuation 0.55, cockpit
@@ -98,6 +116,8 @@ frequency dominates the spectrum at 1500/3000/4500 rpm; load increases loudness;
 boundaries are continuous; clips are bounded and short; rolling noise grows with speed.
 The Phase 14 rolling test compares steady dry asphalt, gravel, packed snow and full slip,
 also checking bounded level and reduced airborne tyre sound.
+`tests/Audio/TrafficAudioTests.cpp` checks stereo direction, distance falloff, six-voice
+prioritisation, fade-out, finite level and cabin attenuation in the integrated vehicle mixer.
 `tests/Audio/AudioLayersTests.cpp`: the shift dip cuts to 0.2 and recovers within 0.26 s; the
 overrun gate fires only on overrun and on 15-55 % of blocks; brake hiss grows with pedal and
 speed and is bounded; surface roughness ordering (gravel > grass > asphalt, cobbles > concrete).

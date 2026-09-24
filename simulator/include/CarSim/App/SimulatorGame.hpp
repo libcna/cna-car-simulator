@@ -130,6 +130,7 @@ namespace CarSim::App
         std::unique_ptr<Traffic::Pedestrians> pedestrians_;
         std::unique_ptr<Render::PedestrianRenderer> pedestrianRenderer_;
         std::unique_ptr<Audio::VehicleAudio> audio_;
+        std::vector<Audio::TrafficSoundSource> trafficAudioSources_;
         std::vector<Collision::ContactEvent> contactEvents_;
         int collisionCount_ = 0;
         float lastImpactSpeed_ = 0.0f;

@@ -226,6 +226,11 @@ Flight entry/exit and flight stepping were subsequently isolated in `VehicleFlig
 existing helicopter and turbo drive tests pass, and the fixed aerial frame is byte-identical
 before and after. Regular car stepping still lives in `Vehicle.cpp`.
 
+The procedural audio mixer now includes a bounded six-voice nearby traffic layer, spatial
+stereo placement, smooth entry/exit and stronger cabin attenuation, with deterministic DSP
+tests. A 90-frame dummy-audio runtime with 19–20 traffic cars reported a 0.37 ms mean audio
+update; no real-speaker listening review has been claimed yet.
+
 ## Working conventions that kept things sane
 
 - Every rendering change: capture before/after, compare pixel samples or half-size images,

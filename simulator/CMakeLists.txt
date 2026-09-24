@@ -7,6 +7,7 @@ add_library(carsim_core STATIC
     src/Audio/AudioLayers.cpp
     src/Audio/EngineSynth.cpp
     src/Audio/SoundSynth.cpp
+    src/Audio/TrafficAudio.cpp
     src/Collision/CollisionWorld.cpp
     src/Collision/Shapes.cpp
     src/Core/CommandLine.cpp

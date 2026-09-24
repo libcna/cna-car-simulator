@@ -1246,6 +1246,20 @@ namespace CarSim::App
         cockpitCamera_.Update(state, definition_, dt);
         stageClock = std::chrono::steady_clock::now();
         if (audio_) {
+            if (audio_->Enabled()) {
+                trafficAudioSources_.clear();
+                if (traffic_) {
+                    for (const auto& car : traffic_->Vehicles()) {
+                        trafficAudioSources_.push_back(Audio::TrafficSoundSource{car.id, car.position, car.Velocity(),
+                                                                                car.speed, car.acceleration, car.Heavy()});
+                    }
+                }
+                const Vector3 listener = walking_ ? walkingPosition_ : state.originPosition;
+                const Vector3 listenerVelocity = walking_ ? Vector3(0.0f, 0.0f, 0.0f) : state.velocity;
+                const Vector3 right = walking_ ? Vector3(std::cos(walkingYaw_), 0.0f, -std::sin(walkingYaw_)) :
+                                                 state.worldMatrix.getRightProperty();
+                audio_->SetTrafficScene(trafficAudioSources_, listener, listenerVelocity, right);
+            }
             audio_->Update(state, !walking_ && cameraMode_ == Render::CameraMode::Cockpit, contactEvents_, dt);
         }
         stage(audioMs_);

@@ -5,12 +5,14 @@
 
 #include "CarSim/Audio/EngineSynth.hpp"
 #include "CarSim/Audio/SoundSynth.hpp"
+#include "CarSim/Audio/TrafficAudio.hpp"
 #include "CarSim/Collision/CollisionWorld.hpp"
 #include "CarSim/Sim/Vehicle.hpp"
 
 #include "Microsoft/Xna/Framework/Audio/DynamicSoundEffectInstance.hpp"
 
 #include <memory>
+#include <span>
 #include <vector>
 
 namespace CarSim::Audio
@@ -50,9 +52,14 @@ namespace CarSim::Audio
         /// Falling rain (0..1) and how wet the road is (0..1): rain hisses on the roof and the
         /// screen, a wet road adds spray under the wheels. Set once per frame from the weather.
         void SetWeather(float rain, float wetness, float snowCover = 0.0f);
+        void SetTrafficScene(std::span<const TrafficSoundSource> sources,
+                             const Microsoft::Xna::Framework::Vector3& listener,
+                             const Microsoft::Xna::Framework::Vector3& listenerVelocity,
+                             const Microsoft::Xna::Framework::Vector3& listenerRight);
         [[nodiscard]] bool Enabled() const { return enabled_; }
         [[nodiscard]] int BlocksSubmitted() const { return blocksSubmitted_; }
         [[nodiscard]] int Underruns() const { return underruns_; }
+        [[nodiscard]] int TrafficVoices() const { return traffic_.ActiveVoices(); }
 
         /// Renders one block into `stereo` (interleaved, 2 * frames floats) — public for tests.
         void RenderBlock(std::vector<float>& stereo, const Sim::VehicleState& state, bool cockpit);
@@ -72,6 +79,7 @@ namespace CarSim::Audio
         std::unique_ptr<Microsoft::Xna::Framework::Audio::DynamicSoundEffectInstance> stream_;
         EngineSynth engine_{kSampleRate};
         RollingNoise rolling_{kSampleRate};
+        TrafficAudio traffic_{kSampleRate};
         HornVoice horn_{kSampleRate};
         Clip tick_, tock_, clunk_, catch_, footstep_;
         std::vector<Clip> impacts_;
@@ -79,6 +87,7 @@ namespace CarSim::Audio
         OnePoleLowPass cabinLeft_, cabinRight_;
         std::vector<float> mono_;
         std::vector<float> stereo_;
+        std::vector<float> trafficStereo_;
         std::vector<SharpRuntime::bytecs> pcm_;
         int blocksSubmitted_ = 0;
         int underruns_ = 0;

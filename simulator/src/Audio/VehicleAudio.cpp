@@ -29,6 +29,7 @@ namespace CarSim::Audio
         cabinRight_.SetCutoff(levels.cockpitLowPassHz, kSampleRate);
         mono_.assign(kBlockFrames, 0.0f);
         stereo_.assign(kBlockFrames * 2, 0.0f);
+        trafficStereo_.assign(kBlockFrames * 2, 0.0f);
         pcm_.assign(static_cast<std::size_t>(kBlockFrames) * 4, 0);
         if (!enabled) {
             return;
@@ -65,6 +66,14 @@ namespace CarSim::Audio
         rain_ = std::clamp(rain, 0.0f, 1.0f);
         wetness_ = std::clamp(wetness, 0.0f, 1.0f);
         snowCover_ = std::clamp(snowCover, 0.0f, 1.0f);
+    }
+
+    void VehicleAudio::SetTrafficScene(const std::span<const TrafficSoundSource> sources,
+                                       const Microsoft::Xna::Framework::Vector3& listener,
+                                       const Microsoft::Xna::Framework::Vector3& listenerVelocity,
+                                       const Microsoft::Xna::Framework::Vector3& listenerRight)
+    {
+        traffic_.SetScene(sources, listener, listenerVelocity, listenerRight);
     }
 
     void VehicleAudio::Trigger(const Clip& clip, const float gain)
@@ -301,8 +310,18 @@ namespace CarSim::Audio
             const float r = cabinRight_.Process(dry);
             const float outL = (dry + (l - dry) * cockpitBlend_) * insideGain;
             const float outR = (dry + (r - dry) * cockpitBlend_) * insideGain;
-            stereo[static_cast<std::size_t>(i) * 2] = std::clamp(outL, -1.0f, 1.0f);
-            stereo[static_cast<std::size_t>(i) * 2 + 1] = std::clamp(outR, -1.0f, 1.0f);
+            stereo[static_cast<std::size_t>(i) * 2] = outL;
+            stereo[static_cast<std::size_t>(i) * 2 + 1] = outR;
+        }
+        std::fill(trafficStereo_.begin(), trafficStereo_.end(), 0.0f);
+        traffic_.Render(trafficStereo_.data(), kBlockFrames);
+        const float trafficGain = levels.effects * insideGain * (1.0f - 0.55f * cockpitBlend_);
+        for (std::size_t i = 0; i < stereo.size(); ++i) {
+            const float mixed = stereo[i] + trafficStereo_[i] * trafficGain;
+            // Leave ordinary levels untouched; approach the PCM ceiling smoothly only for
+            // unusually loud overlaps of horn, collision and several nearby engines.
+            const float magnitude = std::fabs(mixed);
+            stereo[i] = magnitude <= 0.9f ? mixed : std::copysign(0.9f + 0.1f * std::tanh((magnitude - 0.9f) * 10.0f), mixed);
         }
     }
 

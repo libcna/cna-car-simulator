@@ -190,8 +190,8 @@ namespace CarSim::App
                                  static_cast<double>(vehicleMs_), static_cast<double>(collisionMs_),
                                  static_cast<double>(trafficMs_), static_cast<double>(audioMs_)));
         if (audio_ && audio_->Enabled()) {
-            row("audio stream", text("%d blocks queued ahead, %d underruns so far",
-                                     Audio::VehicleAudio::kTargetPendingBlocks, audio_->Underruns()));
+            row("audio stream", text("%d blocks queued ahead, %d underruns, %d traffic voices",
+                                     Audio::VehicleAudio::kTargetPendingBlocks, audio_->Underruns(), audio_->TrafficVoices()));
         }
         row("draw split", text("sky %.2f  world %.2f  traffic %.2f  car %.2f  hud %.2f ms",
                                static_cast<double>(passMs_[kPassSky]), static_cast<double>(passMs_[kPassWorld]),

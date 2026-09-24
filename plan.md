@@ -1625,8 +1625,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
   mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
   authored ground roughness and road snow cover for bounded tread and scrub textures; deterministic
-  tests show gravel, snow and sliding differ from dry asphalt. Wind, traffic, cabin and rotor
-  mixing still need substantial listening and development.
+  tests show gravel, snow and sliding differ from dry asphalt. Up to six nearby AI vehicles now
+  contribute stereo, distance-faded engine voices (heavier for buses/lorries); the cabin
+  attenuates these more than the player's car, and the F3 overlay shows the active count.
+  A 90-frame dummy-audio runtime with ~20 cars measured 0.37 ms mean mixer update. Engine,
+  wind, weather, cabin and rotor mixing still need substantial listening and development.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.
