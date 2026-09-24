@@ -128,7 +128,7 @@ namespace CarSim::Render
                     look.specularPower = 20.0f;
                     break;
                 case CarMaterial::Interior:
-                    look.diffuse = interiorColor * 1.15f;
+                    look.diffuse = interiorColor * 1.50f + Vector3(0.015f, 0.015f, 0.015f);
                     look.specular = Vector3(0.06f, 0.06f, 0.06f);
                     look.specularPower = 8.0f;
                     break;
@@ -338,7 +338,9 @@ namespace CarSim::Render
         paint_->setFresnelFactorProperty(2.2f);
         // The cabin keeps its softer, flatter light, scaled by the outside light level.
         rig.Apply(*interiorLit_);
-        const float level = std::clamp((rig.skyAmbient.Y + rig.skyFillColor.Y) / 0.41f, 0.10f, 1.0f);
+        // The instruments and faint exterior spill still reveal the top of the wheel and the
+        // controls at night. A 0.10 floor left the entire lower dashboard almost pure black.
+        const float level = std::clamp((rig.skyAmbient.Y + rig.skyFillColor.Y) / 0.41f, 0.65f, 1.0f);
         interiorLit_->setAmbientLightColorProperty(Vector3(0.50f, 0.51f, 0.55f) * level);
         interiorLit_->getDirectionalLight0Property().setDiffuseColorProperty(rig.sunColor * 0.65f);
         interiorLit_->getDirectionalLight0Property().setSpecularColorProperty(rig.sunColor * 0.3f);

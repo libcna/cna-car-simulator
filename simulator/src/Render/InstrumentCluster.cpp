@@ -286,7 +286,7 @@ namespace CarSim::Render
     }
 
     void InstrumentCluster::DrawDialFace(SpriteBatch& batch, const Dial& dial, const float maxValue, const float majorStep, const float minorStep,
-                                         const float labelScale, const float labelDivisor, const float redFrom) const
+                                         const float labelStep, const float labelScale, const float labelDivisor, const float redFrom) const
     {
         DrawFace(batch, dial, 12.0f);
         // Red zone arc as dense short ticks.
@@ -303,7 +303,7 @@ namespace CarSim::Render
             DrawTick(batch, dial, a, dial.radius - (major ? 26.0f : 20.0f), major ? 18.0f : 10.0f, major ? 4.0f : 2.0f, major ? kTickWhite : kTickDim);
         }
         // Labels.
-        for (float v = 0.0f; v <= maxValue + 1e-3f; v += majorStep) {
+        for (float v = 0.0f; v <= maxValue + 1e-3f; v += labelStep) {
             const float a = dial.startDeg + dial.sweepDeg * (v / maxValue);
             const Vector2 p = Polar(dial.centre, a, dial.radius - 52.0f);
             char text[16];
@@ -365,8 +365,12 @@ namespace CarSim::Render
         device.Clear(Color(12, 12, 14, 255));
         batch.Begin(SpriteSortMode::Deferred, BlendState::AlphaBlend, &SamplerState::LinearClamp, &DepthStencilState::None, &RasterizerState::CullNone);
         const auto& dash = definition_.dashboard;
-        DrawDialFace(batch, speedo_, dash.speedometerMaxKmh, 20.0f, 10.0f, 0.34f, 1.0f, dash.speedometerMaxKmh + 1.0f);
-        DrawDialFace(batch, tacho_, dash.tachometerMaxRpm, 1000.0f, 250.0f, 0.42f, 1000.0f, definition_.engine.redlineRpm);
+        // The 420 km/h extreme-mode scale remains accurate, but printing every 20 km/h made
+        // the numbers collide. Keep the fine ticks and label every third major division.
+        const float speedLabelStep = dash.speedometerMaxKmh > 300.0f ? 60.0f :
+                                     (dash.speedometerMaxKmh > 240.0f ? 40.0f : 20.0f);
+        DrawDialFace(batch, speedo_, dash.speedometerMaxKmh, 20.0f, 10.0f, speedLabelStep, 0.44f, 1.0f, dash.speedometerMaxKmh + 1.0f);
+        DrawDialFace(batch, tacho_, dash.tachometerMaxRpm, 1000.0f, 250.0f, 1000.0f, 0.42f, 1000.0f, definition_.engine.redlineRpm);
         // Small gauges: three ticks each (E / half / F, cold / mid / hot).
         for (const Dial* d : {&fuel_, &temp_}) {
             DrawFace(batch, *d, 5.0f);
@@ -421,9 +425,11 @@ namespace CarSim::Render
         // Central display: odometer, trip, gear and mode.
         char text[48];
         std::snprintf(text, sizeof(text), "%08.1f km", state.odometerKm);
-        textFont_.Draw(batch, text, Vector2(512.0f, 176.0f), Color(220, 225, 210, 255), 0.95f, TextAlign::Center);
+        const float odoScale = std::min(0.72f, 112.0f / std::max(1.0f, textFont_.Measure(text).X));
+        textFont_.Draw(batch, text, Vector2(512.0f, 176.0f), Color(220, 225, 210, 255), odoScale, TextAlign::Center);
         std::snprintf(text, sizeof(text), "TRIP %6.1f km", state.tripKm);
-        textFont_.Draw(batch, text, Vector2(512.0f, 208.0f), Color(180, 185, 170, 255), 0.75f, TextAlign::Center);
+        const float tripScale = std::min(0.62f, 112.0f / std::max(1.0f, textFont_.Measure(text).X));
+        textFont_.Draw(batch, text, Vector2(512.0f, 208.0f), Color(180, 185, 170, 255), tripScale, TextAlign::Center);
         boldFont_.Draw(batch, state.gearLabel, Vector2(512.0f, 236.0f), ignition ? Color(240, 240, 235, 255) : Color(120, 120, 120, 255), 1.15f, TextAlign::Center);
         textFont_.Draw(batch, state.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL", Vector2(512.0f, 292.0f),
                        Color(180, 185, 170, 255), 0.75f, TextAlign::Center);

@@ -63,7 +63,7 @@ namespace CarSim::Render
 
         void BuildStatic(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, Microsoft::Xna::Framework::Graphics::SpriteBatch& batch);
         void DrawDialFace(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, const Dial& dial, float maxValue, float majorStep,
-                          float minorStep, float labelScale, float labelDivisor, float redFrom) const;
+                          float minorStep, float labelStep, float labelScale, float labelDivisor, float redFrom) const;
         void DrawTick(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, const Dial& dial, float angleDeg, float innerRadius,
                       float length, float thickness, const Microsoft::Xna::Framework::Color& color) const;
         void DrawFace(Microsoft::Xna::Framework::Graphics::SpriteBatch& batch, const Dial& dial, float bezelWidth) const;
