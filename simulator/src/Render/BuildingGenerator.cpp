@@ -20,12 +20,6 @@ namespace CarSim::Render
     {
         const Color kWhite(255, 255, 255, 255);
 
-        struct Frame
-        {
-            Matrix toWorld;
-            void Append(MeshData& dst, MeshData& local) const { dst.Append(local, toWorld); }
-        };
-
         /// Axis-aligned box in local space with per-face UVs in metres.
         void Box(MeshData& m, const Vector3& min, const Vector3& max, const float uvScale = 0.5f)
         {
@@ -647,6 +641,48 @@ namespace CarSim::Render
             }
             Window(glass, Vector3(0.0f, towerH - 2.0f, hd + tw * 1.5f), 1.0f, 2.2f, front);
             Door(trim, frames, metal, dark, Vector3(0.0f, 0.0f, hd + tw * 1.5f), chapel ? 1.2f : 2.2f, chapel ? 2.2f : 3.6f, front);
+            // The tower faces the village square. Shallow plaster pilasters and a small
+            // circular window give this otherwise uninterrupted wall a human-scale rhythm.
+            // They join the existing trim/material meshes, so no extra draw pass is needed.
+            const float towerFront = hd + tw * 1.5f;
+            const float reveal = chapel ? 0.08f : 0.13f;
+            const float bandY = chapel ? 3.25f : 4.45f;
+            for (const float side : {-1.0f, 1.0f}) {
+                const float x = side * (tw - 0.38f);
+                Box(frames, Vector3(x - 0.16f, 0.45f, towerFront - 0.01f),
+                    Vector3(x + 0.16f, std::min(towerH - 1.0f, h + ridge * 0.7f), towerFront + reveal), 1.0f);
+                Box(frames, Vector3(x - 0.25f, bandY - 0.12f, towerFront - 0.02f),
+                    Vector3(x + 0.25f, bandY + 0.12f, towerFront + reveal + 0.04f), 1.0f);
+            }
+            Box(frames, Vector3(-tw - 0.03f, bandY - 0.07f, towerFront - 0.02f),
+                Vector3(tw + 0.03f, bandY + 0.07f, towerFront + 0.11f), 1.0f);
+            const float oculusY = chapel ? 4.7f : 6.1f;
+            const float oculusR = chapel ? 0.46f : 0.72f;
+            frames.AddCylinder(Vector3(0.0f, oculusY, towerFront + 0.015f), front, oculusR, 0.075f, 20, true);
+            dark.AddCylinder(Vector3(0.0f, oculusY, towerFront + 0.09f), front, oculusR - 0.12f, 0.018f, 20, true);
+            metal.AddBox(Vector3(-0.027f, oculusY - oculusR + 0.12f, towerFront + 0.11f),
+                         Vector3(0.027f, oculusY + oculusR - 0.12f, towerFront + 0.135f), 1.0f);
+            metal.AddBox(Vector3(-oculusR + 0.12f, oculusY - 0.027f, towerFront + 0.11f),
+                         Vector3(oculusR - 0.12f, oculusY + 0.027f, towerFront + 0.135f), 1.0f);
+            if (!chapel) {
+                // A restrained stone portal frames the public entrance. Its capitals and
+                // pediment read from the square without covering the working door leaves.
+                for (const float side : {-1.0f, 1.0f}) {
+                    const float x = side * 1.38f;
+                    Box(concrete, Vector3(x - 0.16f, 0.04f, towerFront + 0.01f),
+                        Vector3(x + 0.16f, 3.72f, towerFront + 0.22f), 1.0f);
+                    Box(concrete, Vector3(x - 0.24f, 3.48f, towerFront + 0.01f),
+                        Vector3(x + 0.24f, 3.78f, towerFront + 0.28f), 1.0f);
+                }
+                Box(concrete, Vector3(-1.79f, 3.76f, towerFront + 0.01f),
+                    Vector3(1.79f, 3.92f, towerFront + 0.30f), 1.0f);
+                const Vector3 n(0.0f, 0.0f, 1.0f);
+                const float z = towerFront + 0.17f;
+                const auto leftCorner = concrete.AddVertex(Vector3(-1.72f, 3.92f, z), n, Vector2(0.0f, 1.0f), kWhite);
+                const auto rightCorner = concrete.AddVertex(Vector3(1.72f, 3.92f, z), n, Vector2(1.0f, 1.0f), kWhite);
+                const auto apex = concrete.AddVertex(Vector3(0.0f, 4.32f, z), n, Vector2(0.5f, 0.0f), kWhite);
+                concrete.AddTriangle(leftCorner, rightCorner, apex);
+            }
         } else {
             const unsigned seed = b.spec->seed;
             const bool hipped = type == "hall" || type == "shop" || (type == "house" && seed % 5u == 0u);

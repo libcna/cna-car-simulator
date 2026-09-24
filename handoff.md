@@ -256,6 +256,11 @@ kept 1215 instrumented draws and added 600 triangles; the map geometry test foun
 repaired pieces and 43,232 coarse overlay vertices. Dry, rain and snow captures are in
 `docs/screenshots/phase14/`; the measured cost and timing limits are in `docs/performance.md`.
 
+The square church's previously bare tower frontage now has shallow plaster pilasters, a
+round cross-barred window and a stone entrance portal. Fixed Radeon before/after frames
+are in `docs/screenshots/phase14/`; the scene retained 1215 instrumented draws and added
+about 540 triangles. The large square and surrounding facades still need visual work.
+
 Helicopter sound now has its own pure-DSP `RotorSynth` instead of an inline sine loop in
 `VehicleAudio`. The accepted turbo-dependent blade cadence and fade remain under integrated
 tests; a filtered blade sweep and restrained turbine layer improve the tonal-only rotor.

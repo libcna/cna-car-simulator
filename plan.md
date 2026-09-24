@@ -1594,6 +1594,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   plaster no longer repeats a high-contrast stain motif over whole walls. The fixed town
   camera at `--view -78 9 -30 50 -6` was captured before and after on Radeon 780M and visually
   inspected. More facade variety and authored frontage context remain.
+  The square-facing church tower now has shallow pilasters, a round window and a restrained
+  stone portal; fixed Radeon before/after frames are in `docs/screenshots/phase14/`. The
+  matched scene kept 1215 instrumented draws and added about 540 triangles (<0.04%).
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic

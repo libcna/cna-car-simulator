@@ -262,3 +262,15 @@ surface changed the fixed snow capture by less than 0.001 mean RGB level per cha
 preventing the overlapping repair quad from receiving snow twice. Rain continues to use the
 detailed road surface. [Before/after and weather captures](screenshots/phase14/README.md)
 document the visible result.
+
+### Phase 14 church frontage geometry
+
+A matched 40-frame Radeon 780M OPENGLES3 capture at the square (1280 × 720, 13:00,
+scattered cloud, fixed `--view -78 9 -30 50 -6`, 20-second traffic warmup) compared the
+church tower before and after adding pilasters, an oculus and a shallow entrance portal.
+Both captures made **1215 instrumented draws**. Reported triangles rose from **1,450.91k**
+to **1,451.45k** (about 540, under 0.04%); the facade joins existing object material
+batches. Project draw submission was 11.78 versus 12.00 ms across ten measured frames. The
+desktop throttled both unfocused runs to about 1.13 s wall time per frame, and this small
+CPU timer difference cannot be attributed to the facade. The [paired screenshots](screenshots/phase14/README.md)
+show the visible change; the large paved square and surrounding facades still need work.

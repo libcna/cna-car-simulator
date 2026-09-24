@@ -15,6 +15,7 @@ OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit 
 | [Cockpit before](cockpit-before.jpg) / [after](cockpit-after.jpg) | Steering wheel position, material separation and dashboard visibility | Stationary noon cockpit at the square |
 | [Cluster before](cluster-before.png) / [after](cluster-after.png) | Fewer colliding speed labels; odometer and trip fit the centre screen | Same 420 km/h instrument scale |
 | [Road before](road-repair-before.jpg) / [after](road-repair-after.jpg) | Sparse resurfaced utility cuts in the existing asphalt mesh | `--view -145 7 4 90 -25`, 13:00, two frames |
+| [Church before](church-before.png) / [after](church-after.png) | Square-facing tower pilasters, circular window and stone entrance portal | `--view -78 9 -30 50 -6`, 13:00, scattered cloud, 40 frames |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
 [helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg) and
