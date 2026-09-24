@@ -347,6 +347,13 @@ retains frame drawing, lighting and composition at 703 lines. Eleven focused roa
 ground-shadow and square tests pass; the same 13:00 Radeon square frame is byte-identical
 before and after (`4a4191f323c93682e0dcf2080abf32893ec1e635640774ae5ec2558bb2dcf234`).
 
+The cabin/exterior audio fade now advances per sample, including spatial traffic, rather
+than jumping once per 1024-sample block. A deterministic engine-plus-traffic test failed
+on both camera-switch directions before the fix and passes afterward. This improves the
+switch boundary; it does not replace the still-needed real-speaker listening and broader
+engine, weather and wind sound work. The full six-part suite and a 90-frame dummy-audio
+runtime pass.
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map

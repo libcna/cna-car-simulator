@@ -289,29 +289,29 @@ namespace CarSim::Audio
         }
         voices_.erase(std::remove_if(voices_.begin(), voices_.end(), [](const Voice& v) { return v.position >= v.clip->samples.size(); }), voices_.end());
 
-        // Cockpit: attenuate and low-pass; blend smoothly when the camera switches.
+        // Cockpit: attenuate and low-pass. Move the blend per sample so a camera switch
+        // starts at the previous acoustic perspective instead of stepping once per block.
         const float target = cockpit ? 1.0f : 0.0f;
-        const float blendStep = static_cast<float>(kBlockFrames) / static_cast<float>(kSampleRate) / 0.25f;
-        cockpitBlend_ += std::clamp(target - cockpitBlend_, -blendStep, blendStep);
-        const float insideGain = 1.0f - cockpitBlend_ * (1.0f - levels.cockpitAttenuation);
+        const float blendStep = 1.0f / (static_cast<float>(kSampleRate) * 0.25f);
+        std::fill(trafficStereo_.begin(), trafficStereo_.end(), 0.0f);
+        traffic_.Render(trafficStereo_.data(), kBlockFrames);
         for (int i = 0; i < kBlockFrames; ++i) {
+            const float blend = cockpitBlend_;
+            const float insideGain = 1.0f - blend * (1.0f - levels.cockpitAttenuation);
             const float dry = mono_[static_cast<std::size_t>(i)] + effects[static_cast<std::size_t>(i)] * levels.effects;
             const float l = cabinLeft_.Process(dry);
             const float r = cabinRight_.Process(dry);
-            const float outL = (dry + (l - dry) * cockpitBlend_) * insideGain;
-            const float outR = (dry + (r - dry) * cockpitBlend_) * insideGain;
-            stereo[static_cast<std::size_t>(i) * 2] = outL;
-            stereo[static_cast<std::size_t>(i) * 2 + 1] = outR;
-        }
-        std::fill(trafficStereo_.begin(), trafficStereo_.end(), 0.0f);
-        traffic_.Render(trafficStereo_.data(), kBlockFrames);
-        const float trafficGain = levels.effects * insideGain * (1.0f - 0.55f * cockpitBlend_);
-        for (std::size_t i = 0; i < stereo.size(); ++i) {
-            const float mixed = stereo[i] + trafficStereo_[i] * trafficGain;
-            // Leave ordinary levels untouched; approach the PCM ceiling smoothly only for
-            // unusually loud overlaps of horn, collision and several nearby engines.
-            const float magnitude = std::fabs(mixed);
-            stereo[i] = magnitude <= 0.9f ? mixed : std::copysign(0.9f + 0.1f * std::tanh((magnitude - 0.9f) * 10.0f), mixed);
+            const float trafficGain = levels.effects * insideGain * (1.0f - 0.55f * blend);
+            for (int channel = 0; channel < 2; ++channel) {
+                const std::size_t index = static_cast<std::size_t>(i) * 2 + static_cast<std::size_t>(channel);
+                const float cabin = channel == 0 ? l : r;
+                const float mixed = (dry + (cabin - dry) * blend) * insideGain + trafficStereo_[index] * trafficGain;
+                // Leave ordinary levels untouched; approach the PCM ceiling smoothly only for
+                // unusually loud overlaps of horn, collision and several nearby engines.
+                const float magnitude = std::fabs(mixed);
+                stereo[index] = magnitude <= 0.9f ? mixed : std::copysign(0.9f + 0.1f * std::tanh((magnitude - 0.9f) * 10.0f), mixed);
+            }
+            cockpitBlend_ += std::clamp(target - cockpitBlend_, -blendStep, blendStep);
         }
     }
 

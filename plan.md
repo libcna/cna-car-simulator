@@ -1714,7 +1714,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Characterization tests cover fade, output bounds and turbo cadence. A 90-frame dummy-audio
   runtime with ~20 cars measured 0.37 ms mean mixer update; a separate 90-frame flight run
   measured 0.332 ms. Engine, wind, weather, cabin and rotor sound still need substantial
-  listening and development.
+  listening and development. A deterministic camera-switch test then exposed a first-sample
+  step in the cabin blend. The 0.25 s fade now advances per sample for engine/effects and
+  the spatial traffic mix; both switch directions start at the previous mix and remain bounded.
+  The complete six-part suite passes. A 90-frame offscreen dummy-audio stream ran without
+  errors and averaged 0.273 ms project audio update at 320 × 200; it has no matched before
+  run and is not a listening or performance comparison.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.

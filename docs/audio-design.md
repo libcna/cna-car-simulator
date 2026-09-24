@@ -115,7 +115,12 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
 ## Cockpit versus exterior
 
 Inside the car the mix is attenuated to 55 % and low-passed at 1.7 kHz (one-pole); the blend
-follows camera switches over 0.25 s so `C` never clicks.
+follows camera switches over 0.25 s. Phase 14 now advances that blend for each audio sample,
+including the independently spatialized traffic layer. Previously the camera change advanced
+the whole 1024-sample block at once, causing a measured 0.0027–0.0033 first-sample jump in
+a deterministic engine-plus-traffic switch test. Both directions now start at exactly the
+previous mix and fade within the first block; the focused test checks the first stereo sample,
+later change and bounded output. Stable inside/outside mix levels are unchanged.
 
 ## Nearby traffic (Phase 14)
 
@@ -165,6 +170,8 @@ The Phase 14 rolling test compares steady dry asphalt, gravel, packed snow and f
 also checking bounded level and reduced airborne tyre sound.
 `tests/Audio/TrafficAudioTests.cpp` checks stereo direction, distance falloff, six-voice
 prioritisation, fade-out, finite level and cabin attenuation in the integrated vehicle mixer.
+`tests/Audio/VehicleAudioMixTests.cpp` checks the first sample and within-block transition
+for both exterior-to-cockpit and cockpit-to-exterior switches with engine and traffic active.
 `tests/Audio/VehicleAudioFlightTests.cpp` checks isolated rotor fade, bounded output, and
 normal versus extreme rotor cadence through the integrated mixer without an audio device.
 `tests/Audio/AudioLayersTests.cpp`: the shift dip cuts to 0.2 and recovers within 0.26 s; the
