@@ -1561,7 +1561,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   (110 method lines) then moved byte-identically into `SimulatorGameWalking.cpp`, bringing
   `SimulatorGame.cpp` from 1615 to 1503 lines. Six focused walking/traffic/flight interaction
   tests pass, and a fixed Radeon walking capture is pixel-identical before and after.
-  The complete six-part suite and all four renderer builds pass.
+  Clock, weather and lighting orchestration (135 method lines) then moved byte-identically to
+  `SimulatorGameEnvironment.cpp`; 21 focused weather, lighting and weather-effect tests pass,
+  and the fixed rainy 20:00 Radeon frame is pixel-identical before and after. The core
+  `SimulatorGame.cpp` is now about 1,370 lines. The complete six-part suite and all four
+  renderer builds pass.
   Acceptance for completion: player-mode and
   environment responsibilities have clear ownership; walking, flight, weather, save and
   benchmark paths still work.

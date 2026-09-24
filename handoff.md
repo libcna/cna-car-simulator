@@ -1,30 +1,30 @@
 # Handoff: cna-car-simulator
 
 Written for an AI agent (or a person) who picks this project up in a fresh context. Read this
-file, then `plan.md` (the authoritative task ledger; section 26 is the current phase) and
+file, then `plan.md` (the authoritative task ledger; section 27 is the active Phase 14) and
 `README.md`. Everything below is verified against the repository state at the time of writing;
 re-verify with `git log` and the ledger before acting.
 
 ## What this project is
 
-A small, realistic passenger-car driving simulator in a fictional Czech landscape, C++23,
+A driving simulator in a fictional Czech landscape, C++23,
 built on the **XNA 4.0-compatible public API** of the CNA framework (branch `next`) and Sharp
-Runtime (branch `next`). One car (Lipan 1.2, procedural), one map (a 6.4 x 7.6 km region around
-Lipová with four more settlements), ambient traffic with working signals, a day and night cycle,
-weather, cockpit with live cluster and mirror, procedural audio. No missions, no economy.
+Runtime (branch `next`). The player car is the procedural Lipan 1.2; AI traffic includes cars,
+buses and lorries on one map (a 6.4 x 7.6 km region around Lipová with four more settlements).
+The accepted scope includes traffic signals and overtaking, pedestrians, player walking,
+helicopter and extreme turbo modes, rain, snow, fog, a day/night cycle, visual damage,
+cockpit with live cluster and mirror, and procedural audio. No missions or economy.
 
 Hard constraints (from the project owner; do not relax):
 
 - Only CNA's XNA 4.0 public API, project-owned code and standard C++. No CNAEXT, no CNA
   renderer internals, no renderer-specific APIs (EasyGL, RLGL, DirectX, SDL graphics internals,
   Vulkan/OpenGL bypasses). `scripts/check_xna_only.py` enforces this and must stay in place.
-- Never remove or weaken tests. Refactor only for concrete defects, with regression tests.
+- Never remove or weaken tests. Extract coherent ownership incrementally, characterize fragile
+  behavior first, and preserve algorithms and accepted features.
 - Legal assets only (everything is generated in code; `scripts/check_assets.py`).
-- Git: work on branch `claude/cna-car-simulator-project-scx0ij`, commit in logical units, push
-  regularly with `git push -u origin <branch>`, never force-push or rewrite history, never open
-  a pull request unless asked. Commit messages end with the attribution trailers the session
-  is given (a `Co-Authored-By:` line and a `Claude-Session:` line); no model identifiers in code
-  or docs.
+- Git: continue on the current `main` branch, commit in logical units and push `origin/main`
+  regularly; never force-push or rewrite history. Do not open a pull request unless asked.
 - Work autonomously; do not stop to ask when a careful colleague would just decide.
 
 ## Repository layout (short)
@@ -35,7 +35,7 @@ simulator/include/CarSim/<Area>/   headers      simulator/src/<Area>/   sources
   Input, Render (world/road/building/vegetation/sign/car/cockpit generators, cameras,
   cluster, mirror, sky, shadows), App (SimulatorGame, Program)
 content/     vehicles/lipan_12.json, maps/lipova/{map,roads,terrain,objects,traffic}.json, fonts/
-tests/       GoogleTest suites, registered in tests/CMakeLists.txt (190 tests at present)
+tests/       GoogleTest suites, registered in tests/CMakeLists.txt
 tools/       maps/build_map.py (the map pipeline), mapvalidate, font atlas generator, simtrace
 scripts/     run_headless.sh, capture_set.sh, benchmark_suite.sh, benchmark_report.py,
              check_xna_only.py, check_assets.py
@@ -43,8 +43,8 @@ docs/        api-boundary, framework-findings, map-format, map-generation, vehic
              audio-design, materials, cameras, performance, renderer-conformance,
              real-hardware-validation, research/, screenshots/ (curated set, m10-baseline/,
              renderers/)
-plan.md      ledger; section 24 = Phase 11, 25 = Phase 12 (day/night, weather, signals, the
-             wider region), 26 = Phase 13 (real hardware, visual realism, driving polish)
+plan.md      ledger; section 24 = Phase 11, 25 = Phase 12, 26 = Phase 13,
+             27 = active Phase 14 (architecture, fidelity, traffic, audio and GPU performance)
 ```
 
 ## Building and testing in this environment
@@ -315,6 +315,12 @@ the pedestrian population focus while retaining the car probe for crossing safet
 deterministic map test moves the focus over 500 m and confirms that people repopulate near
 the walker. Walking and traffic interaction tests and the complete six-part suite pass,
 including the traffic soaks, smoke and static checks.
+
+Clock, weather and lighting orchestration (135 method lines) moved byte-identically from
+`SimulatorGame.cpp` into `SimulatorGameEnvironment.cpp`. The 21 focused clock/weather,
+lighting, spray and wet-reflection tests pass; a fixed rainy dusk Radeon screenshot is
+pixel-identical before and after. All four renderer executables build and the complete
+six-part suite passes. The game class still orchestrates these existing systems.
 
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner

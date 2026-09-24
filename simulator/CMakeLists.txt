@@ -116,6 +116,7 @@ carsim_apply_warnings(carsim_render)
 add_executable(cna-car-simulator
     src/App/Program.cpp
     src/App/SimulatorGame.cpp
+    src/App/SimulatorGameEnvironment.cpp
     src/App/SimulatorGameOverlays.cpp
     src/App/SimulatorGameWalking.cpp
 )
