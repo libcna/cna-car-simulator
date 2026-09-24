@@ -99,6 +99,7 @@ namespace CarSim::App
         [[nodiscard]] bool WalkingCanOccupy(const Microsoft::Xna::Framework::Vector3& position) const;
         [[nodiscard]] Traffic::PlayerProbe PlayerProbe() const;
         [[nodiscard]] Traffic::PlayerProbe PedestrianProbe() const;
+        [[nodiscard]] static std::string FormatClock(float hours);
         void DrawHud();
         void DrawMap();
         void DrawHelp();

@@ -207,9 +207,10 @@ architecture, fidelity, traffic-rule and audio work.
 Current gaps: building facades remain plain at driving distance, cockpit materials and controls
 need another pass, overtaking lacks explicit road-rule semantics beyond existing geometry and
 traffic checks, and audio remains predominantly synthesised. **No real GPU run has been
-recorded.** The host advertises AMD Phoenix, but the development container has no `/dev/dri`,
-so GPU measurements need a desktop session with device access. `docs/real-hardware-validation.md`
-has the procedure. Do not infer batching wins from Mesa llvmpipe.
+recorded yet.** The restricted development shell has no `/dev/dri`, but the actual desktop
+`:0` outside it reports an accelerated AMD Radeon 780M. Phase 14 can run the benchmark there;
+`docs/real-hardware-validation.md` has the procedure. Do not infer batching wins from Mesa
+llvmpipe.
 
 ## Working conventions that kept things sane
 

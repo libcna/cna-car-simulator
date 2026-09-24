@@ -1527,8 +1527,10 @@ public API boundary and its static check remain mandatory.
 - `docs/renderer-conformance.md` and `docs/performance.md` report software-renderer timings only.
   In the comparable town chase scene the existing record is 1253 submissions, 1.242 M triangles
   and 166 ms draw submission on OPENGLES3 llvmpipe. These are **prior recorded** measurements,
-  not new Phase 14 GPU results. `/dev/dri` is absent in this container despite an AMD Phoenix
-  PCI device. Real GPU profiling and any draw-call pass depend on device access.
+  not new Phase 14 GPU results. The restricted shell hides `/dev/dri`, but the desktop `:0`
+  outside it reports accelerated AMD Radeon 780M (Mesa 25.0.7, radeonsi, Debian 13);
+  Xvfb `:199` reports llvmpipe. Real-GPU benchmarking is therefore possible through the
+  desktop session and is required before any draw-call pass.
 
 ### 27.2 Task ledger
 
@@ -1550,9 +1552,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P1 — coherent ownership and visible world
 
-- [ ] `P14-010` Extract coherent SimulatorGame responsibilities (start with overlays or player
-  modes) while retaining orchestration. Acceptance: fewer unrelated reasons to edit the app
-  unit; walking, flight, weather, save and benchmark paths still work.
+- [~] `P14-010` Extract coherent SimulatorGame responsibilities while retaining orchestration.
+  First step: HUD, map, help and diagnostic drawing (341 lines, byte-identical definitions) moved
+  into `SimulatorGameOverlays.cpp`; the deterministic help-overlay capture is pixel-identical
+  before and after the extraction at 1280 x 720. Acceptance for completion: player-mode and
+  environment responsibilities have clear ownership; walking, flight, weather, save and
+  benchmark paths still work.
 - [~] `P14-011` Extract traffic planning/queries/spawning or junction ownership incrementally.
   First step: the existing overtake and return-to-lane methods were moved unchanged into
   `TrafficOvertaking.cpp` (130 lines identical to the old definitions); four targeted overtake
