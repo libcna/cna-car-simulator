@@ -423,3 +423,79 @@ TEST(TrafficSystem, BusesCallAtTheStopsOnTheirLaneAndMoveOn)
         if (v.body == Sim::CarStyle::Body::Bus) EXPECT_TRUE(v.lane != lane || v.s > stop + 20.0f) << "and moves on";
     }
 }
+
+namespace
+{
+    struct OvertakeRun
+    {
+        bool overtook = false;
+        bool wentOut = false;
+        int overlaps = 0;
+        int closeCalls = 0;   // frames out in the other lane with a car coming within 45 m
+    };
+
+    OvertakeRun RunOvertake(const bool oncoming)
+    {
+        auto world = CrossWorld(true);
+        EXPECT_TRUE(world);
+        Traffic::TrafficSystem traffic(*world, 11);
+        traffic.SetDensity(0);
+        const int east = LaneOf(*world, "main", true, 0);
+        const int west = LaneOf(*world, "main", false, 0);
+        // A lorry crawling at 30 km/h with a car behind it, 350 m of road ahead.
+        const int lorry = traffic.SpawnOn(east, 60.0f, 8.3f, Sim::CarStyle::Body::Truck);
+        const int car = traffic.SpawnOn(east, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
+        if (oncoming) {
+            for (int i = 0; i < 6; ++i) traffic.SpawnOn(west, 20.0f + 55.0f * static_cast<float>(i), 14.0f, Sim::CarStyle::Body::Sedan);
+        }
+        const auto box = [](const Traffic::TrafficVehicle& c) {
+            return Collision::Obb::FromHeading(c.position + Vector3(0.0f, 0.5f * c.heightM, 0.0f),
+                                               Vector3(0.5f * c.widthM, 0.5f * c.heightM, 0.5f * c.lengthM), c.headingRad);
+        };
+        OvertakeRun run;
+        for (int i = 0; i < 30 * 25; ++i) {
+            traffic.Update(1.0f / 30.0f, NoPlayer());
+            const auto& cars = traffic.Vehicles();
+            const Traffic::TrafficVehicle* l = nullptr;
+            const Traffic::TrafficVehicle* c = nullptr;
+            for (const auto& v : cars) {
+                if (v.id == lorry) l = &v;
+                if (v.id == car) c = &v;
+            }
+            for (std::size_t a = 0; a < cars.size(); ++a) {
+                for (std::size_t b = a + 1; b < cars.size(); ++b) {
+                    Collision::Contact contact;
+                    if (Collision::IntersectObbObb(box(cars[a]), box(cars[b]), contact)) ++run.overlaps;
+                }
+            }
+            if (!l || !c) break;
+            run.wentOut = run.wentOut || c->lateral > 1.0f;
+            if (c->lateral > 0.5f) {
+                for (const auto& o : cars) {
+                    // The main road runs along +x eastbound; oncoming cars drive west.
+                    if (o.forward.X < -0.5f && o.position.X > c->position.X && o.position.X - c->position.X < 45.0f) ++run.closeCalls;
+                }
+            }
+            if (c->lane == east && l->lane == east && c->s > l->s + 5.0f && c->lateral < 0.1f) run.overtook = true;
+        }
+        return run;
+    }
+}
+
+TEST(TrafficSystem, CarsOvertakeASlowLorryWhenTheOtherLaneIsClear)
+{
+    const OvertakeRun run = RunOvertake(false);
+    EXPECT_TRUE(run.wentOut);
+    EXPECT_TRUE(run.overtook);
+    EXPECT_EQ(run.overlaps, 0);
+    EXPECT_EQ(run.closeCalls, 0);
+}
+
+TEST(TrafficSystem, NobodyOvertakesIntoOncomingTraffic)
+{
+    // A stream of oncoming cars: the car waits behind the lorry until the road is clear, and is
+    // never out in the other lane with one of them close.
+    const OvertakeRun run = RunOvertake(true);
+    EXPECT_EQ(run.closeCalls, 0);
+    EXPECT_EQ(run.overlaps, 0);
+}

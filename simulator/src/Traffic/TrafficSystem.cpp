@@ -224,6 +224,9 @@ namespace CarSim::Traffic
                 }
             }
         }
+        if (v.lateral > 0.0f) {
+            v.position += Vector3(v.forward.Z, 0.0f, -v.forward.X) * v.lateral;   // out to the left
+        }
         // Keeping right: a bus or a lorry drives at the kerb edge of its lane, and a car meeting
         // one moves over too, as drivers do on a narrow village road. Without it the two bodies
         // touched across the centre line in the bends.
@@ -334,6 +337,8 @@ namespace CarSim::Traffic
         };
         for (const auto& o : vehicles_) {
             if (o.id == v.id) continue;
+            // The car we are overtaking stops being in our way once we are out beside it.
+            if (o.id == v.overtaking && v.lateral > 1.2f && !v.returning) continue;
             for (const auto& seg : path) {
                 const bool same = seg.isLink ? (o.link == seg.id) : (o.link < 0 && o.lane == seg.id);
                 if (!same) continue;
@@ -341,6 +346,15 @@ namespace CarSim::Traffic
                 const float ahead = seg.offset + (o.s - seg.sFrom);
                 if (ahead > lookahead) continue;
                 consider(ahead, o.lengthM, o.speed, o.id, false);
+            }
+        }
+        // Somebody overtaking towards us in our lane: a head-on obstacle to stop for.
+        if (v.link < 0 && v.lane >= 0 && lanes_.LaneAt(v.lane).oppositeLane >= 0) {
+            const int opposite = lanes_.LaneAt(v.lane).oppositeLane;
+            for (const auto& o : vehicles_) {
+                if (o.id == v.id || o.link >= 0 || o.lane != opposite || o.lateral < 0.8f) continue;
+                const float ahead = OppositeS(o, v.lane) - v.s;
+                if (ahead > 0.0f && ahead <= lookahead) consider(ahead, o.lengthM, 0.0f, o.id, false);
             }
         }
         // A car that has just left our lane onto a connector is still physically in front of us,
@@ -438,6 +452,100 @@ namespace CarSim::Traffic
             }
         }
         return best;
+    }
+
+    float TrafficSystem::OppositeS(const TrafficVehicle& o, const int ourLane) const
+    {
+        const Lane& ours = lanes_.LaneAt(ourLane);
+        const Lane& theirs = lanes_.LaneAt(o.lane);
+        return ours.length - o.s * (ours.length / std::max(1.0f, theirs.length));
+    }
+
+    void TrafficSystem::UpdateOvertake(TrafficVehicle& v, const Leader& leader, const float dt, float& desired, const PlayerProbe& player)
+    {
+        const auto settle = [&]() {
+            v.lateral = std::max(0.0f, v.lateral - 1.4f * dt);
+            if (v.lateral <= 0.0f) {
+                v.overtaking = -1;
+                v.returning = false;
+            }
+        };
+        if (v.link >= 0 || v.lane < 0) {
+            // Never carried into a junction: straighten up at once.
+            v.lateral = 0.0f;
+            v.overtaking = -1;
+            v.returning = false;
+            return;
+        }
+        const Lane& lane = lanes_.LaneAt(v.lane);
+        const float spacing = 2.0f * std::fabs(lane.lateralOffset);
+        const float toEnd = lane.length - v.s;
+
+        // Oncoming traffic on the opposite lane, nearest first: distance ahead and speed.
+        const auto oncomingClear = [&](const float required) {
+            if (lane.oppositeLane < 0) return false;
+            for (const auto& o : vehicles_) {
+                if (o.id == v.id || o.link >= 0 || o.lane != lane.oppositeLane) continue;
+                const float ahead = OppositeS(o, v.lane) - v.s;
+                if (ahead > -8.0f && ahead < required + o.speed * 3.0f) return false;
+            }
+            // Traffic that will come onto the opposite lane from the junction ahead.
+            for (const auto& o : vehicles_) {
+                if (o.id == v.id || o.link < 0 || lanes_.LinkAt(o.link).toLane != lane.oppositeLane) continue;
+                if (toEnd < required + 60.0f) return false;
+            }
+            if (player.valid && player.blocksTraffic && playerLane_ == lane.oppositeLane) {
+                const float ahead = lane.length - playerS_ * (lane.length / std::max(1.0f, lanes_.LaneAt(playerLane_).length)) - v.s;
+                if (ahead > -8.0f && ahead < required + 90.0f) return false;
+            }
+            return true;
+        };
+
+        if (v.overtaking < 0) {
+            if (v.Heavy() || lane.oppositeLane < 0 || !leader.found || leader.id < 0 || leader.onConflict) return;
+            const TrafficVehicle* target = FindVehicle(leader.id);
+            if (!target || target->link >= 0 || target->lane != v.lane || target->overtaking >= 0) return;
+            // Worth passing: a bus at a stop, a lorry or bus holding the traffic up, or a car
+            // crawling along for no reason -- not one that is only slowing for a bend or a junction.
+            const float targetToEnd = lanes_.LaneAt(target->lane).length - target->s;
+            const bool crawling = target->speed < 0.6f * desired && target->acceleration > -0.3f && targetToEnd > 150.0f;
+            const bool slow = target->dwell > 0.0f || (target->Heavy() && target->speed < 0.8f * desired) || crawling;
+            if (!slow || leader.gap > 25.0f || desired < 12.0f) return;
+            // Nothing else just ahead of it to be trapped behind.
+            for (const auto& o : vehicles_) {
+                if (o.id == target->id || o.id == v.id || o.link >= 0 || o.lane != v.lane) continue;
+                if (o.s > target->s && o.s - target->s < target->lengthM + v.lengthM + 20.0f) return;
+            }
+            const float passLength = leader.gap + target->lengthM + v.lengthM + 14.0f;
+            if (toEnd < passLength + 60.0f) return;   // no overtaking into a junction
+            const float closing = std::max(4.0f, desired - target->speed);
+            const float passTime = passLength / closing + 2.0f;
+            if (!oncomingClear(passLength + desired * passTime)) return;
+            v.overtaking = target->id;
+            v.returning = false;
+            return;
+        }
+
+        const TrafficVehicle* target = FindVehicle(v.overtaking);
+        if (!target || target->link >= 0 || target->lane != v.lane) v.returning = true;
+        if (!v.returning && target) {
+            const float clearOfIt = target->s + 0.5f * target->lengthM + 0.5f * v.lengthM + 5.0f;
+            const bool stillBehind = v.s < target->s - 0.5f * target->lengthM - 0.5f * v.lengthM - 1.0f;
+            if (v.s > clearOfIt) {
+                v.returning = true;   // past it: back in
+            } else if (stillBehind && !oncomingClear(clearOfIt - v.s + 20.0f)) {
+                v.returning = true;   // something is coming after all: give it up and tuck back in
+            } else if (toEnd < 30.0f) {
+                v.returning = true;
+            }
+        }
+        if (v.returning) {
+            settle();
+            return;
+        }
+        v.lateral = std::min(spacing, v.lateral + 1.4f * dt);
+        // Pass briskly, a little over the limit, and do not dawdle alongside.
+        if (target) desired = std::max(desired, std::min(desired * 1.15f, target->speed + 9.0f));
     }
 
     bool TrafficSystem::BoxClearFor(const TrafficVehicle& v) const
@@ -635,6 +743,10 @@ namespace CarSim::Traffic
         const float distanceToEnd = DistanceToEnd(v);
         float desired = DesiredSpeedAhead(v);
         Leader leader = FindLeader(v, player, pedestrian);
+        UpdateOvertake(v, leader, dt, desired, player);
+        if (v.overtaking >= 0 && v.lateral > 1.2f && !v.returning && leader.found && leader.id == v.overtaking) {
+            leader = FindLeader(v, player, pedestrian);   // now beside it: look past it
+        }
         float gap = leader.found ? leader.gap : 1e9f;
         float leaderSpeed = leader.found ? leader.speed : 0.0f;
 

@@ -59,9 +59,11 @@ TEST(TrafficSoak, ThirtyMinutesWithoutOverlapsOrStuckCars)
         traffic.Update(dt, player);
         const auto& cars = traffic.Vehicles();
         maxSimultaneous = std::max(maxSimultaneous, static_cast<int>(cars.size()));
+        // Every car's plate, every step: a car spawned in the last second of the run must be
+        // counted too (sampled once a second, it was missed and the check failed spuriously).
+        for (const auto& c : cars) plates.insert(c.plate);
         if (step % 30 != 0) continue;   // checks once per simulated second
         for (const auto& c : cars) {
-            plates.insert(c.plate);
             backingOffObservations += c.backingOff ? 1 : 0;
             committedObservations += c.committed ? 1 : 0;
             auto it = lastPosition.find(c.id);

@@ -54,6 +54,9 @@ namespace CarSim::Traffic
         bool committed = false;
         bool claimed = false;
         float dwell = 0.0f;           // bus: seconds left standing at a stop
+        int overtaking = -1;          // id of the vehicle being overtaken, -1 when not
+        bool returning = false;       // overtake done or given up: moving back into the lane
+        float lateral = 0.0f;         // metres out to the left of the lane centre (overtaking)
         int servedLane = -1;          // bus: the stop last called at (lane, s)
         float servedS = -1.0f;
         bool yieldingOnGreen = false; // a permissive turn held at the line on green for oncoming traffic         // inside its stopping distance and not holding: will enter the junction       // released by the deadlock breaker: enters without re-checking
@@ -151,6 +154,10 @@ namespace CarSim::Traffic
         [[nodiscard]] Leader FindLeader(const TrafficVehicle& v, const PlayerProbe& player, const PlayerProbe& pedestrian) const;
         /// No conflicting car still crossing the junction, and no bus or lorry inside it (or, for
         /// one, nobody at all): the box is free for `v` to enter.
+        /// Starts, steers and ends an overtake on a two-way road; adjusts the desired speed.
+        void UpdateOvertake(TrafficVehicle& v, const Leader& leader, float dt, float& desired, const PlayerProbe& player);
+        /// Where a vehicle on the opposite lane is, in our lane's s (the lanes of a piece run opposite ways).
+        [[nodiscard]] float OppositeS(const TrafficVehicle& o, int ourLane) const;
         [[nodiscard]] bool BoxClearFor(const TrafficVehicle& v) const;
         [[nodiscard]] bool MayEnterIntersection(const TrafficVehicle& v, const PlayerProbe& player) const;
         [[nodiscard]] float DesiredSpeedAhead(const TrafficVehicle& v) const;
