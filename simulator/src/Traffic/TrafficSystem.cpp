@@ -436,21 +436,24 @@ namespace CarSim::Traffic
                 consider(ahead, player.lengthM, std::max(0.0f, along), -1, false);
             }
         }
-        if (pedestrian.valid && Vector3::DistanceSquared(v.position, pedestrian.position) < lookahead * lookahead) {
+        const auto stopForPerson = [&](const PlayerProbe& person) {
+            if (!person.valid || Vector3::DistanceSquared(v.position, person.position) > lookahead * lookahead) return;
             // Sample the road ahead, including connectors through intersections. A person
             // anywhere across the car's swept width is a stationary obstacle until clear.
             const float clearance = 0.5f * v.widthM + 0.55f;
             for (float ahead = 0.0f; ahead <= lookahead; ahead += 0.5f) {
                 LanePoint point;
                 if (!PathPointAhead(v, ahead, point)) break;
-                const float dx = point.position.X - pedestrian.position.X;
-                const float dz = point.position.Z - pedestrian.position.Z;
+                const float dx = point.position.X - person.position.X;
+                const float dz = point.position.Z - person.position.Z;
                 if (dx * dx + dz * dz > clearance * clearance ||
-                    std::fabs(point.position.Y - pedestrian.position.Y) > 2.5f) continue;
-                consider(ahead, pedestrian.lengthM, 0.0f, -2, false);
+                    std::fabs(point.position.Y - person.position.Y) > 2.5f) continue;
+                consider(ahead, person.lengthM, 0.0f, -2, false);
                 break;
             }
-        }
+        };
+        stopForPerson(pedestrian);
+        for (const auto& person : pedestrians_) stopForPerson(person);
         return best;
     }
 

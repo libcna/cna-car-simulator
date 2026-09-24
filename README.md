@@ -78,7 +78,9 @@ What you get today:
   player; buses and box lorries that keep to 80 km/h, prefer the through route, have a
   junction to themselves and make oncoming cars wait in tight bends, buses that call at the
   stops, and cars that overtake a slow lorry or a bus at a stop when the other lane is clear; cars parked on the town
-  square that are as solid as any other obstacle.
+  square that are as solid as any other obstacle; people on the pavements of the town and the
+  villages who cross at the zebra crossings (and, now and then, where they please) once nothing
+  is coming, and whom the traffic stops for.
 - A day and night cycle with a real solar path, street lamps, lit windows and headlamp pools
   after dark, and weather -- clear, scattered cloud, overcast, rain, fog or snow, with wet roads
   that take a third off the grip, snow that settles on fields, roads and roofs and halves it, puddles, tyre spray, a darker and glossier wet world, raindrops on the
@@ -90,7 +92,7 @@ What you get today:
 - Persistent odometer, trip, transmission mode and settings; key bindings configurable in the
   save file; in-game help and debug overlays.
 
-Not included (by design or deferred, see `plan.md` sections 2 and 23): mechanical damage, pedestrians,
+Not included (by design or deferred, see `plan.md` sections 2 and 23): mechanical damage,
 real-brand car models (no legally redistributable Škoda
 model was available; the car is procedural).
 

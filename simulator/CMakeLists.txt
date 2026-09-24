@@ -38,6 +38,7 @@ add_library(carsim_core STATIC
     src/Sim/Tyre.cpp
     src/Sim/Vehicle.cpp
     src/Sim/VehicleDefinition.cpp
+    src/Traffic/Pedestrians.cpp
     src/Traffic/PlateGenerator.cpp
     src/Traffic/RouteDriver.cpp
     src/Traffic/SignalController.cpp
@@ -73,6 +74,7 @@ add_library(carsim_render STATIC
     src/Render/WindscreenRain.cpp
     src/Render/HeavyVehicle.cpp
     src/Render/WetReflections.cpp
+    src/Render/PedestrianRenderer.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralCockpit.cpp
     src/Render/ProceduralTextures.cpp

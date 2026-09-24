@@ -127,6 +127,9 @@ namespace CarSim::Traffic
         [[nodiscard]] std::vector<TrafficVehicle>& Vehicles() { return vehicles_; }
         [[nodiscard]] const PlateGenerator& Plates() const { return plates_; }
         [[nodiscard]] int SpawnedTotal() const { return spawnedTotal_; }
+        /// People on the road the traffic stops for (the walkers at the crossings), refreshed
+        /// every frame before Update.
+        void SetPedestrians(std::vector<PlayerProbe> people) { pedestrians_ = std::move(people); }
         /// Bus stops on a lane (s along it), for tests and the map.
         [[nodiscard]] const std::vector<float>& BusStopsOn(int lane) const { return busStops_[static_cast<std::size_t>(lane)]; }
 
@@ -179,6 +182,7 @@ namespace CarSim::Traffic
         SignalController signals_;
         int maxVehicles_ = 20;
         std::vector<std::vector<float>> busStops_;   // per lane: s of each bus stop, ascending
+        std::vector<PlayerProbe> pedestrians_;   // people on the road (crossings) to stop for
         int nextId_ = 1;
         int spawnedTotal_ = 0;
         float spawnTimer_ = 0.0f;

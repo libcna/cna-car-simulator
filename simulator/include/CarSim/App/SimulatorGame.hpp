@@ -13,6 +13,8 @@
 #include "CarSim/Render/WheelSpray.hpp"
 #include "CarSim/Render/WindscreenRain.hpp"
 #include "CarSim/Render/WetReflections.hpp"
+#include "CarSim/Render/PedestrianRenderer.hpp"
+#include "CarSim/Traffic/Pedestrians.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/QualityTier.hpp"
@@ -124,6 +126,8 @@ namespace CarSim::App
         std::unique_ptr<Map::MapWorld> map_;
         Collision::CollisionWorld collision_;
         std::unique_ptr<Traffic::TrafficSystem> traffic_;
+        std::unique_ptr<Traffic::Pedestrians> pedestrians_;
+        std::unique_ptr<Render::PedestrianRenderer> pedestrianRenderer_;
         std::unique_ptr<Audio::VehicleAudio> audio_;
         std::vector<Collision::ContactEvent> contactEvents_;
         int collisionCount_ = 0;

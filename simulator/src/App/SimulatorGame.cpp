@@ -294,6 +294,7 @@ namespace CarSim::App
         }
         collision_.Build(*map_);
         traffic_ = std::make_unique<Traffic::TrafficSystem>(*map_, 7u);
+        pedestrians_ = std::make_unique<Traffic::Pedestrians>(*map_, 17u);
         const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "collision: " << collision_.StaticCount() << " static colliders\n";
         std::cout << "map: " << map_->Data().info.displayName << " (" << name << "), " << map_->Roads().Roads().size() << " roads, "
@@ -512,6 +513,7 @@ namespace CarSim::App
         wetReflections_ = std::make_unique<Render::WetReflections>(device);
         plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
         trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleMaterials_, plateFont_.get());
+        pedestrianRenderer_ = std::make_unique<Render::PedestrianRenderer>(device);
         {
             std::string plate = definition_.visual.plate;
             if (plate.empty()) {
@@ -976,6 +978,12 @@ namespace CarSim::App
         if (!traffic_) {
             return;
         }
+        if (pedestrians_) {
+            // People first, so the traffic sees who has just stepped onto a crossing.
+            const Traffic::PlayerProbe player = PlayerProbe();
+            pedestrians_->Update(dt, player.valid ? player.position : Vector3(0.0f, 0.0f, 0.0f), traffic_->Vehicles(), player);
+            traffic_->SetPedestrians(pedestrians_->RoadProbes());
+        }
         traffic_->Update(dt, PlayerProbe(), PedestrianProbe());
         // Resolve actual contact with traffic cars after they move. In flight the entire
         // swept helicopter body is checked, including when it crosses a car in one frame.
@@ -1296,6 +1304,9 @@ namespace CarSim::App
                 trafficRenderer_->Draw(device, *traffic_, m.View(), m.Projection(), m.Frustum(), m.Pose().position, rig_,
                                        groundQuery, true);
             }
+            if (pedestrians_ && pedestrianRenderer_) {
+                pedestrianRenderer_->Draw(device, pedestrians_->People(), m.View(), m.Projection(), m.Frustum(), m.Pose().position, rig_, true);
+            }
             if (map_ && trafficRenderer_) {
                 trafficRenderer_->DrawParked(device, map_->Objects().Vehicles(), parkedPlates_, m.View(), m.Projection(),
                                              m.Frustum(), m.Pose().position, rig_, groundQuery, true);
@@ -1370,6 +1381,9 @@ namespace CarSim::App
 
         if (traffic_ && trafficRenderer_) {
             trafficRenderer_->Draw(device, *traffic_, view, projection, camera.Frustum(aspect), camera.position, rig_, groundQuery, false);
+            if (pedestrians_ && pedestrianRenderer_) {
+                pedestrianRenderer_->Draw(device, pedestrians_->People(), view, projection, camera.Frustum(aspect), camera.position, rig_);
+            }
         }
         if (map_ && trafficRenderer_) {
             trafficRenderer_->DrawParked(device, map_->Objects().Vehicles(), parkedPlates_, view, projection, camera.Frustum(aspect),
