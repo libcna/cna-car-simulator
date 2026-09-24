@@ -27,12 +27,18 @@ ran dry during a slow frame and the stream played gaps.
 - Harmonic bank at multiples of the crank frequency with a four-cylinder character: dominant
   second order (firing frequency = rpm / 30), even orders strong, odd orders weak; each
   harmonic keeps an "idle share" at zero load and grows with load. Harmonics above 0.45 of the
-  sample rate are skipped; a 1.8 kHz low-pass tames high rpm.
+  sample rate are skipped; a 1.8 kHz low-pass tames high rpm. The upper orders now crossfade
+  smoothly from half strength at low RPM to full strength at high RPM, while the lower orders
+  retain body at idle.
 - Exhaust pulse train: a short decaying noise burst with a resonant thump (about 95-160 Hz)
   triggered at every firing event; amplitude follows load.
 - A quiet valve-train whine at order 7.5 follows rpm. The older continuous broadband intake
   hiss was removed because it made idle sound like a constant leak; the pulse train provides
   the irregular exhaust texture.
+- A separate intake texture passes deterministic noise through an RPM-dependent band and
+  gates it at the firing rhythm. Its gain follows the real throttle and torque input, so a
+  pedal blip adds texture before delivered load rises; closed throttle and idle have no
+  continuous intake hiss. Throttle, load and RPM ramp across every 1024-sample block.
 - Starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine model's
   cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition to
   `Running`.
@@ -40,6 +46,31 @@ ran dry during a slow frame and the stream played gaps.
 
 Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on
 overrun) blended with a small throttle share so a blipped pedal is audible immediately.
+The F3 developer overlay shows end-of-block RPM, firing rate and the tonal, exhaust, intake
+and master coefficients. These are mix coefficients, not measured sound pressure levels.
+Deterministic tests compare the 0.8–2.4 kHz band with open and closed throttle at the same
+RPM/load, assert bounded output and check the first sample after a pedal change for a click.
+
+At this increment, `carsim-simtrace engine-sound` reported mono engine RMS 0.072 at idle,
+0.106 at light 2200 rpm cruise, 0.272 at full 3000 rpm, 0.263 at full 5500 rpm and 0.063
+on 3000 rpm overrun. The >2 kHz energy share stayed 0.2–1.3%. These are signal measurements;
+they do not establish perceived quality on real speakers.
+An offscreen 90-frame square-start run with the dummy stereo stream and 20 warmed traffic
+cars measured 0.338 ms mean audio update (60 measured frames, after 30 warm-up frames).
+The dummy stream reported no errors; this is CPU-path evidence, not a speaker check.
+
+### Recorded-source research checkpoint
+
+The [CC0 Mini Cooper engine contact recording](https://freesound.org/people/TheLittleCrow/sounds/669618/)
+and [CC0 sedan loop](https://freesound.org/people/Dmitry_mansurev64/sounds/748027/)
+have clear published redistribution rights, but Freesound requires login for their originals;
+the latter is a single loop with no documented stable RPM layers. The
+[public-domain Opel Corsa startup](https://commons.wikimedia.org/wiki/File:Open_Corsa_E_model_2014_engine_startup_sound.ogg)
+is only four seconds and does not supply the driving layers. The
+[CC BY 4.0 Beetle recording](https://commons.wikimedia.org/wiki/File:WWS_VolkswagenBeetle8211engine.ogg)
+is an air-cooled flat-four with a different character. None was added to the build: stable
+loop points, RPM labels and perceptual fit still need validation. Any adopted file requires
+the source, license, author, hash and conversion history in `assets/manifest.json`.
 
 ## Layers driven by the drive state (`Audio::Layers`)
 

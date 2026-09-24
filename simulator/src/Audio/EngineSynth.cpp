@@ -33,6 +33,9 @@ namespace CarSim::Audio
         for (auto& p : pulses_) p.age = 1e9f;
         gain_ = 0.0f;
         rumbleLp_ = 0.0f;
+        intakeLp_ = intakeBassLp_ = 0.0f;
+        intakeNoiseState_ = 0xB5297A4Du;
+        levels_ = {};
         primed_ = false;
     }
 
@@ -47,6 +50,12 @@ namespace CarSim::Audio
         return static_cast<float>(noiseState_ >> 8) / static_cast<float>(1u << 24) * 2.0f - 1.0f;
     }
 
+    float EngineSynth::NextIntakeNoise()
+    {
+        intakeNoiseState_ = intakeNoiseState_ * 1664525u + 1013904223u;
+        return static_cast<float>(intakeNoiseState_ >> 8) / static_cast<float>(1u << 24) * 2.0f - 1.0f;
+    }
+
     void EngineSynth::Render(float* out, const int frames, const EngineSoundInput& target)
     {
         if (!primed_) {
@@ -59,6 +68,8 @@ namespace CarSim::Audio
         const float gainRate = dt / (audible ? 0.05f : 0.18f);
         const float loadTarget = std::clamp(target.load, 0.0f, 1.0f);
         const float loadPrev = std::clamp(previous_.load, 0.0f, 1.0f);
+        const float throttleTarget = std::clamp(target.throttle, 0.0f, 1.0f);
+        const float throttlePrev = std::clamp(previous_.throttle, 0.0f, 1.0f);
         const float rpmPrev = std::max(0.0f, previous_.rpm);
         const float rpmTarget = std::max(0.0f, target.rpm);
         const int cylinders = std::max(1, target.cylinders);
@@ -69,6 +80,7 @@ namespace CarSim::Audio
             const float t = frames > 1 ? static_cast<float>(i) / static_cast<float>(frames - 1) : 1.0f;
             const float rpm = rpmPrev + (rpmTarget - rpmPrev) * t;
             const float load = loadPrev + (loadTarget - loadPrev) * t;
+            const float throttle = throttlePrev + (throttleTarget - throttlePrev) * t;
             gain_ += std::clamp(targetGain - gain_, -gainRate, gainRate);
 
             const double f0 = static_cast<double>(rpm) / 60.0;
@@ -85,10 +97,16 @@ namespace CarSim::Audio
             // Harmonic bank.
             float harmonics = 0.0f;
             const float phase = static_cast<float>(std::fmod(crankPhase_, 1.0)) * kTwoPi;
+            const float highRpm = std::clamp((rpm - 1800.0f) / 4300.0f, 0.0f, 1.0f);
+            const float upperShare = highRpm * highRpm * (3.0f - 2.0f * highRpm);
             for (const Harmonic& h : kHarmonics) {
                 const float freq = static_cast<float>(f0) * h.order;
                 if (freq > nyquist) continue;
-                const float amp = h.amplitude * (h.idleShare + (1.0f - h.idleShare) * load);
+                float amp = h.amplitude * (h.idleShare + (1.0f - h.idleShare) * load);
+                // Lower orders carry idle and low-speed cruising. The upper bank crossfades
+                // in with RPM rather than making the idle sound like a pitched-up buzz.
+                if (h.order >= 6.0f) amp *= 0.50f + 0.50f * upperShare;
+                if (h.order <= 2.0f) amp *= 1.08f - 0.13f * upperShare;
                 harmonics += amp * std::sin(phase * h.order);
             }
             // Low-order rumble is slightly low-passed so that high rpm does not become buzzy.
@@ -115,7 +133,18 @@ namespace CarSim::Audio
             whinePhase_ += f0 * 7.5 * dt;
             const float whine = 0.045f * std::min(1.0f, rpm / 6000.0f) * std::sin(static_cast<float>(std::fmod(whinePhase_, 1.0)) * kTwoPi);
 
-            float sample = harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.22f + whine;
+            // Intake rasp is band-limited and gated by the firing rhythm. It follows the
+            // actual pedal independently of torque, making a throttle blip audible without
+            // a permanent idle hiss or a sharp layer switch at the next audio block.
+            const float intakeCutoff = 450.0f + 0.40f * rpm;
+            intakeLp_ += (NextIntakeNoise() - intakeLp_) * std::min(1.0f, kTwoPi * intakeCutoff * dt);
+            intakeBassLp_ += (intakeLp_ - intakeBassLp_) * std::min(1.0f, kTwoPi * 180.0f * dt);
+            const float intakeRise = std::clamp((rpm - 1000.0f) / 4500.0f, 0.0f, 1.0f);
+            const float inhale = std::max(0.0f, std::sin(phase * 2.0f));
+            const float intake = (intakeLp_ - intakeBassLp_) * 0.22f * throttle *
+                                 (0.2f + 0.8f * load) * intakeRise * (0.30f + 0.70f * inhale * inhale);
+
+            float sample = harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.22f + whine + intake;
 
             // Starter motor: whine with a slow wobble while cranking.
             if (target.state == EngineSoundState::Starting) {
@@ -129,5 +158,14 @@ namespace CarSim::Audio
             out[i] = sample * gain_;
         }
         previous_ = target;
+        const float highRpm = std::clamp((rpmTarget - 1800.0f) / 4300.0f, 0.0f, 1.0f);
+        const float upperShare = highRpm * highRpm * (3.0f - 2.0f * highRpm);
+        const float tonal = 0.30f * (0.45f + 0.55f * loadTarget);
+        levels_ = {rpmTarget, loadTarget, throttleTarget, FiringFrequency(rpmTarget, cylinders),
+                   tonal * (1.08f - 0.13f * upperShare), tonal * (0.50f + 0.50f * upperShare),
+                   0.22f * (0.25f + 0.75f * loadTarget),
+                   0.22f * throttleTarget * (0.20f + 0.80f * loadTarget) *
+                       std::clamp((rpmTarget - 1000.0f) / 4500.0f, 0.0f, 1.0f),
+                   gain_};
     }
 }

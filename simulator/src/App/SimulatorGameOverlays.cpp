@@ -192,6 +192,14 @@ namespace CarSim::App
         if (audio_ && audio_->Enabled()) {
             row("audio stream", text("%d blocks queued ahead, %d underruns, %d traffic voices",
                                      Audio::VehicleAudio::kTargetPendingBlocks, audio_->Underruns(), audio_->TrafficVoices()));
+            const auto& layers = audio_->EngineLevels();
+            row("engine input", text("%.0f rpm  %.0f Hz firing  load %.2f  pedal %.2f",
+                                     static_cast<double>(layers.rpm), static_cast<double>(layers.firingHz),
+                                     static_cast<double>(layers.load), static_cast<double>(layers.throttle)));
+            row("engine layers", text("low %.2f  upper %.2f  exhaust %.2f  intake %.2f  master %.2f",
+                                      static_cast<double>(layers.low), static_cast<double>(layers.upper),
+                                      static_cast<double>(layers.exhaust), static_cast<double>(layers.intake),
+                                      static_cast<double>(layers.master)));
         }
         row("draw split", text("sky %.2f  world %.2f  traffic %.2f  car %.2f  hud %.2f ms",
                                static_cast<double>(passMs_[kPassSky]), static_cast<double>(passMs_[kPassWorld]),

@@ -61,6 +61,7 @@ namespace CarSim::Audio
         [[nodiscard]] int BlocksSubmitted() const { return blocksSubmitted_; }
         [[nodiscard]] int Underruns() const { return underruns_; }
         [[nodiscard]] int TrafficVoices() const { return traffic_.ActiveVoices(); }
+        [[nodiscard]] const EngineSoundLevels& EngineLevels() const { return engine_.Levels(); }
 
         /// Renders one block into `stereo` (interleaved, 2 * frames floats) — public for tests.
         void RenderBlock(std::vector<float>& stereo, const Sim::VehicleState& state, bool cockpit);

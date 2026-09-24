@@ -210,3 +210,29 @@ TEST(EngineSynth, IdleHasNoContinuousHighFrequencyHiss)
     const float hissBand = BandPower(sound, 3000.0f, 6000.0f, 100.0f, from);
     EXPECT_LT(hissBand, engineBand * 0.01f);
 }
+
+TEST(EngineSynth, IntakeTextureTracksThrottleWithoutABlockClick)
+{
+    EngineSoundInput in;
+    in.state = EngineSoundState::Running;
+    in.rpm = 4500.0f;
+    in.load = 0.75f;
+    EngineSynth shut(kRate), open(kRate);
+    const auto coast = RenderSeconds(shut, in, 1.0f);
+    in.throttle = 1.0f;
+    const auto driven = RenderSeconds(open, in, 1.0f);
+    const std::size_t from = driven.size() / 2;
+    EXPECT_GT(BandPower(driven, 800.0f, 2400.0f, 40.0f, from),
+              BandPower(coast, 800.0f, 2400.0f, 40.0f, from) * 1.15f);
+    EXPECT_LT(Rms(driven, from), 0.6f);
+
+    EngineSynth transition(kRate);
+    std::vector<float> quiet(1024), loud(1024);
+    in.throttle = 0.0f;
+    for (int i = 0; i < 40; ++i) transition.Render(quiet.data(), 1024, in);
+    in.throttle = 1.0f;
+    transition.Render(loud.data(), 1024, in);
+    float largestStep = 0.0f;
+    for (std::size_t i = 1; i < loud.size(); ++i) largestStep = std::max(largestStep, std::fabs(loud[i] - loud[i - 1]));
+    EXPECT_LE(std::fabs(loud.front() - quiet.back()), largestStep * 1.05f + 1e-3f);
+}

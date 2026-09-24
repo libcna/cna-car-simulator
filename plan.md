@@ -1652,9 +1652,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   road signs and phase-change decisions still need work.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or
   overlap, and the 30-minute soak passes.
-- [ ] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
-  verified redistribution rights and manifest provenance. Acceptance: reproducible audio
-  captures show smooth starts, sweeps, shifts and overrun without clipping or loop seams.
+- [~] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
+  verified redistribution rights and manifest provenance. Upper harmonics now crossfade with
+  RPM and a firing-gated, band-limited intake layer follows throttle/load without idle hiss.
+  Deterministic tests cover throttle-band energy, block continuity and bounded output;
+  F3 shows the end-of-block engine mix coefficients. Publicly licensed recording candidates
+  were reviewed but not imported without stable RPM/loop and listening validation; see
+  `docs/audio-design.md`. Acceptance still requires reproducible audio captures and a
+  real-speaker review of starts, sweeps, shifts and overrun without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
   mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
   authored ground roughness and road snow cover for bounded tread and scrub textures; deterministic

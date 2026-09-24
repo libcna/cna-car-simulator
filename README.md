@@ -191,7 +191,8 @@ scenes (clear day, rain, clear night, rainy night, each from the exterior and th
 [`docs/performance.md`](docs/performance.md), with `--against` for a before-and-after comparison.
 `F3` opens the diagnostic overlay: frames per second with the worst 1 %, the update and draw
 halves split by stage and by pass, the mirror's cost and resolution, the weather and sun state,
-and drawn-against-culled batch counts.
+drawn-against-culled batch counts, and live engine mix inputs and coefficients when audio is
+enabled.
 
 ## Controls
 

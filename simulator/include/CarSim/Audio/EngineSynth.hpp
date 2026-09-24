@@ -1,5 +1,6 @@
 // Procedural engine sound: phase-continuous harmonic bank driven by engine speed and load,
-// exhaust pulse train at the firing frequency, valve-train whine and the starter.
+// exhaust pulse train at the firing frequency, load/throttle-driven intake, valve-train
+// whine and the starter.
 // Pure DSP (no audio device); rendered into float buffers by the vehicle audio mixer.
 #pragma once
 
@@ -26,6 +27,20 @@ namespace CarSim::Audio
         int cylinders = 4;
     };
 
+    /// End-of-block mix coefficients for the developer overlay (not measured acoustic levels).
+    struct EngineSoundLevels
+    {
+        float rpm = 0.0f;
+        float load = 0.0f;
+        float throttle = 0.0f;
+        float firingHz = 0.0f;
+        float low = 0.0f;
+        float upper = 0.0f;
+        float exhaust = 0.0f;
+        float intake = 0.0f;
+        float master = 0.0f;
+    };
+
     class EngineSynth
     {
     public:
@@ -37,6 +52,7 @@ namespace CarSim::Audio
         void Reset();
 
         [[nodiscard]] int SampleRate() const { return sampleRate_; }
+        [[nodiscard]] const EngineSoundLevels& Levels() const { return levels_; }
         /// Firing frequency (Hz) for a four-stroke engine at `rpm`.
         [[nodiscard]] static float FiringFrequency(float rpm, int cylinders);
 
@@ -47,6 +63,7 @@ namespace CarSim::Audio
         };
 
         [[nodiscard]] float NextNoise();
+        [[nodiscard]] float NextIntakeNoise();
 
         int sampleRate_;
         double crankPhase_ = 0.0;      // crank revolutions (fractional)
@@ -56,9 +73,13 @@ namespace CarSim::Audio
         std::array<Pulse, 6> pulses_{};
         int nextPulse_ = 0;
         std::uint32_t noiseState_ = 0x9E3779B9u;
+        std::uint32_t intakeNoiseState_ = 0xB5297A4Du;
         float rumbleLp_ = 0.0f;
+        float intakeLp_ = 0.0f;
+        float intakeBassLp_ = 0.0f;
         float gain_ = 0.0f;            // master fade for off/stalled
         EngineSoundInput previous_{};
+        EngineSoundLevels levels_{};
         bool primed_ = false;
     };
 }

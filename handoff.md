@@ -276,6 +276,14 @@ tests; a filtered blade sweep and restrained turbine layer improve the tonal-onl
 The 90-frame dummy-audio flight run reported 0.332 ms mean audio update. No real-speaker
 listening result or recorded engine samples are claimed; see `docs/audio-design.md`.
 
+The regular engine synth now crossfades its upper harmonics with RPM and adds a band-limited,
+firing-gated intake layer driven by throttle and load. Five focused engine tests pass,
+including open/closed-throttle spectrum and block-edge continuity; F3 shows live engine
+mix coefficients. A source/license review identified possible CC0 and public-domain
+recordings but none has been imported without suitable stable RPM loops and listening
+validation. A 90-frame dummy-audio square-start run measured 0.338 ms mean audio update
+with 20 warmed traffic cars. See `docs/audio-design.md`; a real-speaker review is still open.
+
 The four existing traffic population methods (body selection, direct spawn, despawn and
 player-centred spawn) have also moved byte-identically to `TrafficSpawning.cpp`. Targeted
 population, out-of-view spawn and heavy-vehicle junction tests and the full six-part suite,
