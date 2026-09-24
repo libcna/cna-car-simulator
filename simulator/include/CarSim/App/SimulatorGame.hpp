@@ -12,6 +12,7 @@
 #include "CarSim/Render/ExhaustSmoke.hpp"
 #include "CarSim/Render/WheelSpray.hpp"
 #include "CarSim/Render/WindscreenRain.hpp"
+#include "CarSim/Render/WetReflections.hpp"
 #include "CarSim/Render/InstrumentCluster.hpp"
 #include "CarSim/Render/MirrorView.hpp"
 #include "CarSim/Render/QualityTier.hpp"
@@ -76,6 +77,9 @@ namespace CarSim::App
         void UpdateRumble(const Sim::VehicleState& state, float dt);
         /// Spray from the player's tyres and the traffic near the camera on a wet road.
         void UpdateSpray(const Sim::VehicleState& state, float dt);
+        void DrawWetReflections(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Sim::VehicleState& state,
+                                const Microsoft::Xna::Framework::Matrix& view, const Microsoft::Xna::Framework::Matrix& projection,
+                                const Microsoft::Xna::Framework::Vector3& camera);
         /// Reads the graphics tier from the save (or --quality) and applies its draw distances
         /// and mirror rate. Called once the renderers exist.
         void ApplyQualitySettings();
@@ -161,6 +165,8 @@ namespace CarSim::App
         std::unique_ptr<Render::ExhaustSmokeRenderer> exhaustSmoke_;
         std::unique_ptr<Render::WheelSprayRenderer> wheelSpray_;
         std::unique_ptr<Render::WindscreenRainRenderer> windscreenRain_;
+        std::unique_ptr<Render::WetReflections> wetReflections_;
+        std::vector<Render::ReflectedLight> reflectedLights_;
         std::vector<Render::SprayEmitter> sprayEmitters_;
         std::unique_ptr<Render::SignalRenderer> signalRenderer_;
         std::unique_ptr<Render::TestGround> testGround_;

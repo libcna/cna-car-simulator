@@ -46,6 +46,8 @@ namespace CarSim::Render
         void SetWetness(float wetness) { wetness_ = wetness; }
         /// Snow lying on the ground, the roads and the roofs (0..1).
         void SetSnow(float cover) { snow_ = cover; }
+        /// Street lanterns (world positions), for the reflections on a wet road.
+        [[nodiscard]] const std::vector<Microsoft::Xna::Framework::Vector3>& Lanterns() const { return lanterns_; }
         /// Re-applies the current rig to the world effects. The terrain macro, the road vertex
         /// colours and the tree cards carry lighting baked under `LightingRig::BakeReference()`,
         /// so they are scaled by the ratio between the two rigs instead of being re-baked.
@@ -184,6 +186,7 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> puddleEffect_;       // additive sky in standing water
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> puddleMask_;
         float snow_ = 0.0f;
+        std::vector<Microsoft::Xna::Framework::Vector3> lanterns_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> snowEffect_;       // alpha-blended white over ground, roads, roofs
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> snowTexture_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> wallTextures_;

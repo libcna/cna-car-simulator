@@ -824,6 +824,7 @@ namespace CarSim::Render
             // The lantern hangs on an arm reaching 1.35 s metres along the prop's local +z.
             const float armZ = 1.35f * s;
             const Vector3 lantern(prop.position.X + sinH * armZ, prop.position.Y + 6.93f * s, prop.position.Z + cosH * armZ);
+            lanterns_.push_back(lantern);
             MeshData& mesh = chunks[ChunkKey(lantern.X, lantern.Z)];
 
             // Ground pool: a grid centred under the lantern, laid on the ground surface and

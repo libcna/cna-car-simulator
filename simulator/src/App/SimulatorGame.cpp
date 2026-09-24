@@ -509,6 +509,7 @@ namespace CarSim::App
         exhaustSmoke_->Smoke().SetEnabled(exhaustSmokeEnabled_);
         wheelSpray_ = std::make_unique<Render::WheelSprayRenderer>(device);
         windscreenRain_ = std::make_unique<Render::WindscreenRainRenderer>(device);
+        wetReflections_ = std::make_unique<Render::WetReflections>(device);
         plateFont_ = Render::BitmapFont::Load(getContentProperty(), contentRoot_, "fonts/plate_bold_128");
         trafficRenderer_ = std::make_unique<Render::TrafficRenderer>(device, *vehicleMaterials_, plateFont_.get());
         {
@@ -755,6 +756,53 @@ namespace CarSim::App
             worldRenderer_->SetDrawDistanceScale(qualitySettings_.drawDistanceScale);
             worldRenderer_->SetVegetationScale(qualitySettings_.vegetationScale);
         }
+    }
+
+    void SimulatorGame::DrawWetReflections(GraphicsDevice& device, const Sim::VehicleState& state, const Matrix& view,
+                                           const Matrix& projection, const Vector3& camera)
+    {
+        const float lamps = rig_.LampFactor();
+        if (!wetReflections_ || weather_.wetness < 0.1f || lamps < 0.05f) return;
+        reflectedLights_.clear();
+        const float range2 = Render::WetReflections::kRangeM * Render::WetReflections::kRangeM;
+        // Street lanterns: warm sodium-ish white, the brightest and longest streaks.
+        if (worldRenderer_) {
+            for (const auto& lantern : worldRenderer_->Lanterns()) {
+                if (Vector3::DistanceSquared(lantern, camera) > range2) continue;
+                reflectedLights_.push_back({lantern, Vector3(1.0f, 0.86f, 0.62f), lamps});
+            }
+        }
+        // Traffic: headlamps white in front, tail lamps red behind (brighter when braking).
+        if (traffic_) {
+            for (const auto& car : traffic_->Vehicles()) {
+                if (Vector3::DistanceSquared(car.position, camera) > range2) continue;
+                const Vector3 right(-car.forward.Z, 0.0f, car.forward.X);
+                for (const float side : {-1.0f, 1.0f}) {
+                    const Vector3 lateral = right * (side * (0.5f * car.widthM - 0.3f));
+                    reflectedLights_.push_back({car.position + car.forward * (0.5f * car.lengthM) + lateral + Vector3(0.0f, 0.65f, 0.0f),
+                                                Vector3(1.0f, 0.95f, 0.85f), 0.8f * lamps});
+                    reflectedLights_.push_back({car.position - car.forward * (0.5f * car.lengthM) + lateral + Vector3(0.0f, 0.8f, 0.0f),
+                                                Vector3(1.0f, 0.08f, 0.04f), (car.brakeLights ? 0.8f : 0.35f) * lamps});
+                }
+            }
+        }
+        // The player's own lamps, while they are on.
+        if (state.lowBeam && !state.flightMode) {
+            const Vector3 forward = Vector3::TransformNormal(Vector3(0.0f, 0.0f, -1.0f), state.worldMatrix);
+            const Vector3 right = Vector3::TransformNormal(Vector3(1.0f, 0.0f, 0.0f), state.worldMatrix);
+            for (const float side : {-1.0f, 1.0f}) {
+                reflectedLights_.push_back({state.originPosition + forward * 2.0f + right * (side * 0.6f) + Vector3(0.0f, 0.65f, 0.0f),
+                                            Vector3(1.0f, 0.95f, 0.85f), state.highBeam ? 1.0f : 0.8f});
+                reflectedLights_.push_back({state.originPosition - forward * 2.0f + right * (side * 0.6f) + Vector3(0.0f, 0.8f, 0.0f),
+                                            Vector3(1.0f, 0.08f, 0.04f), state.brakeLights ? 0.8f : 0.35f});
+            }
+        }
+        // Nearest first, so the cap drops the far ones.
+        std::sort(reflectedLights_.begin(), reflectedLights_.end(), [&](const Render::ReflectedLight& a, const Render::ReflectedLight& b) {
+            return Vector3::DistanceSquared(a.position, camera) < Vector3::DistanceSquared(b.position, camera);
+        });
+        const auto height = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
+        wetReflections_->Draw(device, view, projection, camera, reflectedLights_, std::clamp((weather_.wetness - 0.1f) / 0.6f, 0.0f, 1.0f), height);
     }
 
     void SimulatorGame::UpdateSpray(const Sim::VehicleState& state, const float dt)
@@ -1339,6 +1387,7 @@ namespace CarSim::App
         if (!cockpit) {
             vehicleRenderer_->DrawLampGlows(device, state, view, projection);
         }
+        DrawWetReflections(device, state, view, projection, camera.position);
         if (rain_) {
             rain_->Draw(device, view, projection, camera.position, rig_.fogColor);
         }

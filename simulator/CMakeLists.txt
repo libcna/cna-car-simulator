@@ -71,6 +71,7 @@ add_library(carsim_render STATIC
     src/Render/WheelSpray.cpp
     src/Render/WindscreenRain.cpp
     src/Render/HeavyVehicle.cpp
+    src/Render/WetReflections.cpp
     src/Render/ProceduralCar.cpp
     src/Render/ProceduralCockpit.cpp
     src/Render/ProceduralTextures.cpp
