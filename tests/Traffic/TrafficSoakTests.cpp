@@ -5,6 +5,7 @@
 #include "CarSim/Collision/Shapes.hpp"
 #include "CarSim/Map/MapDocument.hpp"
 #include "CarSim/Map/MapWorld.hpp"
+#include "CarSim/Traffic/Pedestrians.hpp"
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include <gtest/gtest.h>
@@ -245,4 +246,58 @@ TEST(TrafficMap, EveryBusShelterServesALane)
     for (const auto& lane : world->Lanes().Lanes()) stops += static_cast<int>(traffic.BusStopsOn(lane.id).size());
     EXPECT_GT(shelters, 0);
     EXPECT_EQ(stops, shelters);
+}
+
+TEST(TrafficSoak, TenMinutesInTownWithPeopleCrossing)
+{
+    // The town with its people out: cars stop for everyone on a crossing, never drive through
+    // a person on the road, and neither the cars nor the people get stuck.
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 33);
+    traffic.SetDensity(20);
+    Traffic::Pedestrians people(*world, 44);
+    Traffic::PlayerProbe player;
+    player.valid = true;
+    Vector3 parked = world->SpawnPosition(world->PlayerSpawn());
+    parked.Z -= 14.0f;
+    parked.Y = world->Ground().HeightAt(parked.X, parked.Z);
+    player.position = parked;
+    const auto box = [](const Traffic::TrafficVehicle& c) {
+        return Collision::Obb::FromHeading(c.position + Vector3(0.0f, 0.5f * c.heightM, 0.0f),
+                                           Vector3(0.5f * c.widthM, 0.5f * c.heightM, 0.5f * c.lengthM), c.headingRad);
+    };
+    int overlaps = 0;
+    int runOver = 0;
+    int crossings = 0;
+    std::map<int, int> wasCrossing;
+    const float dt = 1.0f / 30.0f;
+    for (int step = 0; step < 30 * 60 * 10; ++step) {
+        people.Update(dt, player.position, traffic.Vehicles(), player, 48);
+        traffic.SetPedestrians(people.RoadProbes());
+        traffic.Update(dt, player);
+        for (const auto& p : people.People()) {
+            int& was = wasCrossing[p.id];
+            if (was && p.crossing == -1) ++crossings;
+            was = p.crossing != -1 ? 1 : 0;
+        }
+        if (step % 10 != 0) continue;
+        const auto& cars = traffic.Vehicles();
+        for (std::size_t a = 0; a < cars.size(); ++a) {
+            for (std::size_t b = a + 1; b < cars.size(); ++b) {
+                if (Vector3::Distance(cars[a].position, cars[b].position) > 14.0f) continue;
+                Collision::Contact contact;
+                if (Collision::IntersectObbObb(box(cars[a]), box(cars[b]), contact)) ++overlaps;
+            }
+            for (const auto& p : people.People()) {
+                if (!p.onRoad || Vector3::Distance(p.position, cars[a].position) > 6.0f) continue;
+                if (box(cars[a]).Contains(p.position + Vector3(0.0f, 0.9f, 0.0f), 0.2f) && cars[a].speed > 0.5f) ++runOver;
+            }
+        }
+    }
+    std::printf("  people crossed %d times\n", crossings);
+    EXPECT_EQ(overlaps, 0);
+    EXPECT_EQ(runOver, 0) << "a car drove into a person on the road";
+    EXPECT_GT(crossings, 3) << "the people should actually cross";
 }

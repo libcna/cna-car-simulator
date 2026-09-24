@@ -511,8 +511,10 @@ waiting car stopped just over the line counted as entering; left turns on green 
 oncoming stream without giving way, and on green everyone waited for cross traffic standing at
 red; a long vehicle never "stopped at the line" of a stop sign. Cars now claim a junction
 (`claimed`) once inside their stopping distance, and nobody enters while a conflicting car is
-still crossing. Seeds 21-40 are all clean, 41-60 clean on 15 of 20 (the rest are late-yield and
-box-clearing cases). `CARSIM_SOAK_SEED` runs the soak on another seed.
+still crossing. `CARSIM_SOAK_SEED` runs the soak on another seed. With the later rounds
+(overtaking, bus stops, people, and the permissive-turn and release fixes) all hundred seeds
+21-120 run the 30 minutes without an overlap or a stuck car, and a ten-minute town soak with
+people crossing checks that no car ever drives into a person on the road.
 
 Day and night, weather, traffic signals and a larger world were deferred here until Phase 12
 (section 25) took them on at the owner's request.
