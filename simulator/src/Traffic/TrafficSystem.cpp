@@ -509,15 +509,22 @@ namespace CarSim::Traffic
             const TrafficVehicle* target = FindVehicle(leader.id);
             if (!target || target->link >= 0 || target->lane != v.lane || target->overtaking >= 0) return;
             // Worth passing: a bus at a stop, a lorry or bus holding the traffic up, or a car
-            // crawling along for no reason -- not one that is only slowing for a bend or a junction.
+            // crawling along for no reason -- not one that is only slowing for a bend or a junction,
+            // and not one standing in a queue: whatever holds it up would trap us alongside it, on
+            // the wrong side of the road.
             const float targetToEnd = lanes_.LaneAt(target->lane).length - target->s;
-            const bool crawling = target->speed < 0.6f * desired && target->acceleration > -0.3f && targetToEnd > 150.0f;
+            const bool crawling = target->speed > 1.5f && target->speed < 0.6f * desired && target->acceleration > -0.3f &&
+                                  targetToEnd > 150.0f;
             const bool slow = target->dwell > 0.0f || (target->Heavy() && target->speed < 0.8f * desired) || crawling;
             if (!slow || leader.gap > 25.0f || desired < 12.0f) return;
             // Nothing else just ahead of it to be trapped behind.
             for (const auto& o : vehicles_) {
                 if (o.id == target->id || o.id == v.id || o.link >= 0 || o.lane != v.lane) continue;
                 if (o.s > target->s && o.s - target->s < target->lengthM + v.lengthM + 20.0f) return;
+            }
+            if (player.valid && player.blocksTraffic && playerLane_ == v.lane && playerS_ > target->s &&
+                playerS_ - target->s < target->lengthM + v.lengthM + 20.0f) {
+                return;
             }
             const float passLength = leader.gap + target->lengthM + v.lengthM + 14.0f;
             if (toEnd < passLength + 60.0f) return;   // no overtaking into a junction

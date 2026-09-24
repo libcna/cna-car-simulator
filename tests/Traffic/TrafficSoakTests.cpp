@@ -18,6 +18,7 @@
 #include <set>
 
 using namespace CarSim;
+using Microsoft::Xna::Framework::Vector2;
 using Microsoft::Xna::Framework::Vector3;
 
 TEST(TrafficSoak, ThirtyMinutesWithoutOverlapsOrStuckCars)
@@ -150,11 +151,19 @@ TEST(TrafficSoak, TenMinutesAtTheSignalsWithoutRedLightsOrWrongLanes)
     ASSERT_GE(signalised, 0) << "the sample map must have a signalised junction";
     const auto& junction = world->Roads().Intersections()[static_cast<std::size_t>(signalised)];
 
-    Traffic::TrafficSystem traffic(*world, 4242);
+    Traffic::TrafficSystem traffic(*world, std::getenv("CARSIM_SOAK_SEED") ? std::atoi(std::getenv("CARSIM_SOAK_SEED")) : 4242);
     traffic.SetDensity(20);
     Traffic::PlayerProbe player;
     player.valid = true;
+    // On the verge, clear of every lane: parked in a lane the player is an obstacle that the queue
+    // behind it cannot pass, and the junction backs up behind the queue.
+    // Search sideways, nearest first, for a spot at least 6 m from every lane centre.
+    const auto clearOfLanes = [&](const Vector3& p) { return lanes.NearestLane(Vector2(p.X, p.Z), 0.0f, 6.0f) < 0; };
     Vector3 parked(junction.center.X, 0.0f, junction.center.Z - 40.0f);
+    for (int i = 1; i < 160 && !clearOfLanes(parked); ++i) {
+        parked.X = junction.center.X + 0.5f * static_cast<float>((i + 1) / 2) * (i % 2 == 0 ? -1.0f : 1.0f);
+    }
+    ASSERT_TRUE(clearOfLanes(parked)) << "no verge beside the signalised junction to park on";
     parked.Y = world->Ground().HeightAt(parked.X, parked.Z);
     player.position = parked;
     player.forward = Vector3(1.0f, 0.0f, 0.0f);
@@ -227,7 +236,7 @@ TEST(TrafficSoak, TenMinutesAtTheSignalsWithoutRedLightsOrWrongLanes)
 
     std::printf("  signal entries %d, worst heading agreement %.2f, spawned %d\n", signalEntries,
                 static_cast<double>(worstAgreement), traffic.SpawnedTotal());
-    EXPECT_GT(signalEntries, 20) << "the soak never used the signalised junction";
+    EXPECT_GT(signalEntries, 40) << "the signalised junction carried too little traffic (jammed?)";
     EXPECT_EQ(redLightEntries, 0) << "cars entered the junction against a red";
     EXPECT_EQ(wrongLaneObservations, 0) << "cars faced the wrong way along their lane (worst "
                                         << worstAgreement << ")";
