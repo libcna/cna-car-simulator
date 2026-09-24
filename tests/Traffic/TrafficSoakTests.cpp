@@ -230,3 +230,17 @@ TEST(TrafficSoak, TenMinutesAtTheSignalsWithoutRedLightsOrWrongLanes)
                                         << worstAgreement << ")";
     EXPECT_EQ(spawnedOnPlayer, 0) << "cars appeared within 25 m of the parked player";
 }
+
+TEST(TrafficMap, EveryBusShelterServesALane)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(Map::MapDirectory(CARSIM_TEST_CONTENT_DIR, "lipova"), errors);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 1);
+    int shelters = 0;
+    for (const auto& p : world->Objects().Props()) shelters += p.type == Map::PropType::BusStop ? 1 : 0;
+    int stops = 0;
+    for (const auto& lane : world->Lanes().Lanes()) stops += static_cast<int>(traffic.BusStopsOn(lane.id).size());
+    EXPECT_GT(shelters, 0);
+    EXPECT_EQ(stops, shelters);
+}

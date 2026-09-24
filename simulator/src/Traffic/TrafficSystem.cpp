@@ -33,6 +33,26 @@ namespace CarSim::Traffic
         : world_(world), lanes_(world.Lanes()), rng_(seed), plates_(seed * 7919u + 13u)
     {
         maxVehicles_ = world.Data().traffic.maxVehicles;
+        // Bus stops: each shelter serves the lane it stands on the right of, a few metres off.
+        busStops_.assign(lanes_.Lanes().size(), {});
+        for (const auto& prop : world.Objects().Props()) {
+            if (prop.type != Map::PropType::BusStop) continue;
+            const Vector2 at(prop.position.X, prop.position.Z);
+            int bestLane = -1;
+            float bestS = 0.0f;
+            float bestDistance = 9.0f;
+            for (const auto& lane : lanes_.Lanes()) {
+                float lateral = 0.0f;
+                const float s = lane.Project(at, lateral);
+                if (lateral < 0.5f || lateral > bestDistance) continue;
+                if (s < 15.0f || s > lane.length - 15.0f) continue;   // not in a junction mouth
+                bestDistance = lateral;
+                bestLane = lane.id;
+                bestS = s;
+            }
+            if (bestLane >= 0) busStops_[static_cast<std::size_t>(bestLane)].push_back(bestS);
+        }
+        for (auto& stops : busStops_) std::sort(stops.begin(), stops.end());
     }
 
     float TrafficSystem::IdmAcceleration(const float speed, const float desiredSpeed, const float gap, const float leaderSpeed, const TrafficParams& p)
@@ -846,6 +866,40 @@ namespace CarSim::Traffic
             // Told to give way too late to stop even hard: it is going in regardless, so it had
             // better be seen as going in.
             if (v.speed > 1.0f && lineGap < v.speed * v.speed / (2.0f * 6.0f) + 0.5f) v.claimed = true;
+        }
+        // Buses call at the stops on their lane: indicate right, pull in, stand a while with
+        // the doors open, indicate left and go.
+        if (v.body == Sim::CarStyle::Body::Bus && v.link < 0 && v.lane >= 0 && static_cast<std::size_t>(v.lane) < busStops_.size()) {
+            if (v.dwell > 0.0f) {
+                v.dwell -= dt;
+                desired = 0.0f;
+                gap = std::min(gap, 0.05f);
+                leaderSpeed = 0.0f;
+                v.indicatorLeft = v.dwell < 3.0f;
+                v.indicatorRight = false;
+            } else {
+                for (const float stop : busStops_[static_cast<std::size_t>(v.lane)]) {
+                    if (v.servedLane == v.lane && std::fabs(v.servedS - stop) < 0.5f) continue;
+                    const float ahead = stop - v.s;
+                    if (ahead < -2.0f || ahead > 70.0f) continue;
+                    v.indicatorRight = true;
+                    v.indicatorLeft = false;
+                    // As an obstacle just past the stop, so the car-following gap brings the
+                    // bus to rest with its middle at the shelter.
+                    const float stopGap = ahead + params.minGap + 1.0f;
+                    if (stopGap < gap) {
+                        gap = std::max(0.05f, stopGap);
+                        leaderSpeed = 0.0f;
+                    }
+                    if (ahead < 1.5f && v.speed < 0.4f) {
+                        std::uniform_real_distribution<float> dwell(12.0f, 20.0f);
+                        v.dwell = dwell(rng_);
+                        v.servedLane = v.lane;
+                        v.servedS = stop;
+                    }
+                    break;
+                }
+            }
         }
         if (v.stunned > 0.0f) {
             v.stunned -= dt;

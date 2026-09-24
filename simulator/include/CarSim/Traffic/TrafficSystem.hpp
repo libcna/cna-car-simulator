@@ -53,6 +53,9 @@ namespace CarSim::Traffic
         bool stoppedAtLine = false;   // stop sign: full stop registered
         bool committed = false;
         bool claimed = false;
+        float dwell = 0.0f;           // bus: seconds left standing at a stop
+        int servedLane = -1;          // bus: the stop last called at (lane, s)
+        float servedS = -1.0f;
         bool yieldingOnGreen = false; // a permissive turn held at the line on green for oncoming traffic         // inside its stopping distance and not holding: will enter the junction       // released by the deadlock breaker: enters without re-checking
         bool backingOff = false;      // reversing out of a junction stand-off back to the line
         float standoffTime = 0.0f;    // seconds stopped nose to nose inside a junction
@@ -121,6 +124,8 @@ namespace CarSim::Traffic
         [[nodiscard]] std::vector<TrafficVehicle>& Vehicles() { return vehicles_; }
         [[nodiscard]] const PlateGenerator& Plates() const { return plates_; }
         [[nodiscard]] int SpawnedTotal() const { return spawnedTotal_; }
+        /// Bus stops on a lane (s along it), for tests and the map.
+        [[nodiscard]] const std::vector<float>& BusStopsOn(int lane) const { return busStops_[static_cast<std::size_t>(lane)]; }
 
         TrafficParams params;
 
@@ -166,6 +171,7 @@ namespace CarSim::Traffic
         PlateGenerator plates_;
         SignalController signals_;
         int maxVehicles_ = 20;
+        std::vector<std::vector<float>> busStops_;   // per lane: s of each bus stop, ascending
         int nextId_ = 1;
         int spawnedTotal_ = 0;
         float spawnTimer_ = 0.0f;

@@ -34,7 +34,7 @@ namespace
         return r;
     }
 
-    std::unique_ptr<Map::MapWorld> CrossWorld(bool priority)
+    std::unique_ptr<Map::MapWorld> CrossWorld(bool priority, const std::vector<Map::PropSpec>& props = {})
     {
         Map::MapData data;
         data.info.id = "cross";
@@ -45,6 +45,7 @@ namespace
         if (priority) data.nodes[1].mainRoads = {"main"};
         data.roads = {Road("main", {"w", "c", "e"}), Road("minor", {"n", "c", "s"})};
         data.traffic.maxVehicles = 0;
+        data.objects.props = props;
         std::vector<std::string> errors;
         auto world = Map::MapWorld::Build(std::move(data), errors);
         EXPECT_TRUE(errors.empty());
@@ -382,4 +383,43 @@ TEST(TrafficSystem, LongVehiclesAreSlowerAndCarryTheirBodyClass)
     EXPECT_GT(v.massKg, 10000.0f);
     for (int i = 0; i < 30 * 60; ++i) traffic.Update(1.0f / 30.0f, NoPlayer());
     EXPECT_LE(traffic.Vehicles().front().speed, 80.0f / 3.6f + 0.1f) << "heavy vehicles keep to 80 km/h";
+}
+
+TEST(TrafficSystem, BusesCallAtTheStopsOnTheirLaneAndMoveOn)
+{
+    // A shelter on the right of the eastbound main road, 200 m before the junction.
+    Map::PropSpec shelter;
+    shelter.type = "bus_stop";
+    shelter.position = Vector2(-200.0f, 5.5f);
+    auto world = CrossWorld(true, {shelter});
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 5);
+    traffic.SetDensity(0);
+    int lane = -1;
+    for (const auto& l : world->Lanes().Lanes()) {
+        if (!traffic.BusStopsOn(l.id).empty()) lane = l.id;
+    }
+    ASSERT_GE(lane, 0) << "the shelter is assigned to a lane";
+    const float stop = traffic.BusStopsOn(lane).front();
+    ASSERT_GE(traffic.SpawnOn(lane, std::max(0.0f, stop - 120.0f), 12.0f, Sim::CarStyle::Body::Bus), 0);
+    ASSERT_GE(traffic.SpawnOn(lane, std::max(0.0f, stop - 160.0f), 12.0f, Sim::CarStyle::Body::Hatchback), 0);
+    bool dwelled = false, indicated = false;
+    float stoppedAt = -1.0f;
+    for (int i = 0; i < 30 * 60; ++i) {
+        traffic.Update(1.0f / 30.0f, NoPlayer());
+        for (const auto& v : traffic.Vehicles()) {
+            if (v.body != Sim::CarStyle::Body::Bus) continue;
+            indicated = indicated || v.indicatorRight;
+            if (v.dwell > 0.0f && !dwelled) {
+                dwelled = true;
+                stoppedAt = v.s;
+            }
+        }
+    }
+    EXPECT_TRUE(indicated);
+    ASSERT_TRUE(dwelled);
+    EXPECT_NEAR(stoppedAt, stop, 1.5f) << "stops with its middle at the shelter";
+    for (const auto& v : traffic.Vehicles()) {
+        if (v.body == Sim::CarStyle::Body::Bus) EXPECT_TRUE(v.lane != lane || v.s > stop + 20.0f) << "and moves on";
+    }
 }
