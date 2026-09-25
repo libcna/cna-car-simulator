@@ -1685,8 +1685,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   assigns the windshield pillar's existing inward-facing triangles to matte charcoal trim
   while the headliner stays pale. Matched noon, night and rainy-night pairs plus all seven
   final weather/time views are in `docs/screenshots/phase14/`; 10 procedural-car tests and
-  the public XNA check pass. The physical pillar width and broad dashboard pad remain open;
-  keep P14-022 open.
+  the public XNA check pass. A later geometry pass narrows the interior windshield lip
+  along both roof rails instead of copying the broad opaque skin quads. A matched HUD-free
+  noon pair restores the left town frontage in the driver's view; all seven time/weather
+  cases and an exterior check
+  were recaptured on the hidden Radeon. Four virtual-display renderers retain the same
+  visible geometry and 1,230 main-view draws; 10 procedural-car tests and the public XNA
+  check pass. The broad dashboard pad and finer night material separation keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,

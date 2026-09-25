@@ -101,3 +101,16 @@ was also checked at [sunset](cockpit-pillar-after-sunset.png),
 [snow](cockpit-pillar-after-snow.png). The wide physical pillar and broad dashboard pad remain
 open visual-quality work; this change only assigns existing inward-facing triangles to a
 different existing interior material.
+
+The subsequent geometry pass replaced those broad inward-facing skin quads with a narrow
+trim lip following both windshield rails. In a matched HUD-free noon pair,
+[before](cockpit-narrow-pillar-before-nohud.png) /
+[after](cockpit-narrow-pillar-after-nohud.png), 14,455 pixels change in the left
+front-frame crop (x 100–309, y 0–329; channel difference above 12). The town frontage
+is visible through the newly open side of the windshield. Final hidden Radeon views are
+[noon](cockpit-narrow-pillar-noon.png), [sunset](cockpit-narrow-pillar-sunset.png),
+[night](cockpit-narrow-pillar-night.png), [rain](cockpit-narrow-pillar-rain.png),
+[fog](cockpit-narrow-pillar-fog.png), [snow](cockpit-narrow-pillar-snow.png), and
+[rainy night](cockpit-narrow-pillar-rainy_night.png). The exterior body and glass meshes
+are unchanged; a chase-camera inspection showed the car remains closed. The broad lower
+dashboard and finer night material separation remain open.

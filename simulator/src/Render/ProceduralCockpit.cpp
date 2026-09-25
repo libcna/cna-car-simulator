@@ -82,6 +82,38 @@ namespace CarSim::Render::CarBody
             }
         }
 
+        /// A narrow cabin-facing lip follows the actual roof-rail segment on each side of
+        /// the windscreen. The broad opaque quads of the outer skin cover too much of the
+        /// driver's view if copied wholesale as interior pillar trim.
+        void AddInnerWindshieldPillars(MeshData& mesh, const SkinGrid& skin, const float zCowl, const float zRoofFront)
+        {
+            for (std::size_t r = 0; r + 1 < skin.rings.size(); ++r) {
+                const float zc = 0.5f * (skin.stations[r] + skin.stations[r + 1]);
+                if (zc < zCowl || zc > zRoofFront) continue;
+                for (const int seg : {Ring::kRail - 1, Ring::kPoints - Ring::kRail}) {
+                    const int next = seg + 1;
+                    const int rail = seg == Ring::kRail - 1 ? next : seg;
+                    const auto add = [&](const std::size_t station, const int point) {
+                        // The whole loft segment is wider than the visible pillar. Keep only
+                        // its inner 40 % against the roof-rail edge on both mirrored sides.
+                        const float blend = point == rail ? 0.0f : 0.60f;
+                        const Vector3 p = Vector3::Lerp(skin.rings[station][static_cast<std::size_t>(point)],
+                                                        skin.rings[station][static_cast<std::size_t>(rail)], blend);
+                        Vector3 normal = Vector3::Lerp(skin.normals[station][static_cast<std::size_t>(point)],
+                                                       skin.normals[station][static_cast<std::size_t>(rail)], blend);
+                        normal.Normalize();
+                        return mesh.AddVertex(p, -normal, Vector2(skin.u[static_cast<std::size_t>(point)] * 8.0f,
+                                                                    skin.V(skin.stations[station]) * 8.0f), kWhite);
+                    };
+                    const std::uint32_t a = add(r, seg);
+                    const std::uint32_t b = add(r, next);
+                    const std::uint32_t c = add(r + 1, next);
+                    const std::uint32_t d = add(r + 1, seg);
+                    mesh.AddQuad(a, d, c, b);
+                }
+            }
+        }
+
         /// Dashboard slab lofted across x from a closed (z, y) profile; returns the mesh with
         /// smooth normals and outward orientation.
         MeshData DashboardSlab(const std::vector<std::vector<Vector3>>& rings, const int columns)
@@ -156,25 +188,22 @@ namespace CarSim::Render::CarBody
         CarPart cluster = MakePart("cluster", CarMaterial::Cluster, CarPart::Role::Interior);
         CarPart mirror = MakePart("mirror_face", CarMaterial::Chrome, CarPart::Role::Interior);
 
-        // ---- Inner shell: pale headliner, charcoal windscreen pillars and door cards,
+        // ---- Inner shell: pale headliner, narrow charcoal windscreen pillars and door cards,
         // lower door panels (mid), tailgate inner (dark).
         CopyInnerShell(skin, skinMaterials, zCowl - 0.03f, zR - 0.03f, [&](int rs, float zc, float yc) -> CarPart* {
             if (rs >= Ring::kGlassBase) {
                 if (zc > zSideGlassRear + 0.3f) return &interior;
-                // The dark-to-light boundary has to follow a ring of the loft. A world-space
-                // height test cuts diagonally across the quads instead, and because whole quads
-                // are classified the join came out as a visible saw-tooth down the A-pillar.
-                // Segment 12 is the dark window seal. The windscreen pillars are a matte
-                // charcoal trim, while the roof liner stays pale. This separates the broad
-                // windshield frame from the headliner in daylight and under cabin lighting.
+                // Segment 12 is the dark window seal. The narrow pillar lip below is built
+                // separately so the skin's broad opaque cowl quads do not fill the side view.
                 if (rs <= Ring::kGlassBase) return &interior;
-                return zc < zRoofFront && rs < Ring::kRail ? &mid : &light;
+                return zc < zRoofFront && rs < Ring::kRail ? nullptr : &light;
             }
             if (rs >= Ring::kRockerTop && zc > zCowl + 0.05f) {
                 return yc < belt - 0.30f ? &mid : &interior;
             }
             return nullptr;
         });
+        AddInnerWindshieldPillars(mid.mesh, skin, zCowl, zRoofFront);
 
         // ---- Floor, tunnel, firewall -------------------------------------------------------
         AddBoxTo(interior, Vector3(0.0f, floorY - 0.01f, 0.5f * (zCowl + zR - 0.3f)), Vector3(2.0f * (cabinHalf + 0.06f), 0.03f, (zR - 0.3f) - zCowl));

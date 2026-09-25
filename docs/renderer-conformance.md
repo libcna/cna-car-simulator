@@ -372,3 +372,21 @@ the established filtering and shading differences, with no missing mirror conten
 on this virtual display used the software ICD; the separate Radeon OPENGLES3 capture and
 rightward mirror check are in `screenshots/phase14/`. `scripts/check_xna_only.py` passed
 (230 application files scanned); no renderer-specific application path was added.
+
+### Phase 14 narrow interior windshield trim checkpoint (2026-09-25)
+
+The wide interior A-pillar quads were replaced by a narrow lip following each windscreen
+rail. All four existing public-XNA renderer builds completed the same 40-frame cloudy
+cockpit scene on dedicated virtual Xvfb `:103`:
+[OPENGLES3](screenshots/renderers/phase14-narrow-pillar-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-narrow-pillar-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-narrow-pillar-software.png), and
+[Vulkan](screenshots/renderers/phase14-narrow-pillar-vulkan.png). Each reported 1,230
+main-view draws. Visual inspection found the same open left sight line, intact headliner,
+cluster and mirrors in each image. Relative to OPENGLES3, mean absolute RGB differences
+were 0.382 / 0.388 / 0.358 for OPENGL33, 1.332 / 1.338 / 1.257 for Vulkan, and
+2.183 / 2.242 / 2.214 for SOFTWARE; the respective shares of pixels exceeding 32 in
+any channel were below 0.001%, 0.784% and 1.665%. These captures are for conformance,
+not Radeon timing. The separate hidden Radeon 800 × 480 seven-condition review is in
+[`screenshots/phase14/`](screenshots/phase14/README.md). The public XNA checker passed
+(233 application files scanned).
