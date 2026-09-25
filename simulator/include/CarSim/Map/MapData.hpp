@@ -56,7 +56,9 @@ namespace CarSim::Map
         float fromM = 0.0f;
         float toM = 0.0f;
         CentreLineMarking marking = CentreLineMarking::Dashed;
-        bool noOvertaking = false;  // sign/sight restriction independent of painted line
+        bool noOvertaking = false;         // applies in both directions, independent of paint
+        bool noOvertakingForward = false;  // B 21a/sight restriction towards increasing road s
+        bool noOvertakingReverse = false;  // B 21a/sight restriction towards decreasing road s
     };
 
     /// Traffic control applied to one road approaching an intersection node.

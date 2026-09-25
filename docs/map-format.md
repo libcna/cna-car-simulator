@@ -127,12 +127,15 @@ the opposing lane. `solid-forward` and `solid-reverse` represent the paired V 3 
 solid stroke is next to traffic travelling towards increasing/decreasing road arc length,
 respectively. Only traffic next to the broken stroke may cross it. `noOvertaking` is an explicit
 road-wide restriction independent of the paint. Each `centreLineSections[]` entry has
-`fromM`, `toM`, optional `centreLine` and optional `noOvertaking`; metres run along the smoothed road
+`fromM`, `toM`, optional `centreLine`, optional `noOvertaking` for both directions, and optional
+`noOvertakingForward` / `noOvertakingReverse` for a directional B 21a or sight zone. Metres run along the smoothed road
 curve from its first node. Ranges must be ordered, non-overlapping and within the road length.
 Outside them, the road-wide marking applies. The traffic planner checks the whole pass and
 return path against these ranges. B 21a/B 21b roadside sign faces are supported in `objects.signs`;
 the shipped map places a start, post-junction repeat and end for each direction at E3. The map positions are
 checked against the range boundaries; the planner uses the range rather than sign pixels.
+Directional restrictions let a sign on one approach apply only to traffic facing it; the
+opposite approach can remain dashed and passable unless its own sign or sight condition applies.
 
 Derived at load time (`RoadNetwork`): straight-and-arc centrelines through the nodes, heights
 from the terrain (80 m low-pass, pinned to node heights, flattened across intersections),

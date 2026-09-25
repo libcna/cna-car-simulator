@@ -1703,7 +1703,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   bracket this range in the shipped map, including a B 21a repeat after the E3 junction in
   each direction, with a boundary-projection regression test and a
   Radeon road view. Parser, mesh and deterministic traffic tests pass; see
-  `docs/research/czech-overtaking.md`. Acceptance for completion: junction/crossing edge cases,
+  `docs/research/czech-overtaking.md`. Section restrictions can now apply only in the forward
+  or reverse direction while the paint stays dashed; parser and a full traffic pass regression
+  verify that a one-way B 21a zone does not ban the opposite approach. Acceptance for completion: junction/crossing edge cases,
   broader local restrictions, and review of vertical-sign effects at other sites.
 - [~] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.

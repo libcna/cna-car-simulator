@@ -91,6 +91,25 @@ TEST(MapDocument, RejectsOverlappingCentreLineSections)
     EXPECT_FALSE(Map::ParseMapSources(s).ok());
 }
 
+TEST(MapDocument, DirectionalNoOvertakingSignZoneIsIndependentOfPaint)
+{
+    auto s = Sources();
+    s.roads = R"({"schemaVersion": 1,
+        "nodes": [{"id": "a", "position": [0, 0]}, {"id": "b", "position": [0, -400]}],
+        "roads": [{"id": "r1", "nodes": ["a", "b"], "centreLine": "dashed",
+                   "centreLineSections": [
+                       {"fromM": 100, "toM": 160, "noOvertakingForward": true},
+                       {"fromM": 220, "toM": 280, "noOvertakingReverse": true}]}]})";
+    const auto result = Map::ParseMapSources(s);
+    ASSERT_TRUE(result.ok()) << (result.errors.empty() ? "" : result.errors.front());
+    const auto& road = result.data.roads.front();
+    EXPECT_EQ(road.CentreLineAt(120.0f), Map::CentreLineMarking::Dashed);
+    EXPECT_FALSE(road.MayOvertakeBetween(90.0f, 170.0f, true));
+    EXPECT_TRUE(road.MayOvertakeBetween(90.0f, 170.0f, false));
+    EXPECT_TRUE(road.MayOvertakeBetween(210.0f, 290.0f, true));
+    EXPECT_FALSE(road.MayOvertakeBetween(210.0f, 290.0f, false));
+}
+
 TEST(MapDocument, RejectsNewerSchemaVersion)
 {
     auto s = Sources();

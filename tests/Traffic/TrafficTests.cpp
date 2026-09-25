@@ -531,6 +531,24 @@ TEST(TrafficSystem, AShortSolidSectionInsideTheReturnPathForbidsStartingAPass)
     EXPECT_TRUE(solidBeyondPass.wentOut);
 }
 
+TEST(TrafficSystem, AOneWayNoOvertakingZoneRestrictsOnlyItsSignedDirection)
+{
+    Map::CentreLineSection signedZone;
+    signedZone.fromM = 120.0f;
+    signedZone.toM = 280.0f;
+    signedZone.marking = Map::CentreLineMarking::Dashed;
+    signedZone.noOvertakingForward = true;
+    const std::vector<Map::CentreLineSection> sections{signedZone};
+    const OvertakeRun forward = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false,
+                                           5, 0.0f, 0.0f, 0.0f, 0.0f, Sim::CarStyle::Body::Hatchback, sections);
+    const OvertakeRun reverse = RunOvertake(false, Map::CentreLineMarking::Dashed, false, {}, false,
+                                           5, 0.0f, 0.0f, 0.0f, 0.0f, Sim::CarStyle::Body::Hatchback, sections);
+    EXPECT_FALSE(forward.wentOut);
+    EXPECT_TRUE(reverse.wentOut);
+    EXPECT_EQ(forward.overlaps, 0);
+    EXPECT_EQ(reverse.overlaps, 0);
+}
+
 TEST(TrafficSystem, CombinedCentreLineAllowsPassOnlyFromBrokenSide)
 {
     EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::SolidForward, true).wentOut);

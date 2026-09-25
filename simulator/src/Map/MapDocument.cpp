@@ -225,6 +225,8 @@ namespace CarSim::Map
                             else if (marking == "solid-reverse") section.marking = CentreLineMarking::SolidReverse;
                             else r.Error(sp + ".centreLine: expected none|solid|dashed|solid-forward|solid-reverse");
                             r.Bool(item, "noOvertaking", section.noOvertaking, sp);
+                            r.Bool(item, "noOvertakingForward", section.noOvertakingForward, sp);
+                            r.Bool(item, "noOvertakingReverse", section.noOvertakingReverse, sp);
                             if (section.fromM < previousEnd || section.fromM < 0.0f || section.toM <= section.fromM) {
                                 r.Error(sp + ": expected ordered, non-overlapping fromM < toM in road metres");
                             }

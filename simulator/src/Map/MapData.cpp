@@ -31,7 +31,8 @@ namespace CarSim::Map
             if (section.toM <= cursor) continue;
             if (section.fromM >= toRoadS) break;
             if (section.fromM > cursor && !MayCrossCentreLine(centreLine, forward)) return false;
-            if (section.noOvertaking || !MayCrossCentreLine(section.marking, forward)) return false;
+            if (section.noOvertaking || (forward ? section.noOvertakingForward : section.noOvertakingReverse) ||
+                !MayCrossCentreLine(section.marking, forward)) return false;
             cursor = std::min(toRoadS, section.toM);
         }
         return cursor >= toRoadS || MayCrossCentreLine(centreLine, forward);
