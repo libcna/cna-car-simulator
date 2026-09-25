@@ -261,6 +261,11 @@ The procedural audio mixer now includes a bounded six-voice nearby traffic layer
 stereo placement, smooth entry/exit and stronger cabin attenuation, with deterministic DSP
 tests. A 90-frame dummy-audio runtime with 19–20 traffic cars reported a 0.37 ms mean audio
 update; no real-speaker listening review has been claimed yet.
+`carsim-audiopreview` now renders 14 deterministic WAV excerpts from this mixer without a
+device or display. The lossless FLAC listening pack and scenario timings are in
+`docs/audio-previews/phase14/`; two independent WAV exports were byte-identical and FLAC
+decoded to the exact PCM. Do not mark P14-040/P14-041 complete until the clips and gameplay
+mix have actually been heard on speakers/headphones and any necessary tuning is repeated.
 
 The new project-only `asan-ubsan` developer preset found and drove a real fix: `Vehicle`
 previously retained a reference to a caller-owned definition, which failed when passed a

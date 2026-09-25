@@ -5,6 +5,14 @@ are shipped, so there is nothing to license. Playback uses one stereo
 `DynamicSoundEffectInstance` (44.1 kHz, 16-bit) from the XNA 4.0 audio API; mixing happens in
 project code (`simulator/src/Audio`).
 
+The [Phase 14 listening pack](audio-previews/phase14/README.md) now provides reproducible,
+device-free renders of the actual mixer for startup, idle, RPM and load changes, lift-off,
+shifts, engine braking, tyre/road, wind, rain, snow, traffic pass-by, cabin switching and
+helicopter modes. The WAV outputs repeated byte-for-byte and the tracked FLAC files decode
+to the same PCM. Their peaks and file integrity have been checked. A real-speaker or headphone
+listening pass and any mix changes based on it are still required; these files do not by
+themselves establish perceived quality.
+
 ## Stream and buffering
 
 `Audio::VehicleAudio` keeps three 1024-frame blocks (about 70 ms) queued. Each frame it asks

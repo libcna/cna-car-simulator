@@ -1719,8 +1719,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `docs/audio-design.md`. A deterministic test then caught the starter motor disappearing
   by 0.094 sample units at the first running block sample; its tone now fades in over 25 ms
   and out over 40 ms, with the ignition catch clip and engine-state timing preserved.
-  Acceptance still requires reproducible audio captures and a
-  real-speaker review of starts, sweeps, shifts and overrun without clipping or loop seams.
+  A device-free tool now exports deterministic WAV excerpts from the actual `VehicleAudio`
+  mixer. Startup, idle, RPM sweep, fixed-RPM load, lift-off, shifts and engine braking are in
+  `docs/audio-previews/phase14/` as lossless FLAC; two exports matched byte-for-byte.
+  Acceptance still requires a real-speaker review of these transitions and mix tuning
+  based on listening, without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
   mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
   authored ground roughness and road snow cover for bounded tread and scrub textures; deterministic
@@ -1744,6 +1747,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   gain and all existing weather/flight sources remain in place. A matched 90-frame 320 × 200
   dummy-stream run measured 0.273 ms project audio update before and 0.274 ms after (single
   runs, not a speaker or statistically meaningful performance comparison).
+  The same offline listening pack includes tyre/road, wind, rain/wipers, snow, traffic
+  pass-by, cabin/exterior switching and four helicopter rotor modes. All 14 WAVs have valid
+  44.1 kHz stereo headers; tracked FLAC decodes to exact PCM and the largest preview peak is
+  0.580 full scale. These are technical checks only; real listening and responsive tuning
+  remain open. No recorded engine source was imported.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.
