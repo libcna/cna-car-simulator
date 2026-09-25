@@ -1800,7 +1800,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P3 — measure, then optimize
 
-- [~] `P14-050` Record real-GPU hardware/driver/renderer, FPS, frame, CPU update, project draw
+- [x] `P14-050` Record real-GPU hardware/driver/renderer, FPS, frame, CPU update, project draw
   submission, object, submission, triangle, mirror, traffic and pedestrian counts for exterior,
   cockpit, dense town, forest, night, rain, snow, fog, pedestrian, walking, helicopter and a
   realistic worst case. Acceptance: same seed/settings/camera are reproducible; unavailable
@@ -1826,9 +1826,15 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   16.23–16.73 ms and 4.65 ms respectively. An interleaved repeat then hit a severe host-load
   surge, so the sequential whole-frame differences do not support a precise speed-up claim.
   The clear town, forest, snow, fog, pedestrian, walking and representative aerial cases are
-  in `docs/performance.md`. Stabilise or pair the remaining comparison before P14-051; do
-  not use the physical desktop for this work. The snow memory sample shows no pressure that
-  justifies replacing its public-XNA layout.
+  in `docs/performance.md`. A further interleaved hidden Radeon check at `88d57a9`
+  bracketed rainy-night cockpit mirror modes: no-mirror draws averaged 12.86 ms and
+  all-mirror draws 18.49 ms, with a directly timed 6.03–6.25 ms mirror pass. Rear-only
+  cost 3.56–3.68 ms; width, update interval and distance variants, memory, draw counts,
+  triangles and full-frame captures are retained in `docs/performance.md`. The clear town,
+  forest, snow, fog, people, walking and aerial cases complete the controlled 800 × 480
+  Radeon baseline without touching the physical desktop or relying on compositor FPS.
+  Draw/pass timings measure CPU submission, not pure GPU execution. The snow memory sample
+  shows no pressure that justifies replacing its public-XNA layout.
 - [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.

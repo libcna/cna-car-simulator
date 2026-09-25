@@ -409,3 +409,48 @@ replacing the working Vulkan-compatible snow layout. The [mirror JSON](performan
 [repeat JSON](performance-data/p14-mirror-bracket-800-all.json),
 [scene JSON](performance-data/p14-scene-offscreen-800-town_clear.json), and
 [scene captures](screenshots/phase14/README.md) are retained for review.
+
+### Paired mirror check before P14-051 (2026-09-25)
+
+At `88d57a9`, the same hidden Radeon 780M / Mesa 25.0.7 / OPENGLES3 setup ran the
+rainy-night cockpit in the interleaved order `none, all, rear, rear192, rear_every2,
+rear75, rear192, rear, all, none`. Each run used 120 lockstep frames (30 warm-up,
+90 measured), 60 s traffic warm-up, high quality and the same 800 × 480 camera. The
+script checked `driver radeonsi`, physical image size and scene after every run. A first
+sandboxed attempt had no Radeon device and took 319 ms to submit a no-mirror frame; it
+was discarded. The accepted runs had no desktop window or compositor.
+
+| Mirror mode | Draw submission, ms | Mirror pass, ms | Frame wall, ms | Peak RSS, MiB |
+| --- | ---: | ---: | ---: | ---: |
+| None, first / last | 13.05 / 12.67 | 0 / 0 | 19.83 / 19.33 | 2200 / 2204 |
+| All, first / repeat | 18.04 / 18.93 | 6.03 / 6.25 | 22.66 / 23.23 | 2188 / 2203 |
+| Rear only, first / repeat | 16.79 / 17.80 | 3.56 / 3.68 | 21.24 / 22.35 | 2187 / 2186 |
+| Rear 192 × 50, first / repeat | 15.03 / 17.45 | 3.17 / 3.54 | 19.60 / 21.82 | 2188 / 2188 |
+| Rear every second frame | 13.68 | 1.56 | 19.69 | 2187 |
+| Rear 75 m distance | 16.64 | 3.18 | 21.24 | 2194 |
+
+All variants retained 1129 main-view draw submissions and about 1.847 M main-view
+triangles; those counters exclude mirror passes. The mean of the two all-mirror draw
+times is 18.49 ms versus 12.86 ms without mirrors, a **5.63 ms (44%)** increase
+relative to no mirror in this paired scene. The directly timed mirror pass is about
+6.14 ms, roughly one third of all-mirror draw submission. Dropping wing mirrors cuts
+that pass to 3.62 ms. Reducing the rear target to 192 pixels or its distance to 75 m
+saves little at this host load; every-second-frame updates cut the rear pass to 1.56 ms.
+The 0.6–1.0 ms spread between repeated rear/all runs and very large single-frame update
+spikes limit precise whole-frame speed-up claims. Frame wall is offscreen and unthrottled
+by a compositor, but still includes scheduler/presentation time; draw/pass numbers are
+project CPU submission timers, not isolated GPU execution. The paired JSON is in
+[`performance-data/`](performance-data/) under `p14-mirror-paired-800-*`; representative
+[all](screenshots/phase14/offscreen-800-mirror-paired-all.png),
+[rear](screenshots/phase14/offscreen-800-mirror-paired-rear.png) and
+[none](screenshots/phase14/offscreen-800-mirror-paired-none.png) captures fill 800 × 480.
+The all/rear image difference is confined to the visible left wing mirror (522 pixels
+with >5/255 per-channel change, bounding box x=134–194, y=281–308). The right wing
+reflection did not contribute visible pixels in this fixed cockpit view even though both
+wing views were rendered in alternating frames. This provides a measured, narrow P14-051
+candidate: skip a wing pass when its glass is outside the main cockpit frustum.
+
+Together with the eight fixed scenes and the earlier resolution, distance and rate
+matrix above, this completes the controlled P14-050 Radeon baseline at 800 × 480. It
+does not justify changing the Vulkan-compatible snow terrain layout: the clear/snow RSS
+difference remains below normal run variation, and there is no measured memory pressure.
