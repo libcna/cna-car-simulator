@@ -1784,7 +1784,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   stops here for Phase 14.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or
   overlap, and the 30-minute soak passes.
-- [~] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
+- [x] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require
   verified redistribution rights and manifest provenance. Upper harmonics now crossfade with
   RPM and a firing-gated, band-limited intake layer follows throttle/load without idle hiss.
   Deterministic tests cover throttle-band energy, block continuity and bounded output;
@@ -1817,10 +1817,17 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   lift-off, shift and engine-braking previews have been rendered. The listener accepted the
   actual-mixer start, idle, RPM sweep and shifts, but rejected load, lift-off and engine
   braking. A 0.30 s high-rev segment from the accepted Honda was also rejected as a
-  sustained loop because its repetition was audible. P14-040 remains open for these three
-  higher-RPM situations; do not substitute the rejected loop for the present dynamic layer.
-  Acceptance still requires a real-speaker review of these transitions and mix tuning
-  based on listening, without clipping or loop seams.
+  sustained loop because its repetition was audible. That loop was not imported.
+  A later CC0 Mini Cooper S contact-mic source won a two-source higher-RPM comparison.
+  The listener preferred its 29–33 s, 4 s steady-RPM loop over a louder 77–79.6 s loop.
+  That source is now the mid/high-RPM load layer in the actual mixer, with source/derived
+  hashes and conversion recorded in the asset manifest. A focused test caught and fixed
+  an initial loop-boundary click. The listener accepted integrated load, lift-off, engine
+  braking, RPM sweep, shifts and cabin/exterior switching; startup, idle and six other
+  scenarios remain PCM-identical to the accepted Honda pack. The new six-file FLAC review
+  is in `docs/audio-previews/phase14-mini/`. Two device-free exports matched byte for byte;
+  all 14 scenario peaks are below 0.53 full scale. The source character, loop and actual
+  mixer were each heard, and the CC0 provenance and conversion recipe are retained.
 - [x] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
   mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
   authored ground roughness and road snow cover for bounded tread and scrub textures; deterministic
@@ -1858,7 +1865,8 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   cover beside the engine layers, without adding normal-play UI. A 90-frame hidden dummy-
   audio stream with about 20 traffic cars completed without errors at 0.272 ms mean project
   audio update (not a matched performance comparison).
-  Engine load/lift-off/braking remain P14-040; no further P14-041 sound family is open.
+  Engine load/lift-off/braking now pass the P14-040 listening review; no further P14-041
+  sound family is open.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.

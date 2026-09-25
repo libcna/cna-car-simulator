@@ -19,6 +19,9 @@ namespace CarSim::Audio
         if (!contentRoot.empty() && !engineRecording_.LoadWav(contentRoot + "/audio/honda-civic-2012-start-idle.wav")) {
             std::cerr << "audio: Honda Civic recording unavailable; using synthesised engine\n";
         }
+        if (!contentRoot.empty() && !engineRecording_.LoadLoadWav(contentRoot + "/audio/mini-cooper-s-load.wav")) {
+            std::cerr << "audio: Mini Cooper S load recording unavailable; using synthesised load\n";
+        }
         proceduralEngineShare_ = engineRecording_.Available() ? 0.0f : 1.0f;
         tick_ = Clips::IndicatorTick(kSampleRate);
         tock_ = Clips::IndicatorTock(kSampleRate);
@@ -156,9 +159,12 @@ namespace CarSim::Audio
         if (state.flightMode) engineInput.state = EngineSoundState::Off;
         engine_.Render(mono_.data(), kBlockFrames, engineInput);
         engineRecording_.Render(recordedStereo_.data(), kBlockFrames, engineInput);
-        const float proceduralTarget = !engineRecording_.Available() ? 1.0f :
-                                       engineInput.state == EngineSoundState::Starting ? 0.0f :
-                                       1.0f - EngineRecording::IdleShare(engineInput.rpm);
+        engineRecording_.RenderLoad(recordedStereo_.data(), kBlockFrames, engineInput);
+        const float recordedLoadShare = engineRecording_.LoadAvailable() && engineInput.state == EngineSoundState::Running ?
+                                        EngineRecording::LoadShare(engineInput.rpm, engineInput.load) : 0.0f;
+        const float recordedIdleShare = engineRecording_.Available() ? EngineRecording::IdleShare(engineInput.rpm) : 0.0f;
+        const float proceduralTarget = engineInput.state == EngineSoundState::Starting && engineRecording_.Available() ? 0.0f :
+                                       std::clamp(1.0f - recordedIdleShare - recordedLoadShare, 0.0f, 1.0f);
         const float proceduralStep = 1.0f / (kSampleRate * 0.03f);
         if (engineInput.state == EngineSoundState::Starting && engineRecording_.Available()) proceduralEngineShare_ = 0.0f;
         for (float& s : mono_) {

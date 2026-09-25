@@ -3,7 +3,8 @@
 The listener judged every procedural engine scene unnatural. The original startup sputtered
 like an old car; revision 1 weakened the ignition, and revision 2 sounded essentially like
 the original. Both revisions were rejected as perceptual fixes. The later Honda candidate
-below was accepted for a recorded start and idle layer; the rest of the RPM range remains open.
+below was accepted for a recorded start and idle layer. A Mini Cooper S contact recording
+was then selected for a higher-RPM layer; its integrated mix passed listening review.
 
 ## Sources checked
 
@@ -12,7 +13,7 @@ below was accepted for a recorded start and idle layer; the rest of the RPM rang
 | [Saturn Vue start, idle, stop](https://freesound.org/people/tbsounddesigns/sounds/405322/) by tbsounddesigns | CC0 | 12.5 s stereo recording of a 2004 manual Saturn Vue | Listener preferred its public preview to the Fiat candidate. Original 44.1 kHz/24-bit WAV requires a Freesound login; the public preview is lossy MP3. |
 | [Fiat Punto start, idle, stop](https://freesound.org/people/sound_catcher99/sounds/425158/) by sound_catcher99 | CC0 | 12.18 s mono recording of a Fiat Grande Punto petrol engine | Listener preferred Saturn. |
 | [BMW 120d engine pack](https://freesound.org/people/GiocoSound/packs/22622/) by GiocoSound | Individual clips show CC0 | Separate interior/exterior start, idle, low, medium and high RPM, and stop | Technically useful set, but it is a diesel and has not yet had a listener verdict for the game's petrol hatchback. Originals require login. |
-| [Mini Cooper S engine contact recording](https://freesound.org/people/TheLittleCrow/sounds/669618/) by TheLittleCrow | CC0 | Long continuous engine recording with RPM changes | No loop or calibrated RPM layers yet; original requires login. |
+| [Mini Cooper S engine contact recording](https://freesound.org/people/TheLittleCrow/sounds/669618/) by TheLittleCrow | CC0 | 108 s stereo contact-microphone recording; left is chassis, right is engine block | Listener chose its 65–81 s excerpt over another CC0 rev recording, then preferred a 29–33 s steady-RPM loop over a louder 77.2–79.6 s loop. The integrated load, lift-off, braking, RPM sweep, shifts and cabin/exterior scenes were accepted. Original WAV requires login. |
 | [Opel Astra engine loop](https://opengameart.org/content/car-engine-loop-96khz-4s) by qubodup | CC BY 3.0 / GPL 2.0 / GPL 3.0 on OpenGameArt | 4 s real recording edited into one loop | Downloaded for local evaluation, but one fixed loop does not cover idle-to-redline dynamics. The asset checker does not currently accept CC BY 3.0. |
 | [Car Engine Start, Idle, Revving](https://freesound.org/people/NHumphrey/sounds/200973/) by NHumphrey | CC0 | 39 s start, idle and rev recording | Listener rejected both the public preview and a gain-only +17 dB comparison; its colour, not only level, was unsuitable. |
 | [Performance Cars pack](https://muted.io/performance-cars/) by muted.io | CC0 | 68 numbered 96 kHz/24-bit stereo field recordings | Original WAV 039 was auditioned at source level; listener said it sounded like a motorcycle. No pack sound was imported. |
@@ -64,3 +65,26 @@ as a six-second fixed-load loop; the listener heard objectionable repetition. It
 only as an ignored probe in `build/audio-candidates/`, and was not imported into the game.
 The environmental mix was subsequently reviewed separately; its verdicts are in the
 [Honda mixer pack](phase14-honda/README.md).
+
+## Mini Cooper S higher-RPM probe
+
+The [source page](https://freesound.org/people/TheLittleCrow/sounds/669618/) identifies
+the car, the two microphone placements and CC0 terms. The retained public HQ preview is
+`assets/external/audio/mini-cooper-s-contact-hq.mp3` (SHA-256
+`5f487dd82d5c4a75e44e651dcaa9c48617d36c0e475cb167987ebc57dba9f07d`).
+Its 29.0–33.0 s window was selected by a 19 s repeated-loop listening comparison. The
+derived 44.1 kHz stereo PCM16 asset is `content/audio/mini-cooper-s-load.wav` (SHA-256
+`5576a2d8fe9e47cab84c89cc0fb636963b3580cc63f7d2066373958a9ed46ae6`):
+
+```sh
+ffmpeg -hide_banner -loglevel error -y -ss 29 -i assets/external/audio/mini-cooper-s-contact-hq.mp3 -t 4 -af 'pan=stereo|c0=0.2*c0+0.8*c1|c1=0.2*c0+0.8*c1,volume=10dB' -ar 44100 -c:a pcm_s16le content/audio/mini-cooper-s-load.wav
+```
+
+At runtime the last 0.35 s overlaps the first 0.35 s, and playback rate follows RPM
+within 0.75–1.35×. A focused regression caught and fixed an initial wrong overlap index:
+the boundary jump was 0.232 before correction, against a 0.043 99.9th-percentile ordinary
+sample change. The corrected loop passes the boundary test. This numerical check does not
+replace actual-mixer listening. The listener accepted all three previously rejected
+scenes, plus the changed RPM sweep, shifts and cabin/exterior transition. The other
+eight scenarios are PCM byte-identical to the accepted Honda mixer pack; see the
+[Mini mixer review](phase14-mini/README.md).

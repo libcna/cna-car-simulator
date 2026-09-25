@@ -1,7 +1,8 @@
 # Audio design
 
-The player car now uses one accepted CC0 Honda Civic recording for startup and low-RPM idle;
-the other sound layers remain project-generated. Provenance and conversion hashes are in
+The player car uses an accepted CC0 Honda Civic recording for startup and low-RPM idle,
+plus a CC0 Mini Cooper S contact recording for mid/high-RPM engine load. Other sound
+layers remain project-generated. Provenance and conversion hashes are in
 [`assets/manifest.json`](../assets/manifest.json). Playback uses one stereo
 `DynamicSoundEffectInstance` (44.1 kHz, 16-bit) from the XNA 4.0 audio API; mixing happens in
 project code (`simulator/src/Audio`).
@@ -21,11 +22,16 @@ like the unsatisfactory original, so that change was reverted too. A
 free engine recordings. The listener preferred the untouched Saturn Vue preview to a Fiat
 Punto recording, but rejected two edited start/idle loop probes made from the Saturn preview.
 The listener then accepted the [2012 Honda Civic preview and its start/idle loop](audio-previews/phase14-recorded-source-review.md).
-The listener accepted the integrated start, idle, RPM sweep and shifts. Load, lift-off and
-engine braking were rejected; a short loop cut from the Honda rev was also rejected for
-audible repetition. The later [Honda mixer pack](audio-previews/phase14-honda/README.md)
+The listener accepted the integrated start, idle, RPM sweep and shifts, but initially
+rejected load, lift-off and engine braking; a short loop cut from the Honda rev was also
+rejected for audible repetition. The [Honda mixer pack](audio-previews/phase14-honda/README.md)
 records the full verdict: tyre/road, wind, rain/wipers, snow, cabin switching and helicopter
 passed listening, while an initially inaudible traffic pass-by passed after a mix revision.
+The listener then selected a four-second steady-RPM Mini Cooper S loop and accepted the
+new actual-mixer load, lift-off, braking, RPM sweep, shifts and cabin/exterior switch.
+These six changed files and their review are in the
+[Mini mixer pack](audio-previews/phase14-mini/README.md); all other scenario PCM remains
+identical to the accepted Honda mixer pack.
 
 ## Stream and buffering
 
@@ -52,10 +58,14 @@ at the loop for saved games and deterministic previews. The recording dominates 
 it fades out by 3000 rpm as the existing dynamic synthesizer fades in. The sample plays at its
 original speed near idle and at up to 1.5× on its way out. The synthetic catch clip is omitted
 when the recording is present, avoiding a second ignition. A missing asset falls back to the
-previous synthesizer. This only establishes the accepted start and idle base; the higher-RPM
-blend, load and shift character remain a listening and tuning task.
+previous synthesizer. A second checked recording uses the Mini Cooper S engine-block and
+chassis contact channels at a 20/80 mix, from a listener-selected 29–33 s steady-RPM section.
+Its four-second asset loops with a 0.35 s crossfade and modest RPM-tracking resampling.
+It gains presence as RPM and load rise, while the dynamic synthesizer supplies the remainder
+and handles missing-asset fallback. The combined mixer passed the six changed-scenario
+listening review linked above.
 
-The existing `EngineSynth` supplies the higher RPM range and fallback:
+The existing `EngineSynth` supplies dynamic RPM texture and fallback:
 
 - Crank phase accumulator from the simulated rpm (phase continuous across blocks; rpm, load
   and throttle ramp linearly across each block so parameter changes never click).
@@ -86,7 +96,7 @@ and master coefficients. These are mix coefficients, not measured sound pressure
 Deterministic tests compare the 0.8–2.4 kHz band with open and closed throttle at the same
 RPM/load, assert bounded output and check the first sample after a pedal change for a click.
 
-At this increment, `carsim-simtrace engine-sound` reported mono engine RMS 0.072 at idle,
+For the earlier procedural baseline, `carsim-simtrace engine-sound` reported mono engine RMS 0.072 at idle,
 0.106 at light 2200 rpm cruise, 0.272 at full 3000 rpm, 0.263 at full 5500 rpm and 0.063
 on 3000 rpm overrun. The >2 kHz energy share stayed 0.2–1.3%. These are signal measurements;
 they do not establish perceived quality on real speakers.
@@ -103,8 +113,8 @@ the latter is a single loop with no documented stable RPM layers. The
 [public-domain Opel Corsa startup](https://commons.wikimedia.org/wiki/File:Open_Corsa_E_model_2014_engine_startup_sound.ogg)
 is only four seconds and does not supply the driving layers. The
 [CC BY 4.0 Beetle recording](https://commons.wikimedia.org/wiki/File:WWS_VolkswagenBeetle8211engine.ogg)
-is an air-cooled flat-four with a different character. None was added to the build: stable
-loop points, RPM labels and perceptual fit still need validation. Any adopted file requires
+is an air-cooled flat-four with a different character. None was added at that checkpoint: stable
+loop points, RPM labels and perceptual fit still needed validation at that checkpoint. Any adopted file requires
 the source, license, author, hash and conversion history in `assets/manifest.json`.
 The dated finding above predates the 2026-09-25 research in the linked recorded-source
 review; OpenGameArt and Freesound were reachable for previews during that later pass.

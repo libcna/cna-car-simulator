@@ -74,7 +74,31 @@
         }
       ],
       "modifications": "The publicly accessible high-quality MP3 preview was decoded to 44.1 kHz stereo PCM16, cropped to the first 8.0 seconds and gained by 4 dB. Runtime loops 3.6–8.0 s with a 0.18 s crossfade. The original WAV requires a Freesound login; this accepted preview is the retained source.",
-      "usage": "Player car startup and low-RPM recording. Integrated startup, idle, RPM sweep and shifts passed listener review; load, lift-off and engine braking remain open."
+      "usage": "Player car startup and low-RPM recording. Integrated startup and idle passed listener review; the Mini Cooper S layer complements it at higher RPM."
+    },
+    {
+      "id": "mini-cooper-s-engine-load",
+      "title": "Car Engine Contact Recording-Mini Cooper S 2019.wav",
+      "author": "TheLittleCrow",
+      "sourceUrl": "https://freesound.org/people/TheLittleCrow/sounds/669618/",
+      "retrieved": "2026-09-25",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "redistributionAllowed": true,
+      "modificationAllowed": true,
+      "attributionRequired": false,
+      "files": [
+        {
+          "path": "assets/external/audio/mini-cooper-s-contact-hq.mp3",
+          "sha256": "5f487dd82d5c4a75e44e651dcaa9c48617d36c0e475cb167987ebc57dba9f07d"
+        },
+        {
+          "path": "content/audio/mini-cooper-s-load.wav",
+          "sha256": "5576a2d8fe9e47cab84c89cc0fb636963b3580cc63f7d2066373958a9ed46ae6"
+        }
+      ],
+      "modifications": "The publicly accessible HQ MP3 preview was cropped to 29.0–33.0 s, mixed as 20% chassis/80% engine-block contact microphone, gained by 10 dB and decoded to 44.1 kHz stereo PCM16. Runtime overlaps the final 0.35 s with the first 0.35 s and tracks RPM by modest resampling. The original WAV requires a Freesound login; this listener-selected preview is the retained source.",
+      "usage": "Player car mid/high-RPM load layer. Source character, 4 s steady-RPM loop and integrated load, lift-off, braking, RPM sweep, shifts and cabin/exterior switching passed listener review."
     }
   ]
 }
