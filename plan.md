@@ -1726,6 +1726,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   A device-free tool now exports deterministic WAV excerpts from the actual `VehicleAudio`
   mixer. Startup, idle, RPM sweep, fixed-RPM load, lift-off, shifts and engine braking are in
   `docs/audio-previews/phase14/` as lossless FLAC; two exports matched byte-for-byte.
+  First real listener feedback said all engine clips sounded unnatural and startup sputtered
+  like a much older car. A provisional comparison in `docs/audio-previews/phase14-revision-1/`
+  keeps the original files intact: cranking now has starter motor only, combustion fades in
+  after catch, exhaust impulses and overrun pops are quieter, and the catch transient is
+  shorter. The revised seven clips decode exactly to their exported PCM and require a new
+  listening judgment before acceptance.
   Acceptance still requires a real-speaker review of these transitions and mix tuning
   based on listening, without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter

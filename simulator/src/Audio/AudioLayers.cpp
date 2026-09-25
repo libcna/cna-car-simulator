@@ -28,12 +28,12 @@ namespace CarSim::Audio::Layers
     float OverrunBurble(const unsigned blockIndex, const float rpm, const float engineLoad, const float throttle, const float speedKmh)
     {
         if (engineLoad > 0.05f || throttle > 0.05f || rpm < 2200.0f || speedKmh < 15.0f) return 0.0f;
-        // Blocks are ~23 ms; a pop lasts one block and about a third of the blocks fire, denser
-        // at higher rpm.
+        // Blocks are ~23 ms. Keep an irregular overrun flutter, but below the steady engine
+        // note; the old 0.10-0.22 load kicks sounded like conspicuous exhaust backfires.
         const float chance = 0.22f + 0.18f * std::clamp((rpm - 2200.0f) / 3000.0f, 0.0f, 1.0f);
         const float r = Hash(blockIndex * 2654435761u + 17u);
         if (r > chance) return 0.0f;
-        return 0.10f + 0.12f * Hash(blockIndex * 40503u + 3u);
+        return 0.02f + 0.04f * Hash(blockIndex * 40503u + 3u);
     }
 
     float BrakeHissGain(const float brakePedal, const float speedKmh)

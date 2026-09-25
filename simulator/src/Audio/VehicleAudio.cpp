@@ -109,7 +109,7 @@ namespace CarSim::Audio
         prevGear_ = state.gear;
         // Starter catch.
         if (prevEngineState_ == Sim::EngineState::Starting && state.engineState == Sim::EngineState::Running) {
-            Trigger(catch_, 0.9f);
+            Trigger(catch_, 0.35f);
         }
         prevEngineState_ = state.engineState;
         // Impacts (rate limited).
