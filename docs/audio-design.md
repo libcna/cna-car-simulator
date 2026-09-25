@@ -10,10 +10,10 @@ device-free renders of the actual mixer for startup, idle, RPM and load changes,
 shifts, engine braking, tyre/road, wind, rain, snow, traffic pass-by, cabin switching and
 helicopter modes. The WAV outputs repeated byte-for-byte and the tracked FLAC files decode
 to the same PCM. Their peaks and file integrity have been checked. A real-speaker or headphone
-listening pass has reported that the engine family sounds unnatural, especially the sputter
+listening pass reported that the engine family sounds unnatural, especially the sputter
 during startup. A [revised engine comparison](audio-previews/phase14-revision-1/README.md)
-responds to that feedback; it still needs a fresh listening judgment before the engine mix
-can be accepted. The other sound families have not yet had a complete listening pass.
+was judged worse at startup; the original mix was restored while a better approach is sought.
+The other sound families have not yet had a complete listening pass.
 
 ## Stream and buffering
 
@@ -41,8 +41,7 @@ ran dry during a slow frame and the stream played gaps.
   smoothly from half strength at low RPM to full strength at high RPM, while the lower orders
   retain body at idle.
 - Exhaust pulse train: a short decaying noise burst with a resonant thump (about 95-160 Hz)
-  triggered at every firing event. Listener feedback found the pulses too prominent; their
-  contribution is now reduced at idle and load so the even firing order carries the body.
+  triggered at every firing event; amplitude follows load.
 - A quiet valve-train whine at order 7.5 follows rpm. The older continuous broadband intake
   hiss was removed because it made idle sound like a constant leak; the pulse train provides
   the irregular exhaust texture.
@@ -50,9 +49,9 @@ ran dry during a slow frame and the stream played gaps.
   gates it at the firing rhythm. Its gain follows the real throttle and torque input, so a
   pedal blip adds texture before delivered load rises; closed throttle and idle have no
   continuous intake hiss. Throttle, load and RPM ramp across every 1024-sample block.
-- Starter: a 96 Hz whine with wobble while the engine state is `Starting`. The combustion
-  layers stay silent during cranking, then fade in over 35 ms when the engine catches; the
-  shorter, quieter catch clip remains as a small mechanical cue.
+- Starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine model's
+  cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition to
+  `Running`.
 - Off/stalled: the master gain fades out over 0.18 s.
 
 Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on
@@ -103,8 +102,8 @@ Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio
   shift "breathes" instead of the note simply stepping.
 - **Overrun burble** (`OverrunBurble`): while the wheels push the engine (load and throttle
   below 5 %, rpm above 2200, speed above 15 km/h) a hashed gate fires on roughly a third of
-  the 23 ms blocks (denser at high rpm) and adds 0.02-0.06 of exhaust load for that block:
-  subtle irregular flutter, deterministic per block index.
+  the 23 ms blocks (denser at high rpm) and adds 0.10-0.22 of exhaust load for that block:
+  irregular pops on the overrun, deterministic per block index.
 - **Surface rolling noise** (`SurfaceRoughness`): the tyre noise amplitude is scaled by the
   average roughness of the grounded wheels' contact surfaces (asphalt 1.0, concrete 1.1,
   grass 1.4, dirt 1.6, cobbles 1.7, gravel 1.8). Surfaces come from the wheel snapshot

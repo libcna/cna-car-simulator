@@ -33,7 +33,6 @@ namespace CarSim::Audio
         for (auto& p : pulses_) p.age = 1e9f;
         gain_ = 0.0f;
         starterGain_ = 0.0f;
-        combustionGain_ = 0.0f;
         rumbleLp_ = 0.0f;
         intakeLp_ = intakeBassLp_ = 0.0f;
         intakeNoiseState_ = 0xB5297A4Du;
@@ -70,8 +69,6 @@ namespace CarSim::Audio
         const float gainRate = dt / (audible ? 0.05f : 0.18f);
         const float starterTarget = target.state == EngineSoundState::Starting ? 1.0f : 0.0f;
         const float starterRate = dt / (starterTarget > 0.0f ? 0.025f : 0.040f);
-        const float combustionTarget = target.state == EngineSoundState::Running ? 1.0f : 0.0f;
-        const float combustionRate = dt / 0.035f;
         const float loadTarget = std::clamp(target.load, 0.0f, 1.0f);
         const float loadPrev = std::clamp(previous_.load, 0.0f, 1.0f);
         const float throttleTarget = std::clamp(target.throttle, 0.0f, 1.0f);
@@ -89,7 +86,6 @@ namespace CarSim::Audio
             const float throttle = throttlePrev + (throttleTarget - throttlePrev) * t;
             gain_ += std::clamp(targetGain - gain_, -gainRate, gainRate);
             starterGain_ += std::clamp(starterTarget - starterGain_, -starterRate, starterRate);
-            combustionGain_ += std::clamp(combustionTarget - combustionGain_, -combustionRate, combustionRate);
 
             const double f0 = static_cast<double>(rpm) / 60.0;
             const double previousPhase = crankPhase_;
@@ -134,10 +130,7 @@ namespace CarSim::Audio
                 }
                 p.age += dt;
             }
-            // The older idle mix let short exhaust impulses dominate the even firing order,
-            // giving a stock four-cylinder an antique, uneven chug. Keep them as low-level
-            // texture under the smoother harmonic body.
-            pulses *= 0.08f + 0.42f * load;
+            pulses *= 0.25f + 0.75f * load;
 
             // The former continuous broadband intake layer hissed even at idle. The exhaust
             // pulses already provide the irregular texture; keep the sustained engine tonal.
@@ -155,8 +148,7 @@ namespace CarSim::Audio
             const float intake = (intakeLp_ - intakeBassLp_) * 0.22f * throttle *
                                  (0.2f + 0.8f * load) * intakeRise * (0.30f + 0.70f * inhale * inhale);
 
-            float sample = combustionGain_ *
-                           (harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.14f + whine + intake);
+            float sample = harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.22f + whine + intake;
 
             // Starter motor: whine with a slow wobble while cranking.
             if (starterGain_ > 0.0f) {

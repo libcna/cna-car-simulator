@@ -1,5 +1,9 @@
 # Phase 14 engine revision 1: listening comparison
 
+**Rejected after listening:** the listener judged the revised startup worse than the original.
+The simulator's engine mix has been restored to the original version. These files remain only
+as comparison evidence; they are not the current game sound.
+
 Listener feedback on the [original pack](../phase14/README.md) said all engine clips sounded
 unnatural and the startup sputter evoked a much older car. These seven clips use the same
 deterministic scenarios and actual `VehicleAudio` mixer after a first targeted adjustment.
@@ -18,9 +22,9 @@ They are 44.1 kHz, 16-bit stereo FLAC, lossless from the exported PCM. No record
 The cranking motor now runs without low-RPM combustion pulses. The running engine fades in
 over 35 ms when it catches; the catch transient is shorter and quieter. Exhaust pulses sit
 lower under the tonal engine, and overrun burble is less prominent. Shift timing and the
-scenario controls are unchanged. A technical check found no clipped samples (maximum peak
-0.597 of full scale); this does not establish that the new sound is good. The revision still
-needs a real listening comparison, especially startup and the steady engine character.
+ scenario controls are unchanged. A technical check found no clipped samples (maximum peak
+0.597 of full scale); this does not establish that the new sound is good. The startup
+comparison was rejected by ear; the other six clips have no acceptance judgment.
 Two fresh WAV exports of these seven scenarios were byte-identical, and all seven FLAC files
 decoded to the exact exported PCM.
 

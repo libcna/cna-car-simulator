@@ -133,10 +133,10 @@ namespace CarSim::Audio
 
         Clip StarterCatch(const int sampleRate)
         {
-            Clip c = Make(sampleRate, 0.12f);
-            AddNoiseBurst(c, 0.30f, 0.025f, 900.0f, 0.0f, 13u);
-            AddDecayingSine(c, 110.0f, 0.55f, 0.055f);
-            Normalise(c, 0.24f);
+            Clip c = Make(sampleRate, 0.25f);
+            AddNoiseBurst(c, 0.7f, 0.06f, 1800.0f, 0.0f, 13u);
+            AddDecayingSine(c, 140.0f, 0.5f, 0.12f);
+            Normalise(c, 0.35f);
             return c;
         }
 

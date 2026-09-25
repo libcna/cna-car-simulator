@@ -281,19 +281,3 @@ TEST(EngineSynth, StarterMotorLeavesTheMixWithoutABlockEdgeCut)
     }
     EXPECT_GT(fadeDifference, 0.005f) << "starter should release during the block";
 }
-
-TEST(EngineSynth, CrankingHasNoLowRpmCombustionChug)
-{
-    EngineSoundInput input;
-    input.state = EngineSoundState::Starting;
-    input.rpm = 280.0f;
-    input.load = 0.1f;
-    EngineSynth cranking(kRate);
-    const auto start = RenderSeconds(cranking, input, 2.0f);
-    input.state = EngineSoundState::Running;
-    EngineSynth firing(kRate);
-    const auto run = RenderSeconds(firing, input, 2.0f);
-    const float firingHz = EngineSynth::FiringFrequency(input.rpm, 4);
-    EXPECT_LT(Magnitude(start, firingHz, start.size() / 2),
-              Magnitude(run, firingHz, run.size() / 2) * 0.15f);
-}
