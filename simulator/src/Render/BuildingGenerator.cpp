@@ -703,6 +703,31 @@ namespace CarSim::Render
                     const bool dressed = floors >= 2 && type != "farm";
                     if (shopFront) {
                         WindowRow(glass, trim, &frames, &dark, hw, hd, 0.5f, 2.2f, 2.4f, 3.0f, front, false, 0);
+                        // A shop reads as a continuous street frontage rather than a house
+                        // with oversized windows. Bay piers, a fascia and a shallow ledge
+                        // share the existing material batches; alternate shops have a
+                        // projecting canopy, giving neighbouring square fronts different
+                        // silhouettes without changing their footprints or collision.
+                        const int shopBays = std::max(1, static_cast<int>((hw * 2.0f - 0.8f) / 3.0f));
+                        const float baySpan = (hw * 2.0f - 0.8f) / static_cast<float>(shopBays);
+                        for (int bay = 1; bay < shopBays; ++bay) {
+                            const float x = -hw + 0.4f + static_cast<float>(bay) * baySpan;
+                            Box(frames, Vector3(x - 0.105f, 0.46f, hd + 0.025f),
+                                Vector3(x + 0.105f, 2.78f, hd + 0.115f), 1.0f);
+                        }
+                        Box(trim, Vector3(-hw + 0.36f, 2.78f, hd + 0.025f),
+                            Vector3(hw - 0.36f, 3.19f, hd + 0.105f), 1.0f);
+                        Box(frames, Vector3(-hw + 0.31f, 3.19f, hd + 0.025f),
+                            Vector3(hw - 0.31f, 3.27f, hd + 0.145f), 1.0f);
+                        if (seed % 2u == 0u) {
+                            Box(concrete, Vector3(-hw + 0.31f, 2.69f, hd + 0.08f),
+                                Vector3(hw - 0.31f, 2.80f, hd + 0.78f), 0.5f);
+                            Box(metal, Vector3(-hw + 0.31f, 2.67f, hd + 0.72f),
+                                Vector3(hw - 0.31f, 2.72f, hd + 0.80f), 1.0f);
+                        } else {
+                            Box(frames, Vector3(-hw + 0.31f, 2.69f, hd + 0.025f),
+                                Vector3(hw - 0.31f, 2.78f, hd + 0.19f), 1.0f);
+                        }
                     } else {
                         WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, front, true, doorSlot, dressed);
                     }
@@ -718,7 +743,9 @@ namespace CarSim::Render
                 const float doorX = t * (hw * 2.0f - 0.8f);
                 Door(trim, frames, metal, dark, Vector3(doorX, 0.0f, hd), 1.0f, 2.15f, front);
                 Box(concrete, Vector3(doorX - 0.8f, -drop, hd), Vector3(doorX + 0.8f, 0.03f, hd + 0.9f), 0.5f);
-                Box(frames, Vector3(doorX - 0.85f, 2.27f, hd), Vector3(doorX + 0.85f, 2.35f, hd + 0.75f), 1.0f);
+                if (type != "shop" || seed % 2u != 0u) {
+                    Box(frames, Vector3(doorX - 0.85f, 2.27f, hd), Vector3(doorX + 0.85f, 2.35f, hd + 0.75f), 1.0f);
+                }
                 // Cornice under the eaves and a string course between floors on town houses.
                 if (floors >= 2) {
                     Box(frames, Vector3(-hw - 0.05f, h - 0.24f, -hd - 0.05f), Vector3(hw + 0.05f, h - 0.08f, hd + 0.05f), 1.0f);

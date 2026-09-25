@@ -21,12 +21,15 @@ gait pair uses the hidden 800 × 480 Radeon path described below.
 | [Church before](church-before.png) / [after](church-after.png) | Square-facing tower pilasters, circular window and stone entrance portal | `--view -78 9 -30 50 -6`, 13:00, scattered cloud, 40 frames |
 | [Forest before](forest-before.png) / [after](forest-after.png) | Two seeded crown silhouettes per species in one tree-card atlas; narrower alternate spruce with more visible trunk | `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, 40 frames |
 | [Square before](square-planters-before.jpg) / [after](square-planters-after.jpg) | Two low stone beds with shrubs frame the memorial; the open cobbled centre remains usable | `--spawn square --view -55 7 -65 180 -7`, clear 13:00, two frames |
+| [Shopfront before](offscreen-800-shopfront-before.png) / [after](offscreen-800-shopfront-after.png) | Shop bay piers, continuous fascia and seeded canopy or ledge; 31 shops gain 2,076 nominal triangles across the full map without another material batch | Hidden Radeon 800 × 480, `--spawn square --view -88 7 -61 180 -3`, clear 13:00, two frames |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
 [helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg),
 [road repair under snow](road-repair-snow.jpg), [forest before snow-crown work](forest-snow.png) /
 [after](forest-snow-after.png),
 and [B 21a beside the restricted main road](overtaking-sign.jpg).
+The [closer shopfront view](offscreen-800-shopfront-detail-after.png) checks the new
+horizontal silhouette along a square frontage; parked vehicles partly occlude the glazing.
 The forest snow pair checks the gradual upper-crown tint and the unchanged card silhouettes;
 further branch geometry and deciduous winter shape work remain. The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin

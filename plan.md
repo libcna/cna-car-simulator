@@ -1631,6 +1631,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   solid beds. A fixed Radeon before/after view and a snow check were inspected. The beds
   improve that one frontage; the larger paved area still needs a stronger authored layout,
   and seasonal foliage accumulation remains open.
+  Shop ground floors now have bay piers, a continuous fascia and seeded canopy/ledge
+  silhouettes; the full canopy replaces the small entrance canopy on those shops. All parts
+  join existing material batches and retain building footprints. Across the 31 shipped
+  shops the change adds 173 boxes (2,076 nominal triangles). Matched hidden Radeon 800 × 480
+  frames and a closer inspection view are in `docs/screenshots/phase14/`; the focused night
+  window and square map tests plus the public XNA check pass. This is an incremental
+  frontage pass, not completion of town/village facade variety.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic
