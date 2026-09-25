@@ -1658,6 +1658,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   by about 0.04; tree meshes, culling and draw count stay the same. The fixed Radeon clear
   forest is byte-identical to the earlier capture; snow before/after frames are in
   `docs/screenshots/phase14/`. Winter branch shape and ground/undergrowth transitions remain.
+  Forest macro colour now varies between needle litter, moss and soil in subdued patches;
+  a narrow forest/meadow edge blend softens the categorical region boundary. A hidden Radeon
+  clear/snow pair changes only the treeline ground strip (11,651 and 8,277 pixels respectively
+  in the fixed 800 × 480 frame), and a closer interior frame checks the floor under the
+  canopy. The terrain meshes and material passes are unchanged; this uses a temporary
+  region mask during the existing macro bake and leaves the snow mesh representation intact.
+  Understory geometry, road shoulders and broader winter integration remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather

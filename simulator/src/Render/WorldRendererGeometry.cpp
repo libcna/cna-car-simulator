@@ -10,7 +10,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <utility>
+#include <vector>
 
 namespace CarSim::Render
 {
@@ -46,6 +48,9 @@ namespace CarSim::Render
         const float texelM = std::max(sizeX / static_cast<float>(width), sizeZ / static_cast<float>(height));
         constexpr float kFurrowM = 3.0f;
         const float furrowShare = Clamp01((kFurrowM / texelM - 2.0f) / 2.0f);
+        // The region classification is categorical; retain a small mask so the forest/meadow
+        // boundary can be feathered after the normal lighting and shadow bake.
+        std::vector<std::uint8_t> forestEdgeMask(static_cast<std::size_t>(width) * height, 0);
         for (int y = 0; y < height; ++y) {
             const float z = terrain.MinZ() + (static_cast<float>(y) + 0.5f) / static_cast<float>(height) * sizeZ;
             for (int x = 0; x < width; ++x) {
@@ -56,6 +61,8 @@ namespace CarSim::Render
                 // Region tint.
                 Rgb tint{0.56f, 0.60f, 0.40f};
                 const Map::RegionType region = terrain.RegionAt(wx, z);
+                forestEdgeMask[static_cast<std::size_t>(y) * width + x] = region == Map::RegionType::Forest ? 1u :
+                                                                         region == Map::RegionType::Meadow ? 2u : 0u;
                 const float variation = Core::Noise::FbmSigned(wx * 0.012f, z * 0.012f, 3, 0.5f, 91u);
                 // Medium-scale patches (tens of metres) that the 7 m grass tile cannot carry: lusher
                 // and thinner, drier ground. They break up the tile's repeat seen from above.
@@ -73,10 +80,17 @@ namespace CarSim::Render
                     case Map::RegionType::Town:
                         tint = Rgb{(0.56f + 0.04f * variation) * (1.0f + 0.07f * patch), 0.60f * (1.0f + 0.07f * patch), 0.45f};
                         break;
-                    case Map::RegionType::Forest:
-                        tint = Rgb{0.38f, 0.35f, 0.25f};
+                    case Map::RegionType::Forest: {
+                        // Needle litter, darker soil and moss occupy patches larger than the
+                        // grass detail tile. Keep them subdued under the canopy, but no longer
+                        // paint the entire forest floor the same brown.
+                        const float moss = Clamp01(0.50f + 0.55f * patch + 0.18f * variation);
+                        const float litter = Clamp01(0.28f + 0.32f * dryness - 0.20f * patch);
+                        tint = Lerp(Rgb{0.31f, 0.28f, 0.22f}, Rgb{0.43f, 0.44f, 0.27f}, moss);
+                        tint = Lerp(tint, Rgb{0.45f, 0.34f, 0.24f}, litter * 0.35f);
                         light *= 0.72f;   // canopy shade
                         break;
+                    }
                     case Map::RegionType::Square:
                         tint = Rgb{0.46f, 0.45f, 0.43f};
                         break;
@@ -120,6 +134,36 @@ namespace CarSim::Render
                 tintOut.Set(x, y, value);   // what the terrain shows here before the grass detail
             }
         }
+        // Feather only forest/meadow edges, over roughly 6 m. Read the untouched macro from
+        // tintOut, which already exists for road-verge baking, so shadows and neighbouring
+        // colour patches remain consistent without another full-size image allocation.
+        for (int y = 2; y + 2 < height; ++y) {
+            for (int x = 2; x + 2 < width; ++x) {
+                const std::size_t index = static_cast<std::size_t>(y) * width + x;
+                const auto kind = forestEdgeMask[index];
+                if (kind == 0u) continue;
+                bool boundary = false;
+                for (const auto& [dx, dy] : {std::pair{-2, 0}, std::pair{2, 0}, std::pair{0, -2}, std::pair{0, 2}}) {
+                    const auto other = forestEdgeMask[static_cast<std::size_t>(y + dy) * width + x + dx];
+                    boundary |= other != 0u && other != kind;
+                }
+                if (!boundary) continue;
+                Rgb sum{};
+                float count = 0.0f;
+                for (int dy = -2; dy <= 2; ++dy) {
+                    for (int dx = -2; dx <= 2; ++dx) {
+                        if (forestEdgeMask[static_cast<std::size_t>(y + dy) * width + x + dx] == 0u) continue;
+                        const Color& c = tintOut.At(x + dx, y + dy);
+                        sum = sum + Rgb::FromBytes(c.getRProperty(), c.getGProperty(), c.getBProperty());
+                        count += 1.0f;
+                    }
+                }
+                const Color& base = tintOut.At(x, y);
+                const Rgb original = Rgb::FromBytes(base.getRProperty(), base.getGProperty(), base.getBProperty());
+                macro.Set(x, y, Lerp(original, sum * (1.0f / count), 0.7f));
+            }
+        }
+        tintOut = macro;
     }
 
     void WorldRenderer::BuildTerrain(GraphicsDevice& device)
