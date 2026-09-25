@@ -242,6 +242,17 @@ later repeat that spiked above 100 ms draw submission. P14-050 needs a steadier 
 before P14-051. Do not use the old desktop-focus benchmark procedure while someone is working
 at the machine.
 
+The next P14-022 increment moved the Lipan instrument face out of the dashboard fascia,
+slimmed its binnacle, lowered the wheel slightly and separated satin control/vent/spoke trim
+from the dark plastic. `scripts/capture_cockpit_weather.sh` captures seven conditions through
+the hidden Radeon offscreen path; matched noon, night and rainy-night before/after PNGs and
+all seven final states are in `docs/screenshots/phase14/`. The full dial face is visible in
+every condition. All four renderer cockpit checks then ran on virtual Xvfb `:99`, and the
+six-test OPENGLES3 suite plus the public-XNA checker passed. A final cabin-visibility flag
+alignment rebuilt on all four renderers, passed focused car-model tests and left noon and
+rainy-night Radeon PNGs byte-identical. See `docs/renderer-conformance.md`.
+The broad A-pillar, dark pad and night material separation leave P14-022 open.
+
 Flight entry/exit and flight stepping were subsequently isolated in `VehicleFlight.cpp`; the
 existing helicopter and turbo drive tests pass, and the fixed aerial frame is byte-identical
 before and after. Regular car stepping still lives in `Vehicle.cpp`.

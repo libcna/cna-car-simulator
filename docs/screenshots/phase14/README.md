@@ -59,3 +59,19 @@ Fixed scene captures: [clear town](offscreen-800-scene-town_clear.png),
 [helicopter aerial view](offscreen-800-scene-flight.png).
 The aerial camera looks across the town from 95 m altitude; an earlier nearly vertical
 view was discarded as unrepresentative of aerial rendering cost.
+
+## Cockpit geometry review
+
+The hidden Radeon 800 × 480 review used the same town-route spawn, stationary car, 60 seconds
+of traffic warm-up and two rendered frames for every image. The [noon before](cockpit-review-before-noon.png) /
+[after](cockpit-review-after-noon.png), [night before](cockpit-review-before-night.png) /
+[after](cockpit-review-after-night.png), and [rainy night before](cockpit-review-before-rainy_night.png) /
+[after](cockpit-review-after-rainy_night.png) pairs show the instrument face moved in front of
+the dashboard fascia. The entire dial and lower readout are now visible within a slimmer
+binnacle. The steering wheel sits slightly lower and farther forward; satin trim separates
+its spokes, radio surround, vent surrounds and instrument rim from the dark textured pad.
+
+The final cockpit was also inspected at [sunset](cockpit-review-after-sunset.png),
+[daylight rain](cockpit-review-after-rain.png), [fog](cockpit-review-after-fog.png), and
+[snow](cockpit-review-after-snow.png). The instrument face remains legible in all seven
+conditions; the night material contrast and larger cabin surfaces still need refinement.

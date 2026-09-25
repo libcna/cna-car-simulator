@@ -291,8 +291,8 @@
   "cockpitFovDeg": 64,
   "steeringWheelCenter": [
    -0.37,
-   0.75,
-   -0.18
+   0.70,
+   -0.23
   ],
   "steeringWheelTiltDeg": 27,
   "steeringWheelDiameterM": 0.36,
@@ -303,8 +303,8 @@
   ],
   "clusterCenter": [
    -0.37,
-   0.96,
-   -0.56
+   0.99,
+   -0.39
   ],
   "plate": "3S4 7182"
  },

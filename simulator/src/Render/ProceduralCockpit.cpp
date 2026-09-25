@@ -147,6 +147,7 @@ namespace CarSim::Render::CarBody
 
         CarPart interior = MakePart("interior", CarMaterial::Interior, CarPart::Role::Interior);
         CarPart mid = MakePart("interior_mid", CarMaterial::InteriorMid, CarPart::Role::Interior);
+        CarPart accent = MakePart("interior_accent", CarMaterial::InteriorAccent, CarPart::Role::Interior);
         CarPart light = MakePart("interior_light", CarMaterial::InteriorLight, CarPart::Role::Interior);
         CarPart fabric = MakePart("interior_fabric", CarMaterial::Fabric, CarPart::Role::Interior);
         CarPart gloss = MakePart("interior_gloss", CarMaterial::GlossBlack, CarPart::Role::Interior);
@@ -222,7 +223,7 @@ namespace CarSim::Render::CarBody
             // The radio sits in a shallow moulded surround rather than a dark rectangle
             // painted directly onto the dashboard face. All trim joins existing material
             // batches; only the surfaces seen from the driving position are modelled.
-            AddRoundedBox(mid.mesh, Vector3(0.275f, 0.091f, 0.012f), 0.012f,
+            AddRoundedBox(accent.mesh, Vector3(0.275f, 0.091f, 0.012f), 0.012f,
                           Matrix::CreateTranslation(0.0f, yFace + 0.005f, zStack - 0.012f));
             AddBoxTo(gloss, Vector3(0.0f, yFace + 0.005f, zStack - 0.002f), Vector3(0.22f, 0.07f, 0.008f));
             for (const float side : {-1.0f, 1.0f}) {
@@ -242,11 +243,17 @@ namespace CarSim::Render::CarBody
             }
             for (const float vx : {-cabinHalf + 0.13f, cabinHalf - 0.13f}) {
                 const float zv = zFace + 0.006f;
+                AddRoundedBox(accent.mesh, Vector3(0.17f, 0.11f, 0.012f), 0.009f,
+                              Matrix::CreateTranslation(vx, yFace + 0.055f, zv - 0.006f));
                 vents.mesh.AddQuad(Vector3(vx - 0.065f, yFace + 0.02f, zv), Vector3(vx + 0.065f, yFace + 0.02f, zv),
                                    Vector3(vx + 0.065f, yFace + 0.09f, zv), Vector3(vx - 0.065f, yFace + 0.09f, zv),
                                    Vector3(0, 0.3f, 1), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
                 AddBoxTo(gloss, Vector3(vx, yFace + 0.055f, zv - 0.004f), Vector3(0.15f, 0.09f, 0.006f));
             }
+            // A narrow passenger-side satin seam makes the dark pad and upright fascia
+            // legible without placing decorative geometry across the instrument binnacle.
+            AddRoundedBox(accent.mesh, Vector3(cabinHalf - 0.25f, 0.010f, 0.010f), 0.003f,
+                          Matrix::CreateTranslation(0.5f * (cabinHalf + 0.25f), yFace + 0.125f, zFace + 0.025f));
             for (int k = 0; k < 3; ++k) {
                 const float kx = -0.07f + 0.07f * static_cast<float>(k);
                 gloss.mesh.AddCylinder(Vector3(kx, yFace - 0.05f, zStack - 0.14f * 0.5f + 0.06f), Vector3(0, 0, 1), 0.016f, 0.02f, 12, true);
@@ -276,12 +283,23 @@ namespace CarSim::Render::CarBody
                 cluster.mesh.AddQuad(o - right * (w * 0.5f) - upv * (h * 0.5f), o + right * (w * 0.5f) - upv * (h * 0.5f),
                                      o + right * (w * 0.5f) + upv * (h * 0.5f), o - right * (w * 0.5f) + upv * (h * 0.5f), n,
                                      Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
-                AddOrientedBox(gloss, c - n * 0.03f, Vector3(w + 0.05f, h + 0.05f, 0.06f), 0.0f, -tilt);   // bezel behind the face
+                AddOrientedBox(gloss, c - n * 0.02f, Vector3(w + 0.025f, h + 0.025f, 0.04f), 0.0f, -tilt);   // bezel behind the face
+                const Vector3 rimCentre = c + n * 0.006f;
+                const float inset = 0.007f;
+                const auto rimQuad = [&](const float x0, const float y0, const float x1, const float y1) {
+                    accent.mesh.AddQuad(rimCentre + right * x0 + upv * y0, rimCentre + right * x1 + upv * y0,
+                                        rimCentre + right * x1 + upv * y1, rimCentre + right * x0 + upv * y1,
+                                        n, Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
+                };
+                rimQuad(-w * 0.5f - inset,  h * 0.5f, w * 0.5f + inset, h * 0.5f + inset);
+                rimQuad(-w * 0.5f - inset, -h * 0.5f - inset, w * 0.5f + inset, -h * 0.5f);
+                rimQuad(-w * 0.5f - inset, -h * 0.5f, -w * 0.5f, h * 0.5f);
+                rimQuad( w * 0.5f, -h * 0.5f, w * 0.5f + inset, h * 0.5f);
                 std::vector<std::vector<Vector3>> visor;
                 for (const float x : {c.X - w * 0.5f - 0.05f, c.X + w * 0.5f + 0.05f}) {
                     std::vector<Vector3> ring;
                     const Vector3 centre(x, c.Y + 0.01f, c.Z + 0.02f);
-                    const float R = h * 0.5f + 0.06f;
+                    const float R = h * 0.5f + 0.035f;
                     for (int k = 0; k <= 10; ++k) {
                         const float a = kPi * 0.10f + (kPi * 0.90f) * static_cast<float>(k) / 10.0f;
                         ring.push_back(centre + upv * (std::sin(a) * R) + n * (std::cos(a) * R));
@@ -301,26 +319,31 @@ namespace CarSim::Render::CarBody
         }
 
         // ---- Steering wheel, column, stalks ------------------------------------------------
-        CarPart steering = MakePart("steering_wheel", CarMaterial::Interior, CarPart::Role::SteeringWheel);
+        CarPart steering = MakePart("steering_wheel", CarMaterial::InteriorMid, CarPart::Role::SteeringWheel);
+        CarPart steeringTrim = MakePart("steering_spokes", CarMaterial::InteriorAccent, CarPart::Role::SteeringWheel);
         CarPart steeringBadge = MakePart("steering_badge", CarMaterial::Chrome, CarPart::Role::SteeringWheel);
         {
             const float tilt = Sim::Units::DegToRad(vis.steeringWheelTiltDeg);
             const Vector3 n(0.0f, std::sin(tilt), std::cos(tilt));
-            steering.pivot = steeringBadge.pivot = vis.steeringWheelCenter;
-            steering.axis = steeringBadge.axis = n;
+            steering.pivot = steeringTrim.pivot = steeringBadge.pivot = vis.steeringWheelCenter;
+            steering.axis = steeringTrim.axis = steeringBadge.axis = n;
             const float R = vis.steeringWheelDiameterM * 0.5f;
             MeshData wheel;
             wheel.AddTorus(Vector3(0, 0, 0), Vector3(0, 0, 1), R, 0.019f, 44, 12);
             AddRoundedBox(wheel, Vector3(0.15f, 0.048f, 0.10f), 0.03f, Matrix::CreateRotationX(kPi * 0.5f) * Matrix::CreateTranslation(0.0f, -0.005f, 0.0f));
+            MeshData spokeTrim;
             for (const float a : {0.0f, kPi, kPi * 1.5f}) {
                 MeshData spoke;
                 spoke.AddBox(Vector3(0.05f, -0.016f, -0.010f), Vector3(R - 0.008f, 0.016f, 0.012f), 1.0f);
                 spoke.Transform(Matrix::CreateRotationZ(a));
-                wheel.Append(spoke, Matrix::getIdentityProperty());
+                spokeTrim.Append(spoke, Matrix::getIdentityProperty());
             }
             wheel.Transform(Matrix::CreateRotationX(-tilt));
             wheel.ComputeSmoothNormals();
             steering.mesh = wheel;
+            spokeTrim.Transform(Matrix::CreateRotationX(-tilt));
+            spokeTrim.ComputeSmoothNormals();
+            steeringTrim.mesh = spokeTrim;
             MeshData badge;
             badge.AddCylinder(Vector3(0, 0, 0.026f), Vector3(0, 0, 1), 0.018f, 0.004f, 16, true);
             badge.Transform(Matrix::CreateRotationX(-tilt));
@@ -430,8 +453,8 @@ namespace CarSim::Render::CarBody
             }
         }
 
-        interior.cabin = mid.cabin = light.cabin = fabric.cabin = steering.cabin = true;
-        for (CarPart* p : {&interior, &mid, &light, &fabric, &gloss, &vents, &chrome, &cluster, &steering, &steeringBadge, &gearLever, &mirror}) {
+        interior.cabin = mid.cabin = accent.cabin = light.cabin = fabric.cabin = steering.cabin = steeringTrim.cabin = true;
+        for (CarPart* p : {&interior, &mid, &accent, &light, &fabric, &gloss, &vents, &chrome, &cluster, &steering, &steeringTrim, &steeringBadge, &gearLever, &mirror}) {
             if (p->mesh.TriangleCount() > 0) model.parts.push_back(std::move(*p));
         }
     }

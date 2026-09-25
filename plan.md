@@ -1660,7 +1660,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `docs/screenshots/phase14/`. The centre radio now has a moulded surround, side controls
   and preset strip instead of an isolated black rectangle; fixed Radeon noon before/after
   and night frames are saved as `console-*.jpg` in that directory. More geometry and
-  weather review remain.
+  weather review remain. A hidden Radeon 800 × 480 seven-condition review then found that
+  the lower instrument face was buried behind the dashboard fascia. The cluster was moved
+  into the binnacle plane, its black bezel and hood slimmed, and a thin satin rim added.
+  The steering wheel sits lower/farther forward, while satin spoke, vent and radio trim now
+  have their own material. Matched noon, night and rainy-night before/after images plus
+  sunset, rain, fog and snow final images are in `docs/screenshots/phase14/`. The complete
+  cluster face stays visible in all seven captures. The broad A-pillar, large dark pad and
+  night material separation still need a stronger visual pass; keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,

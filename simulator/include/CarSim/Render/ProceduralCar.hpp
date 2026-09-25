@@ -42,6 +42,7 @@ namespace CarSim::Render
         Grille,         // black mesh texture, recessed
         Interior,       // dashboard, door cards (dark grained plastic)
         InteriorMid,    // lower dashboard, lower door panels (mid grey plastic)
+        InteriorAccent, // satin trim on controls, vents and wheel spokes
         InteriorLight,  // headliner, pillar trim (light fabric)
         Fabric,         // seats
         Vent,           // air vent slats

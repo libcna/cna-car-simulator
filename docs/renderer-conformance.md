@@ -337,3 +337,21 @@ in any channel respectively. The difference images are dominated by tree and
 ground filtering, with the same person visible on each path. The coat replaces
 the shirt draw and the cap replaces the hair draw; no extra draw per walker
 was introduced.
+
+### Phase 14 cockpit binnacle checkpoint (2026-09-25)
+
+After moving the Lipan's instrument face in front of the dashboard fascia and adding a
+separate satin trim material, all four existing renderers built and completed the same
+40-frame, 1280 × 720 cloudy cockpit scene on hidden Xvfb `:99`. The captures are
+[OPENGLES3](screenshots/phase14/cockpit-review-opengles3-xvfb.png),
+[OPENGL33](screenshots/phase14/cockpit-review-opengl33-xvfb.png),
+[Vulkan](screenshots/phase14/cockpit-review-vulkan-xvfb.png), and
+[SOFTWARE](screenshots/phase14/cockpit-review-software-xvfb.png). Each reported 1,230
+instrumented main-view draws. Visual inspection found the full dial face, narrow rim and
+separate fascia visible on every path. OPENGL33 differs from OPENGLES3 by mean absolute
+RGB 0.353 / 0.360 / 0.334 (less than 0.001% of pixels exceed 32 in any channel);
+Vulkan differs by 1.307 / 1.313 / 1.232 (0.766% over 32); SOFTWARE by
+2.015 / 2.071 / 2.049 (1.467% over 32). The remaining differences are mostly surface
+tone/filtering. This virtual-display conformance pass used Mesa llvmpipe for Vulkan;
+the separate Radeon OPENGLES3 weather review is in `screenshots/phase14/README.md`.
+No renderer-specific project code was added, and the public XNA-only checker passed.

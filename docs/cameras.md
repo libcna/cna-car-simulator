@@ -35,6 +35,9 @@ Two driving cameras plus two inspection modes for captures. All poses are built 
 header), looks straight ahead with a 64 degree vertical field of view and a 0.12 m near plane.
 A small lateral offset (up to 3 cm) follows lateral acceleration with a 6/s filter as a motion
 cue. `--eye dx dy dz yaw pitch` offsets and turns the eye for inspection captures.
+The Lipan's steering wheel centre is 0.70 m high and 0.23 m ahead of the origin; the
+instrument face is 0.99 m high and 0.39 m ahead, just in front of the dashboard fascia.
+That placement keeps the entire dial face visible from the normal eye position.
 
 ## Rear-view mirror
 
@@ -48,11 +51,12 @@ of the cockpit frame. The setting `mirrorUpdateEvery` in the save file (or `--mi
 or the graphics tier) redraws it every n frames and keeps the previous image in between; see
 `docs/performance.md` for the measured cost before and after.
 
-The **door mirrors** are not render targets -- there is one off-screen pass per frame, not three.
-They are convex glass (a 5 x 4 patch with a 14 mm bulge, aimed 0.20 rad outboard) reflecting the
-sky cube map, so the face carries sky at the top and ground at the bottom. As a flat quad it
-reflected one direction of the cube across the whole face and read as a blank grey card, which
-was the most obviously unfinished thing in the cockpit view.
+The **door mirrors** are convex 5 × 4 patches with a 14 mm bulge, aimed 0.20 rad outboard.
+Each now has a 256 × 160 rearward render target. The game updates one wing target per frame
+after both have been initialised and retains the previous image for the other side. Their
+world pass is capped at 150 m; the low quality tier skips them. The earlier sky-cube-only
+face read as a blank card. Phase 14's hidden Radeon isolation of rear and wing passes is in
+`docs/performance.md`.
 
 ## Inspection modes
 

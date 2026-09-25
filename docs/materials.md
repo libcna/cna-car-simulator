@@ -27,8 +27,9 @@ are procedural CPU images (`CarTextures.cpp`, `ProceduralTextures.cpp`) uploaded
 | `Plate` | BasicEffect (lit textured) | rendered plate (per car, cached) | white, specular 0.3 / 20 | front and rear plates |
 | `Cluster` | BasicEffect (lit textured) | instrument cluster render target | white, emissive 0.55 with ignition (0.15 off) | cluster face |
 | `Needle` | BasicEffect | white | red, emissive with ignition | (legacy needle parts; the cluster texture carries the needles) |
-| `Interior` | BasicEffect (interior lighting: ambient 0.50/0.51/0.55) | plastic grain | interior colour x 1.15, specular 0.06 / 8 | dashboard top pad, door cards, console, column, floor, tailgate inner |
+| `Interior` | BasicEffect (interior lighting: ambient 0.50/0.51/0.55) | plastic grain | interior colour x 1.50 + 0.015, specular 0.06 / 8 | dashboard top pad, door cards, console, column, floor, tailgate inner |
 | `InteriorMid` | BasicEffect (interior lighting) | plastic grain | interior colour x 2 + 0.04, specular 0.05 / 8 | lower dashboard, lower door panels, armrests |
+| `InteriorAccent` | BasicEffect (interior lighting) | white | satin grey 0.52/0.53/0.55, specular 0.22 / 24 | instrument rim, steering spokes, radio and vent surrounds |
 | `InteriorLight` | BasicEffect (interior lighting) | headliner weave | 0.62/0.62/0.60, specular 0.02 / 4 | headliner, pillars above the belt, sun visors |
 | `Fabric` | BasicEffect (interior lighting) | cloth weave with patches | 0.21/0.21/0.23 dark grey, specular 0.03 / 4 | seats, rear bench, head restraints |
 | `Vent` | BasicEffect (interior lighting) | slats | white x texture, specular 0.15 / 12 | dashboard vents |
