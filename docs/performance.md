@@ -526,3 +526,10 @@ and [after](performance-data/p14-road-verge-snow-after.json). One-process peak R
 2,235,736 versus 2,236,708 KiB, a 972 KiB difference within run variation. The
 different CPU submission times in these single runs are not a speed-up claim. The
 Vulkan-compatible snow terrain layout remains unchanged.
+
+The subsequent low-bush winter-atlas adjustment changes 11,396 pixels above the same
+12/255 threshold in the matched [before](screenshots/phase14/road-verge-snow-after.png)
+and [after](screenshots/phase14/forest-bush-snow-after.png) forest-road view. The clear
+frame is byte-identical. The fixed forest-snow [after benchmark](performance-data/p14-bush-winter-after.json)
+remains at 685 draws and 605,315 triangles, matching the preceding checkpoint; the
+atlas texture dimensions and snow terrain representation are unchanged.

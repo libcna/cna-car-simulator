@@ -41,6 +41,10 @@ The road-verge pass also has a [rain check](road-verge-rain-after.png). The clea
 before frames above were captured from the clean pushed HEAD with the exact same fixed
 camera; the after frames use the final code. The snow change is plainly visible without
 adding terrain or verge geometry.
+The next winter-atlas step makes the low roadside shrubs lighter on top: compare the
+[snow-verge result before this step](road-verge-snow-after.png) with the
+[frosted bushes](forest-bush-snow-after.png). The clear version of the same view remains
+pixel-identical; the shrub atlas keeps its dimensions and the lower foliage stays dark.
 The forest snow pair checks the gradual upper-crown tint and the unchanged card silhouettes;
 further branch geometry and deciduous winter shape work remain. The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin

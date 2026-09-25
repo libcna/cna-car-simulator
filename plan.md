@@ -1677,7 +1677,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Radeon forest-road view changes 3,264 clear and 33,090 snow pixels by more than 12/255;
   the snow scene stays at 685 draws and 605,315 triangles. Clear, rain and snow images,
   plus the four virtual-renderer snow checks, are linked from `docs/screenshots/phase14/`.
-  Understory geometry, broader road-surface/shoulder shape and other winter details remain open.
+  Low bushes now receive snow on the upper leaves of their existing winter atlas rather
+  than staying almost uniformly dark; the lower mass retains shade. Matched hidden Radeon
+  clear frames are pixel-identical, while 11,396 snow pixels change in the forest-road
+  view. The fixed snow scene still has 685 draws and 605,315 triangles. Understory geometry,
+  broader road-surface/shoulder shape and other winter details remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather

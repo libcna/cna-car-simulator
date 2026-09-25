@@ -196,7 +196,11 @@ namespace CarSim::Render
             // The upper crown carries the accumulation; lower boughs stay dark and visible
             // against the snow-covered ground. Avoid a random speckle mask over every leaf.
             const float height = static_cast<float>(y) / static_cast<float>(winter.Height());
-            const float exposure = std::clamp((0.82f - height) / 0.75f, 0.0f, 1.0f);
+            // Bush foliage starts halfway down its atlas card. Give its upper leaves
+            // the same snow exposure as a tree crown, while keeping the lower mass dark.
+            const float exposure = species == TreeSpecies::Bush ?
+                std::clamp((0.92f - height) / 0.58f, 0.0f, 1.0f) :
+                std::clamp((0.82f - height) / 0.75f, 0.0f, 1.0f);
             for (int x = 0; x < winter.Width(); ++x) {
                 Color& pixel = winter.At(x, y);
                 if (pixel.getAProperty() == 0) continue;
