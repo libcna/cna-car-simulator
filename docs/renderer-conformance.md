@@ -420,3 +420,20 @@ SOFTWARE differs by 2.311/255 mean absolute RGB with 26,202 pixels above 32 in
 any channel, Vulkan by 0.831/255 with 6,086 pixels above 32. The differences are
 mostly the established surface filtering and shading variation. This conformance pass
 opened no physical display. `scripts/check_xna_only.py` passed (233 files scanned).
+
+### Phase 14 passenger dashboard pad checkpoint (2026-09-25)
+
+After adding the passenger upper pad and recessed lid, all four public-XNA renderers
+built and completed the same 40-frame 800 × 480 clear cockpit scene on dedicated virtual
+Xvfb `:107`: [OPENGLES3](screenshots/renderers/phase14-passenger-pad-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-passenger-pad-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-passenger-pad-software.png), and
+[Vulkan](screenshots/renderers/phase14-passenger-pad-vulkan.png). Each reported 1,208
+draw submissions and 1,448,514 triangles for the complete frame. All show the same
+panel, intact cluster, mirrors and road view. Relative to OPENGLES3, mean absolute RGB
+differences were 0.291 / 0.309 / 0.270 for OPENGL33, 2.787 / 2.823 / 2.829 for
+SOFTWARE and 2.146 / 2.136 / 2.038 for Vulkan; respectively 0, 10,865 and 6,499
+pixels exceeded 32 in any channel. These virtual-display renders check geometry and
+appearance, not Radeon performance. The separate hidden Radeon seven-condition review
+is in [`screenshots/phase14/`](screenshots/phase14/README.md). No renderer-specific
+application path was added.

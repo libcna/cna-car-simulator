@@ -80,7 +80,7 @@ Fixed scene captures: [clear town](offscreen-800-scene-town_clear.png),
 [snow forest](offscreen-800-scene-forest_snow.png),
 [fog square](offscreen-800-scene-town_fog.png),
 [square pedestrians](offscreen-800-scene-square_people.png),
-[walking](offscreen-800-scene-walking.png), and
+[walking](offscreen-800-scene-walking.png), the [bound return-to-car walking hint](walking-bound-return-hint.png), and
 [helicopter aerial view](offscreen-800-scene-flight.png).
 The aerial camera looks across the town from 95 m altitude; an earlier nearly vertical
 view was discarded as unrepresentative of aerial rendering cost.
@@ -152,3 +152,20 @@ Final hidden Radeon 800 × 480 views check [noon](cockpit-arched-hood-noon.png),
 [rainy night](cockpit-arched-hood-rainy_night.png). The dials remain readable in every
 view. This is an incremental binnacle shape improvement; the wide dashboard surfaces
 and finer night materials remain open under P14-022.
+
+## Passenger dashboard pad and lid
+
+The passenger side now has a shallow cloth-grain top pad, a short bevel and a recessed
+soft-touch airbag lid above the glovebox. The fixed 800 × 480 hidden Radeon noon
+[before](cockpit-passenger-pad-before.png) / [after](cockpit-passenger-pad-after.png)
+pair changes 2,268 pixels above a 12/255 channel threshold, all below image row 300;
+the gauges and view of the road stay in place. The lid is easier to see in the
+[HUD-free view](cockpit-passenger-pad-nohud.png); the normal speed HUD partly covers it.
+
+The final variant was checked at [noon](cockpit-passenger-pad-noon.png),
+[sunset](cockpit-passenger-pad-sunset.png), [night](cockpit-passenger-pad-night.png),
+[rain](cockpit-passenger-pad-rain.png), [fog](cockpit-passenger-pad-fog.png),
+[snow](cockpit-passenger-pad-snow.png) and
+[rainy night](cockpit-passenger-pad-rainy_night.png). The cluster is readable in all
+seven frames. These are stationary scene checks; broader cabin shape and night material
+work remain under P14-022.

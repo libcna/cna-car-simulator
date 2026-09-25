@@ -249,6 +249,37 @@ namespace CarSim::Render::CarBody
             // Two-tone: the top pad and upper face are dark, the lower face and knee area mid grey.
             SplitTriangles(slab, interior.mesh, mid.mesh, [&](const Vector3& c) { return c.Y > yFace - 0.02f || c.Z < zFront + 0.03f; });
 
+            // A shallow padded passenger-side airbag panel follows the slope of the dash.
+            // Its cloth-grain top and short lower bevel break up the broad unlit slab in
+            // the windscreen without covering the instrument hood or the road view.
+            const float panelLeft = 0.18f;
+            const float panelRight = cabinHalf - 0.07f;
+            const float panelFrontZ = zFront + 0.13f;
+            const float panelRearZ = zEdge - 0.045f;
+            const float panelFrontY = yTopFront + 0.020f;
+            const float panelRearY = yTopRear + 0.010f;
+            fabric.mesh.AddQuad(Vector3(panelLeft, panelFrontY, panelFrontZ), Vector3(panelLeft, panelRearY, panelRearZ),
+                                Vector3(panelRight, panelRearY, panelRearZ), Vector3(panelRight, panelFrontY, panelFrontZ),
+                                Vector3(0, 1, -0.12f), Vector2(0, 0), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0));
+            mid.mesh.AddQuad(Vector3(panelLeft, panelRearY - 0.016f, panelRearZ + 0.007f),
+                             Vector3(panelRight, panelRearY - 0.016f, panelRearZ + 0.007f),
+                             Vector3(panelRight, panelRearY, panelRearZ), Vector3(panelLeft, panelRearY, panelRearZ),
+                             Vector3(0, 0, 1), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
+            // The front of that compartment is a recessed soft-touch lid above the
+            // glovebox. Leave the outer vent at the dash end and the centre stack clear.
+            const float lidLeft = 0.18f;
+            const float lidRight = cabinHalf - 0.22f;
+            const float lidBottom = yFace + 0.012f;
+            const float lidTop = yFace + 0.103f;
+            const float lidZ = zFace + 0.025f;
+            AddRoundedBox(accent.mesh, Vector3(lidRight - lidLeft, lidTop - lidBottom, 0.010f), 0.009f,
+                          Matrix::CreateTranslation(0.5f * (lidLeft + lidRight), 0.5f * (lidBottom + lidTop), lidZ));
+            fabric.mesh.AddQuad(Vector3(lidLeft + 0.008f, lidBottom + 0.008f, lidZ + 0.006f),
+                                Vector3(lidRight - 0.008f, lidBottom + 0.008f, lidZ + 0.006f),
+                                Vector3(lidRight - 0.008f, lidTop - 0.008f, lidZ + 0.006f),
+                                Vector3(lidLeft + 0.008f, lidTop - 0.008f, lidZ + 0.006f),
+                                Vector3(0, 0, 1), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
+
             // Centre stack details: display, vents, knobs; outer vents at the dash ends; glovebox line.
             const float zStack = zFace + 0.075f + 0.004f;
             // The radio sits in a shallow moulded surround rather than a dark rectangle

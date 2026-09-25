@@ -1713,8 +1713,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   8,457 pixels in the hood while the dial face and road above stay pixel-identical; seven
   hidden Radeon time/weather views keep the gauges legible. The fixed cockpit benchmark
   retains 1,351 main-view draws and adds 132 triangles, and all four virtual renderers
-  show the same arched outline. The broad dashboard pad and finer night material separation
-  keep P14-022 open.
+  show the same arched outline. The passenger dash now has a separate cloth-grain upper
+  pad, bevel and recessed soft-touch airbag lid above the glovebox. In a matched hidden
+  Radeon noon pair, 2,268 pixels change below row 300 while the cluster and road stay
+  aligned; seven time/weather conditions retain readable gauges. All four virtual
+  renderers display the panel with 1,208 draw submissions in the fixed complete frame.
+  Broader cabin shape and finer night material separation keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -1727,7 +1731,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   square before/after pair is retained in `docs/screenshots/phase14/`. Walking collision
   now tests complete traffic bodies: a 12 m bus blocks the walker even when its centre is
   6 m away, with lateral and vertical separation regressions. Returning to the car now
-  requires the walker to be within 3.2 m horizontally and 1.2 m vertically, so `W` cannot
+  requires the walker to be within 3.2 m horizontally and 1.2 m vertically, so the return key cannot
   teleport the player back from across town. Gait adds a small two-step body rise, sway and
   shoe counter-rotation; the coat hem now flares. A matched hidden Radeon square capture
   changes only 1428 pixels around the nearest pedestrian, with the same 44 pedestrian draw
@@ -1736,8 +1740,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   and eases camera bob as movement stops. Ten walking/pedestrian tests pass. Hidden Radeon
   800 × 480 entry captures from square, forest and kostel spawns are saved in
   `docs/screenshots/phase14/`; all entered walking mode. A longer moving-camera review
-  and varied slope/traffic routes remain before P14-023 can close.
-  See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
+  and varied slope/traffic routes remain before P14-023 can close. The walking HUD now
+  prints the actual bound return-to-car key instead of the stale `W` hint, while the F3
+  overlay reports walker position, horizontal distance from the car and movement state
+  for the remaining route review.
+  See `docs/screenshots/phase14/`; the remaining moving-route, slope and traffic review
+  determines whether gait or collision needs another adjustment.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
   pass; helicopter access remains unchanged.
