@@ -12,7 +12,10 @@ helicopter modes. The WAV outputs repeated byte-for-byte and the tracked FLAC fi
 to the same PCM. Their peaks and file integrity have been checked. A real-speaker or headphone
 listening pass reported that the engine family sounds unnatural, especially the sputter
 during startup. A [revised engine comparison](audio-previews/phase14-revision-1/README.md)
-was judged worse at startup; the original mix was restored while a better approach is sought.
+was judged worse at startup because the ignition sounded weak. A narrower
+[second startup comparison](audio-previews/phase14-revision-2/README.md) now attenuates only
+cranking combustion, reaches full running level within 10 ms and keeps the original catch
+clip; the new clip still needs a listening judgment.
 The other sound families have not yet had a complete listening pass.
 
 ## Stream and buffering
@@ -50,8 +53,9 @@ ran dry during a slow frame and the stream played gaps.
   pedal blip adds texture before delivered load rises; closed throttle and idle have no
   continuous intake hiss. Throttle, load and RPM ramp across every 1024-sample block.
 - Starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine model's
-  cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition to
-  `Running`.
+  cranking rpm (about 280) drives subdued compression/firing at 15% of running level. The
+  original "catch" clip plays on the transition to `Running`, and combustion rises to full
+  level within 10 ms.
 - Off/stalled: the master gain fades out over 0.18 s.
 
 Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on

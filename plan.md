@@ -1735,7 +1735,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   like a much older car. A provisional comparison in `docs/audio-previews/phase14-revision-1/`
   kept the original files intact: it tried starter-only cranking and quieter exhaust layers.
   The listener judged its startup worse, so the game mix was restored to the original and the
-  revision clips are retained only as rejected comparison evidence. P14-040 remains open.
+  revision clips are retained only as rejected comparison evidence. Listener clarification
+  identified a weak ignition as the main defect. Revision 2 in
+  `docs/audio-previews/phase14-revision-2/` reduces only cranking combustion to 15%, while
+  preserving the original catch and all 13 other scenario PCM files. Its new startup clip is
+  deterministic and technically bounded, but still needs a listening decision. P14-040 remains open.
   Acceptance still requires a real-speaker review of these transitions and mix tuning
   based on listening, without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter

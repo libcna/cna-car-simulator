@@ -2,8 +2,10 @@
 
 After listener feedback that the engine family sounded unnatural, especially the
 start-up sputter, a [revised engine comparison pack](../phase14-revision-1/README.md)
-was prepared. The listener judged its startup worse, so the game mix was restored to the
-version used for these original clips.
+was prepared. The listener judged its startup worse because the ignition was weak, so it
+was rejected. A [second startup comparison](../phase14-revision-2/README.md) retains the
+original ignition strength while quieting the cranking phase. The other 13 scenarios still
+match this original pack bit for bit.
 
 These 14 clips are lossless FLAC encodings of 44.1 kHz, 16-bit stereo PCM from the simulator's
 actual `VehicleAudio` mixer. `carsim-audiopreview` drives fixed vehicle and weather snapshots

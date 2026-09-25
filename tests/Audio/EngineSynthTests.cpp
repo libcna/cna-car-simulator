@@ -281,3 +281,24 @@ TEST(EngineSynth, StarterMotorLeavesTheMixWithoutABlockEdgeCut)
     }
     EXPECT_GT(fadeDifference, 0.005f) << "starter should release during the block";
 }
+
+TEST(EngineSynth, CrankingIsQuieterButRunningCombustionReturnsQuickly)
+{
+    EngineSoundInput input;
+    input.state = EngineSoundState::Starting;
+    input.rpm = 280.0f;
+    input.load = 0.1f;
+    EngineSynth transition(kRate);
+    const auto crank = RenderSeconds(transition, input, 1.5f);
+    input.state = EngineSoundState::Running;
+    const auto caught = RenderSeconds(transition, input, 0.1f);
+    EngineSynth reference(kRate);
+    const auto steady = RenderSeconds(reference, input, 1.5f);
+    const float firingHz = EngineSynth::FiringFrequency(input.rpm, 4);
+    const float crankFiring = Magnitude(crank, firingHz, crank.size() / 2);
+    const float steadyFiring = Magnitude(steady, firingHz, steady.size() / 2);
+    EXPECT_GT(crankFiring, steadyFiring * 0.04f) << "cranking still has some combustion";
+    EXPECT_LT(crankFiring, steadyFiring * 0.4f) << "cranking chug is subdued";
+    EXPECT_GT(Rms(caught, static_cast<std::size_t>(kRate / 50)),
+              Rms(steady, steady.size() / 2) * 0.7f) << "ignition must not feel weak";
+}

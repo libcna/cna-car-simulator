@@ -1,8 +1,8 @@
 # Phase 14 engine revision 1: listening comparison
 
 **Rejected after listening:** the listener judged the revised startup worse than the original.
-The simulator's engine mix has been restored to the original version. These files remain only
-as comparison evidence; they are not the current game sound.
+Its ignition was too weak. These files remain only as comparison evidence; they are not the
+current game sound. [Revision 2](../phase14-revision-2/README.md) keeps the original catch.
 
 Listener feedback on the [original pack](../phase14/README.md) said all engine clips sounded
 unnatural and the startup sputter evoked a much older car. These seven clips use the same
