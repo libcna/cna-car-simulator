@@ -324,3 +324,16 @@ by 1.634 / 1.526 / 1.847 mean levels). The corrected OPENGLES3 capture itself
 is byte-identical to its pre-correction image. All four were captured at the
 same scene, frame, resolution and weather. The extra terrain vertex allocation
 is documented in `docs/performance.md`.
+
+### Phase 14 pedestrian outerwear checkpoint (2026-09-25)
+
+The fixed square view (`--spawn square --frames 2 --time 13:00 --time-scale 0
+--weather clear --view -61 6.5 14 0 -4`) was captured at 1280 × 720 after
+adding shared coat and cap meshes. All four renderers show the same nearby
+walker in a rust-coloured coat and brimmed cap. OPENGL33 is byte-identical to
+OPENGLES3; Vulkan RADV differs by 0.626 / 0.568 / 0.685 mean RGB levels and
+SOFTWARE by 2.976 / 2.896 / 2.542, with 0.700% and 1.935% of pixels over 32
+in any channel respectively. The difference images are dominated by tree and
+ground filtering, with the same person visible on each path. The coat replaces
+the shirt draw and the cap replaces the hair draw; no extra draw per walker
+was introduced.

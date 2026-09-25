@@ -31,7 +31,7 @@ namespace CarSim::Render
         static constexpr float kRangeM = 160.0f;
 
     private:
-        std::unique_ptr<GpuMesh> torso_, head_, hair_, leg_, arm_, hand_, shoe_;
+        std::unique_ptr<GpuMesh> torso_, coat_, head_, hair_, cap_, leg_, arm_, hand_, shoe_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::BasicEffect> effect_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
         int drawn_ = 0;
