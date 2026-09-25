@@ -1645,7 +1645,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   fixed Radeon forest edge kept 443 instrumented draws, 720,585 triangles and 88 visible
   tree batches while eight RGBA8 atlases grew by 4.75 MiB at base level (about 6.33 MiB
   with mips). Clear and snow captures show no atlas seam. Deeper forest ground, canopy snow,
-  broader road texture/shoulder and vegetation placement work remain.
+  broader road texture/shoulder and vegetation placement work remain. A subsequent winter
+  crown pass now blends each species' foliage toward pale upper-canopy tones as snow settles,
+  leaving trunks and lower boughs dark. The XNA textures are updated only when cover moves
+  by about 0.04; tree meshes, culling and draw count stay the same. The fixed Radeon clear
+  forest is byte-identical to the earlier capture; snow before/after frames are in
+  `docs/screenshots/phase14/`. Winter branch shape and ground/undergrowth transitions remain.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
@@ -1731,7 +1736,8 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.
   Dense fog now culls alpha-tested tree chunks with the visibility horizon; fixed-camera GPU
   captures show fewer floating pale tree cards (33 to 6 visible tree batches). Snow gains a
-  separate tyre texture. The forest fog edge and mixed low-light conditions still need review.
+  separate tyre texture and the gradual tree-crown winter palette noted under P14-021.
+  The forest fog edge and mixed low-light conditions still need review.
   Acceptance: captured rain, snow, fog, night combinations remain readable and performant.
 
 #### P3 — measure, then optimize

@@ -44,8 +44,8 @@ namespace CarSim::Render
         /// How wet the road is (0..1). Wet asphalt is darker and picks up the colour of the sky;
         /// call before ApplyLighting, which folds it into the effects.
         void SetWetness(float wetness) { wetness_ = wetness; }
-        /// Snow lying on the ground, the roads and the roofs (0..1).
-        void SetSnow(float cover) { snow_ = cover; }
+        /// Snow on the ground, roads, roofs and tree crowns (0..1).
+        void SetSnow(float cover);
         /// Street lanterns (world positions), for the reflections on a wet road.
         [[nodiscard]] const std::vector<Microsoft::Xna::Framework::Vector3>& Lanterns() const { return lanterns_; }
 
@@ -218,6 +218,9 @@ namespace CarSim::Render
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> woodTexture_;
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> barkTexture_;
         std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>> treeCards_;
+        std::vector<Image> treeSummerCards_;  // kept for gradual seasonal recolouring
+        std::vector<Image> treeWinterCards_;
+        float treeAtlasSnow_ = 0.0f;         // last value uploaded to the eight atlases
 
         struct TerrainChunk
         {

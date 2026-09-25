@@ -310,4 +310,18 @@ this is not evidence of a speedup. The source RGBA8 cards grow from 4.00 to 8.75
 eight species, an estimated 6.33 MiB increase including full mip chains. One-off world
 construction was 4.02 versus 4.48 s, too few runs to attribute the difference. The paired
 [forest frames](screenshots/phase14/README.md) show varied crowns at the same camera;
-the snow check has no atlas seam but still exposes the need for canopy snow treatment.
+the original snow check has no atlas seam but exposed the need for canopy snow treatment.
+
+### Phase 14 seasonal tree-atlas memory cost
+
+The later snow-crown pass keeps summer and winter RGBA8 atlases for all eight species on the
+CPU (2 × 8 × 560 × 512 × 4 bytes = **17.5 MiB** of resident source images). A blended atlas
+is temporary during each seasonal update. The existing eight GPU textures are updated in
+place through `Texture2D::SetData`, including their mip levels; there is no second GPU atlas,
+tree mesh or tree draw pass. One full-cover update uploads about **11.7 MiB** across all
+eight mip chains. During gradual snowfall/melt, uploads are gated to roughly 0.04 cover
+increments. A fixed 1280 × 720 forest capture changed crown colour but retained geometry
+and culling; the clear capture is byte-identical to the pre-change frame. The fixed snowy
+[before/after images](screenshots/phase14/README.md) show the visual gain. Upload hitches
+during live weather transitions have not yet been timed on the Radeon and remain an explicit
+performance check before this treatment is considered finished.

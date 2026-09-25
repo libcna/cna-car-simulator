@@ -21,6 +21,11 @@ namespace CarSim::Render
         [[nodiscard]] static Image CardTexture(Map::TreeSpecies species, int width, int height, unsigned seed);
         /// Two seeded silhouettes separated by transparent gutters in one species texture.
         [[nodiscard]] static Image CardAtlasTexture(Map::TreeSpecies species, unsigned seed);
+        /// A frosted palette of the same atlas: identical alpha and silhouette, with snow
+        /// settling on foliage while the trunk remains exposed.
+        [[nodiscard]] static Image WinterAtlasTexture(const Image& summer, Map::TreeSpecies species, unsigned seed);
+        /// Blend matching seasonal atlases without changing their alpha-tested silhouette.
+        [[nodiscard]] static Image BlendSeasonalAtlases(const Image& summer, const Image& winter, float snowCover);
 
         /// Appends the crossed cards of one tree (world space) to `mesh`; vertex colour = shade.
         static void AppendTree(const Map::PlacedTree& tree, MeshData& mesh);

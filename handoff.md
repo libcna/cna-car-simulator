@@ -360,6 +360,13 @@ to road contact and 0.55 to airflow before the common cabin filter, while the ex
 is unchanged. Deterministic split-output and integrated cabin tests pass. Final audio
 balance still needs real-speaker review.
 
+The tree-card atlas now has a derived winter palette for each species. When snow cover
+changes, the existing XNA textures receive blended colours and mip levels at roughly 0.04
+cover increments; geometry, culling and batch counts remain unchanged. The fixed 13:00 clear
+forest frame is byte-identical to the previous capture. The snowy Radeon before/after pair
+is `docs/screenshots/phase14/forest-snow*.png`; bark and lower boughs remain dark. This is
+foliage tint rather than a full winter branch model, and low props still need accumulation.
+
 Overtaking semantics now support ordered metre ranges on each road. `centreLineSections`
 override road-wide paint and can independently forbid overtaking; the renderer and planner
 use the same data, and planning checks the whole pass/return path. The generated Lipová map

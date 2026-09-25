@@ -21,10 +21,11 @@ OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit 
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
 [helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg),
-[road repair under snow](road-repair-snow.jpg), [forest atlas under snow](forest-snow.png),
+[road repair under snow](road-repair-snow.jpg), [forest before snow-crown work](forest-snow.png) /
+[after](forest-snow-after.png),
 and [B 21a beside the restricted main road](overtaking-sign.jpg).
-The snow frame checks that the atlas has no transparent seams; the crowns still need
-weather-specific snow accumulation. The cluster is shown while stationary with its engine
+The forest snow pair checks the gradual upper-crown tint and the unchanged card silhouettes;
+further branch geometry and deciduous winter shape work remain. The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin
 visibility; live illumination under every weather combination still needs review.
 

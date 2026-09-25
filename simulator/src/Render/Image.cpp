@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 namespace CarSim::Render
 {
@@ -212,17 +213,25 @@ namespace CarSim::Render
     std::unique_ptr<Texture2D> UploadTexture(GraphicsDevice& device, const Image& image, const bool mipmaps)
     {
         auto texture = std::make_unique<Texture2D>(device, image.Width(), image.Height(), mipmaps, SurfaceFormat::Color);
-        texture->SetData(0, nullptr, image.Pixels().data(), 0, static_cast<int>(image.Pixels().size()));
-        if (mipmaps) {
+        UpdateTexture(*texture, image);
+        return texture;
+    }
+
+    void UpdateTexture(Texture2D& texture, const Image& image)
+    {
+        if (texture.getWidthProperty() != image.Width() || texture.getHeightProperty() != image.Height()) {
+            throw std::invalid_argument("texture update dimensions do not match");
+        }
+        texture.SetData(0, nullptr, image.Pixels().data(), 0, static_cast<int>(image.Pixels().size()));
+        if (texture.getLevelCountProperty() > 1) {
             Image level = image;
             int index = 1;
             while (level.Width() > 1 || level.Height() > 1) {
                 level = level.Downsampled();
-                texture->SetData(index, nullptr, level.Pixels().data(), 0, static_cast<int>(level.Pixels().size()));
+                texture.SetData(index, nullptr, level.Pixels().data(), 0, static_cast<int>(level.Pixels().size()));
                 ++index;
             }
         }
-        return texture;
     }
 
     std::unique_ptr<TextureCube> UploadCubeMap(GraphicsDevice& device, const std::vector<Image>& faces)

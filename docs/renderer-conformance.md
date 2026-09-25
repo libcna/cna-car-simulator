@@ -289,3 +289,23 @@ own pre-extraction PNG on each path: OPENGLES3 and OPENGL33
 Vulkan RADV `6aec07ae1c6814cdd9d0cc168b42e35a4a9286f1cf51f0251edb1d0c28cdf8db`,
 SOFTWARE `87007d0687853b28cbc952a274a9f39e2e5d95f1bb472732538b530a678a6ae6`.
 This checks the rendered outcome as well as the unchanged method text.
+
+### Phase 14 winter tree atlas checkpoint (2026-09-25)
+
+After the tree cards gained snow accumulation on their upper crowns, the same fixed
+forest view (`--spawn forest --frames 2 --time 13:00 --time-scale 0 --weather snow
+--view -228 5 -1280 0 -4`) was captured at 1280 × 720. OPENGLES3 and OPENGL33
+produced byte-identical PNGs. SOFTWARE showed the same snow-covered crowns and
+terrain; its mean absolute RGB difference from OPENGLES3 was 1.634 / 1.526 /
+1.847 levels of 255, with 0.572% of pixels differing by more than 32 in any
+channel. The clear-weather OPENGLES3 forest frame remained byte-identical to
+the pre-change capture.
+
+Vulkan RADV still fails to draw this snow scene: CNA rejects the existing
+40-byte terrain declaration (`Normal0@12 Vector3`) on its ordinary-indexed
+route. The identical command also fails with the identical error in a separate
+build of prior commit `a92d8f3`, before the winter atlas work. Vulkan's clear
+forest frame succeeds. This is a pre-existing snow-pass conformance gap, not
+evidence that the new atlas changes a vertex layout. The snow pass needs a
+separate project-side correction using the public XNA API; it has not been
+counted as conformant here.

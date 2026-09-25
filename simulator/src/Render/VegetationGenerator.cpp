@@ -188,6 +188,51 @@ namespace CarSim::Render
         return atlas;
     }
 
+    Image VegetationGenerator::WinterAtlasTexture(const Image& summer, const TreeSpecies species, const unsigned seed)
+    {
+        Image winter = summer;
+        const bool conifer = Map::IsConifer(species);
+        for (int y = 0; y < winter.Height(); ++y) {
+            // The upper crown carries the accumulation; lower boughs stay dark and visible
+            // against the snow-covered ground. Avoid a random speckle mask over every leaf.
+            const float height = static_cast<float>(y) / static_cast<float>(winter.Height());
+            const float exposure = std::clamp((0.82f - height) / 0.75f, 0.0f, 1.0f);
+            for (int x = 0; x < winter.Width(); ++x) {
+                Color& pixel = winter.At(x, y);
+                if (pixel.getAProperty() == 0) continue;
+                const int r = pixel.getRProperty(), g = pixel.getGProperty(), b = pixel.getBProperty();
+                if (g <= r + 9 || g <= b + 5) continue; // keep bark and transparent atlas gutters
+                const float patch = Core::Noise::ValueOpen(static_cast<float>(x) * 0.065f,
+                                                           static_cast<float>(y) * 0.065f, seed + 419u);
+                const float cover = std::clamp((conifer ? 0.88f : 0.95f) * exposure *
+                                               (0.78f + 0.22f * patch), 0.0f, 0.90f);
+                const int pale = static_cast<int>(216.0f + 23.0f * patch);
+                const auto mix = [cover](const int original, const int snow) {
+                    return static_cast<int>(std::lround(static_cast<float>(original) * (1.0f - cover) +
+                                                        static_cast<float>(snow) * cover));
+                };
+                pixel = Color(mix(r, pale), mix(g, pale + 4), mix(b, pale + 2), static_cast<int>(pixel.getAProperty()));
+            }
+        }
+        return winter;
+    }
+
+    Image VegetationGenerator::BlendSeasonalAtlases(const Image& summer, const Image& winter, const float snowCover)
+    {
+        Image blended = summer;
+        const float t = std::clamp(snowCover, 0.0f, 1.0f);
+        const auto mix = [t](const int a, const int b) {
+            return static_cast<int>(std::lround(static_cast<float>(a) * (1.0f - t) + static_cast<float>(b) * t));
+        };
+        for (std::size_t i = 0; i < blended.Pixels().size(); ++i) {
+            const Color& a = summer.Pixels()[i];
+            const Color& b = winter.Pixels()[i];
+            blended.Pixels()[i] = Color(mix(a.getRProperty(), b.getRProperty()), mix(a.getGProperty(), b.getGProperty()),
+                                        mix(a.getBProperty(), b.getBProperty()), static_cast<int>(a.getAProperty()));
+        }
+        return blended;
+    }
+
     void VegetationGenerator::AppendTree(const Map::PlacedTree& tree, MeshData& mesh)
     {
         const float h = tree.Height();

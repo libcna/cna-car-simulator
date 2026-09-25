@@ -76,6 +76,8 @@ namespace CarSim::Render
     /// Uploads an image as a Texture2D with a full mip chain generated on the CPU.
     [[nodiscard]] std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D>
     UploadTexture(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device, const Image& image, bool mipmaps = true);
+    /// Replaces every mip level of an existing same-size texture through the XNA public API.
+    void UpdateTexture(Microsoft::Xna::Framework::Graphics::Texture2D& texture, const Image& image);
 
     /// Uploads six square faces (+X, -X, +Y, -Y, +Z, -Z) as a cube map without mips.
     [[nodiscard]] std::unique_ptr<Microsoft::Xna::Framework::Graphics::TextureCube>

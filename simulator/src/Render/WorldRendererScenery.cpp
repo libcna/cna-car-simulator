@@ -224,9 +224,15 @@ namespace CarSim::Render
     void WorldRenderer::BuildTrees(GraphicsDevice& device)
     {
         for (int i = 0; i < VegetationGenerator::kSpeciesCount; ++i) {
-            Image card = VegetationGenerator::CardAtlasTexture(static_cast<Map::TreeSpecies>(i), 100u + static_cast<unsigned>(i));
+            const auto species = static_cast<Map::TreeSpecies>(i);
+            const unsigned seed = 100u + static_cast<unsigned>(i);
+            Image card = VegetationGenerator::CardAtlasTexture(species, seed);
             DilateColour(card, 8);
+            Image winter = VegetationGenerator::WinterAtlasTexture(card, species, seed);
+            DilateColour(winter, 8);
             treeCards_.push_back(UploadTexture(device, card, true));
+            treeSummerCards_.push_back(std::move(card));
+            treeWinterCards_.push_back(std::move(winter));
         }
         std::map<std::pair<int, int>, std::array<MeshData, VegetationGenerator::kSpeciesCount>> chunks;
         for (const auto& t : world_.Objects().Trees()) {
@@ -243,6 +249,22 @@ namespace CarSim::Render
             }
         }
         stats_.treeBatchesTotal = static_cast<int>(treeBatches_.size());
+    }
+
+    void WorldRenderer::SetSnow(const float cover)
+    {
+        snow_ = std::clamp(cover, 0.0f, 1.0f);
+        if (treeCards_.empty()) return;
+        // Snow settles and melts over minutes. Upload only at small visible increments,
+        // avoiding both a seasonal pop and an atlas upload on every frame.
+        if (std::fabs(snow_ - treeAtlasSnow_) < 0.04f &&
+            !(snow_ == 0.0f && treeAtlasSnow_ != 0.0f) &&
+            !(snow_ == 1.0f && treeAtlasSnow_ != 1.0f)) return;
+        for (std::size_t i = 0; i < treeCards_.size(); ++i) {
+            const Image blended = VegetationGenerator::BlendSeasonalAtlases(treeSummerCards_[i], treeWinterCards_[i], snow_);
+            UpdateTexture(*treeCards_[i], blended);
+        }
+        treeAtlasSnow_ = snow_;
     }
 
     void WorldRenderer::BuildSigns(GraphicsDevice& device, const BitmapFont* font)
