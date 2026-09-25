@@ -23,8 +23,12 @@ Two local FLAC probes then used the decoded Saturn preview: a 2.85 s start cross
 0.25 s into an idle excerpt, and a 3–7 s idle excerpt repeated with 0.2 s overlaps. They
 are ignored build outputs, not shipped assets. The loop's boundary adjacent-sample delta
 was below the global 99.9th percentile of adjacent-sample changes, but the listener rejected
-both the start transition and the repeated idle. This is evidence that sample continuity
-alone does not establish a believable engine. Keep the original procedural game audio until
+both the start transition and the repeated idle: neither sounded like a car engine. A PCM
+comparison found the unchanged 0–2.5 s start excerpt differs from the decoded MP3 by at most
+one 16-bit sample step after FLAC conversion (correlation above 0.99999999); the 3–7 s source
+window is already steady and lower in level. The failure cannot be attributed to FLAC loss.
+Sample continuity alone does not establish a believable engine.
+Revision 2's rejected cranking attenuation was reverted. Keep the original procedural game audio until
 a complete recorded implementation passes listening in startup, idle, RPM sweep and shifts.
 
 Any future import needs the original or an explicitly accepted preview, loop and RPM

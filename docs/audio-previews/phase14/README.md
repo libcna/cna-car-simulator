@@ -4,8 +4,8 @@ After listener feedback that the engine family sounded unnatural, especially the
 start-up sputter, a [revised engine comparison pack](../phase14-revision-1/README.md)
 was prepared. The listener judged its startup worse because the ignition was weak, so it
 was rejected. A [second startup comparison](../phase14-revision-2/README.md) retains the
-original ignition strength while quieting the cranking phase. The other 13 scenarios still
-match this original pack bit for bit.
+original ignition strength while quieting the cranking phase; that attempt was also rejected
+and reverted. The other 13 scenarios matched this original pack bit for bit.
 
 These 14 clips are lossless FLAC encodings of 44.1 kHz, 16-bit stereo PCM from the simulator's
 actual `VehicleAudio` mixer. `carsim-audiopreview` drives fixed vehicle and weather snapshots
@@ -44,6 +44,7 @@ The tracked FLAC files were encoded losslessly with `ffmpeg -c:a flac`. The prev
 the mixer's default 0.8 master gain before writing PCM, matching stream playback gain. Each
 file was checked for a valid stereo WAV source, exact duration, lossless FLAC round trip and
 clipping; the highest preview sample peak was 0.580 of full scale. Those checks establish
-technical integrity only. **No speaker or headphone listening judgment is recorded yet**;
-the subjective pass and mix tuning required by P14-040/P14-041 remain open. These snapshots
+technical integrity only. The listener judged the engine family unnatural, especially the
+start-up, and rejected both revisions and two recorded-source edits. Listening and mix tuning
+required by P14-040/P14-041 remain open for the other sound families. These snapshots
 also isolate sound states rather than replaying a full physics drive.

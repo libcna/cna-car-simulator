@@ -13,9 +13,9 @@ to the same PCM. Their peaks and file integrity have been checked. A real-speake
 listening pass reported that the engine family sounds unnatural, especially the sputter
 during startup. A [revised engine comparison](audio-previews/phase14-revision-1/README.md)
 was judged worse at startup because the ignition sounded weak. A narrower
-[second startup comparison](audio-previews/phase14-revision-2/README.md) attenuates only
-cranking combustion, reaches full running level within 10 ms and keeps the original catch
-clip; the listener said it still sounded like the unsatisfactory original. A
+[second startup comparison](audio-previews/phase14-revision-2/README.md) attenuated only
+cranking combustion and kept the original catch clip; the listener said it still sounded
+like the unsatisfactory original, so that change was reverted too. A
 [recorded-source review](audio-previews/phase14-recorded-source-review.md) then found several
 free engine recordings. The listener preferred the untouched Saturn Vue preview to a Fiat
 Punto recording, but rejected two edited start/idle loop probes made from the Saturn preview.
@@ -57,9 +57,8 @@ ran dry during a slow frame and the stream played gaps.
   pedal blip adds texture before delivered load rises; closed throttle and idle have no
   continuous intake hiss. Throttle, load and RPM ramp across every 1024-sample block.
 - Starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine model's
-  cranking rpm (about 280) drives subdued compression/firing at 15% of running level. The
-  original "catch" clip plays on the transition to `Running`, and combustion rises to full
-  level within 10 ms.
+  cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition to
+  `Running`.
 - Off/stalled: the master gain fades out over 0.18 s.
 
 Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on
