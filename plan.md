@@ -1708,7 +1708,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   cases and an exterior check
   were recaptured on the hidden Radeon. Four virtual-display renderers retain the same
   visible geometry and 1,230 main-view draws; 10 procedural-car tests and the public XNA
-  check pass. The broad dashboard pad and finer night material separation keep P14-022 open.
+  check pass. The instrument hood now uses five loft sections with tapered shoulders rather
+  than a flat two-section slab. A matched 1280 × 720 virtual-display noon pair changes
+  8,457 pixels in the hood while the dial face and road above stay pixel-identical; seven
+  hidden Radeon time/weather views keep the gauges legible. The fixed cockpit benchmark
+  retains 1,351 main-view draws and adds 132 triangles, and all four virtual renderers
+  show the same arched outline. The broad dashboard pad and finer night material separation
+  keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,

@@ -406,3 +406,17 @@ SOFTWARE and 1.373/255 for Vulkan; 4,922 and 4,653 pixels respectively exceed 32
 any channel, mostly from established ground and tree filtering differences. The public
 XNA-only check passed (233 files scanned). These virtual-display images are conformance
 checks; the matched performance capture used hidden Radeon offscreen rendering.
+
+### Phase 14 arched cockpit hood checkpoint (2026-09-25)
+
+The five-section binnacle hood built and rendered on OPENGLES3, OPENGL33, SOFTWARE
+and Vulkan at 1280 × 720 on dedicated virtual Xvfb `:103`:
+[OPENGLES3](screenshots/renderers/phase14-arched-hood-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-arched-hood-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-arched-hood-software.png), and
+[Vulkan](screenshots/renderers/phase14-arched-hood-vulkan.png). The arched shape and
+uncovered dials are visible in all four. OPENGL33 is byte-identical to OPENGLES3;
+SOFTWARE differs by 2.311/255 mean absolute RGB with 26,202 pixels above 32 in
+any channel, Vulkan by 0.831/255 with 6,086 pixels above 32. The differences are
+mostly the established surface filtering and shading variation. This conformance pass
+opened no physical display. `scripts/check_xna_only.py` passed (233 files scanned).

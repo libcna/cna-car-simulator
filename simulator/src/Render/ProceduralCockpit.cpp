@@ -327,10 +327,15 @@ namespace CarSim::Render::CarBody
                 rimQuad(-w * 0.5f - inset, -h * 0.5f, -w * 0.5f, h * 0.5f);
                 rimQuad( w * 0.5f, -h * 0.5f, w * 0.5f + inset, h * 0.5f);
                 std::vector<std::vector<Vector3>> visor;
-                for (const float x : {c.X - w * 0.5f - 0.05f, c.X + w * 0.5f + 0.05f}) {
+                // Crown the hood over the dials and taper its shoulders toward the
+                // dashboard. A two-ring loft leaves a broad, flat slab in the windscreen.
+                for (int j = -2; j <= 2; ++j) {
+                    const float across = static_cast<float>(j) * 0.5f;
+                    const float arch = 1.0f - std::fabs(across);
+                    const float x = c.X + across * (w * 0.5f + 0.05f);
                     std::vector<Vector3> ring;
-                    const Vector3 centre(x, c.Y + 0.01f, c.Z + 0.02f);
-                    const float R = h * 0.5f + 0.035f;
+                    const Vector3 centre(x, c.Y + 0.01f + 0.012f * arch, c.Z + 0.02f);
+                    const float R = (h * 0.5f + 0.035f) * (0.72f + 0.28f * arch);
                     for (int k = 0; k <= 10; ++k) {
                         const float a = kPi * 0.10f + (kPi * 0.90f) * static_cast<float>(k) / 10.0f;
                         ring.push_back(centre + upv * (std::sin(a) * R) + n * (std::cos(a) * R));

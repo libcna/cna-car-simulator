@@ -136,3 +136,19 @@ within each pair. The selected house swaps its more elaborate plaster window sur
 for dark timber shutters; the cottage gains shutters beside its existing windows.
 The window surfaces stay uncovered. In the two matched frames, 2,975 and 3,983 pixels
 respectively change around the windows at a channel-difference threshold of 12.
+
+## Arched instrument hood
+
+The 1280 × 720 dedicated virtual-display [before](cockpit-arched-hood-before.png) /
+[after](cockpit-arched-hood-after.png) pair uses the same stationary town-route cockpit.
+Five loft sections taper the previously flat hood toward the dashboard on both sides.
+At a channel difference above 12/255, 8,457 pixels change in the hood; the full dial
+face and the road above it are unchanged. The HUD and exterior scene remain aligned.
+
+Final hidden Radeon 800 × 480 views check [noon](cockpit-arched-hood-noon.png),
+[sunset](cockpit-arched-hood-sunset.png), [night](cockpit-arched-hood-night.png),
+[rain](cockpit-arched-hood-rain.png), [fog](cockpit-arched-hood-fog.png),
+[snow](cockpit-arched-hood-snow.png) and
+[rainy night](cockpit-arched-hood-rainy_night.png). The dials remain readable in every
+view. This is an incremental binnacle shape improvement; the wide dashboard surfaces
+and finer night materials remain open under P14-022.

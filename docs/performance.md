@@ -533,3 +533,16 @@ and [after](screenshots/phase14/forest-bush-snow-after.png) forest-road view. Th
 frame is byte-identical. The fixed forest-snow [after benchmark](performance-data/p14-bush-winter-after.json)
 remains at 685 draws and 605,315 triangles, matching the preceding checkpoint; the
 atlas texture dimensions and snow terrain representation are unchanged.
+
+### P14-022 arched instrument hood geometry check
+
+The same hidden Radeon 800 × 480 town cockpit was benchmarked for 90 frames from
+the clean pushed HEAD and after the five-section hood loft, with 30 warm-up frames
+and the same 60-second traffic warm-up. Main-view submissions remain 1,351; triangles
+increase from 1,448,296 to 1,448,428 (+132). The matched
+[before](performance-data/p14-cockpit-hood-before.json) and
+[after](performance-data/p14-cockpit-hood-after.json) JSONs include pass timings;
+single-run draw submission changed from 19.651 to 14.815 ms alongside large changes
+in unrelated world, traffic and mirror passes, so this is not a measured speed-up.
+Peak process RSS was 2,248,112 versus 2,233,700 KiB, within run variation. The
+[full-resolution visual pair](screenshots/phase14/README.md) checks the actual outline.
