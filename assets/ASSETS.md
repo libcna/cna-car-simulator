@@ -21,4 +21,5 @@ code and are covered by the repository's MIT licence; they are not listed here.
 | Sketchfab Škoda models | account-gated downloads, licence per model unverifiable from this environment, several NC/ND |
 | KhronosGroup/glTF-Sample-Assets `CarConcept` | CC-BY-4.0 but a futuristic concept car unsuited to a Czech passenger-car simulator |
 | KhronosGroup/glTF-Sample-Assets `ToyCar` | CC0 but a toy car |
-| Poly Haven, Quaternius, Kenney, Poly Pizza, ambientCG, OpenGameArt, Freesound, Objaverse | host unreachable from the development environment; not verified, not used |
+| Poly Haven, Quaternius, Kenney, Poly Pizza, ambientCG, Objaverse | host unreachable during the 2026-09-14 asset pass; not verified, not used |
+| OpenGameArt, Freesound | unreachable during the 2026-09-14 asset pass; engine recordings became reachable for Phase 14 preview research on 2026-09-25, but no external engine file has been accepted or shipped (see `docs/audio-previews/phase14-recorded-source-review.md`) |

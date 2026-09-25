@@ -9,7 +9,9 @@ remain in place. No recording was added.
 
 Listen to the same fixed scenario: [original startup](../phase14/startup.flac),
 [rejected revision 1](../phase14-revision-1/startup.flac), and
-[revision 2](startup.flac). Revision 2 still needs a real listening judgment.
+[revision 2](startup.flac). The listener said revision 2 still sounded like the unsatisfactory
+original, so it is rejected as a perceptual fix; see the
+[recorded-source review](../phase14-recorded-source-review.md).
 
 All 13 non-startup scenarios export bit-identical PCM to the original pack. In the 0.5–1.2 s
 cranking window, RMS changes from 0.0752 to 0.0588 of full scale. The 1.25–1.45 s catch

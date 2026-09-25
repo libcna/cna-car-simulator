@@ -13,9 +13,13 @@ to the same PCM. Their peaks and file integrity have been checked. A real-speake
 listening pass reported that the engine family sounds unnatural, especially the sputter
 during startup. A [revised engine comparison](audio-previews/phase14-revision-1/README.md)
 was judged worse at startup because the ignition sounded weak. A narrower
-[second startup comparison](audio-previews/phase14-revision-2/README.md) now attenuates only
+[second startup comparison](audio-previews/phase14-revision-2/README.md) attenuates only
 cranking combustion, reaches full running level within 10 ms and keeps the original catch
-clip; the new clip still needs a listening judgment.
+clip; the listener said it still sounded like the unsatisfactory original. A
+[recorded-source review](audio-previews/phase14-recorded-source-review.md) then found several
+free engine recordings. The listener preferred the untouched Saturn Vue preview to a Fiat
+Punto recording, but rejected two edited start/idle loop probes made from the Saturn preview.
+No recorded file has been added to the game.
 The other sound families have not yet had a complete listening pass.
 
 ## Stream and buffering
@@ -85,6 +89,8 @@ is only four seconds and does not supply the driving layers. The
 is an air-cooled flat-four with a different character. None was added to the build: stable
 loop points, RPM labels and perceptual fit still need validation. Any adopted file requires
 the source, license, author, hash and conversion history in `assets/manifest.json`.
+The dated finding above predates the 2026-09-25 research in the linked recorded-source
+review; OpenGameArt and Freesound were reachable for previews during that later pass.
 
 ### Starter-to-idle transition
 

@@ -33,6 +33,10 @@ procedural content is deterministic, tunable and licence-clean; Czech sign faces
 and reproducible from the decree's shapes; engine and vehicle sounds are synthesised from the
 simulation state, which is also what the dynamic audio requirement asks for.
 
+This was the September 14 baseline. OpenGameArt and Freesound previews became reachable on
+September 25; [Phase 14 source and listener review](../audio-previews/phase14-recorded-source-review.md)
+records the candidates. None has been integrated into the game.
+
 ## Reference data (facts, not assets)
 
 - Czech plates: `docs/research/czech-plates.md`.

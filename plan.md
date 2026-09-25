@@ -1753,7 +1753,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   identified a weak ignition as the main defect. Revision 2 in
   `docs/audio-previews/phase14-revision-2/` reduces only cranking combustion to 15%, while
   preserving the original catch and all 13 other scenario PCM files. Its new startup clip is
-  deterministic and technically bounded, but still needs a listening decision. P14-040 remains open.
+  deterministic and technically bounded, but the listener said it still sounded like the
+  original unsatisfactory start. The [recorded-source review](docs/audio-previews/phase14-recorded-source-review.md)
+  found real CC0 recordings. The listener preferred the untouched Saturn Vue preview to a
+  Fiat candidate, but rejected two edited start/idle loop probes. No recording has entered
+  the game; a coherent source with credible start, stable RPM layers and accepted loop
+  transitions remains necessary. P14-040 remains open.
   Acceptance still requires a real-speaker review of these transitions and mix tuning
   based on listening, without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
