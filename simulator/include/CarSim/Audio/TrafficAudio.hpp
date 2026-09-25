@@ -4,6 +4,7 @@
 
 #include "Microsoft/Xna/Framework/Vector3.hpp"
 
+#include <cstdint>
 #include <vector>
 #include <span>
 
@@ -43,6 +44,11 @@ namespace CarSim::Audio
             float targetPan = 0.0f;
             float frequency = 35.0f;
             float targetFrequency = 35.0f;
+            float roadShare = 0.0f;
+            float targetRoadShare = 0.0f;
+            float roadLow = 0.0f;
+            float roadBass = 0.0f;
+            std::uint32_t roadSeed = 1u;
         };
         int sampleRate_;
         std::vector<Voice> voices_;

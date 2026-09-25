@@ -200,6 +200,13 @@ namespace CarSim::App
                                       static_cast<double>(layers.low), static_cast<double>(layers.upper),
                                       static_cast<double>(layers.exhaust), static_cast<double>(layers.intake),
                                       static_cast<double>(layers.master)));
+            const auto& environment = audio_->EnvironmentLevels();
+            row("outside mix", text("road %.2f  wind %.2f  rain %.2f  spray %.2f  traffic %.2f",
+                                     static_cast<double>(environment.roadGain), static_cast<double>(environment.windGain),
+                                     static_cast<double>(environment.rainGain), static_cast<double>(environment.sprayGain),
+                                     static_cast<double>(environment.trafficGain)));
+            row("acoustics", text("cabin %.2f  snow %.2f", static_cast<double>(environment.cabinBlend),
+                                   static_cast<double>(environment.snowCover)));
         }
         row("draw split", text("sky %.2f  world %.2f  traffic %.2f  car %.2f  hud %.2f ms",
                                static_cast<double>(passMs_[kPassSky]), static_cast<double>(passMs_[kPassWorld]),

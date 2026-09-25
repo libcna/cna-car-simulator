@@ -22,8 +22,10 @@ free engine recordings. The listener preferred the untouched Saturn Vue preview 
 Punto recording, but rejected two edited start/idle loop probes made from the Saturn preview.
 The listener then accepted the [2012 Honda Civic preview and its start/idle loop](audio-previews/phase14-recorded-source-review.md).
 The listener accepted the integrated start, idle, RPM sweep and shifts. Load, lift-off and
-engine braking were rejected in the same real-mixer pack; their higher-RPM character and
-other sound families have not yet had a complete listening pass.
+engine braking were rejected; a short loop cut from the Honda rev was also rejected for
+audible repetition. The later [Honda mixer pack](audio-previews/phase14-honda/README.md)
+records the full verdict: tyre/road, wind, rain/wipers, snow, cabin switching and helicopter
+passed listening, while an initially inaudible traffic pass-by passed after a mix revision.
 
 ## Stream and buffering
 
@@ -185,7 +187,13 @@ relative-velocity shift, buses and lorries have a lower/stronger engine, and lef
 follows the vehicle's direction from the listener. A 90 ms gain envelope removes entry/exit
 clicks. The cabin attenuates this outdoor layer more than the player's own engine. A soft
 ceiling handles unusually loud overlaps instead of hard PCM clipping. The F3 overlay reports
-active traffic voices. No traffic synthesis runs when audio is disabled.
+active traffic voices. No traffic synthesis runs when audio is disabled. The first real-mixer
+pass-by measured −35.7 dB mean and was inaudible to the listener. The revised layer raises
+the nearby voice level and adds seeded, band-limited tyre/air texture proportional to speed.
+Its six-second pass-by measures −29.2 dB mean / −13.7 dB peak, and the listener confirmed it
+is audible and natural. The revised PCM export is deterministic across two runs.
+F3 now shows road, wind, rain, spray and traffic mix gains, cabin blend and snow cover
+beside the existing engine-layer meters; normal play has no audio telemetry overlay.
 
 The fixed 90-frame offscreen runtime with 19–20 cars and the dummy audio device reported a
 0.37 ms mean project audio update (320 × 200, OPENGLES3 llvmpipe); this is CPU mixer time, not
@@ -224,6 +232,8 @@ also checking bounded level and reduced airborne tyre sound. A split-output test
 that road plus airflow reconstructs the prior combined output sample by sample.
 `tests/Audio/TrafficAudioTests.cpp` checks stereo direction, distance falloff, six-voice
 prioritisation, fade-out, finite level and cabin attenuation in the integrated vehicle mixer.
+The integrated six-second pass-by regression guards both overall audibility and energy above
+the low engine tone.
 `tests/Audio/VehicleAudioMixTests.cpp` checks the first sample and within-block transition
 for both exterior-to-cockpit and cockpit-to-exterior switches with engine and traffic active,
 and checks that the cabin muffles airflow more strongly than road contact.

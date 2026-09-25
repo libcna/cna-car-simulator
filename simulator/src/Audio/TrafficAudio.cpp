@@ -21,6 +21,7 @@ namespace CarSim::Audio
             float gain = 0.0f;
             float pan = 0.0f;
             float frequency = 35.0f;
+            float roadShare = 0.0f;
         };
     }
 
@@ -42,14 +43,15 @@ namespace CarSim::Audio
             if (distance >= kRangeM) continue;
             const Vector3 direction = delta / std::max(0.1f, distance);
             const float proximity = 1.0f - distance / kRangeM;
-            const float gain = (source.heavy ? 0.18f : 0.13f) * proximity * proximity *
+            const float gain = (source.heavy ? 0.38f : 0.32f) * proximity * proximity *
                                (1.0f + 0.12f * std::clamp(source.acceleration, 0.0f, 2.0f));
             const float pan = std::clamp(Vector3::Dot(direction, listenerRight), -1.0f, 1.0f);
             const float closure = Vector3::Dot(source.velocity - listenerVelocity, -direction);
             const float doppler = std::clamp(1.0f + closure / 343.0f, 0.88f, 1.12f);
             const float frequency = (source.heavy ? 28.0f + source.speedMs * 1.2f :
                                      37.0f + source.speedMs * 2.4f) * doppler;
-            Candidate candidate{source.id, gain, pan, frequency};
+            const float roadShare = std::clamp(source.speedMs / 28.0f, 0.0f, 1.25f);
+            Candidate candidate{source.id, gain, pan, frequency, roadShare};
             for (auto& slot : nearest) {
                 if (candidate.gain <= slot.gain) continue;
                 std::swap(slot, candidate);
@@ -73,10 +75,12 @@ namespace CarSim::Audio
                 it->phase = static_cast<double>((static_cast<unsigned>(c.id) * 2654435761u) & 0xFFFFu) / 65536.0;
                 it->frequency = c.frequency;
                 it->pan = c.pan;
+                it->roadSeed = static_cast<std::uint32_t>(c.id) * 747796405u + 2891336453u;
             }
             it->targetGain = c.gain;
             it->targetPan = c.pan;
             it->targetFrequency = c.frequency;
+            it->targetRoadShare = c.roadShare;
         }
     }
 
@@ -90,11 +94,21 @@ namespace CarSim::Audio
                 voice.gain += (voice.targetGain - voice.gain) * gainRate;
                 voice.pan += (voice.targetPan - voice.pan) * motionRate;
                 voice.frequency += (voice.targetFrequency - voice.frequency) * motionRate;
+                voice.roadShare += (voice.targetRoadShare - voice.roadShare) * motionRate;
                 voice.phase += static_cast<double>(voice.frequency) / static_cast<double>(sampleRate_);
                 if (voice.phase >= 1.0) voice.phase -= 1.0;
                 const float angle = static_cast<float>(voice.phase) * kTwoPi;
-                const float pulse = 0.72f * std::sin(angle) + 0.22f * std::sin(angle * 2.0f);
-                const float level = voice.gain * pulse;
+                const float pulse = 0.55f * std::sin(angle) + 0.18f * std::sin(angle * 2.0f) +
+                                    0.08f * std::sin(angle * 3.0f);
+                // A passing car needs audible tyre and air texture above the low engine
+                // fundamental. Keep the seeded broadband layer band-limited and proportional
+                // to road speed so stationary traffic does not hiss.
+                voice.roadSeed = voice.roadSeed * 1664525u + 1013904223u;
+                const float raw = static_cast<float>(voice.roadSeed >> 8) * (2.0f / 16777216.0f) - 1.0f;
+                voice.roadLow += (raw - voice.roadLow) * 0.28f;
+                voice.roadBass += (voice.roadLow - voice.roadBass) * 0.025f;
+                const float road = (voice.roadLow - voice.roadBass) * voice.roadShare;
+                const float level = voice.gain * (pulse + 0.90f * road);
                 stereo[static_cast<std::size_t>(i) * 2] += level * std::sqrt(0.5f * (1.0f - voice.pan));
                 stereo[static_cast<std::size_t>(i) * 2 + 1] += level * std::sqrt(0.5f * (1.0f + voice.pan));
             }

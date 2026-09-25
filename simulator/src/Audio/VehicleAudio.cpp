@@ -266,7 +266,6 @@ namespace CarSim::Audio
         // Wipers: the rubber swishing across the glass with the blade's speed, the motor's hum
         // under it, and a knock where the blades turn round and where they park.
         {
-            const float blockSeconds = static_cast<float>(kBlockFrames) / static_cast<float>(kSampleRate);
             const float delta = state.wiperPosition - prevWiper_;
             const float bladeSpeed = std::fabs(delta) / blockSeconds;
             const float direction = delta > 1e-5f ? 1.0f : (delta < -1e-5f ? -1.0f : 0.0f);
@@ -341,6 +340,10 @@ namespace CarSim::Audio
             }
             cockpitBlend_ += std::clamp(target - cockpitBlend_, -blendStep, blendStep);
         }
+        const float insideGain = 1.0f - cockpitBlend_ * (1.0f - levels.cockpitAttenuation);
+        environmentLevels_ = {1.0f - 0.10f * cockpitBlend_, 1.0f - 0.45f * cockpitBlend_,
+                              rainGain_, sprayGain_, levels.effects * insideGain * (1.0f - 0.55f * cockpitBlend_),
+                              cockpitBlend_, snowCover_};
     }
 
     void VehicleAudio::Update(const Sim::VehicleState& state, const bool cockpit, const std::vector<Collision::ContactEvent>& contacts, const float dt)

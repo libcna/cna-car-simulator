@@ -29,6 +29,17 @@ namespace CarSim::Audio
         float cockpitLowPassHz = 1700.0f;
     };
 
+    struct EnvironmentMixLevels
+    {
+        float roadGain = 1.0f;
+        float windGain = 1.0f;
+        float rainGain = 0.0f;
+        float sprayGain = 0.0f;
+        float trafficGain = 1.0f;
+        float cabinBlend = 0.0f;
+        float snowCover = 0.0f;
+    };
+
     class VehicleAudio
     {
     public:
@@ -64,6 +75,7 @@ namespace CarSim::Audio
         [[nodiscard]] int Underruns() const { return underruns_; }
         [[nodiscard]] int TrafficVoices() const { return traffic_.ActiveVoices(); }
         [[nodiscard]] const EngineSoundLevels& EngineLevels() const { return engine_.Levels(); }
+        [[nodiscard]] const EnvironmentMixLevels& EnvironmentLevels() const { return environmentLevels_; }
 
         /// Renders one block into `stereo` (interleaved, 2 * frames floats) — public for tests.
         void RenderBlock(std::vector<float>& stereo, const Sim::VehicleState& state, bool cockpit);
@@ -102,6 +114,7 @@ namespace CarSim::Audio
         int blocksSubmitted_ = 0;
         int underruns_ = 0;
         float cockpitBlend_ = 0.0f;
+        EnvironmentMixLevels environmentLevels_{};
         bool hornPressed_ = false;
         unsigned blockIndex_ = 0;            // for the overrun burble gate
         float secondsSinceShift_ = 1e9f;     // gear-change dip envelope

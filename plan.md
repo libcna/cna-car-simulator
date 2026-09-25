@@ -1681,7 +1681,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   have their own material. Matched noon, night and rainy-night before/after images plus
   sunset, rain, fog and snow final images are in `docs/screenshots/phase14/`. The complete
   cluster face stays visible in all seven captures. The broad A-pillar, large dark pad and
-  night material separation still need a stronger visual pass; keep P14-022 open.
+  night material separation still need a stronger visual pass. A later hidden Radeon pass
+  assigns the windshield pillar's existing inward-facing triangles to matte charcoal trim
+  while the headliner stays pale. Matched noon, night and rainy-night pairs plus all seven
+  final weather/time views are in `docs/screenshots/phase14/`; 10 procedural-car tests and
+  the public XNA check pass. The physical pillar width and broad dashboard pad remain open;
+  keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -1778,10 +1783,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   3000 rpm; no duplicate synthetic ignition plays with it. Integrated start, idle, RPM, load,
   lift-off, shift and engine-braking previews have been rendered. The listener accepted the
   actual-mixer start, idle, RPM sweep and shifts, but rejected load, lift-off and engine
-  braking. P14-040 remains open for these three higher-RPM situations and full listening.
+  braking. A 0.30 s high-rev segment from the accepted Honda was also rejected as a
+  sustained loop because its repetition was audible. P14-040 remains open for these three
+  higher-RPM situations; do not substitute the rejected loop for the present dynamic layer.
   Acceptance still requires a real-speaker review of these transitions and mix tuning
   based on listening, without clipping or loop seams.
-- [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
+- [x] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
   mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
   authored ground roughness and road snow cover for bounded tread and scrub textures; deterministic
   tests show gravel, snow and sliding differ from dry asphalt. Up to six nearby AI vehicles now
@@ -1807,8 +1814,18 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The same offline listening pack includes tyre/road, wind, rain/wipers, snow, traffic
   pass-by, cabin/exterior switching and four helicopter rotor modes. All 14 WAVs have valid
   44.1 kHz stereo headers; tracked FLAC decodes to exact PCM and the largest preview peak is
-  0.580 full scale. These are technical checks only; real listening and responsive tuning
-  remain open. No recorded engine source was imported.
+  0.580 full scale. The listener approved tyre/road, wind, rain/wipers, snow,
+  cabin/exterior switching and helicopter from the mixer with the Honda source installed.
+  The first traffic pass-by was inaudible (−35.7 dB mean); a seeded, band-limited tyre/air
+  layer and stronger nearby voice raised it to −29.2 dB mean / −13.7 dB peak, and the
+  listener accepted the new pass-by as audible and natural. A six-second integrated
+  regression guards its level and high-frequency texture; all 14 revised FLAC clips are
+  tracked in `docs/audio-previews/phase14-honda/` and decode to the exact mixer PCM.
+  F3 now exposes the road, wind, rain, spray and traffic gains plus cabin blend and snow
+  cover beside the engine layers, without adding normal-play UI. A 90-frame hidden dummy-
+  audio stream with about 20 traffic cars completed without errors at 0.272 ms mean project
+  audio update (not a matched performance comparison).
+  Engine load/lift-off/braking remain P14-040; no further P14-041 sound family is open.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
 - [~] `P14-042` Polish snow and fog visual/audio integration without removing either.

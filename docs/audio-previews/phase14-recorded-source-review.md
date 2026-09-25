@@ -58,4 +58,9 @@ The initial real-time integration uses this file for recorded ignition and low-R
 It loops 3.6–8.0 s with a 0.18 s crossfade; the accepted offline probe is in the ignored
 `build/audio-candidates/` directory. The listener accepted the start, idle, RPM sweep and
 shifts exported from the actual mixer, but rejected fixed-RPM load, lift-off and engine
-braking. Those failures and the unreviewed environmental mix keep P14-040/P14-041 open.
+braking. Those three failures keep P14-040 open.
+An isolated 0.30 s high-rev excerpt (12.72–13.02 s) with an 0.08 s overlap was also tested
+as a six-second fixed-load loop; the listener heard objectionable repetition. It was kept
+only as an ignored probe in `build/audio-candidates/`, and was not imported into the game.
+The environmental mix was subsequently reviewed separately; its verdicts are in the
+[Honda mixer pack](phase14-honda/README.md).
