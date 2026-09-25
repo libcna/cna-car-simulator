@@ -71,3 +71,13 @@ TEST(WalkingMode, LongTrafficBodyBlocksWalkerBeyondFiveMetresFromCentre)
     bus.position = Vector3(0.0f, -4.0f, 6.0f);
     EXPECT_FALSE(App::WalkingOverlapsTraffic(walker, std::span<const Traffic::TrafficVehicle>(&bus, 1)));
 }
+
+TEST(WalkingMode, ReturningToCarRequiresNearbyGroundLevelPosition)
+{
+    using Microsoft::Xna::Framework::Vector3;
+    const Vector3 car(10.0f, 2.0f, 20.0f);
+    EXPECT_TRUE(App::CanReturnToCar(Vector3(11.7f, 2.2f, 20.0f), car));
+    EXPECT_TRUE(App::CanReturnToCar(Vector3(10.0f, 2.0f, 23.0f), car));
+    EXPECT_FALSE(App::CanReturnToCar(Vector3(10.0f, 2.0f, 23.3f), car));
+    EXPECT_FALSE(App::CanReturnToCar(Vector3(10.0f, 3.3f, 20.0f), car));
+}

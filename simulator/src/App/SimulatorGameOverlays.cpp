@@ -89,7 +89,7 @@ namespace CarSim::App
         }
 
         if (!showHelp_) {
-            font_->DrawShadowed(*spriteBatch_, walking_ ? "W car   Shift run   F1 help" :
+            font_->DrawShadowed(*spriteBatch_, walking_ ? "W car (nearby)   Shift run   F1 help" :
                                 "F1 help   C camera   E engine   M map   X smoke   L lights   K low/high",
                                 Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
         }

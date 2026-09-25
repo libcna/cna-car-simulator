@@ -39,6 +39,14 @@ The Lipan's steering wheel centre is 0.70 m high and 0.23 m ahead of the origin;
 instrument face is 0.99 m high and 0.39 m ahead, just in front of the dashboard fascia.
 That placement keeps the entire dial face visible from the normal eye position.
 
+## Walking camera
+
+The on-foot eye is 1.68 m above sampled ground at the walker, with a 68 degree field of
+view and 0.08 m near plane. It faces the walking yaw and adds a 2.5 cm gait bob only while
+moving. A hidden 800 × 480 OPENGLES3 capture at the square spawn shows a clear road view
+and the parked car at the edge of frame; moving and blocked-motion transitions still need
+review. `W` returns to the car only within 3.2 m horizontally and 1.2 m vertically.
+
 ## Rear-view mirror
 
 The interior mirror renders a 768 x 200 target from `mirrorCenter` (Lipan: on the centre line,

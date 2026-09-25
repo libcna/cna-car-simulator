@@ -5,6 +5,7 @@
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <span>
 
 namespace CarSim::App
@@ -36,6 +37,15 @@ namespace CarSim::App
     [[nodiscard]] inline bool CanEnterWalking(const Sim::VehicleState& car)
     {
         return !car.flightMode && car.engineState == Sim::EngineState::Off && car.speedKmh <= 0.5f;
+    }
+
+    [[nodiscard]] inline bool CanReturnToCar(
+        const Microsoft::Xna::Framework::Vector3& walker,
+        const Microsoft::Xna::Framework::Vector3& car)
+    {
+        const float dx = walker.X - car.X;
+        const float dz = walker.Z - car.Z;
+        return dx * dx + dz * dz <= 3.2f * 3.2f && std::fabs(walker.Y - car.Y) <= 1.2f;
     }
 
     /// Check full traffic bodies, including buses and lorries whose centre can be farther

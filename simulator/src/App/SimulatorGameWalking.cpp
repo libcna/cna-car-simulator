@@ -31,6 +31,10 @@ namespace CarSim::App
     void SimulatorGame::ToggleWalking()
     {
         if (walking_) {
+            if (!CanReturnToCar(walkingPosition_, vehicle_->Snapshot().originPosition)) {
+                std::cout << "walking: move within 3 m of the car to get in\n";
+                return;
+            }
             walking_ = false;
             running_ = false;
             walkingMoving_ = false;

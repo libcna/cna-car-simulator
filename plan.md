@@ -1679,8 +1679,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   replaces the existing hair draw and the coat replaces the shirt draw. A fixed Radeon
   square before/after pair is retained in `docs/screenshots/phase14/`. Walking collision
   now tests complete traffic bodies: a 12 m bus blocks the walker even when its centre is
-  6 m away, with lateral and vertical separation regressions. The on-foot camera and
-  return-to-car proximity still need review.
+  6 m away, with lateral and vertical separation regressions. Returning to the car now
+  requires the walker to be within 3.2 m horizontally and 1.2 m vertically, so `W` cannot
+  teleport the player back from across town. The on-foot camera still needs movement review.
   See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
