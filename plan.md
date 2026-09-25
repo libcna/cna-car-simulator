@@ -1719,7 +1719,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Radeon road view. Parser, mesh and deterministic traffic tests pass; see
   `docs/research/czech-overtaking.md`. Section restrictions can now apply only in the forward
   or reverse direction while the paint stays dashed; parser and a full traffic pass regression
-  verify that a one-way B 21a zone does not ban the opposite approach. Acceptance for completion: junction/crossing edge cases,
+  verify that a one-way B 21a zone does not ban the opposite approach. IP 6 may now bind to a
+  named road so nearby parallel roads do not give the zebra, pedestrian crossing and passing
+  veto conflicting owners; parser and deterministic traffic tests cover the ambiguous case.
+  Acceptance for completion: remaining junction/crossing edge cases,
   broader local restrictions, and review of vertical-sign effects at other sites.
 - [~] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
@@ -1730,7 +1733,8 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   preserved. A deterministic near-junction case lets a hatchback pass a lorry but holds
   a longer, slower van back.
   Clear, rainy, snowy, foggy, crossing, line-marking, oncoming and abort regression tests pass;
-  road signs and phase-change decisions still need work.
+  A four-scenario oncoming interruption regression now checks safe return ahead or behind,
+  no oscillation and no body overlap. Further road signs and sight-distance authoring remain.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or
   overlap, and the 30-minute soak passes.
 - [~] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require

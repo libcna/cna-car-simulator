@@ -35,6 +35,21 @@ TEST(MapDocument, ParsesMinimalMap)
     EXPECT_FLOAT_EQ(result.data.terrain.noiseAmplitude, 0.0f);
 }
 
+TEST(MapDocument, CrossingCanBindToAnExistingRoad)
+{
+    auto s = Sources();
+    s.objects = R"({"schemaVersion": 1, "signs": [{"code": "IP6", "position": [2, -100], "road": "r1"}]})";
+    const auto valid = Map::ParseMapSources(s);
+    ASSERT_TRUE(valid.ok()) << (valid.errors.empty() ? "" : valid.errors.front());
+    ASSERT_EQ(valid.data.objects.signs.size(), 1u);
+    EXPECT_EQ(valid.data.objects.signs.front().roadId, "r1");
+
+    s.objects = R"({"schemaVersion": 1, "signs": [{"code": "IP6", "position": [2, -100], "road": "missing"}]})";
+    const auto unknown = Map::ParseMapSources(s);
+    ASSERT_FALSE(unknown.ok());
+    EXPECT_NE(unknown.errors.front().find("unknown road 'missing'"), std::string::npos);
+}
+
 TEST(MapDocument, ParsesDirectionalCentreLineAndRoadOvertakingRestriction)
 {
     auto s = Sources();

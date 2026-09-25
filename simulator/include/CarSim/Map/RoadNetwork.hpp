@@ -162,7 +162,8 @@ namespace CarSim::Map
 
         /// Nearest road centreline within `maxLateral` metres (planar). Prefers the road whose
         /// paved area contains the point; otherwise the closest.
-        [[nodiscard]] bool NearestRoad(const Microsoft::Xna::Framework::Vector2& point, float maxLateral, RoadHit& out) const;
+        [[nodiscard]] bool NearestRoad(const Microsoft::Xna::Framework::Vector2& point, float maxLateral, RoadHit& out,
+                                       const std::string& onlyRoadId = {}) const;
         /// Nearest intersection patch containing the point (-1 if none).
         [[nodiscard]] int IntersectionContaining(const Microsoft::Xna::Framework::Vector2& point) const;
 

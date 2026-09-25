@@ -43,7 +43,7 @@ namespace CarSim::Traffic
         for (const auto& sign : world.Objects().Signs()) {
             if (!sign.spec || sign.spec->code != "IP6") continue;
             Map::RoadHit hit;
-            if (!network.NearestRoad(Vector2(sign.position.X, sign.position.Z), 14.0f, hit)) continue;
+            if (!network.NearestRoad(Vector2(sign.position.X, sign.position.Z), 14.0f, hit, sign.spec->roadId)) continue;
             const auto& road = network.Roads()[static_cast<std::size_t>(hit.road)];
             bool duplicate = false;
             for (const auto& c : crossings_) duplicate = duplicate || (c.road == hit.road && std::fabs(c.s - hit.s) < 6.0f);

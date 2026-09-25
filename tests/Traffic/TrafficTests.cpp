@@ -570,6 +570,51 @@ TEST(TrafficSystem, PedestrianCrossingAheadForbidsStartingPass)
     EXPECT_EQ(run.overlaps, 0);
 }
 
+TEST(TrafficSystem, CrossingOnNearbyRoadDoesNotBlockAnUnrelatedPass)
+{
+    const auto run = [](const std::string& boundRoad) {
+        Map::MapData data;
+        data.info.id = "parallel-crossing";
+        data.terrain.sizeX = data.terrain.sizeZ = 1000.0f;
+        data.terrain.cellSize = 10.0f;
+        data.terrain.noiseAmplitude = 0.0f;
+        data.nodes = {Node("main-w", -400, 0), Node("main-e", 400, 0),
+                      Node("side-w", -400, 8), Node("side-e", 400, 8)};
+        data.roads = {Road("main", {"main-w", "main-e"}), Road("side", {"side-w", "side-e"})};
+        data.traffic.maxVehicles = 0;
+        Map::SignSpec crossing;
+        crossing.code = "IP6";
+        crossing.position = Vector2(-300.0f, 2.0f); // nearer main, but the side road is within 14 m
+        crossing.roadId = boundRoad;
+        data.objects.signs.push_back(crossing);
+        std::vector<std::string> errors;
+        auto world = Map::MapWorld::Build(std::move(data), errors);
+        EXPECT_TRUE(errors.empty());
+        if (!world) return false;
+
+        Map::RoadHit hit;
+        EXPECT_TRUE(world->Roads().NearestRoad(crossing.position, 14.0f, hit, boundRoad));
+        EXPECT_EQ(world->Roads().Roads()[static_cast<std::size_t>(hit.road)].spec->id,
+                  boundRoad.empty() ? "main" : boundRoad);
+        Traffic::TrafficSystem traffic(*world, 5);
+        traffic.SetDensity(0);
+        const int lane = LaneOf(*world, "main", true, 0);
+        EXPECT_GE(traffic.SpawnOn(lane, 60.0f, 8.3f, Sim::CarStyle::Body::Truck), 0);
+        const int follower = traffic.SpawnOn(lane, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
+        EXPECT_GE(follower, 0);
+        bool wentOut = false;
+        for (int i = 0; i < 5 * 30; ++i) {
+            traffic.Update(1.0f / 30.0f, NoPlayer());
+            for (const auto& car : traffic.Vehicles()) {
+                if (car.id == follower) wentOut = wentOut || car.lateral > 1.0f;
+            }
+        }
+        return wentOut;
+    };
+    EXPECT_FALSE(run(""));
+    EXPECT_TRUE(run("side"));
+}
+
 TEST(TrafficSystem, NobodyOvertakesIntoOncomingTraffic)
 {
     // A stream of oncoming cars: the car waits behind the lorry until the road is clear, and is
@@ -681,7 +726,11 @@ TEST(TrafficSystem, AnOvertakerMeetingOncomingTrafficGetsBackWithoutTouchingAnyb
     // The car is out level with the lorry when a car comes the other way. The oncoming car stops
     // short, the overtaker finishes or drops back, and nobody touches anybody.
     // (Closer than 45 m the two could not stop in time even braking as hard as they can.)
-    for (const float oncomingAt : {45.0f, 60.0f, 80.0f}) {
+    struct Interruption { float oncomingAt; float triggerBehind; bool completesAhead; };
+    for (const Interruption scenario : {Interruption{45.0f, 1.0f, true},
+                                        Interruption{60.0f, 1.0f, true},
+                                        Interruption{80.0f, 1.0f, true},
+                                        Interruption{45.0f, 20.0f, false}}) {
         auto world = CrossWorld(true);
         ASSERT_TRUE(world);
         Traffic::TrafficSystem traffic(*world, 11);
@@ -693,6 +742,11 @@ TEST(TrafficSystem, AnOvertakerMeetingOncomingTrafficGetsBackWithoutTouchingAnyb
         ASSERT_GE(lorry, 0);
         ASSERT_GE(car, 0);
         bool spawned = false;
+        bool settled = false;
+        bool finishedAhead = false;
+        bool sawReturn = false;
+        bool returnCancelledWhileOut = false;
+        bool lastReturning = false;
         int overlaps = 0;
         for (int i = 0; i < 30 * 30; ++i) {
             traffic.Update(1.0f / 30.0f, NoPlayer());
@@ -700,16 +754,34 @@ TEST(TrafficSystem, AnOvertakerMeetingOncomingTrafficGetsBackWithoutTouchingAnyb
             const auto* c = Find(traffic, car);
             const auto* l = Find(traffic, lorry);
             if (!c || !l) break;
+            if (spawned && !settled) {
+                sawReturn = sawReturn || c->returning;
+                if (lastReturning && !c->returning && c->lateral > 0.1f) returnCancelledWhileOut = true;
+                lastReturning = c->returning;
+                if (c->lateral < 0.1f && c->overtaking < 0) {
+                    // The interrupted attempt has ended either behind or clear ahead of the
+                    // lorry, never stranded alongside it on the centre line.
+                    const float bodyClearance = 0.5f * (c->lengthM + l->lengthM) + 1.0f;
+                    EXPECT_TRUE(c->s + bodyClearance < l->s || c->s > l->s + bodyClearance)
+                        << "oncoming at " << scenario.oncomingAt << " m";
+                    finishedAhead = c->s > l->s;
+                    settled = true;
+                }
+            }
             // Out and already level with the lorry: too far on to simply tuck back in behind it.
-            if (!spawned && c->lateral > 2.0f && c->s > l->s - 1.0f) {
+            if (!spawned && c->lateral > 2.0f && c->s > l->s - scenario.triggerBehind) {
                 // In the westbound lane's own s: its lanes run the other way.
-                const float s = world->Lanes().LaneAt(west).length - (c->s + oncomingAt);
+                const float s = world->Lanes().LaneAt(west).length - (c->s + scenario.oncomingAt);
                 ASSERT_GE(traffic.SpawnOn(west, s, 14.0f, Sim::CarStyle::Body::Sedan), 0);
                 spawned = true;
             }
         }
-        EXPECT_TRUE(spawned) << "oncoming at " << oncomingAt << " m: the car never went out";
-        EXPECT_EQ(overlaps, 0) << "oncoming at " << oncomingAt << " m";
+        EXPECT_TRUE(spawned) << "oncoming at " << scenario.oncomingAt << " m: the car never went out";
+        EXPECT_TRUE(sawReturn) << "oncoming at " << scenario.oncomingAt << " m: the planner never aborted or merged";
+        EXPECT_TRUE(settled) << "oncoming at " << scenario.oncomingAt << " m: the pass remained unresolved";
+        EXPECT_FALSE(returnCancelledWhileOut) << "oncoming at " << scenario.oncomingAt << " m: return state oscillated";
+        if (settled) EXPECT_EQ(finishedAhead, scenario.completesAhead) << "triggered " << scenario.triggerBehind << " m behind";
+        EXPECT_EQ(overlaps, 0) << "oncoming at " << scenario.oncomingAt << " m";
     }
 }
 

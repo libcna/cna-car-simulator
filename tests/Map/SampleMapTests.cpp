@@ -133,6 +133,25 @@ TEST(SampleMap, OvertakingPlatesBracketTheAuthoredRestrictionInBothDirections)
     EXPECT_EQ(ends, 2);
 }
 
+TEST(SampleMap, BoundCrossingsKeepTheirOriginalRoadPlacement)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    int checked = 0;
+    for (const auto& sign : world->Data().objects.signs) {
+        if (sign.code != "IP6") continue;
+        EXPECT_EQ(sign.roadId, "main");
+        Map::RoadHit original, bound;
+        ASSERT_TRUE(world->Roads().NearestRoad(sign.position, 14.0f, original));
+        ASSERT_TRUE(world->Roads().NearestRoad(sign.position, 14.0f, bound, sign.roadId));
+        EXPECT_EQ(bound.road, original.road);
+        EXPECT_NEAR(bound.s, original.s, 0.01f);
+        ++checked;
+    }
+    EXPECT_EQ(checked, 2);
+}
+
 TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)
 {
     std::vector<std::string> errors;

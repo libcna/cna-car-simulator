@@ -59,7 +59,7 @@ namespace CarSim::Traffic
                 if (!sign.spec || sign.spec->code != "IP6") continue;
                 const Vector2 position(sign.position.X, sign.position.Z);
                 Map::RoadHit hit;
-                if (!world_.Roads().NearestRoad(position, 14.0f, hit) || hit.road != lane.road) continue;
+                if (!world_.Roads().NearestRoad(position, 14.0f, hit, sign.spec->roadId) || hit.road != lane.road) continue;
                 float lateral = 0.0f;
                 const float at = lane.Project(position, lateral);
                 if (std::fabs(lateral) > 14.0f) continue;

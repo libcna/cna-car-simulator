@@ -386,7 +386,8 @@ namespace CarSim::Render
         // Pedestrian crossings (V 7) wherever an IP 6 sign stands.
         for (const auto& sign : world_.Objects().Signs()) {
             if (sign.spec && sign.spec->code == "IP6") {
-                builder.BuildCrossing(Microsoft::Xna::Framework::Vector2(sign.position.X, sign.position.Z), markings);
+                (void)builder.BuildCrossing(Microsoft::Xna::Framework::Vector2(sign.position.X, sign.position.Z), markings,
+                                            sign.spec->roadId);
             }
         }
         const auto push = [&](MeshData& m, Surface s) {

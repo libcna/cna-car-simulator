@@ -861,7 +861,8 @@ namespace CarSim::Map
         return total;
     }
 
-    bool RoadNetwork::NearestRoad(const Vector2& point, const float maxLateral, RoadHit& out) const
+    bool RoadNetwork::NearestRoad(const Vector2& point, const float maxLateral, RoadHit& out,
+                                  const std::string& onlyRoadId) const
     {
         bool found = false;
         float bestScore = std::numeric_limits<float>::max();
@@ -869,6 +870,7 @@ namespace CarSim::Map
             const int roadIndex = id / 65536;
             const std::size_t seg = static_cast<std::size_t>(id % 65536);
             const Road& road = roads_[static_cast<std::size_t>(roadIndex)];
+            if (!onlyRoadId.empty() && (!road.spec || road.spec->id != onlyRoadId)) return;
             const auto& samples = road.curve.Samples();
             if (seg + 1 >= samples.size()) return;
             const Vector2 a(samples[seg].position.X, samples[seg].position.Z);

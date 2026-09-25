@@ -502,10 +502,10 @@ namespace CarSim::Render
         }
     }
 
-    bool RoadMeshBuilder::BuildCrossing(const Vector2& position, MeshData& markings) const
+    bool RoadMeshBuilder::BuildCrossing(const Vector2& position, MeshData& markings, const std::string& roadId) const
     {
         Map::RoadHit hit;
-        if (!network_.NearestRoad(position, 14.0f, hit)) {
+        if (!network_.NearestRoad(position, 14.0f, hit, roadId)) {
             return false;
         }
         const Map::Road& road = network_.Roads()[static_cast<std::size_t>(hit.road)];

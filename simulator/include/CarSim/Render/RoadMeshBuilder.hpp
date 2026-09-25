@@ -6,6 +6,7 @@
 #include "CarSim/Render/MeshData.hpp"
 
 #include <functional>
+#include <string>
 
 namespace CarSim::Render
 {
@@ -43,7 +44,8 @@ namespace CarSim::Render
 
         /// Pedestrian crossing (V 7): 0.5 m bars across the paved width at the road point nearest
         /// to `position` (typically an IP 6 sign). Returns false when no road is near.
-        [[nodiscard]] bool BuildCrossing(const Microsoft::Xna::Framework::Vector2& position, MeshData& markings) const;
+        [[nodiscard]] bool BuildCrossing(const Microsoft::Xna::Framework::Vector2& position, MeshData& markings,
+                                         const std::string& roadId = {}) const;
 
         /// Lift of the marking geometry above the road surface (metres).
         static constexpr float kMarkingLift = 0.008f;

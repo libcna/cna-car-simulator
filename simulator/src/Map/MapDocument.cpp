@@ -292,6 +292,7 @@ namespace CarSim::Map
                     r.String(e, "code", s.code, p, true);
                     r.Vec2(e, "position", s.position, p, true);
                     r.Float(e, "headingDeg", s.headingDeg, p);
+                    r.String(e, "road", s.roadId, p);
                     r.String(e, "text", s.text, p);
                     r.Float(e, "value", s.value, p);
                     o.signs.push_back(std::move(s));
@@ -674,6 +675,9 @@ namespace CarSim::Map
             }
             if (!inside(s.position)) {
                 errors.push_back("objects.signs[" + std::to_string(i) + "]: position lies outside the terrain");
+            }
+            if (!s.roadId.empty() && !data.FindRoad(s.roadId)) {
+                errors.push_back("objects.signs[" + std::to_string(i) + "]: unknown road '" + s.roadId + "'");
             }
         }
         for (std::size_t i = 0; i < o.forests.size(); ++i) {

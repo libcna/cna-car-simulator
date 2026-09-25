@@ -17,8 +17,14 @@ V 3 pairs a continuous line with a broken line: only traffic on the broken-line 
 `RoadSpec::centreLine` drives both `RoadMeshBuilder` and overtake initiation. The optional
 `noOvertaking` road field represents a restriction independent of the paint. The existing IP 6
 sign placements generate the V 7 zebra markings and now also prevent an AI car from starting a
-pass that would run through a crossing. These are road-wide or point semantics; locally changing
-markings and sight-distance zones are now authored as ordered `centreLineSections`, each with
+pass that would run through a crossing. A crossing sign can name its road with `"road"` where
+two nearby roads make a nearest-road
+lookup ambiguous. The zebra geometry, pedestrian crossing and passing veto share that binding;
+an unknown road ID fails map validation. The two existing IP 6 signs on `main` use an explicit
+binding, and a parallel-road regression checks that a crossing on the side road does not block
+the main road.
+
+Local marking and sight-distance zones are authored as ordered `centreLineSections`, each with
 `fromM`/`toM` measured along the smoothed road curve from its first node, a `centreLine` value
 and an optional independent `noOvertaking` restriction. The road mesh and planner read the
 same sections. A pass is rejected if any restricted interval lies within its estimated passing
@@ -27,7 +33,9 @@ junction approach; the fixed before/after view is in `docs/screenshots/phase14/`
 For a sign or crest applying to one approach only, a section can use
 `noOvertakingForward` or `noOvertakingReverse`. These flags leave the centre-line paint unchanged
 and restrict only the named direction. Parser and traffic regressions cover a dashed road with
-one restricted direction while a car in the opposite direction can still pass.
+one restricted direction while a car in the opposite direction can still pass. Four deterministic
+oncoming interruptions now check both completing ahead and aborting behind the lorry, a settled
+return to the lane, no return-state oscillation and no vehicle-body overlap over 30 seconds.
 The decree calls B 21a "Zákaz předjíždění" and B 21b "Konec zákazu předjíždění".
 The simulator paints both faces procedurally. Six roadside plates bracket the E3 restriction:
 one start, one repeat after the junction and one end for each direction of travel. The repeat

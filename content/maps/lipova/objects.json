@@ -10178,7 +10178,8 @@
     -22.9,
     6.7
    ],
-   "headingDeg": 268.3
+   "headingDeg": 268.3,
+   "road": "main"
   },
   {
    "code": "IP6",
@@ -10186,7 +10187,8 @@
     23.6,
     4.2
    ],
-   "headingDeg": 265.7
+   "headingDeg": 265.7,
+   "road": "main"
   },
   {
    "code": "IJ4c",
