@@ -89,8 +89,9 @@ namespace CarSim::App
         }
 
         if (!showHelp_) {
-            font_->DrawShadowed(*spriteBatch_, walking_ ? "W car (nearby)   Shift run   F1 help" :
-                                "F1 help   C camera   E engine   M map   X smoke   L lights   K low/high",
+            const std::string hint = walking_ ? input_.KeysFor(GameAction::ToggleWalk) + " return to car (nearby)   Shift run   F1 help" :
+                                                "F1 help   C camera   E engine   M map   X smoke   L lights   K low/high";
+            font_->DrawShadowed(*spriteBatch_, hint,
                                 Vector2(20.0f, h - 34.0f), Color(230, 230, 230, 150), 0.7f);
         }
 
@@ -252,6 +253,13 @@ namespace CarSim::App
         row("position", text("%.1f, %.1f, %.1f   collisions %d (worst %.0f km/h)", static_cast<double>(s.originPosition.X),
                              static_cast<double>(s.originPosition.Y), static_cast<double>(s.originPosition.Z), collisionCount_,
                              static_cast<double>(lastImpactSpeed_ * 3.6f)));
+        if (walking_) {
+            const float distance = std::hypot(walkingPosition_.X - s.originPosition.X, walkingPosition_.Z - s.originPosition.Z);
+            row("on foot", text("%.1f, %.1f, %.1f   %.1f m from car   %s",
+                                static_cast<double>(walkingPosition_.X), static_cast<double>(walkingPosition_.Y),
+                                static_cast<double>(walkingPosition_.Z), static_cast<double>(distance),
+                                walkingMoving_ ? "moving" : "stopped"));
+        }
 
         section("environment");
         row("clock / weather", text("%s%s   %s   cloud %.2f  rain %.2f  wet %.2f", FormatClock(timeOfDayHours_).c_str(),
