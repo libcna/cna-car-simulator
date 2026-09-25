@@ -72,6 +72,17 @@ is an air-cooled flat-four with a different character. None was added to the bui
 loop points, RPM labels and perceptual fit still need validation. Any adopted file requires
 the source, license, author, hash and conversion history in `assets/manifest.json`.
 
+### Starter-to-idle transition
+
+The starter motor's 96 Hz tone now fades in over 25 ms while cranking and out
+over 40 ms after ignition catches. Previously the motor disappeared at the
+first sample of the running block, producing a deterministic 0.094 sample
+step in an isolated fixed-RPM test. The new test compares the first running
+sample against a continued-cranking reference and verifies the motor releases
+during that block. The existing catch clip and engine-state timing remain
+unchanged. This removes one transition artefact; a real-speaker review of the
+whole start sequence remains necessary.
+
 ## Layers driven by the drive state (`Audio::Layers`)
 
 Pure envelope functions in `AudioLayers.hpp`, applied per block by `VehicleAudio::RenderBlock`:
@@ -171,7 +182,8 @@ low-pass 1700 Hz. Master, engine and effects levels persist in the save file.
 
 `tests/Audio/EngineSynthTests.cpp`: silence when off and fade-in when running; the firing
 frequency dominates the spectrum at 1500/3000/4500 rpm; load increases loudness; block
-boundaries are continuous; clips are bounded and short; rolling noise grows with speed.
+boundaries are continuous; the starter-to-idle release starts continuously; clips are bounded
+and short; rolling noise grows with speed.
 The Phase 14 rolling test compares steady dry asphalt, gravel, packed snow and full slip,
 also checking bounded level and reduced airborne tyre sound. A split-output test checks
 that road plus airflow reconstructs the prior combined output sample by sample.

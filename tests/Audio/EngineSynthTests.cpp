@@ -257,3 +257,27 @@ TEST(EngineSynth, IntakeTextureTracksThrottleWithoutABlockClick)
     for (std::size_t i = 1; i < loud.size(); ++i) largestStep = std::max(largestStep, std::fabs(loud[i] - loud[i - 1]));
     EXPECT_LE(std::fabs(loud.front() - quiet.back()), largestStep * 1.05f + 1e-3f);
 }
+
+TEST(EngineSynth, StarterMotorLeavesTheMixWithoutABlockEdgeCut)
+{
+    EngineSynth transition(kRate);
+    EngineSoundInput cranking;
+    cranking.state = EngineSoundState::Starting;
+    cranking.rpm = 420.0f;
+    cranking.load = 0.12f;
+    std::vector<float> previous(1024), keptCranking(1024), caught(1024);
+    for (int block = 0; block < 21; ++block) transition.Render(previous.data(), 1024, cranking);
+    EngineSynth reference = transition;
+    reference.Render(keptCranking.data(), 1024, cranking);
+    EngineSoundInput running = cranking;
+    running.state = EngineSoundState::Running;
+    transition.Render(caught.data(), 1024, running);
+    // RPM, throttle and load are identical. At this boundary only the starter's state
+    // changes, so its contribution must not disappear in one sample.
+    EXPECT_NEAR(caught.front(), keptCranking.front(), 0.002f);
+    float fadeDifference = 0.0f;
+    for (std::size_t i = caught.size() / 2; i < caught.size(); ++i) {
+        fadeDifference = std::max(fadeDifference, std::fabs(caught[i] - keptCranking[i]));
+    }
+    EXPECT_GT(fadeDifference, 0.005f) << "starter should release during the block";
+}

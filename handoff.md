@@ -367,6 +367,12 @@ to road contact and 0.55 to airflow before the common cabin filter, while the ex
 is unchanged. Deterministic split-output and integrated cabin tests pass. Final audio
 balance still needs real-speaker review.
 
+The engine starter motor previously vanished at the first running audio block sample.
+`EngineSynth` now fades its cranking tone in over 25 ms and out over 40 ms; a
+deterministic fixed-RPM test first reproduced the 0.094 sample jump and now checks
+the continuous release. The ignition catch clip is unchanged. The full suite and
+a 90-frame scripted-driving dummy-audio run pass; speaker listening remains open.
+
 The tree-card atlas now has a derived winter palette for each species. When snow cover
 changes, the existing XNA textures receive blended colours and mip levels at roughly 0.04
 cover increments; geometry, culling and batch counts remain unchanged. The fixed 13:00 clear

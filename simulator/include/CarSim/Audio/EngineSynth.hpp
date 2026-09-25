@@ -78,6 +78,7 @@ namespace CarSim::Audio
         float intakeLp_ = 0.0f;
         float intakeBassLp_ = 0.0f;
         float gain_ = 0.0f;            // master fade for off/stalled
+        float starterGain_ = 0.0f;     // sample-rate fade between cranking and ignition catch
         EngineSoundInput previous_{};
         EngineSoundLevels levels_{};
         bool primed_ = false;

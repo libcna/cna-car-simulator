@@ -32,6 +32,7 @@ namespace CarSim::Audio
         crankPhase_ = whinePhase_ = starterPhase_ = resonancePhase_ = 0.0;
         for (auto& p : pulses_) p.age = 1e9f;
         gain_ = 0.0f;
+        starterGain_ = 0.0f;
         rumbleLp_ = 0.0f;
         intakeLp_ = intakeBassLp_ = 0.0f;
         intakeNoiseState_ = 0xB5297A4Du;
@@ -66,6 +67,8 @@ namespace CarSim::Audio
         const bool audible = target.state == EngineSoundState::Running || target.state == EngineSoundState::Starting;
         const float targetGain = audible ? 1.0f : 0.0f;
         const float gainRate = dt / (audible ? 0.05f : 0.18f);
+        const float starterTarget = target.state == EngineSoundState::Starting ? 1.0f : 0.0f;
+        const float starterRate = dt / (starterTarget > 0.0f ? 0.025f : 0.040f);
         const float loadTarget = std::clamp(target.load, 0.0f, 1.0f);
         const float loadPrev = std::clamp(previous_.load, 0.0f, 1.0f);
         const float throttleTarget = std::clamp(target.throttle, 0.0f, 1.0f);
@@ -82,6 +85,7 @@ namespace CarSim::Audio
             const float load = loadPrev + (loadTarget - loadPrev) * t;
             const float throttle = throttlePrev + (throttleTarget - throttlePrev) * t;
             gain_ += std::clamp(targetGain - gain_, -gainRate, gainRate);
+            starterGain_ += std::clamp(starterTarget - starterGain_, -starterRate, starterRate);
 
             const double f0 = static_cast<double>(rpm) / 60.0;
             const double previousPhase = crankPhase_;
@@ -147,11 +151,11 @@ namespace CarSim::Audio
             float sample = harmonics * 0.30f * (0.45f + 0.55f * load) + pulses * 0.22f + whine + intake;
 
             // Starter motor: whine with a slow wobble while cranking.
-            if (target.state == EngineSoundState::Starting) {
+            if (starterGain_ > 0.0f) {
                 starterPhase_ += 96.0 * dt;
                 const float wobble = 0.85f + 0.15f * std::sin(static_cast<float>(previousPhase) * kTwoPi * 2.0f);
-                sample += 0.10f * wobble * (std::sin(static_cast<float>(std::fmod(starterPhase_, 1.0)) * kTwoPi) +
-                                            0.4f * std::sin(static_cast<float>(std::fmod(starterPhase_ * 2.0, 1.0)) * kTwoPi));
+                sample += starterGain_ * 0.10f * wobble * (std::sin(static_cast<float>(std::fmod(starterPhase_, 1.0)) * kTwoPi) +
+                                                           0.4f * std::sin(static_cast<float>(std::fmod(starterPhase_ * 2.0, 1.0)) * kTwoPi));
             }
             // Soft limiter.
             sample = std::tanh(sample * 1.4f) * 0.8f;

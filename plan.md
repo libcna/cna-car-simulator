@@ -1709,7 +1709,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Deterministic tests cover throttle-band energy, block continuity and bounded output;
   F3 shows the end-of-block engine mix coefficients. Publicly licensed recording candidates
   were reviewed but not imported without stable RPM/loop and listening validation; see
-  `docs/audio-design.md`. Acceptance still requires reproducible audio captures and a
+  `docs/audio-design.md`. A deterministic test then caught the starter motor disappearing
+  by 0.094 sample units at the first running block sample; its tone now fades in over 25 ms
+  and out over 40 ms, with the ignition catch clip and engine-state timing preserved.
+  Acceptance still requires reproducible audio captures and a
   real-speaker review of starts, sweeps, shifts and overrun without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter
   mixing. First incremental step: the existing procedural rolling layer now uses wheel slip,
