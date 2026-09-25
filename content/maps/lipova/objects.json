@@ -10089,7 +10089,8 @@
     1174.7,
     -272.7
    ],
-   "headingDeg": 247.9
+   "headingDeg": 247.9,
+   "road": "main"
   },
   {
    "code": "B21a",
@@ -10097,7 +10098,8 @@
     1317.2,
     -340.8
    ],
-   "headingDeg": 220.6
+   "headingDeg": 220.6,
+   "road": "main"
   },
   {
    "code": "B21b",
@@ -10105,7 +10107,8 @@
     1434.8,
     -478.0
    ],
-   "headingDeg": 220.6
+   "headingDeg": 220.6,
+   "road": "main"
   },
   {
    "code": "B21a",
@@ -10113,7 +10116,8 @@
     1425.6,
     -485.8
    ],
-   "headingDeg": 40.6
+   "headingDeg": 40.6,
+   "road": "main"
   },
   {
    "code": "B21a",
@@ -10121,7 +10125,8 @@
     1280.3,
     -328.5
    ],
-   "headingDeg": 67.9
+   "headingDeg": 67.9,
+   "road": "main"
   },
   {
    "code": "B21b",
@@ -10129,7 +10134,8 @@
     1170.1,
     -283.9
    ],
-   "headingDeg": 67.9
+   "headingDeg": 67.9,
+   "road": "main"
   },
   {
    "code": "A14",

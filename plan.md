@@ -1706,7 +1706,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P2 — rules and sound
 
-- [~] `P14-030` Model direction-aware centre-line and no-overtaking semantics in map data and
+- [x] `P14-030` Model direction-aware centre-line and no-overtaking semantics in map data and
   render from the same source. `centreLine` now supports solid, dashed and both V 3 directions;
   `noOvertaking` is an independent road-wide restriction; the planner reads them and the
   renderer paints the corresponding strokes. IP 6 sign placements shared with the zebra renderer
@@ -1722,9 +1722,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   verify that a one-way B 21a zone does not ban the opposite approach. IP 6 may now bind to a
   named road so nearby parallel roads do not give the zebra, pedestrian crossing and passing
   veto conflicting owners; parser and deterministic traffic tests cover the ambiguous case.
-  Acceptance for completion: remaining junction/crossing edge cases,
-  broader local restrictions, and review of vertical-sign effects at other sites.
-- [~] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
+  B 21a/B 21b now also act as directional restrictions in the planner, ending at B 21b or the
+  next junction; the six sample signs bind to `main`. Synthetic forward/reverse, end-sign and
+  junction-reset regressions pass. The parallel-road crossing regression and sample-map
+  placement check cover the nearby-road edge; the final soaks below passed.
+- [x] `P14-031` Extend the existing overtake planner for vehicle length, acceleration, safe
   return distance, oncoming speed, sight distance and weather; retain state hysteresis.
   Initiation now estimates passing time from the actual car's acceleration, accounts for
   oncoming closure over that time and scales clearance with wetness, snow and fog sight range.
@@ -1732,9 +1734,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   vans and SUVs take longer to build speed, while the existing 60% heavy-vehicle rate is
   preserved. A deterministic near-junction case lets a hatchback pass a lorry but holds
   a longer, slower van back.
-  Clear, rainy, snowy, foggy, crossing, line-marking, oncoming and abort regression tests pass;
+  Clear, rainy, snowy, foggy, crossing, line-marking, oncoming and abort regression tests pass.
   A four-scenario oncoming interruption regression now checks safe return ahead or behind,
-  no oscillation and no body overlap. Further road signs and sight-distance authoring remain.
+  no oscillation and no body overlap. The planner checks driver-height sight across the actual
+  road profile; authored elevation crests block a pass in a synthetic test, while the sample
+  main road has both open and crest-limited sight windows. On 2026-09-25 the final simulated
+  30-minute traffic soak passed without overlaps or stuck cars; both 10-minute signal and
+  pedestrian crossing soaks passed. All 30 `TrafficSystem` and 11 `MapDocument` tests passed.
+  One map-load time assertion exceeded 6 s under shared host load (6.72 s) and passed on an
+  isolated rerun (3.75 s); it was a timing-only failure, not a traffic failure. Traffic scope
+  stops here for Phase 14.
   Acceptance: safe clear-road passes occur, risky cases reject, aborts never oscillate or
   overlap, and the 30-minute soak passes.
 - [~] `P14-040` Improve engine layers and load/RPM transitions; any recorded samples require

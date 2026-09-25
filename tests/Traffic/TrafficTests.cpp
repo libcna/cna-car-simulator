@@ -549,6 +549,54 @@ TEST(TrafficSystem, AOneWayNoOvertakingZoneRestrictsOnlyItsSignedDirection)
     EXPECT_EQ(reverse.overlaps, 0);
 }
 
+TEST(TrafficSystem, VerticalNoOvertakingSignsApplyUntilTheirEndOnlyInTheFacingDirection)
+{
+    const auto sign = [](const std::string& code, const float x, const float z, const float heading) {
+        Map::SignSpec s;
+        s.code = code;
+        s.position = Vector2(x, z);
+        s.headingDeg = heading;
+        s.roadId = "main";
+        return s;
+    };
+    const std::vector<Map::SignSpec> forwardSigns = {
+        sign("B21a", -350.0f, 5.0f, 270.0f), sign("B21b", -100.0f, 5.0f, 270.0f)};
+    EXPECT_TRUE(RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 5).wentOut);
+    EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::Dashed, true, forwardSigns, false, 5).wentOut);
+    EXPECT_TRUE(RunOvertake(false, Map::CentreLineMarking::Dashed, false, forwardSigns, false, 5).wentOut);
+
+    // A completed B 21a/B 21b pair behind the car no longer blocks its next pass.
+    const std::vector<Map::SignSpec> endedBehind = {
+        sign("B21a", -390.0f, 5.0f, 270.0f), sign("B21b", -375.0f, 5.0f, 270.0f)};
+    EXPECT_TRUE(RunOvertake(false, Map::CentreLineMarking::Dashed, true, endedBehind, false, 5).wentOut);
+
+    const std::vector<Map::SignSpec> reverseSigns = {
+        sign("B21a", -50.0f, -5.0f, 90.0f), sign("B21b", -300.0f, -5.0f, 90.0f)};
+    EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::Dashed, false, reverseSigns, false, 5).wentOut);
+
+    // With no B 21b, the first junction ends the ban. The second main-road piece is free
+    // until a new B 21a repeats the restriction on that side of the junction.
+    const std::vector<Map::SignSpec> beforeJunction = {sign("B21a", -350.0f, 5.0f, 270.0f)};
+    EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::Dashed, true, beforeJunction, false, 5).wentOut);
+    auto world = CrossWorld(true, {}, Map::CentreLineMarking::Dashed, beforeJunction);
+    ASSERT_TRUE(world);
+    Traffic::TrafficSystem traffic(*world, 11);
+    traffic.SetDensity(0);
+    const int eastAfterJunction = LaneOf(*world, "main", true, 1);
+    ASSERT_GE(eastAfterJunction, 0);
+    ASSERT_GE(traffic.SpawnOn(eastAfterJunction, 60.0f, 8.3f, Sim::CarStyle::Body::Truck), 0);
+    const int follower = traffic.SpawnOn(eastAfterJunction, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
+    ASSERT_GE(follower, 0);
+    bool wentOut = false;
+    for (int i = 0; i < 5 * 30; ++i) {
+        traffic.Update(1.0f / 30.0f, NoPlayer());
+        for (const auto& car : traffic.Vehicles()) {
+            if (car.id == follower) wentOut = wentOut || car.lateral > 1.0f;
+        }
+    }
+    EXPECT_TRUE(wentOut);
+}
+
 TEST(TrafficSystem, CombinedCentreLineAllowsPassOnlyFromBrokenSide)
 {
     EXPECT_FALSE(RunOvertake(false, Map::CentreLineMarking::SolidForward, true).wentOut);
@@ -630,6 +678,46 @@ TEST(TrafficSystem, DenseFogBlocksPassBeyondAvailableSightDistance)
     const OvertakeRun fog = RunOvertake(false, Map::CentreLineMarking::Dashed, true, {}, false, 25, 0.0f, 1.0f);
     EXPECT_FALSE(fog.wentOut);
     EXPECT_EQ(fog.overlaps, 0);
+}
+
+TEST(TrafficSystem, AuthoredRoadCrestBlocksAnOtherwiseClearPass)
+{
+    const auto run = [](const float crestHeight) {
+        Map::MapData data;
+        data.info.id = "crest";
+        data.terrain.sizeX = data.terrain.sizeZ = 1000.0f;
+        data.terrain.cellSize = 10.0f;
+        data.terrain.noiseAmplitude = 0.0f;
+        data.nodes = {Node("w", -400, 0), Node("crest", -260, 0), Node("e", 400, 0)};
+        data.nodes[0].elevation = 0.0f;
+        data.nodes[1].elevation = crestHeight;
+        data.nodes[2].elevation = 0.0f;
+        data.roads = {Road("main", {"w", "crest", "e"})};
+        data.traffic.maxVehicles = 0;
+        std::vector<std::string> errors;
+        auto world = Map::MapWorld::Build(std::move(data), errors);
+        EXPECT_TRUE(errors.empty());
+        if (!world) return false;
+        EXPECT_EQ(world->Roads().Roads().size(), 1u);
+        EXPECT_EQ(world->Roads().Roads()[0].curve.HasClearSight(30.0f, 220.0f), crestHeight == 0.0f);
+        EXPECT_EQ(world->Roads().Roads()[0].curve.HasClearSight(220.0f, 30.0f), crestHeight == 0.0f);
+        Traffic::TrafficSystem traffic(*world, 11);
+        traffic.SetDensity(0);
+        const int lane = LaneOf(*world, "main", true, 0);
+        EXPECT_GE(traffic.SpawnOn(lane, 60.0f, 8.3f, Sim::CarStyle::Body::Truck), 0);
+        const int follower = traffic.SpawnOn(lane, 30.0f, 12.0f, Sim::CarStyle::Body::Hatchback);
+        EXPECT_GE(follower, 0);
+        bool wentOut = false;
+        for (int i = 0; i < 5 * 30; ++i) {
+            traffic.Update(1.0f / 30.0f, NoPlayer());
+            for (const auto& car : traffic.Vehicles()) {
+                if (car.id == follower) wentOut = wentOut || car.lateral > 1.0f;
+            }
+        }
+        return wentOut;
+    };
+    EXPECT_TRUE(run(0.0f));
+    EXPECT_FALSE(run(12.0f));
 }
 
 TEST(TrafficSystem, SnowGripRequiresMorePassingRoom)

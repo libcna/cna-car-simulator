@@ -221,7 +221,7 @@ namespace CarSim::Map
         std::string code;             // P1, P2, P3, P4, P6, B20a/b, B21a/b, IZ4a/b, IS3c, IP6, IJ4c, A7a, A12a, A14, A22
         Microsoft::Xna::Framework::Vector2 position{};
         float headingDeg = 0.0f;      // direction the sign face points towards (towards approaching drivers)
-        std::string roadId;           // optional crossing-road binding where two roads are near the sign
+        std::string roadId;           // optional road binding for crossings and road-rule signs
         std::string text;             // town names, directions
         float value = 0.0f;           // speed limit for B 20a/b
     };

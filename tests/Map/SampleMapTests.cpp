@@ -102,6 +102,7 @@ TEST(SampleMap, OvertakingPlatesBracketTheAuthoredRestrictionInBothDirections)
     int forwardRepeats = 0, reverseRepeats = 0;
     for (const auto& sign : world->Data().objects.signs) {
         if (sign.code != "B21a" && sign.code != "B21b") continue;
+        EXPECT_EQ(sign.roadId, "main");
         float roadS = 0.0f, lateral = 0.0f;
         const float distance = road->curve.Project(sign.position, roadS, lateral);
         EXPECT_LT(distance, 12.0f);
@@ -150,6 +151,25 @@ TEST(SampleMap, BoundCrossingsKeepTheirOriginalRoadPlacement)
         ++checked;
     }
     EXPECT_EQ(checked, 2);
+}
+
+TEST(SampleMap, MainRoadContainsBothOpenAndCrestLimitedSightWindows)
+{
+    std::vector<std::string> errors;
+    auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
+    ASSERT_TRUE(world);
+    const Map::Road* main = nullptr;
+    for (const auto& road : world->Roads().Roads()) {
+        if (road.spec && road.spec->id == "main") main = &road;
+    }
+    ASSERT_NE(main, nullptr);
+    int open = 0, blocked = 0;
+    for (float s = 0.0f; s + 180.0f < main->curve.Length(); s += 20.0f) {
+        if (main->curve.HasClearSight(s, s + 180.0f)) ++open;
+        else ++blocked;
+    }
+    EXPECT_GT(open, 0);
+    EXPECT_GT(blocked, 0);
 }
 
 TEST(SampleMap, TownIsUrbanAndCountrysideIsNot)

@@ -17,9 +17,8 @@ V 3 pairs a continuous line with a broken line: only traffic on the broken-line 
 `RoadSpec::centreLine` drives both `RoadMeshBuilder` and overtake initiation. The optional
 `noOvertaking` road field represents a restriction independent of the paint. The existing IP 6
 sign placements generate the V 7 zebra markings and now also prevent an AI car from starting a
-pass that would run through a crossing. A crossing sign can name its road with `"road"` where
-two nearby roads make a nearest-road
-lookup ambiguous. The zebra geometry, pedestrian crossing and passing veto share that binding;
+pass that would run through a crossing. A sign can name its road with `"road"` where two nearby
+roads make a nearest-road lookup ambiguous. The zebra geometry, pedestrian crossing and passing veto share that binding;
 an unknown road ID fails map validation. The two existing IP 6 signs on `main` use an explicit
 binding, and a parallel-road regression checks that a crossing on the side road does not block
 the main road.
@@ -37,10 +36,19 @@ one restricted direction while a car in the opposite direction can still pass. F
 oncoming interruptions now check both completing ahead and aborting behind the lorry, a settled
 return to the lane, no return-state oscillation and no vehicle-body overlap over 30 seconds.
 The decree calls B 21a "Zákaz předjíždění" and B 21b "Konec zákazu předjíždění".
-The simulator paints both faces procedurally. Six roadside plates bracket the E3 restriction:
+The simulator paints both faces procedurally. The passing planner also projects B 21a/B 21b
+onto the bound or nearest road, checks which direction the plate faces, and treats B 21a as a
+ban until B 21b or the next junction. A repeat B 21a after a junction starts a new ban.
+Six roadside plates bracket the E3 restriction:
 one start, one repeat after the junction and one end for each direction of travel. The repeat
 follows the decree's general rule that a sign prohibition ends at the nearest junction.
-Their map positions are checked against
-the restricted curve interval in `SampleMap` tests; the AI reads the interval itself rather
-than inferring restrictions from sign textures. B 21a's motorcycle exception is irrelevant to
-the current AI population, which has no motorcycles. More sight-distance authoring remains.
+Their map positions are checked against the restricted curve interval in `SampleMap` tests.
+The independent interval is still enforced even without a vertical sign. B 21a's motorcycle
+exception is irrelevant to the current AI population, which has no motorcycles.
+
+The pass planner now also traces a driver-height line of sight over sampled road elevations
+for the whole estimated passing path. A crest blocks initiation when the road surface hides the
+far point, while a flat road remains passable. The authored elevation nodes and generated heights
+already give the sample map both open and crest-limited 180 m windows; synthetic flat/crest
+traffic regressions verify the planner outcome. Curvature, weather visibility and oncoming
+clearance remain separate checks.

@@ -56,6 +56,9 @@ namespace CarSim::Map
         [[nodiscard]] const std::vector<RoadSample>& Samples() const { return samples_; }
         [[nodiscard]] float Length() const { return samples_.empty() ? 0.0f : samples_.back().s; }
         [[nodiscard]] RoadSample Evaluate(float s) const;
+        /// True when the road surface stays below a line of sight between two driver-height
+        /// points on the curve. Curvature is checked separately by the traffic planner.
+        [[nodiscard]] bool HasClearSight(float fromS, float toS, float eyeHeightM = 1.2f) const;
         /// Nearest point on the curve in the map plane. Returns the distance in the plane;
         /// `lateral` is signed (positive = right of the travel direction, i.e. +s).
         [[nodiscard]] float Project(const Microsoft::Xna::Framework::Vector2& point, float& s, float& lateral) const;

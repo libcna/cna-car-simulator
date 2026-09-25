@@ -133,9 +133,14 @@ curve from its first node. Ranges must be ordered, non-overlapping and within th
 Outside them, the road-wide marking applies. The traffic planner checks the whole pass and
 return path against these ranges. B 21a/B 21b roadside sign faces are supported in `objects.signs`;
 the shipped map places a start, post-junction repeat and end for each direction at E3. The map positions are
-checked against the range boundaries; the planner uses the range rather than sign pixels.
+checked against the range boundaries. The planner reads both the authored section and the sign
+positions: B 21a starts a directional ban until B 21b or the next junction. A sign's optional
+`road` ID selects its road where a nearby road would make projection ambiguous, including IP 6
+crossings; unknown IDs fail validation. Without `road`, the nearest suitable road is used.
 Directional restrictions let a sign on one approach apply only to traffic facing it; the
 opposite approach can remain dashed and passable unless its own sign or sight condition applies.
+The planner also checks line of sight over the road's sampled elevation profile so an authored
+crest can block a pass without painting a solid centre line.
 
 Derived at load time (`RoadNetwork`): straight-and-arc centrelines through the nodes, heights
 from the terrain (80 m low-pass, pinned to node heights, flattened across intersections),

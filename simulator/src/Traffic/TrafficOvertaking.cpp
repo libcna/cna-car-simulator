@@ -43,7 +43,8 @@ namespace CarSim::Traffic
         const Lane& lane = lanes_.LaneAt(v.lane);
         const float spacing = 2.0f * std::fabs(lane.lateralOffset);
         const float toEnd = lane.length - v.s;
-        const Map::RoadSpec& road = *world_.Roads().Roads()[static_cast<std::size_t>(lane.road)].spec;
+        const Map::Road& roadGeometry = world_.Roads().Roads()[static_cast<std::size_t>(lane.road)];
+        const Map::RoadSpec& road = *roadGeometry.spec;
         const Map::RoadPiece& piece = world_.Roads().Pieces()[static_cast<std::size_t>(lane.piece)];
         const auto roadSAt = [&](const float laneS) {
             const float t = std::clamp(laneS / std::max(1.0f, lane.length), 0.0f, 1.0f);
@@ -64,6 +65,45 @@ namespace CarSim::Traffic
                 const float at = lane.Project(position, lateral);
                 if (std::fabs(lateral) > 14.0f) continue;
                 if (at - v.s >= -6.0f && at - v.s <= distance + 8.0f) return true;
+            }
+            return false;
+        };
+
+        // B 21a starts a directional restriction; B 21b or the next junction ends it.
+        // An explicit road binding resolves nearby streets, while the face orientation picks
+        // the approach. Authored centre-line sections remain an independent restriction.
+        const auto signOnThisApproach = [&](const auto& sign, float& at) {
+            if (!sign.spec || (sign.spec->code != "B21a" && sign.spec->code != "B21b")) return false;
+            Map::RoadHit hit;
+            if (!world_.Roads().NearestRoad(Vector2(sign.position.X, sign.position.Z), 14.0f, hit,
+                                            sign.spec->roadId) || hit.road != lane.road) return false;
+            constexpr float kRadians = 3.14159265358979323846f / 180.0f;
+            const float heading = sign.spec->headingDeg * kRadians;
+            const auto tangent = roadGeometry.curve.Evaluate(hit.s).tangent;
+            const float facingDot = std::sin(heading) * tangent.X - std::cos(heading) * tangent.Z;
+            if (lane.forward ? facingDot > -0.7f : facingDot < 0.7f) return false;
+            at = hit.s;
+            return true;
+        };
+        const auto verticalBanAhead = [&](const float distance) {
+            const float a = roadSAt(v.s), b = roadSAt(v.s + distance);
+            const float low = std::min(a, b), high = std::max(a, b);
+            for (const auto& start : world_.Objects().Signs()) {
+                if (!start.spec || start.spec->code != "B21a") continue;
+                float startS = 0.0f;
+                if (!signOnThisApproach(start, startS)) continue;
+                float endS = lane.forward ? roadGeometry.curve.Length() : 0.0f;
+                const auto nearerEnd = [&](const float candidate) {
+                    if (lane.forward && candidate > startS && candidate < endS) endS = candidate;
+                    if (!lane.forward && candidate < startS && candidate > endS) endS = candidate;
+                };
+                for (const auto& junction : roadGeometry.junctions) nearerEnd(junction.nodeS);
+                for (const auto& end : world_.Objects().Signs()) {
+                    if (!end.spec || end.spec->code != "B21b") continue;
+                    float at = 0.0f;
+                    if (signOnThisApproach(end, at)) nearerEnd(at);
+                }
+                if (lane.forward ? startS < high && endS > low : endS < high && startS > low) return true;
             }
             return false;
         };
@@ -132,10 +172,12 @@ namespace CarSim::Traffic
             // No overtaking into a junction: what counts is the road we cover while passing, not
             // the few metres we gain on it.
             const float travel = passTime * std::max(desired, v.speed) + 30.0f + 15.0f * overtakeWetness_ + 35.0f * overtakeSnow_;
-            if (toEnd < travel || !road.MayOvertakeBetween(roadSAt(v.s), roadSAt(v.s + travel), lane.forward)) return;
+            if (toEnd < travel || !road.MayOvertakeBetween(roadSAt(v.s), roadSAt(v.s + travel), lane.forward) ||
+                verticalBanAhead(travel)) return;
             // In fog, the entire passing and return path must be visible before committing.
             const float sightDistance = 450.0f - 320.0f * overtakeFog_;
             if (travel > sightDistance) return;
+            if (!roadGeometry.curve.HasClearSight(roadSAt(v.s), roadSAt(v.s + travel))) return;
             if (crossingAhead(travel)) return;
             // Nor into a bend: nobody passes where they cannot see round, and a bus's body swings
             // across the centre line in one.

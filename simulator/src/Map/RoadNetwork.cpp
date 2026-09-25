@@ -254,6 +254,25 @@ namespace CarSim::Map
         return r;
     }
 
+    bool RoadCurve::HasClearSight(const float fromS, const float toS, const float eyeHeightM) const
+    {
+        if (samples_.empty()) return false;
+        const float distance = toS - fromS;
+        if (std::fabs(distance) < 6.0f) return true;
+        const float fromY = Evaluate(fromS).position.Y + eyeHeightM;
+        const float toY = Evaluate(toS).position.Y + eyeHeightM;
+        const float low = std::min(fromS, toS) + 3.0f;
+        const float high = std::max(fromS, toS) - 3.0f;
+        const auto begin = std::lower_bound(samples_.begin(), samples_.end(), low,
+                                            [](const RoadSample& sample, const float s) { return sample.s < s; });
+        for (auto it = begin; it != samples_.end() && it->s < high; ++it) {
+            const float t = (it->s - fromS) / distance;
+            const float sightY = fromY + (toY - fromY) * t;
+            if (it->position.Y + 0.25f >= sightY) return false;
+        }
+        return true;
+    }
+
     float RoadCurve::ProjectRange(const Vector2& point, const std::size_t sampleBegin, const std::size_t sampleEnd, float& s, float& lateral) const
     {
         float best = std::numeric_limits<float>::max();
