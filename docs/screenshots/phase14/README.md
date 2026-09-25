@@ -23,6 +23,8 @@ gait pair uses the hidden 800 × 480 Radeon path described below.
 | [Square before](square-planters-before.jpg) / [after](square-planters-after.jpg) | Two low stone beds with shrubs frame the memorial; the open cobbled centre remains usable | `--spawn square --view -55 7 -65 180 -7`, clear 13:00, two frames |
 | [Shopfront before](offscreen-800-shopfront-before.png) / [after](offscreen-800-shopfront-after.png) | Shop bay piers, continuous fascia and seeded canopy or ledge; 31 shops gain 2,076 nominal triangles across the full map without another material batch | Hidden Radeon 800 × 480, `--spawn square --view -88 7 -61 180 -3`, clear 13:00, two frames |
 | [Forest ground before](offscreen-800-scene-forest.png) / [after](offscreen-800-forest-ground-after.png) | Subdued moss/needle-litter patches and a roughly 6 m forest/meadow colour transition; fixed pixels change only along the ground at the treeline | Hidden Radeon 800 × 480, `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, frame 120 |
+| [Rural verge before](road-verge-clear-before.png) / [after](road-verge-clear-after.png) | Bilinear sampling of the road-distance ground tint removes five-metre steps beside the road | Hidden Radeon 800 × 480, `--spawn forest --view -228 6 -1235 327 -10`, clear 13:00, frame 2 |
+| [Snow verge before](road-verge-snow-before.png) / [after](road-verge-snow-after.png) | The grass verge now retains field-level snow cover; gravel keeps more than worn asphalt | Same hidden Radeon view, snow 13:00, frame 2 |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
 [helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg),
@@ -35,6 +37,10 @@ The same forest-ground view under [snow before](offscreen-800-scene-forest_snow.
 [after](offscreen-800-forest-ground-snow-after.png) shows that the snow surface still covers
 the transition. A [closer interior view](offscreen-800-forest-floor-interior-after.png)
 checks the mottled floor under the canopy; undergrowth remains sparse.
+The road-verge pass also has a [rain check](road-verge-rain-after.png). The clear and snow
+before frames above were captured from the clean pushed HEAD with the exact same fixed
+camera; the after frames use the final code. The snow change is plainly visible without
+adding terrain or verge geometry.
 The forest snow pair checks the gradual upper-crown tint and the unchanged card silhouettes;
 further branch geometry and deciduous winter shape work remain. The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin

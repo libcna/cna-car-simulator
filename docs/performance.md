@@ -509,3 +509,20 @@ an FPS improvement claim; the single-run project draw times vary with host load.
 matched close [house](screenshots/phase14/facade-shutters-house-after.png) and
 [cottage](screenshots/phase14/facade-shutters-cottage-after.png) images show the new
 silhouettes at road distance.
+
+### P14-021 road-verge and winter cover check
+
+At the fixed hidden Radeon 800 × 480 forest road view, clean pushed HEAD and the new
+bilinear road-distance tint differ in 3,264 clear-scene pixels by more than 12/255 in
+any channel. The full winter pass differs in 33,090 pixels at the same threshold:
+grass verges now take the same snow opacity as neighbouring terrain, gravel shoulders
+retain 92% and traffic-worn paved surfaces 78%. The matched
+[clear](screenshots/phase14/road-verge-clear-before.png) and
+[snow](screenshots/phase14/road-verge-snow-before.png) baselines and after images are in
+the screenshot index. This changes only texture sampling and the existing snow pass's
+per-batch opacity. The fixed forest-snow 90-frame benchmark stays at 685 main-view draws
+and 605,315 triangles in both [before](performance-data/p14-road-verge-snow-before.json)
+and [after](performance-data/p14-road-verge-snow-after.json). One-process peak RSS was
+2,235,736 versus 2,236,708 KiB, a 972 KiB difference within run variation. The
+different CPU submission times in these single runs are not a speed-up claim. The
+Vulkan-compatible snow terrain layout remains unchanged.

@@ -119,9 +119,17 @@ namespace CarSim::Render
                     }
                 }
                 // Road verges: bare soil right next to the pavement.
-                const int col = std::clamp(static_cast<int>((wx - terrain.MinX()) / terrain.CellSize() + 0.5f), 0, terrain.Columns() - 1);
-                const int row = std::clamp(static_cast<int>((z - terrain.MinZ()) / terrain.CellSize() + 0.5f), 0, terrain.Rows() - 1);
-                const float roadDistance = terrain.RoadDistanceAtVertex(col, row);
+                // The road-distance field lives on five-metre terrain vertices. Nearest
+                // sampling paints visible square steps along the narrow soil shoulder;
+                // interpolate it at the macro texel just as the terrain height is sampled.
+                const float gx = std::clamp((wx - terrain.MinX()) / terrain.CellSize(), 0.0f, static_cast<float>(terrain.Columns() - 1));
+                const float gz = std::clamp((z - terrain.MinZ()) / terrain.CellSize(), 0.0f, static_cast<float>(terrain.Rows() - 1));
+                const int col = static_cast<int>(gx), row = static_cast<int>(gz);
+                const int col1 = std::min(col + 1, terrain.Columns() - 1), row1 = std::min(row + 1, terrain.Rows() - 1);
+                const float tx = gx - static_cast<float>(col), tz = gz - static_cast<float>(row);
+                const float d0 = std::lerp(terrain.RoadDistanceAtVertex(col, row), terrain.RoadDistanceAtVertex(col1, row), tx);
+                const float d1 = std::lerp(terrain.RoadDistanceAtVertex(col, row1), terrain.RoadDistanceAtVertex(col1, row1), tx);
+                const float roadDistance = std::lerp(d0, d1, tz);
                 if (roadDistance < 3.0f) {
                     const float t = Clamp01((roadDistance + 1.0f) / 4.0f);
                     tint = Rgb{tint.r * (0.75f + 0.25f * t) + 0.10f * (1.0f - t), tint.g * (0.72f + 0.28f * t) + 0.06f * (1.0f - t), tint.b * (0.7f + 0.3f * t) + 0.03f * (1.0f - t)};

@@ -1671,7 +1671,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   in the fixed 800 × 480 frame), and a closer interior frame checks the floor under the
   canopy. The terrain meshes and material passes are unchanged; this uses a temporary
   region mask during the existing macro bake and leaves the snow mesh representation intact.
-  Understory geometry, road shoulders and broader winter integration remain open.
+  The five-metre road-distance field is now bilinearly sampled for the macro soil tint,
+  removing nearest-vertex steps along rural verges. Snow cover on the grass verge now
+  matches the field while gravel retains more than traffic-worn pavement. A matched hidden
+  Radeon forest-road view changes 3,264 clear and 33,090 snow pixels by more than 12/255;
+  the snow scene stays at 685 draws and 605,315 triangles. Clear, rain and snow images,
+  plus the four virtual-renderer snow checks, are linked from `docs/screenshots/phase14/`.
+  Understory geometry, broader road-surface/shoulder shape and other winter details remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather

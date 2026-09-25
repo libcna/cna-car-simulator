@@ -608,6 +608,12 @@ namespace CarSim::Render
             beginSnow(snow_ * 0.78f);
             for (const auto& b : roadBatches_) {
                 if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) continue;
+                // Traffic wears snow thin on pavement. The grass verge belongs to the
+                // adjoining field, while loose gravel retains more cover than asphalt.
+                // Match those surfaces to their surroundings without another pass.
+                const float cover = b.surface == Surface::Grass ? snow_ :
+                                    b.surface == Surface::Gravel ? snow_ * 0.92f : snow_ * 0.78f;
+                snowEffect_->setAlphaProperty(std::clamp(cover, 0.0f, 1.0f));
                 ApplyAll(*snowEffect_, device, b.snowBase ? *b.snowBase : *b.mesh);
                 ++stats_.drawCalls;
             }

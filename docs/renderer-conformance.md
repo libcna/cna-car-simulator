@@ -390,3 +390,19 @@ any channel were below 0.001%, 0.784% and 1.665%. These captures are for conform
 not Radeon timing. The separate hidden Radeon 800 × 480 seven-condition review is in
 [`screenshots/phase14/`](screenshots/phase14/README.md). The public XNA checker passed
 (233 application files scanned).
+
+### Phase 14 snowy road-verge checkpoint (2026-09-25)
+
+The road-distance tint and surface-specific snow opacity use only public XNA effects.
+All four existing renderer targets rebuilt and rendered the same two-frame, 800 × 480
+forest-road snow view on dedicated virtual Xvfb `:103`:
+[OPENGLES3](screenshots/renderers/phase14-road-verge-snow-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-road-verge-snow-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-road-verge-snow-software.png), and
+[Vulkan](screenshots/renderers/phase14-road-verge-snow-vulkan.png). Visual inspection found
+the snow-covered verge continuous with the field in all four. OPENGL33 is byte-identical
+to OPENGLES3. Relative to OPENGLES3, mean absolute RGB difference is 2.627/255 for
+SOFTWARE and 1.373/255 for Vulkan; 4,922 and 4,653 pixels respectively exceed 32 in
+any channel, mostly from established ground and tree filtering differences. The public
+XNA-only check passed (233 files scanned). These virtual-display images are conformance
+checks; the matched performance capture used hidden Radeon offscreen rendering.
