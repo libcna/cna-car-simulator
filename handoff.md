@@ -230,6 +230,18 @@ snow, fog, pedestrian, walking and aerial measurements are in `docs/performance.
 six-test suite passed after these changes. Cockpit, pedestrian, audio, forest and weather
 quality still have substantial open work in `plan.md`.
 
+A later P14-050 probe established that `SDL_VIDEODRIVER=offscreen` with surfaceless EGL
+uses the Radeon 780M (`radeonsi`) with no physical desktop window. The mirror and scene
+scripts now use only that hidden path. Their first 1280 × 720 trial was discarded when
+screenshots exposed an 800 × 480 physical EGL surface clipping the logical image. The scripts
+now match that surface at 800 × 480. The mirror and eight-scene matrices, machine-readable
+JSON, peak process RSS and full-frame PNGs are retained under `docs/performance-data/` and
+`docs/screenshots/phase14/`; see `docs/performance.md`. The mirror pass clearly costs time,
+but concurrent host load made whole-frame speed-up percentages unreliable, especially in a
+later repeat that spiked above 100 ms draw submission. P14-050 needs a steadier paired check
+before P14-051. Do not use the old desktop-focus benchmark procedure while someone is working
+at the machine.
+
 Flight entry/exit and flight stepping were subsequently isolated in `VehicleFlight.cpp`; the
 existing helicopter and turbo drive tests pass, and the fixed aerial frame is byte-identical
 before and after. Regular car stepping still lives in `Vehicle.cpp`.

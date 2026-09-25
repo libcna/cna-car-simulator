@@ -338,3 +338,74 @@ The cost is accepted for now because it restores Vulkan snow rendering and
 preserves the existing OPENGLES3 and SOFTWARE images byte-for-byte. It is a
 memory trade-off for renderer conformance, not a draw-call optimization; memory
 pressure and construction cost still need real-hardware measurement.
+
+### Phase 14 hidden Radeon setup correction
+
+SDL `offscreen` with surfaceless EGL reaches the Radeon 780M without a desktop window:
+Mesa reports PCI `1002:15bf` and `driver radeonsi`. An initial trial requested a 1280 × 720
+logical buffer, but inspection of every captured PNG found non-black pixels only in
+`(0, 240)–(800, 720)`. The SDL offscreen EGL surface had remained at its initial 800 × 480
+physical size. The trial's timings and images were discarded: they are neither a valid
+1280 × 720 performance run nor a visual comparison. The two benchmark scripts now request
+800 × 480, matching that physical surface, and check the driver and reported size.
+A full 800 × 480 test frame was visually inspected and fills the image. This is an explicit
+limitation of the hidden Radeon setup, not a reason to alter CNA or to touch the public
+XNA-only boundary. The desktop `:0` is no longer used for automated runs because it
+interferes with the person's screen.
+
+### Phase 14 hidden Radeon 800 × 480 measurements
+
+Both scripts run with `DISPLAY` and `WAYLAND_DISPLAY` unset, `SDL_VIDEODRIVER=offscreen`,
+`EGL_PLATFORM=surfaceless`, and Mesa's Radeon `radeonsi` driver. They use high quality,
+fixed simulation time, 60 seconds of traffic warm-up, 30 frame warm-up, 90 measured frames,
+and no audio. The captured images were inspected for full-frame rendering. This setup has
+no desktop compositor, but `drawMsAvg` remains a CPU submission timer and `frameMsAvg`
+includes scheduling and presentation; neither is a pure GPU execution timer. Compare these
+800 × 480 runs with each other, not the older desktop 1280 × 720 rows.
+
+| Rainy night cockpit, mirror setting | Draw submission | Mirror pass | Frame wall | Main-view draws / triangles |
+| --- | ---: | ---: | ---: | ---: |
+| All mirrors, default rear 768 × 200 | 41.66 ms | 13.86 ms | 49.30 ms | 1127 / 1.845 M |
+| No mirrors | 16.13 ms | 0 | 21.17 ms | 1127 / 1.845 M |
+| Rear only, 768 × 200 | 21.23 ms | 4.33 ms | 25.68 ms | 1127 / 1.845 M |
+| Rear only, 384 × 100 | 13.23 ms | 2.61 ms | 18.75 ms | 1127 / 1.845 M |
+| Rear only, 192 × 50 | 13.39 ms | 2.64 ms | 18.74 ms | 1127 / 1.845 M |
+| Rear only, every second frame | 12.25 ms | 1.39 ms | 18.71 ms | 1127 / 1.845 M |
+| Rear only, 150 m distance | 11.54 ms | 2.27 ms | 18.66 ms | 1127 / 1.845 M |
+| Rear only, 75 m distance | 12.09 ms | 2.25 ms | 18.54 ms | 1127 / 1.845 M |
+
+The machine's concurrent load changed during the sequential run: even the main-view world
+and traffic passes became faster later in the series. In a second sequence ordered
+`none, all, rear, all, none`, the two all-mirror passes averaged 16.73 and 16.23 ms, and
+the rear-only pass 4.65 ms. The first no-mirror draw averaged 20.84 ms; the last rose to
+31.77 ms while the fixed main-view world pass rose from 8.26 to 12.56 ms. A subsequent
+host-load surge drove the rear 384-pixel run to 110.86 ms draw submission and disqualifies
+that run from comparisons. The direct mirror-pass readings establish substantial mirror
+cost, but the whole-frame differences are **not** valid speed-up percentages. The rear pass
+fell from 4.33 ms at its default target to about
+2.6 ms at both 384 and 192 pixels wide; further resolution reduction did not help in this
+run. Every-second-frame rear updates averaged 1.39 ms. The 150 m and 75 m distance results
+were similar, under the same changing host load. Main-view draw and triangle counters exclude
+mirror work, explaining why those columns do not change.
+
+| Fixed scene | Draw submission | Frame wall | World / traffic passes | Main-view draws / triangles | Peak process RSS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Clear town, chase | 11.77 ms | 18.62 ms | 6.74 / 3.96 ms | 1324 / 1.446 M | 2197 MiB |
+| Clear town, cockpit | 19.38 ms | 23.25 ms | 7.52 / 4.36 ms | 1349 / 1.446 M | 2194 MiB |
+| Forest roadside | 4.19 ms | 18.65 ms | 2.54 / 0.55 ms | 515 / 0.706 M | 2184 MiB |
+| Snow forest roadside | 5.86 ms | 18.76 ms | 3.79 / 0.70 ms | 683 / 0.605 M | 2193 MiB |
+| Fog town square | 7.55 ms | 18.95 ms | 2.98 / 3.54 ms | 906 / 0.884 M | 2184 MiB |
+| Square pedestrians | 11.65 ms | 19.40 ms | 5.98 / 4.48 ms | 1291 / 1.217 M | 2193 MiB |
+| Walking | 7.63 ms | 18.37 ms | 3.85 / 2.80 ms | 927 / 0.860 M | 2185 MiB |
+| Helicopter aerial over town | 20.39 ms | 21.79 ms | 11.71 / 7.60 ms | 1294 / 1.421 M | 2184 MiB |
+
+The town cockpit mirror pass was 6.35 ms. The aerial view exposed the most world/object
+batches (413 object, 40 tree), so its substantial submission time is scene-dependent, not
+evidence for a general batching rewrite. Peak RSS was sampled from `/proc/<pid>/status` at
+250 ms intervals; it is process memory, not dedicated GPU memory. On this host, 17 GiB of
+system memory was available after the series. Snow forest peak RSS exceeded clear forest by
+about 9 MiB, less than normal cross-run variation in the mirror matrix. This does not justify
+replacing the working Vulkan-compatible snow layout. The [mirror JSON](performance-data/p14-mirror-offscreen-800-all.json),
+[repeat JSON](performance-data/p14-mirror-bracket-800-all.json),
+[scene JSON](performance-data/p14-scene-offscreen-800-town_clear.json), and
+[scene captures](screenshots/phase14/README.md) are retained for review.

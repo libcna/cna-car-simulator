@@ -1763,6 +1763,20 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   36 pedestrians and the live mirror measured 16.06 ms project draw submission, of which
   6.58 ms was mirror. The desktop again throttled presentation near one second/frame, so
   its wall-time FPS is invalid. The JSON and method are retained in `docs/performance.md`.
+  A hidden SDL offscreen/surfaceless EGL run verified the Radeon `radeonsi` driver without
+  touching the physical desktop. Controlled CLI switches isolate mirror on/off, wings, rear
+  target width, update rate and draw distance. The first hidden 1280 × 720 matrix was
+  discarded after captured frames showed an 800 × 480 physical EGL surface clipping the
+  larger logical image. The scripts now use matched 800 × 480 dimensions; see
+  `docs/performance.md`. Both matrices were repeated at 800 × 480 and the full-frame images,
+  JSON, process RSS and Radeon driver were retained. The mirror pass itself averaged 13.86 ms
+  with all mirrors and 4.33 ms with the rear only in the first rainy-night run; a repeat saw
+  16.23–16.73 ms and 4.65 ms respectively. An interleaved repeat then hit a severe host-load
+  surge, so the sequential whole-frame differences do not support a precise speed-up claim.
+  The clear town, forest, snow, fog, pedestrian, walking and representative aerial cases are
+  in `docs/performance.md`. Stabilise or pair the remaining comparison before P14-051; do
+  not use the physical desktop for this work. The snow memory sample shows no pressure that
+  justifies replacing its public-XNA layout.
 - [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.

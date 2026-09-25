@@ -34,3 +34,28 @@ These are incremental improvements. The town still needs more regional facade an
 detail, pedestrians still need improved gait and more clothing variety, and the cockpit needs a broader
 production-quality geometry/material pass. The aerial frame is useful for spotting culling
 and density problems as Phase 14 proceeds.
+
+## Hidden Radeon benchmark captures (800 × 480)
+
+These frames came from SDL offscreen plus surfaceless EGL on the same Radeon 780M; no
+window appeared on the physical desktop. They use a matched 800 × 480 logical and EGL
+surface, because the first hidden 1280 × 720 trial clipped to 800 × 480 and was discarded.
+The simulator version is unchanged between the mirror variants; only benchmark options differ.
+
+| Mirror isolation | Capture |
+| --- | --- |
+| All mirrors | [rainy night cockpit](offscreen-800-mirror-all.png) |
+| No mirrors | [rainy night cockpit](offscreen-800-mirror-none.png) |
+| Rear only at 384 × 100 | [rainy night cockpit](offscreen-800-mirror-rear384.png) |
+| Rear only, every second frame | [rainy night cockpit](offscreen-800-mirror-rear_every2.png) |
+
+Fixed scene captures: [clear town](offscreen-800-scene-town_clear.png),
+[town cockpit](offscreen-800-scene-town_cockpit.png),
+[forest](offscreen-800-scene-forest.png),
+[snow forest](offscreen-800-scene-forest_snow.png),
+[fog square](offscreen-800-scene-town_fog.png),
+[square pedestrians](offscreen-800-scene-square_people.png),
+[walking](offscreen-800-scene-walking.png), and
+[helicopter aerial view](offscreen-800-scene-flight.png).
+The aerial camera looks across the town from 95 m altitude; an earlier nearly vertical
+view was discarded as unrepresentative of aerial rendering cost.

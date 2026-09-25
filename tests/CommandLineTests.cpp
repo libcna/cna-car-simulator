@@ -59,6 +59,26 @@ TEST(CommandLine, ParsesBenchmarkJsonAndMirrorRate)
     EXPECT_EQ(*result.options.mirrorEvery, 2);
 }
 
+TEST(CommandLine, ParsesControlledMirrorCaptureSettings)
+{
+    const std::array<const char*, 8> argv{"sim", "--no-wing-mirrors", "--mirror-width", "384",
+                                          "--mirror-distance", "150", "--mirror-every", "3"};
+    const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
+    ASSERT_TRUE(result.ok()) << result.errors.front();
+    EXPECT_FALSE(result.options.noMirror);
+    EXPECT_TRUE(result.options.noWingMirrors);
+    EXPECT_EQ(result.options.mirrorWidth.value(), 384);
+    EXPECT_FLOAT_EQ(result.options.mirrorDistanceM.value(), 150.0f);
+    EXPECT_EQ(result.options.mirrorEvery.value(), 3);
+
+    const std::array<const char*, 2> disabled{"sim", "--no-mirror"};
+    EXPECT_TRUE(ParseCommandLine(static_cast<int>(disabled.size()), disabled.data()).options.noMirror);
+    for (const char* bad : {"0", "49", "501", "nan"}) {
+        const std::array<const char*, 3> args{"sim", "--mirror-distance", bad};
+        EXPECT_FALSE(ParseCommandLine(static_cast<int>(args.size()), args.data()).ok());
+    }
+}
+
 TEST(CommandLine, StartsMapAndHelicopterForCaptures)
 {
     const std::array<const char*, 3> argv{"sim", "--map-overlay", "--flight"};

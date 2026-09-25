@@ -33,6 +33,10 @@ namespace CarSim::Core
         bool benchmark = false;         // collect frame statistics and print them at exit
         std::optional<std::string> benchmarkJsonPath;   // also write the statistics as JSON to this file
         std::optional<int> mirrorEvery;  // redraw the mirror every n frames (overrides the saved setting)
+        bool noMirror = false;            // disable all mirror passes for controlled captures
+        bool noWingMirrors = false;        // keep the rear view but skip the two wing mirrors
+        std::optional<int> mirrorWidth;   // rear-view target width; height keeps its normal aspect ratio
+        std::optional<float> mirrorDistanceM; // rear-view draw distance, independent of the quality tier
         bool lockstep = false;          // exactly one 1/60 s simulation step per drawn frame (deterministic captures)
         float trafficWarmupSeconds = 0.0f;   // simulate the traffic this long before the first frame (captures)
         bool lights = false;                 // switch the headlights on at start (captures)

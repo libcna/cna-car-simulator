@@ -459,6 +459,7 @@ namespace CarSim::App
     {
         auto& device = getGraphicsDeviceProperty();
         LoadSave();
+        if (options_.noMirror) mirrorEnabled_ = false;
         ApplyClockSettings();
         ApplyWeatherSettings();
         LoadMap();
@@ -536,7 +537,8 @@ namespace CarSim::App
             gaugeFont_ = Render::BitmapFont::CreateBuiltin(device);
         }
         cluster_ = std::make_unique<Render::InstrumentCluster>(device, definition_, *gaugeFont_, *font_, *fontBold_);
-        mirror_ = std::make_unique<Render::MirrorView>(device);
+        const int mirrorWidth = options_.mirrorWidth.value_or(768);
+        mirror_ = std::make_unique<Render::MirrorView>(device, mirrorWidth, mirrorWidth * 200 / 768);
         for (auto& wing : wingMirrors_) wing = std::make_unique<Render::MirrorView>(device, 256, 160);
         chaseCamera_.groundHeight = [this](const float x, const float z) { return map_ ? map_->Ground().HeightAt(x, z) : 0.0f; };
         if (vehicle_->FlightMode()) {
@@ -558,6 +560,7 @@ namespace CarSim::App
         }
         RefreshLighting(true, true);
         ApplyQualitySettings();
+        if (options_.mirrorDistanceM) qualitySettings_.mirrorDistanceM = *options_.mirrorDistanceM;
         if (options_.mirrorEvery) {
             save_.settings.mirrorUpdateEvery = *options_.mirrorEvery;   // an explicit rate wins over the tier
         }
@@ -1108,7 +1111,8 @@ namespace CarSim::App
             vehicleRenderer_->SetMirrorTexture(nullptr);
         }
         // Wing mirrors: smaller images, one side per frame, not on the low tier.
-        const bool wings = cockpit && mirrorEnabled_ && quality_ != Render::QualityTier::Low && wingMirrors_[0];
+        const bool wings = cockpit && mirrorEnabled_ && !options_.noWingMirrors &&
+                           quality_ != Render::QualityTier::Low && wingMirrors_[0];
         if (wings) {
             const int side = static_cast<int>(framesDrawn_ % 2);
             for (int s = 0; s < 2; ++s) {
@@ -1361,6 +1365,11 @@ namespace CarSim::App
                          << static_cast<double>(bench_.pedestrianCount) / n << ", \"drawn\": " << static_cast<double>(bench_.pedestrianDrawn) / n
                          << ", \"drawCalls\": " << static_cast<double>(bench_.pedestrianDrawCalls) / n << ", \"triangles\": "
                          << static_cast<double>(bench_.pedestrianTriangles) / n << "},\n  \"mirrorUpdateEvery\": " << std::max(1, save_.settings.mirrorUpdateEvery)
+                         << ",\n  \"mirrorEnabled\": " << (mirrorEnabled_ ? "true" : "false")
+                         << ",\n  \"wingMirrorsEnabled\": " << (mirrorEnabled_ && !options_.noWingMirrors && quality_ != Render::QualityTier::Low ? "true" : "false")
+                         << ",\n  \"mirrorWidth\": " << mirror_->Width()
+                         << ",\n  \"mirrorHeight\": " << mirror_->Height()
+                         << ",\n  \"mirrorDistanceM\": " << qualitySettings_.mirrorDistanceM
                          << "\n}\n";
                     std::cout << "benchmark JSON written to " << *options_.benchmarkJsonPath << "\n";
                 }

@@ -2,6 +2,7 @@
 
 #include "CarSim/Core/Weather.hpp"
 
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <stdexcept>
@@ -107,6 +108,32 @@ namespace CarSim::Core
                 takeInt(arg, every, 1);
                 if (every >= 1) {
                     options.mirrorEvery = std::min(every, 8);
+                }
+            } else if (arg == "--no-mirror") {
+                options.noMirror = true;
+            } else if (arg == "--no-wing-mirrors") {
+                options.noWingMirrors = true;
+            } else if (arg == "--mirror-width") {
+                int width = 0;
+                takeInt(arg, width, 128);
+                if (width >= 128) {
+                    if (width > 1536) result.errors.push_back("--mirror-width expects at most 1536 pixels");
+                    else options.mirrorWidth = width;
+                }
+            } else if (arg == "--mirror-distance") {
+                if (const auto value = takeValue(arg)) {
+                    try {
+                        const std::string text(*value);
+                        size_t used = 0;
+                        const float distance = std::stof(text, &used);
+                        if (used != text.size() || !std::isfinite(distance) || distance < 50.0f || distance > 500.0f) {
+                            throw std::invalid_argument("range");
+                        }
+                        options.mirrorDistanceM = distance;
+                    } catch (const std::exception&) {
+                        result.errors.push_back("--mirror-distance expects metres in [50, 500], got '" +
+                                                std::string(*value) + "'");
+                    }
                 }
             } else if (arg == "--frames") {
                 int frames = 0;
@@ -311,6 +338,10 @@ namespace CarSim::Core
             "  --benchmark           Print frame-time statistics at exit (combine with --frames)\n"
             "  --benchmark-json <f>  Also write the frame statistics (per pass, scene counts) as JSON\n"
             "  --mirror-every <n>    Redraw the rear-view mirror every n frames (1 = every frame)\n"
+            "  --no-mirror           Disable rear and wing mirrors (controlled captures)\n"
+            "  --no-wing-mirrors     Keep the rear mirror but skip wing mirror passes\n"
+            "  --mirror-width <px>   Rear mirror target width, 128–1536 (default 768)\n"
+            "  --mirror-distance <m> Rear mirror draw distance, 50–500 m (default: quality tier)\n"
             "  --lockstep            One simulation step per drawn frame (deterministic captures on slow renderers)\n"
             "  --traffic-warmup <s>  Simulate the traffic for s seconds before the first frame (captures)\n"
             "  --lights              Switch the headlights on at start (captures)\n"
