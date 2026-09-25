@@ -17,6 +17,7 @@ namespace CarSim::App
 
     bool SimulatorGame::WalkingCanOccupy(const Vector3& position) const
     {
+        if (map_ && !map_->Terrain().Contains(position.X, position.Z)) return false;
         const Collision::Obb walker = Collision::Obb::FromHeading(
             position + Vector3(0.0f, 0.9f, 0.0f), Vector3(0.24f, 0.85f, 0.24f), 0.0f);
         Collision::Contact contact;
@@ -39,6 +40,7 @@ namespace CarSim::App
             running_ = false;
             walkingMoving_ = false;
             walkingVelocity_ = Vector3(0.0f, 0.0f, 0.0f);
+            walkingBobStrength_ = 0.0f;
             std::cout << "walking: returned to car\n";
             return;
         }
@@ -63,6 +65,7 @@ namespace CarSim::App
             running_ = false;
             walkingMoving_ = false;
             walkingVelocity_ = Vector3(0.0f, 0.0f, 0.0f);
+            walkingBobStrength_ = 0.0f;
             walkingPosition_ = foot;
             walkingYaw_ = std::atan2(-forward.X, -forward.Z);
             walkingStepDistance_ = 0.5f;
@@ -91,7 +94,10 @@ namespace CarSim::App
         walkingMoving_ = false;
         walkingVelocity_ = StepWalkingVelocity(walkingVelocity_, direction, running_, dt);
         const float distance = walkingVelocity_.Length() * std::clamp(dt, 0.0f, 0.25f);
-        if (distance < 1e-5f) return;
+        if (distance < 1e-5f) {
+            walkingBobStrength_ += (0.0f - walkingBobStrength_) * std::min(1.0f, dt * 8.0f);
+            return;
+        }
         const int steps = std::max(1, static_cast<int>(std::ceil(distance / 0.08f)));
         const float stepSeconds = std::clamp(dt, 0.0f, 0.25f) / static_cast<float>(steps);
         const auto groundHeight = [this](const float x, const float z) {
@@ -103,16 +109,19 @@ namespace CarSim::App
             const Vector3 previous = walkingPosition_;
             Vector3 next(walkingPosition_.X + delta.X, 0.0f, walkingPosition_.Z);
             next.Y = groundHeight(next.X, next.Z);
-            if (WalkingCanOccupy(next)) walkingPosition_ = next;
+            if (CanWalkGroundStep(walkingPosition_.Y, next.Y) && WalkingCanOccupy(next)) walkingPosition_ = next;
             else walkingVelocity_.X = 0.0f;
             next = Vector3(walkingPosition_.X, 0.0f, walkingPosition_.Z + delta.Z);
             next.Y = groundHeight(next.X, next.Z);
-            if (WalkingCanOccupy(next)) walkingPosition_ = next;
+            if (CanWalkGroundStep(walkingPosition_.Y, next.Y) && WalkingCanOccupy(next)) walkingPosition_ = next;
             else walkingVelocity_.Z = 0.0f;
             const Vector3 actual = walkingPosition_ - previous;
             travelled += std::hypot(actual.X, actual.Z);
         }
         walkingMoving_ = travelled > 0.001f;
+        const float speed = travelled / std::max(dt, 1e-4f);
+        const float targetBob = std::clamp(speed / 1.5f, 0.0f, 1.0f);
+        walkingBobStrength_ += (targetBob - walkingBobStrength_) * std::min(1.0f, dt * 8.0f);
         walkingBobPhase_ += travelled * (2.0f * std::numbers::pi_v<float> / 1.5f);
         walkingStepDistance_ += travelled;
         const float stride = running_ ? 0.95f : 0.72f;

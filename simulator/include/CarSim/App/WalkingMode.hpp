@@ -48,6 +48,14 @@ namespace CarSim::App
         return dx * dx + dz * dz <= 3.2f * 3.2f && std::fabs(walker.Y - car.Y) <= 1.2f;
     }
 
+    /// Each movement substep is at most 8 cm horizontally. Admit kerbs and shallow
+    /// terrain changes, but do not snap the walker up a wall or down a ledge.
+    [[nodiscard]] inline bool CanWalkGroundStep(const float fromHeight, const float toHeight)
+    {
+        const float rise = toHeight - fromHeight;
+        return std::isfinite(rise) && rise <= 0.24f && rise >= -0.35f;
+    }
+
     /// Check full traffic bodies, including buses and lorries whose centre can be farther
     /// than a short fixed-distance filter while their nose still reaches the walker.
     [[nodiscard]] inline bool WalkingOverlapsTraffic(

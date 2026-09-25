@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 using namespace CarSim;
 
@@ -80,4 +81,14 @@ TEST(WalkingMode, ReturningToCarRequiresNearbyGroundLevelPosition)
     EXPECT_TRUE(App::CanReturnToCar(Vector3(10.0f, 2.0f, 23.0f), car));
     EXPECT_FALSE(App::CanReturnToCar(Vector3(10.0f, 2.0f, 23.3f), car));
     EXPECT_FALSE(App::CanReturnToCar(Vector3(10.0f, 3.3f, 20.0f), car));
+}
+
+TEST(WalkingMode, WalksOverKerbsButCannotSnapAcrossWallsOrLedges)
+{
+    EXPECT_TRUE(App::CanWalkGroundStep(2.0f, 2.16f));
+    EXPECT_TRUE(App::CanWalkGroundStep(2.16f, 2.0f));
+    EXPECT_TRUE(App::CanWalkGroundStep(2.0f, 2.20f));
+    EXPECT_FALSE(App::CanWalkGroundStep(2.0f, 2.50f));
+    EXPECT_FALSE(App::CanWalkGroundStep(2.0f, 1.50f));
+    EXPECT_FALSE(App::CanWalkGroundStep(2.0f, std::numeric_limits<float>::quiet_NaN()));
 }

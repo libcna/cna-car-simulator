@@ -146,6 +146,7 @@ namespace CarSim::App
         float walkingYaw_ = 0.0f;
         float walkingStepDistance_ = 0.0f;
         float walkingBobPhase_ = 0.0f;
+        float walkingBobStrength_ = 0.0f;
         // Scripted driving over the lane graph (--route). Present only when a route was asked for.
         std::unique_ptr<Traffic::RouteDriver> routeDriver_;
         std::string routeName_;

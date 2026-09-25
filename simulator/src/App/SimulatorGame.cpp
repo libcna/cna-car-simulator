@@ -1145,7 +1145,7 @@ namespace CarSim::App
 
         Render::CameraPose camera = cameraMode_ == Render::CameraMode::Chase ? chaseCamera_.Pose() : cockpitCamera_.Pose();
         if (walking_) {
-            const float bob = walkingMoving_ ? 0.025f * std::sin(walkingBobPhase_) : 0.0f;
+            const float bob = walkingBobStrength_ * 0.025f * std::sin(walkingBobPhase_);
             camera.position = walkingPosition_ + Vector3(0.0f, 1.68f + bob, 0.0f);
             camera.target = camera.position + Vector3(std::sin(walkingYaw_), 0.0f, -std::cos(walkingYaw_));
             camera.up = Vector3(0.0f, 1.0f, 0.0f);

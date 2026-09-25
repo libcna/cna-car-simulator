@@ -1703,7 +1703,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   teleport the player back from across town. Gait adds a small two-step body rise, sway and
   shoe counter-rotation; the coat hem now flares. A matched hidden Radeon square capture
   changes only 1428 pixels around the nearest pedestrian, with the same 44 pedestrian draw
-  submissions and 72 additional triangles. The on-foot camera still needs movement review.
+  submissions and 72 additional triangles. A subsequent walking review limits each 8 cm
+  ground step to a 24 cm rise or 35 cm drop, keeps the walker inside the terrain bounds,
+  and eases camera bob as movement stops. Ten walking/pedestrian tests pass. Hidden Radeon
+  800 × 480 entry captures from square, forest and kostel spawns are saved in
+  `docs/screenshots/phase14/`; all entered walking mode. A longer moving-camera review
+  and varied slope/traffic routes remain before P14-023 can close.
   See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
