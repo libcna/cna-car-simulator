@@ -1681,7 +1681,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   now tests complete traffic bodies: a 12 m bus blocks the walker even when its centre is
   6 m away, with lateral and vertical separation regressions. Returning to the car now
   requires the walker to be within 3.2 m horizontally and 1.2 m vertically, so `W` cannot
-  teleport the player back from across town. The on-foot camera still needs movement review.
+  teleport the player back from across town. Gait adds a small two-step body rise, sway and
+  shoe counter-rotation; the coat hem now flares. A matched hidden Radeon square capture
+  changes only 1428 pixels around the nearest pedestrian, with the same 44 pedestrian draw
+  submissions and 72 additional triangles. The on-foot camera still needs movement review.
   See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
@@ -1728,10 +1731,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `docs/audio-previews/phase14/` as lossless FLAC; two exports matched byte-for-byte.
   First real listener feedback said all engine clips sounded unnatural and startup sputtered
   like a much older car. A provisional comparison in `docs/audio-previews/phase14-revision-1/`
-  keeps the original files intact: cranking now has starter motor only, combustion fades in
-  after catch, exhaust impulses and overrun pops are quieter, and the catch transient is
-  shorter. The revised seven clips decode exactly to their exported PCM and require a new
-  listening judgment before acceptance.
+  kept the original files intact: it tried starter-only cranking and quieter exhaust layers.
+  The listener judged its startup worse, so the game mix was restored to the original and the
+  revision clips are retained only as rejected comparison evidence. P14-040 remains open.
   Acceptance still requires a real-speaker review of these transitions and mix tuning
   based on listening, without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter

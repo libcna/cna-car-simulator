@@ -1,17 +1,19 @@
 # Phase 14 visual comparisons (2026-09-24)
 
-These are 1280 × 720 captures from CNA OPENGLES3 on the Debian 13 desktop's AMD Radeon
+The original pairs are 1280 × 720 captures from CNA OPENGLES3 on the Debian 13 desktop's AMD Radeon
 780M (Mesa 25.0.7), with a fixed camera and clock for each pair. JPEG quality 88 was used
 for scene frames; the instrument texture remains PNG. The JPEGs are review evidence, not
 texture assets shipped by the simulator. The road-repair **before** frame used OPENGL33 on
 the same Radeon while the older code was built there; the Phase 14 renderer comparison found
-OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit scenes.
+OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit scenes. The
+gait pair uses the hidden 800 × 480 Radeon path described below.
 
 | Pair | What changed | Fixed view / scene |
 | --- | --- | --- |
 | [Town before](town-before.jpg) / [after](town-after.jpg) | Framed and panelled doors, quieter plaster variation | `--view -78 9 -30 50 -6`, town |
 | [Pedestrian before](pedestrian-before.jpg) / [after](pedestrian-after.jpg) | Rounded shared body geometry, head details, hands, varied hair | `--spawn square --view -61 6.5 14 0 -4`, two frames |
 | [Clothing before](pedestrian-clothes-before.jpg) / [after](pedestrian-clothes-after.jpg) | Reusable longer coat and brimmed cap silhouettes with muted outerwear colours | Same square view, clear 13:00, two frames |
+| [Gait before](offscreen-800-scene-square_people.png) / [after](offscreen-800-pedestrian-gait-after.png) | Small body rise/sway, levelled shoes and flared coat hem; 44 pedestrian submissions in both captures | Hidden Radeon 800 × 480, square view, clear 13:00, frame 120 |
 | [Fog before](fog-before.jpg) / [after](fog-after.jpg) | Distant tree batches culled at dense-fog visibility range | Same fixed town camera and fog preset |
 | [Cockpit before](cockpit-before.jpg) / [after](cockpit-after.jpg) | Steering wheel position, material separation and dashboard visibility | Stationary noon cockpit at the square |
 | [Cluster before](cluster-before.png) / [after](cluster-after.png) | Fewer colliding speed labels; odometer and trip fit the centre screen | Same 420 km/h instrument scale |
@@ -31,7 +33,7 @@ off, so it checks layout rather than gauge motion. The night frame likewise chec
 visibility; live illumination under every weather combination still needs review.
 
 These are incremental improvements. The town still needs more regional facade and street
-detail, pedestrians still need improved gait and more clothing variety, and the cockpit needs a broader
+detail, pedestrians still need broader clothing variety and moving-camera review, and the cockpit needs a broader
 production-quality geometry/material pass. The aerial frame is useful for spotting culling
 and density problems as Phase 14 proceeds.
 

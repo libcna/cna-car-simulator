@@ -48,8 +48,10 @@ namespace CarSim::Render
         torso_ = GpuMesh::Create(device, torso, VertexLayout::PositionNormalTexture);
         MeshData coat;
         // A longer outer layer changes the outline around the hips; its shoulder volume
-        // covers the cylinder join. It replaces the shirt mesh, so the draw count is fixed.
-        coat.AddCylinder(Vector3(0.0f, 0.81f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), 0.205f, 0.38f, 12, true);
+        // covers the skirt join. Flare the hem instead of ending in a straight cylinder;
+        // the coat still replaces the shirt mesh, so the draw count is fixed.
+        CarBody::AddRevolve(coat, {{0.25f, 0.77f}, {0.25f, 0.81f}, {0.22f, 0.99f}, {0.205f, 1.19f}},
+                            Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), 12, 1.0f, true);
         CarBody::AddEllipsoid(coat, Vector3(0.0f, 1.20f, 0.0f), Vector3(0.23f, 0.30f, 0.15f), 7, 10);
         coat_ = GpuMesh::Create(device, coat, VertexLayout::PositionNormalTexture);
         MeshData leg;
@@ -120,9 +122,12 @@ namespace CarSim::Render
         for (const auto& p : people) {
             if (Vector3::Distance(p.position, camera) > kRangeM) continue;
             if (!frustum.Intersects(BoundingSphere(p.position + Vector3(0.0f, 0.9f, 0.0f), 1.0f))) continue;
-            const Matrix body = Matrix::CreateRotationY(p.headingRad) * Matrix::CreateTranslation(p.position);
             const bool walking = p.crossing == -1 || std::fabs(p.lateral - p.crossFrom) > 0.02f;
             const float swing = walking ? 0.45f * std::sin(p.phase) : 0.0f;
+            const float rise = walking ? 0.012f * (1.0f - std::cos(2.0f * p.phase)) : 0.0f;
+            const float sway = walking ? 0.025f * std::sin(p.phase) : 0.0f;
+            const Matrix body = Matrix::CreateRotationZ(sway) * Matrix::CreateRotationY(p.headingRad) *
+                                Matrix::CreateTranslation(p.position + Vector3(0.0f, rise, 0.0f));
             const bool wearsCoat = p.look % 3u == 1u;
             const Vector3 shirt = wearsCoat ? coats[p.look % coats.size()] : shirts[p.look % shirts.size()];
             const Vector3 legs = trousers[(p.look / 8u) % trousers.size()];
@@ -143,8 +148,12 @@ namespace CarSim::Render
                 const Matrix leg = Matrix::CreateTranslation(0.0f, -kHip, 0.0f) * Matrix::CreateRotationX(angle) *
                                    Matrix::CreateTranslation(side * 0.10f, kHip, 0.0f) * body;
                 draw(*leg_, leg, legs);
-                draw(*shoe_, leg, Vector3(0.07f, 0.06f, 0.05f));
+                const Matrix shoe = Matrix::CreateTranslation(0.0f, -0.08f, 0.0f) *
+                                    Matrix::CreateRotationX(-angle * 0.7f) *
+                                    Matrix::CreateTranslation(0.0f, 0.08f, 0.0f) * leg;
+                draw(*shoe_, shoe, Vector3(0.07f, 0.06f, 0.05f));
                 const Matrix arm = Matrix::CreateTranslation(0.0f, -kShoulder, 0.0f) * Matrix::CreateRotationX(-angle * 0.8f) *
+                                   Matrix::CreateRotationZ(side * 0.07f) *
                                    Matrix::CreateTranslation(side * 0.20f, kShoulder, 0.0f) * body;
                 draw(*arm_, arm, shirt);
                 draw(*hand_, arm, skin);
