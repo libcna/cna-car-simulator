@@ -90,3 +90,14 @@ The final cockpit was also inspected at [sunset](cockpit-review-after-sunset.png
 [daylight rain](cockpit-review-after-rain.png), [fog](cockpit-review-after-fog.png), and
 [snow](cockpit-review-after-snow.png). The instrument face remains legible in all seven
 conditions; the night material contrast and larger cabin surfaces still need refinement.
+
+A later material pass gives the windshield A-pillars matte charcoal trim while leaving the
+roof lining pale. Matched hidden Radeon [noon before](cockpit-pillar-before-noon.png) /
+[after](cockpit-pillar-after-noon.png), [night before](cockpit-pillar-before-night.png) /
+[after](cockpit-pillar-after-night.png), and [rainy-night before](cockpit-pillar-before-rainy_night.png) /
+[after](cockpit-pillar-after-rainy_night.png) frames show the separation. The final variant
+was also checked at [sunset](cockpit-pillar-after-sunset.png),
+[rain](cockpit-pillar-after-rain.png), [fog](cockpit-pillar-after-fog.png), and
+[snow](cockpit-pillar-after-snow.png). The wide physical pillar and broad dashboard pad remain
+open visual-quality work; this change only assigns existing inward-facing triangles to a
+different existing interior material.

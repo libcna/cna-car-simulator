@@ -156,7 +156,7 @@ namespace CarSim::Render::CarBody
         CarPart cluster = MakePart("cluster", CarMaterial::Cluster, CarPart::Role::Interior);
         CarPart mirror = MakePart("mirror_face", CarMaterial::Chrome, CarPart::Role::Interior);
 
-        // ---- Inner shell: headliner and pillars (light), pillar bases and door cards (dark),
+        // ---- Inner shell: pale headliner, charcoal windscreen pillars and door cards,
         // lower door panels (mid), tailgate inner (dark).
         CopyInnerShell(skin, skinMaterials, zCowl - 0.03f, zR - 0.03f, [&](int rs, float zc, float yc) -> CarPart* {
             if (rs >= Ring::kGlassBase) {
@@ -164,9 +164,11 @@ namespace CarSim::Render::CarBody
                 // The dark-to-light boundary has to follow a ring of the loft. A world-space
                 // height test cuts diagonally across the quads instead, and because whole quads
                 // are classified the join came out as a visible saw-tooth down the A-pillar.
-                // Segment 12 is the belt ring itself (the window seal, dark); everything above it
-                // is pillar and headliner, trimmed in the light cabin colour.
-                return rs <= Ring::kGlassBase ? &interior : &light;
+                // Segment 12 is the dark window seal. The windscreen pillars are a matte
+                // charcoal trim, while the roof liner stays pale. This separates the broad
+                // windshield frame from the headliner in daylight and under cabin lighting.
+                if (rs <= Ring::kGlassBase) return &interior;
+                return zc < zRoofFront && rs < Ring::kRail ? &mid : &light;
             }
             if (rs >= Ring::kRockerTop && zc > zCowl + 0.05f) {
                 return yc < belt - 0.30f ? &mid : &interior;
