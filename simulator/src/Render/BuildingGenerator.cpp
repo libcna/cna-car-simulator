@@ -199,7 +199,7 @@ namespace CarSim::Render
 
         void WindowRow(MeshData& windows, MeshData& trim, MeshData* frames, MeshData* dark, const float hw, const float hd, const float yBottom,
                        const float h, const float w, const float spacing, const Vector3& n, const bool sill, const int skipCentre = -1,
-                       const bool surround = false)
+                       const bool surround = false, const bool shutters = false)
         {
             const bool frontBack = std::fabs(n.Z) > 0.5f;
             const float span = frontBack ? hw : hd;
@@ -211,6 +211,19 @@ namespace CarSim::Render
                 Vector3 centre = frontBack ? Vector3(along, yBottom + h * 0.5f, n.Z * hd) : Vector3(n.X * hw, yBottom + h * 0.5f, along);
                 Window(windows, centre, w, h, n);
                 if (frames && dark) Frame(*frames, *dark, centre, w, h, n);
+                if (shutters) {
+                    // Folded timber shutters change the street silhouette on selected houses
+                    // and cottages. They sit beside the glass and share the existing dark-wood
+                    // trim batch rather than covering the functioning window surface.
+                    MeshData leaves;
+                    for (const float side : {-1.0f, 1.0f}) {
+                        const float x0 = side * (w * 0.5f + 0.10f);
+                        const float x1 = side * (w * 0.5f + 0.34f);
+                        leaves.AddBox(Vector3(std::min(x0, x1), -h * 0.5f, 0.0f),
+                                      Vector3(std::max(x0, x1), h * 0.5f, 0.045f), 1.0f);
+                    }
+                    trim.Append(leaves, FaceBasis(n, centre + n * 0.055f));
+                }
                 if (surround && frames) {
                     // Town-house window surround: a flat plaster band round the opening and a
                     // small cornice (the head moulding) over it that throws a shadow line.
@@ -701,6 +714,8 @@ namespace CarSim::Render
                     // Street facades of town houses and shops carry window surrounds; farm
                     // houses and the backs of buildings stay plain, as they are in the villages.
                     const bool dressed = floors >= 2 && type != "farm";
+                    const bool shutterFront = (type == "house" && seed % 4u == 0u) ||
+                                              (type == "cottage" && seed % 3u == 1u);
                     if (shopFront) {
                         WindowRow(glass, trim, &frames, &dark, hw, hd, 0.5f, 2.2f, 2.4f, 3.0f, front, false, 0);
                         // A shop reads as a continuous street frontage rather than a house
@@ -729,7 +744,8 @@ namespace CarSim::Render
                                 Vector3(hw - 0.31f, 2.78f, hd + 0.19f), 1.0f);
                         }
                     } else {
-                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, front, true, doorSlot, dressed);
+                        WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f,
+                                  front, true, doorSlot, dressed && !shutterFront, shutterFront);
                     }
                     WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, back, true);
                     if (hw * 2.0f > 6.0f) {

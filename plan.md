@@ -1637,7 +1637,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   shops the change adds 173 boxes (2,076 nominal triangles). Matched hidden Radeon 800 × 480
   frames and a closer inspection view are in `docs/screenshots/phase14/`; the focused night
   window and square map tests plus the public XNA check pass. This is an incremental
-  frontage pass, not completion of town/village facade variety.
+  frontage pass, not completion of town/village facade variety. A later seeded frontage
+  variant replaces the rich window surrounds with dark timber shutters on 91 houses and
+  adds shutters to 67 cottages (699 and 225 front windows respectively). Matched hidden
+  Radeon road-facing pairs show a visible change on both building types. The selected
+  town-house view retains 632.333 mean main-view draws and falls from 661,112 to 660,944
+  triangles because its seven shuttered windows replace larger surrounds; paired JSON
+  and images are in `docs/performance-data/` and `docs/screenshots/phase14/`.
+  Wider facade and public-space variety remain open.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic

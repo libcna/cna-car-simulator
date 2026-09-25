@@ -114,3 +114,15 @@ is visible through the newly open side of the windshield. Final hidden Radeon vi
 [rainy night](cockpit-narrow-pillar-rainy_night.png). The exterior body and glass meshes
 are unchanged; a chase-camera inspection showed the car remains closed. The broad lower
 dashboard and finer night material separation remain open.
+
+## Facade shutter variants
+
+A fixed road-facing view compares a town house [before](facade-shutters-house-before.png) /
+[after](facade-shutters-house-after.png), and a one-storey village cottage
+[before](facade-shutters-cottage-before.png) /
+[after](facade-shutters-cottage-after.png). All four are hidden Radeon 800 × 480 frames
+with the same camera, clear noon weather and 60 seconds of deterministic traffic warm-up
+within each pair. The selected house swaps its more elaborate plaster window surrounds
+for dark timber shutters; the cottage gains shutters beside its existing windows.
+The window surfaces stay uncovered. In the two matched frames, 2,975 and 3,983 pixels
+respectively change around the windows at a channel-difference threshold of 12.

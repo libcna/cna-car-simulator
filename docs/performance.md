@@ -492,3 +492,20 @@ The [before JSON](performance-data/p14-mirror-paired-800-all.json),
 [after image](screenshots/phase14/offscreen-800-wing-cull-after.png) retain the comparison.
 All four public-XNA renderer paths were then built and their cockpit captures inspected;
 see [renderer conformance](renderer-conformance.md).
+
+### P14-020 shutter facade geometry check
+
+A fixed hidden Radeon 800 × 480 view of a selected Lipová house was run before and after
+the seeded shutter variant with 120 lockstep frames, 30 benchmark warm-up frames,
+60 seconds of traffic warm-up, a stationary 13:00 clear scene and the same free camera.
+The paired [before](performance-data/p14-facade-shutters-before.json) and
+[after](performance-data/p14-facade-shutters-after.json) JSONs report 632.333 average
+main-view draw calls in both runs and 661,112 versus 660,944 average triangles. Seven
+visible front windows each replace four plaster-surround boxes with two timber-shutter
+boxes, a net reduction of 24 triangles per window. Across the shipped map, the seed rule
+selects 91 houses (699 front windows) and 67 cottages (225 front windows): the nominal
+full-map geometry change is −11,376 triangles. These are authored geometry counts, not
+an FPS improvement claim; the single-run project draw times vary with host load. The
+matched close [house](screenshots/phase14/facade-shutters-house-after.png) and
+[cottage](screenshots/phase14/facade-shutters-cottage-after.png) images show the new
+silhouettes at road distance.
