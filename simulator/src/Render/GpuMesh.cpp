@@ -12,6 +12,7 @@
 #include "Microsoft/Xna/Framework/Graphics/VertexPositionTexture.hpp"
 
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 namespace CarSim::Render
@@ -43,7 +44,8 @@ namespace CarSim::Render
         }
     }
 
-    std::unique_ptr<GpuMesh> GpuMesh::Create(GraphicsDevice& device, const MeshData& mesh, const VertexLayout layout)
+    std::unique_ptr<GpuMesh> GpuMesh::Create(GraphicsDevice& device, const MeshData& mesh, const VertexLayout layout,
+                                            const GpuMesh* indexSource)
     {
         if (mesh.Empty()) {
             return nullptr;
@@ -103,9 +105,18 @@ namespace CarSim::Render
             }
         }
 
-        gpu->indices_ = std::make_unique<IndexBuffer>(device, IndexElementSize::ThirtyTwoBits,
-                                                      static_cast<int>(mesh.indices.size()), BufferUsage::WriteOnly);
-        gpu->indices_->SetData(mesh.indices.data(), static_cast<int>(mesh.indices.size()));
+        if (indexSource) {
+            // Alternate vertex declarations for the very same triangles can reuse the index
+            // allocation. Callers must pass the same MeshData; the counts catch most mistakes.
+            if (indexSource->vertexCount_ != gpu->vertexCount_ || indexSource->primitiveCount_ != gpu->primitiveCount_) {
+                throw std::invalid_argument("shared-index mesh dimensions do not match");
+            }
+            gpu->indices_ = indexSource->indices_;
+        } else {
+            gpu->indices_ = std::make_shared<IndexBuffer>(device, IndexElementSize::ThirtyTwoBits,
+                                                          static_cast<int>(mesh.indices.size()), BufferUsage::WriteOnly);
+            gpu->indices_->SetData(mesh.indices.data(), static_cast<int>(mesh.indices.size()));
+        }
         return gpu;
     }
 

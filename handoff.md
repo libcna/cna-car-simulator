@@ -65,6 +65,13 @@ RADV on the Radeon 780M desktop. Fresh CNA renderer builds take several minutes 
 the SDL prebuilt root from `build/opengles3` via `-DCNA_SDL_PREBUILT_ROOT=...`. The current
 `python3` has Pillow installed.
 
+The snowy forest also now renders on all four paths. Vulkan previously rejected
+the 40-byte terrain vertex declaration when the snow `BasicEffect` drew it; the
+snow pass now uses a compact position/UV vertex view with shared terrain indices.
+GLES3 and SOFTWARE snow frames remain byte-identical to their earlier images.
+This costs 52.9 MiB of additional terrain vertex data at construction; review
+that memory cost in `docs/performance.md` before any later terrain refactor.
+
 The simulator binary reads `build/opengles3/bin/content` (copied at build time) and falls back
 to the source `content/`; after editing content JSON either rebuild or pass `--content content`.
 

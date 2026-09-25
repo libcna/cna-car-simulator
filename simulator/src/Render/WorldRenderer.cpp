@@ -438,14 +438,16 @@ namespace CarSim::Render
         // Lying snow: the same surfaces again, alpha-blended white, pulled forward by the
         // marking depth bias so they win the depth test against themselves.
         const auto beginSnow = [&](const float alpha) {
+            const Vector3 tint(std::min(1.0f, bakedScale_.X * 1.55f), std::min(1.0f, bakedScale_.Y * 1.58f),
+                               std::min(1.0f, bakedScale_.Z * 1.66f));
+            const float opacity = std::clamp(alpha, 0.0f, 1.0f);
             snowEffect_->setWorldProperty(Matrix::getIdentityProperty());
             snowEffect_->setViewProperty(view);
             snowEffect_->setProjectionProperty(projection);
             snowEffect_->setTextureProperty(snowTexture_.get());
             // Snow reflects most of the light the baked ground absorbed: well above the grass.
-            snowEffect_->setDiffuseColorProperty(Vector3(std::min(1.0f, bakedScale_.X * 1.55f), std::min(1.0f, bakedScale_.Y * 1.58f),
-                                                         std::min(1.0f, bakedScale_.Z * 1.66f)));
-            snowEffect_->setAlphaProperty(std::clamp(alpha, 0.0f, 1.0f));
+            snowEffect_->setDiffuseColorProperty(tint);
+            snowEffect_->setAlphaProperty(opacity);
             snowEffect_->setFogColorProperty(rig_.fogColor);
             snowEffect_->setFogStartProperty(rig_.fogStart);
             snowEffect_->setFogEndProperty(rig_.fogEnd);
@@ -481,7 +483,11 @@ namespace CarSim::Render
             ++stats_.terrainChunksDrawn;
             ++stats_.drawCalls;
             stats_.triangles += mesh->PrimitiveCount();
-            if (snowing) snowTerrain.push_back(mesh);
+            if (snowing) {
+                const GpuMesh* snowMesh = distance < lod1DistanceM ? chunk.snowLod0.get() :
+                                          (distance < lod2DistanceM ? chunk.snowLod1.get() : chunk.snowLod2.get());
+                snowTerrain.push_back(snowMesh ? snowMesh : chunk.snowLod0.get());
+            }
         }
         if (snowing) {
             beginSnow(snow_);

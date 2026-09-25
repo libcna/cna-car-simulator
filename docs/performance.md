@@ -325,3 +325,16 @@ and culling; the clear capture is byte-identical to the pre-change frame. The fi
 [before/after images](screenshots/phase14/README.md) show the visual gain. Upload hitches
 during live weather transitions have not yet been timed on the Radeon and remain an explicit
 performance check before this treatment is considered finished.
+
+### Phase 14 snow terrain vertex-layout cost
+
+The snow overlay now uploads a second, compact `PositionTexture` vertex buffer
+for each of the 1,920 terrain chunks' three LODs. The snow and ordinary terrain
+meshes share index buffers, and the existing single snow draw per visible chunk
+is unchanged. From the map's 6,400 × 7,600 m size and 5 m terrain cell, the
+three LODs total 2,773,280 snow vertices × 20 bytes = **52.9 MiB** of extra
+GPU vertex data. This is allocated at world construction even in clear weather.
+The cost is accepted for now because it restores Vulkan snow rendering and
+preserves the existing OPENGLES3 and SOFTWARE images byte-for-byte. It is a
+memory trade-off for renderer conformance, not a draw-call optimization; memory
+pressure and construction cost still need real-hardware measurement.

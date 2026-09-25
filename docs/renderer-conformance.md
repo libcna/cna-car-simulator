@@ -309,3 +309,18 @@ forest frame succeeds. This is a pre-existing snow-pass conformance gap, not
 evidence that the new atlas changes a vertex layout. The snow pass needs a
 separate project-side correction using the public XNA API; it has not been
 counted as conformant here.
+
+### Phase 14 snow terrain vertex-layout correction (2026-09-25)
+
+The terrain snow pass now draws a compact `PositionTexture` vertex view of each
+existing terrain chunk with the same XNA `BasicEffect` and shared index buffer.
+This removes the 40-byte dual-UV declaration from that single-texture pass
+without selecting a renderer in application code. The same fixed snow view now
+completes on Vulkan RADV. Its mean absolute RGB difference from OPENGLES3 is
+0.391 / 0.382 / 0.378 levels of 255, with 0.453% of pixels differing by more
+than 32 in any channel. OPENGL33 remains byte-identical to OPENGLES3; SOFTWARE
+remains byte-identical to its pre-correction capture (and differs from OPENGLES3
+by 1.634 / 1.526 / 1.847 mean levels). The corrected OPENGLES3 capture itself
+is byte-identical to its pre-correction image. All four were captured at the
+same scene, frame, resolution and weather. The extra terrain vertex allocation
+is documented in `docs/performance.md`.

@@ -227,6 +227,9 @@ namespace CarSim::Render
             std::unique_ptr<GpuMesh> lod0;   // full resolution
             std::unique_ptr<GpuMesh> lod1;   // every second vertex
             std::unique_ptr<GpuMesh> lod2;   // every fourth vertex
+            std::unique_ptr<GpuMesh> snowLod0; // same triangles, compact BasicEffect layout
+            std::unique_ptr<GpuMesh> snowLod1;
+            std::unique_ptr<GpuMesh> snowLod2;
             Microsoft::Xna::Framework::Vector3 centre{};
             float radius = 0.0f;
         };

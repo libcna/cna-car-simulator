@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace CarSim::Render
 {
@@ -163,16 +164,27 @@ namespace CarSim::Render
                     mesh.AddTriangle(i00, i11, i10);
                 }
             }
-            return GpuMesh::Create(device, mesh, VertexLayout::PositionNormalDualTexture);
+            // The normal terrain pass uses two UV sets. Its snow overlay is unlit and needs
+            // only position + the first UV; giving BasicEffect that compact declaration also
+            // keeps the draw valid on every CNA renderer without a renderer-specific path.
+            auto ground = GpuMesh::Create(device, mesh, VertexLayout::PositionNormalDualTexture);
+            auto snow = GpuMesh::Create(device, mesh, VertexLayout::PositionTexture, ground.get());
+            return std::pair{std::move(ground), std::move(snow)};
         };
         for (int cz = 0; cz + 1 < rows; cz += kChunkCells) {
             for (int cx = 0; cx + 1 < cols; cx += kChunkCells) {
                 const int x1 = std::min(cols - 1, cx + kChunkCells);
                 const int z1 = std::min(rows - 1, cz + kChunkCells);
                 TerrainChunk chunk;
-                chunk.lod0 = build(cx, cz, x1, z1, 1);
-                chunk.lod1 = build(cx, cz, x1, z1, 2);
-                chunk.lod2 = build(cx, cz, x1, z1, 4);
+                auto [lod0, snowLod0] = build(cx, cz, x1, z1, 1);
+                auto [lod1, snowLod1] = build(cx, cz, x1, z1, 2);
+                auto [lod2, snowLod2] = build(cx, cz, x1, z1, 4);
+                chunk.lod0 = std::move(lod0);
+                chunk.lod1 = std::move(lod1);
+                chunk.lod2 = std::move(lod2);
+                chunk.snowLod0 = std::move(snowLod0);
+                chunk.snowLod1 = std::move(snowLod1);
+                chunk.snowLod2 = std::move(snowLod2);
                 if (chunk.lod0) {
                     chunk.centre = chunk.lod0->Sphere().Center;
                     chunk.radius = chunk.lod0->Sphere().Radius;

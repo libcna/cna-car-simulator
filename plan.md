@@ -1774,6 +1774,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   After the two-variant tree atlas, fixed forest frames were inspected on all four paths;
   OPENGL33 remained byte-identical to OPENGLES3, while Vulkan and SOFTWARE retained the
   same foliage content with small edge/filter differences. See `docs/renderer-conformance.md`.
+  A fixed snowy forest scene exposed a pre-existing Vulkan failure in the terrain snow
+  pass's 40-byte dual-UV declaration. A compact public-XNA position/UV snow mesh sharing
+  each chunk's index buffer now renders on Vulkan; the GLES3 and SOFTWARE snow captures
+  remain byte-identical to their pre-fix images. The extra 52.9 MiB of terrain vertices
+  is recorded in `docs/performance.md` for memory-pressure review.
   Repeat this checkpoint after later Phase 14 rendering or batching changes.
 
 #### P4 — final audit

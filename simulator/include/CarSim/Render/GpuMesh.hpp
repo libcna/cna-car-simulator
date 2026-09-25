@@ -46,7 +46,8 @@ namespace CarSim::Render
 
         /// Uploads `mesh` with the chosen layout. Returns nullptr for an empty mesh.
         [[nodiscard]] static std::unique_ptr<GpuMesh> Create(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
-                                                             const MeshData& mesh, VertexLayout layout);
+                                                             const MeshData& mesh, VertexLayout layout,
+                                                             const GpuMesh* indexSource = nullptr);
 
         /// Binds the buffers and issues the indexed draw. The caller applies the effect pass.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device) const;
@@ -61,7 +62,7 @@ namespace CarSim::Render
 
     private:
         std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> vertices_;
-        std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> indices_;
+        std::shared_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> indices_;
         int vertexCount_ = 0;
         int primitiveCount_ = 0;
         VertexLayout layout_ = VertexLayout::PositionNormalTexture;
