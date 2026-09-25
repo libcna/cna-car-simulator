@@ -1835,11 +1835,18 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Radeon baseline without touching the physical desktop or relying on compositor FPS.
   Draw/pass timings measure CPU submission, not pure GPU execution. The snow memory sample
   shows no pressure that justifies replacing its public-XNA layout.
-- [ ] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
+- [~] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.
-  Current combined-scene evidence points to the mirror as the largest project submission pass,
-  but cannot distinguish CPU draw submission from GPU execution or compositor throttling.
+  The first measured optimisation skips a wing-mirror scene when its glass is outside the
+  cockpit frustum, invalidating that texture until the glass re-enters view. In the standard
+  hidden Radeon rainy-night cockpit the right wing is culled while the left stays live;
+  the all-mirror image is pixel-identical to its baseline and a rightward look restores
+  the right reflection. A comparable before/after pair reduced direct mirror submission
+  from 6.03 to 4.93 ms (18%); repeated host-load spikes prevent a precise whole-frame
+  speed-up claim. Main-view submissions/triangles remained 1129/1.847 M and RSS varied
+  within run noise. All four renderers and the XNA boundary passed afterward. P14-051 stays
+  open for a stable matched total-submission comparison and any further dominant cost.
 - [~] `P14-052` Recheck all available CNA renderers after visual/performance changes through
   the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
   renderer-specific application branch. On the real Radeon 780M desktop, OPENGLES3 and the

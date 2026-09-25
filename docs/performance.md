@@ -454,3 +454,41 @@ Together with the eight fixed scenes and the earlier resolution, distance and ra
 matrix above, this completes the controlled P14-050 Radeon baseline at 800 × 480. It
 does not justify changing the Vulkan-compatible snow terrain layout: the clear/snow RSS
 difference remains below normal run variation, and there is no measured memory pressure.
+
+### Targeted P14-051 wing-mirror visibility pass
+
+The first P14-051 change tests each wing glass against the current cockpit frustum before
+rendering its mirror scene. In the standard rainy-night cockpit the left glass intersects
+and the right does not. An out-of-view image is invalidated, so turning the camera toward
+that glass redraws it at once. The rear-view mirror, target sizes, draw distances and
+visible wing's alternating update rate are unchanged. A three-frame hidden Radeon
+rightward look (`--eye 0 0 0 -35 0`) showed 483 pixels of passenger-side reflection
+compared with `--no-wing-mirrors` (x=528–546, y=264–292). The standard all-mirror
+800 × 480 result is pixel-identical before and after the cull.
+
+| Rainy-night cockpit | Before cull (`b695e1a`) | After cull, comparable run | Difference |
+| --- | ---: | ---: | ---: |
+| Direct mirror pass | 6.028 ms | 4.931 ms | −1.097 ms (−18.2%) |
+| Whole draw submission | 18.043 ms | 17.263 ms | −0.780 ms (−4.3%) |
+| Frame wall | 22.658 ms | 21.837 ms | −0.821 ms (−3.6%) |
+| Main-view submissions | 1129 | 1129 | 0 |
+| Main-view triangles | 1,847,014 | 1,847,014 | 0 |
+| Peak process RSS | 2188 MiB | 2185 MiB | −3 MiB, within run noise |
+
+The comparable pair had near-matched main-view world / traffic / vehicle times:
+4.885 / 3.341 / 3.342 ms before and 5.059 / 3.442 / 3.390 ms after. However a later
+after-cull repeat saw those same passes rise to 6.926 / 4.896 / 4.675 ms and the mirror
+pass to 6.603 ms; a no-mirror repeat also rose from 11.966 to 20.385 ms total draw.
+Thus the direct mirror-pass reduction is supported by the comparable pair and by one
+fewer offscreen wing scene every other frame, while the whole-frame percentages above
+are observations, **not** a stable speed-up estimate. The existing main-view counters do
+not include mirror submissions or triangles, so P14-051 remains open for a matched
+total-submission accounting pass. No snow-memory optimisation was made.
+
+The [before JSON](performance-data/p14-mirror-paired-800-all.json),
+[after JSON](performance-data/p14-mirror-wing-cull-800-all.json),
+[after repeats](performance-data/p14-mirror-wing-cull-800-all-r2.json),
+[before image](screenshots/phase14/offscreen-800-mirror-paired-all.png) and
+[after image](screenshots/phase14/offscreen-800-wing-cull-after.png) retain the comparison.
+All four public-XNA renderer paths were then built and their cockpit captures inspected;
+see [renderer conformance](renderer-conformance.md).

@@ -355,3 +355,20 @@ Vulkan differs by 1.307 / 1.313 / 1.232 (0.766% over 32); SOFTWARE by
 tone/filtering. This virtual-display conformance pass used Mesa llvmpipe for Vulkan;
 the separate Radeon OPENGLES3 weather review is in `screenshots/phase14/README.md`.
 No renderer-specific project code was added, and the public XNA-only checker passed.
+
+### Phase 14 wing-mirror culling checkpoint (2026-09-25)
+
+After culling mirror scenes whose glass is outside the cockpit camera frustum, all four
+renderers rebuilt and completed the same 40-frame, 1280 × 720 cloudy cockpit scene on
+virtual Xvfb `:99`: [OPENGLES3](screenshots/renderers/phase14-wing-cull-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-wing-cull-opengl33.png),
+[Vulkan](screenshots/renderers/phase14-wing-cull-vulkan.png), and
+[SOFTWARE](screenshots/renderers/phase14-wing-cull-software.png). Each reported 1230
+main-view draws. The images were visually inspected: dashboard, cluster, rear mirror and
+visible left wing reflection are present in every renderer. OPENGL33 is byte-identical to
+OPENGLES3; Vulkan differs by mean absolute RGB 1.485 / 1.588 / 1.094 and 1.614% of pixels
+over 32 in any channel; SOFTWARE by 2.203 / 2.365 / 1.940 and 2.310% over 32. These are
+the established filtering and shading differences, with no missing mirror content. Vulkan
+on this virtual display used the software ICD; the separate Radeon OPENGLES3 capture and
+rightward mirror check are in `screenshots/phase14/`. `scripts/check_xna_only.py` passed
+(230 application files scanned); no renderer-specific application path was added.

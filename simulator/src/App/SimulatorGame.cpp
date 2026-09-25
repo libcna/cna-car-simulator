@@ -8,6 +8,7 @@
 #include "CarSim/Sim/Units.hpp"
 
 #include "Microsoft/Xna/Framework/Color.hpp"
+#include "Microsoft/Xna/Framework/BoundingSphere.hpp"
 #include "Microsoft/Xna/Framework/Rectangle.hpp"
 #include "Microsoft/Xna/Framework/Vector2.hpp"
 #include "Microsoft/Xna/Framework/Vector3.hpp"
@@ -1115,10 +1116,19 @@ namespace CarSim::App
                            quality_ != Render::QualityTier::Low && wingMirrors_[0];
         if (wings) {
             const int side = static_cast<int>(framesDrawn_ % 2);
+            const BoundingFrustum cockpitFrustum = cockpitCamera_.Pose().Frustum(aspect);
             for (int s = 0; s < 2; ++s) {
+                const auto& glass = vehicleRenderer_->Model().wingMirrors[static_cast<std::size_t>(s)];
+                const Vector3 glassWorld = Vector3::Transform(glass.centre, state.worldMatrix);
+                // The right glass is outside the driver's view in the usual cockpit pose.
+                // Invalidate its cached image while hidden so it refreshes immediately if
+                // the driver turns towards it, regardless of the alternating update side.
+                if (!cockpitFrustum.Intersects(BoundingSphere(glassWorld, 0.14f))) {
+                    wingMirrorsDrawn_[static_cast<std::size_t>(s)] = false;
+                    continue;
+                }
                 if (s != side && wingMirrorsDrawn_[static_cast<std::size_t>(s)]) continue;
                 auto& wing = *wingMirrors_[static_cast<std::size_t>(s)];
-                const auto& glass = vehicleRenderer_->Model().wingMirrors[static_cast<std::size_t>(s)];
                 wing.UpdateWing(state, glass.centre, glass.yaw);
                 wing.Begin(device);
                 drawMirrorScene(wing, std::min(150.0f, qualitySettings_.mirrorDistanceM));

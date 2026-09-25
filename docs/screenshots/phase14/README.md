@@ -52,6 +52,11 @@ window appeared on the physical desktop. They use a matched 800 × 480 logical a
 surface, because the first hidden 1280 × 720 trial clipped to 800 × 480 and was discarded.
 The simulator version is unchanged between the mirror variants; only benchmark options differ.
 
+The later [paired all-mirror baseline](offscreen-800-mirror-paired-all.png) and
+[wing-visibility-cull result](offscreen-800-wing-cull-after.png) are pixel-identical in
+the fixed rainy-night cockpit. A [rightward cockpit look](offscreen-800-wing-cull-right-look.png)
+checks that the passenger-side reflection is rendered again when the glass enters view.
+
 | Mirror isolation | Capture |
 | --- | --- |
 | All mirrors | [rainy night cockpit](offscreen-800-mirror-all.png) |
