@@ -14,8 +14,12 @@ namespace CarSim::Audio
     using Microsoft::Xna::Framework::Audio::AudioChannels;
     using Microsoft::Xna::Framework::Audio::DynamicSoundEffectInstance;
 
-    VehicleAudio::VehicleAudio(const bool enabled)
+    VehicleAudio::VehicleAudio(const bool enabled, const std::string& contentRoot)
     {
+        if (!contentRoot.empty() && !engineRecording_.LoadWav(contentRoot + "/audio/honda-civic-2012-start-idle.wav")) {
+            std::cerr << "audio: Honda Civic recording unavailable; using synthesised engine\n";
+        }
+        proceduralEngineShare_ = engineRecording_.Available() ? 0.0f : 1.0f;
         tick_ = Clips::IndicatorTick(kSampleRate);
         tock_ = Clips::IndicatorTock(kSampleRate);
         clunk_ = Clips::GearClunk(kSampleRate);
@@ -27,6 +31,7 @@ namespace CarSim::Audio
         cabinLeft_.SetCutoff(levels.cockpitLowPassHz, kSampleRate);
         cabinRight_.SetCutoff(levels.cockpitLowPassHz, kSampleRate);
         mono_.assign(kBlockFrames, 0.0f);
+        recordedStereo_.assign(kBlockFrames * 2, 0.0f);
         rollingRoad_.assign(kBlockFrames, 0.0f);
         rollingWind_.assign(kBlockFrames, 0.0f);
         stereo_.assign(kBlockFrames * 2, 0.0f);
@@ -108,7 +113,8 @@ namespace CarSim::Audio
         }
         prevGear_ = state.gear;
         // Starter catch.
-        if (prevEngineState_ == Sim::EngineState::Starting && state.engineState == Sim::EngineState::Running) {
+        if (!engineRecording_.Available() && prevEngineState_ == Sim::EngineState::Starting &&
+            state.engineState == Sim::EngineState::Running) {
             Trigger(catch_, 0.9f);
         }
         prevEngineState_ = state.engineState;
@@ -149,7 +155,16 @@ namespace CarSim::Audio
         }
         if (state.flightMode) engineInput.state = EngineSoundState::Off;
         engine_.Render(mono_.data(), kBlockFrames, engineInput);
-        for (float& s : mono_) s *= levels.engine;
+        engineRecording_.Render(recordedStereo_.data(), kBlockFrames, engineInput);
+        const float proceduralTarget = !engineRecording_.Available() ? 1.0f :
+                                       engineInput.state == EngineSoundState::Starting ? 0.0f :
+                                       1.0f - EngineRecording::IdleShare(engineInput.rpm);
+        const float proceduralStep = 1.0f / (kSampleRate * 0.03f);
+        if (engineInput.state == EngineSoundState::Starting && engineRecording_.Available()) proceduralEngineShare_ = 0.0f;
+        for (float& s : mono_) {
+            proceduralEngineShare_ += std::clamp(proceduralTarget - proceduralEngineShare_, -proceduralStep, proceduralStep);
+            s *= levels.engine * proceduralEngineShare_;
+        }
         // Flight owns its rotor layer; the car engine above fades off when flight starts.
         const float rotorHz = state.turboMode == Sim::TurboMode::UltraUltra ? 8.0f :
                               state.turboMode == Sim::TurboMode::Ultra ? 7.0f :
@@ -306,15 +321,18 @@ namespace CarSim::Audio
             // muffled more strongly. Keep the exterior sum unchanged.
             const float roadGain = 1.0f - 0.10f * blend;
             const float windGain = 1.0f - 0.45f * blend;
-            const float dry = mono_[static_cast<std::size_t>(i)] +
-                              (effects[static_cast<std::size_t>(i)] + rollingRoad_[static_cast<std::size_t>(i)] * roadGain +
-                               rollingWind_[static_cast<std::size_t>(i)] * windGain) * levels.effects;
-            const float l = cabinLeft_.Process(dry);
-            const float r = cabinRight_.Process(dry);
+            const float common = mono_[static_cast<std::size_t>(i)] +
+                                 (effects[static_cast<std::size_t>(i)] + rollingRoad_[static_cast<std::size_t>(i)] * roadGain +
+                                  rollingWind_[static_cast<std::size_t>(i)] * windGain) * levels.effects;
+            const float dryLeft = common + recordedStereo_[static_cast<std::size_t>(i) * 2] * levels.engine;
+            const float dryRight = common + recordedStereo_[static_cast<std::size_t>(i) * 2 + 1] * levels.engine;
+            const float l = cabinLeft_.Process(dryLeft);
+            const float r = cabinRight_.Process(dryRight);
             const float trafficGain = levels.effects * insideGain * (1.0f - 0.55f * blend);
             for (int channel = 0; channel < 2; ++channel) {
                 const std::size_t index = static_cast<std::size_t>(i) * 2 + static_cast<std::size_t>(channel);
                 const float cabin = channel == 0 ? l : r;
+                const float dry = channel == 0 ? dryLeft : dryRight;
                 const float mixed = (dry + (cabin - dry) * blend) * insideGain + trafficStereo_[index] * trafficGain;
                 // Leave ordinary levels untouched; approach the PCM ceiling smoothly only for
                 // unusually loud overlaps of horn, collision and several nearby engines.

@@ -51,6 +51,30 @@
       ],
       "modifications": "Rasterised into bitmap glyph atlases by tools/fontatlas.py (Pillow); the atlases are derivative Font Software under the OFL and are not named D-DIN.",
       "usage": "HUD/help text, dashboard digits, registration plate characters (DIN 1451-like typeface, see docs/research/czech-plates.md)."
+    },
+    {
+      "id": "honda-civic-2012-engine",
+      "title": "Honda Engine Start and Rev.wav (2012 Honda Civic)",
+      "author": "thepodcastdoctor",
+      "sourceUrl": "https://freesound.org/people/thepodcastdoctor/sounds/487553/",
+      "retrieved": "2026-09-25",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "redistributionAllowed": true,
+      "modificationAllowed": true,
+      "attributionRequired": false,
+      "files": [
+        {
+          "path": "assets/external/audio/honda-civic-2012-start-rev-hq.mp3",
+          "sha256": "2887403c4f76019c2b426e4de199a1580fc51b4b30ffd10170fee79c64104cd1"
+        },
+        {
+          "path": "content/audio/honda-civic-2012-start-idle.wav",
+          "sha256": "97d687819303f8a15fd6da3aa527a648d98d5dd276f8ee07c0360fc179c0988d"
+        }
+      ],
+      "modifications": "The publicly accessible high-quality MP3 preview was decoded to 44.1 kHz stereo PCM16, cropped to the first 8.0 seconds and gained by 4 dB. Runtime loops 3.6–8.0 s with a 0.18 s crossfade. The original WAV requires a Freesound login; this accepted preview is the retained source.",
+      "usage": "Player car startup and low-RPM recording. Integrated startup, idle, RPM sweep and shifts passed listener review; load, lift-off and engine braking remain open."
     }
   ]
 }

@@ -1,7 +1,8 @@
 # Audio design
 
-All sounds are synthesised in project code at start-up or in real time; no recorded samples
-are shipped, so there is nothing to license. Playback uses one stereo
+The player car now uses one accepted CC0 Honda Civic recording for startup and low-RPM idle;
+the other sound layers remain project-generated. Provenance and conversion hashes are in
+[`assets/manifest.json`](../assets/manifest.json). Playback uses one stereo
 `DynamicSoundEffectInstance` (44.1 kHz, 16-bit) from the XNA 4.0 audio API; mixing happens in
 project code (`simulator/src/Audio`).
 
@@ -19,8 +20,10 @@ like the unsatisfactory original, so that change was reverted too. A
 [recorded-source review](audio-previews/phase14-recorded-source-review.md) then found several
 free engine recordings. The listener preferred the untouched Saturn Vue preview to a Fiat
 Punto recording, but rejected two edited start/idle loop probes made from the Saturn preview.
-No recorded file has been added to the game.
-The other sound families have not yet had a complete listening pass.
+The listener then accepted the [2012 Honda Civic preview and its start/idle loop](audio-previews/phase14-recorded-source-review.md).
+The listener accepted the integrated start, idle, RPM sweep and shifts. Load, lift-off and
+engine braking were rejected in the same real-mixer pack; their higher-RPM character and
+other sound families have not yet had a complete listening pass.
 
 ## Stream and buffering
 
@@ -39,6 +42,19 @@ ran dry during a slow frame and the stream played gaps.
 
 ## Engine (`Audio::EngineSynth`)
 
+`Audio::EngineRecording` loads the checked 44.1 kHz stereo PCM derived from the listener-approved
+Honda clip. On ignition it plays the original first eight seconds, with the natural crank and
+catch in the recording. It loops 3.6–8.0 s with a 0.18 s linear crossfade and retains the
+recording's stereo image through the project mix and cabin filter. A direct Running state starts
+at the loop for saved games and deterministic previews. The recording dominates below 1250 rpm;
+it fades out by 3000 rpm as the existing dynamic synthesizer fades in. The sample plays at its
+original speed near idle and at up to 1.5× on its way out. The synthetic catch clip is omitted
+when the recording is present, avoiding a second ignition. A missing asset falls back to the
+previous synthesizer. This only establishes the accepted start and idle base; the higher-RPM
+blend, load and shift character remain a listening and tuning task.
+
+The existing `EngineSynth` supplies the higher RPM range and fallback:
+
 - Crank phase accumulator from the simulated rpm (phase continuous across blocks; rpm, load
   and throttle ramp linearly across each block so parameter changes never click).
 - Harmonic bank at multiples of the crank frequency with a four-cylinder character: dominant
@@ -56,9 +72,9 @@ ran dry during a slow frame and the stream played gaps.
   gates it at the firing rhythm. Its gain follows the real throttle and torque input, so a
   pedal blip adds texture before delivered load rises; closed throttle and idle have no
   continuous intake hiss. Throttle, load and RPM ramp across every 1024-sample block.
-- Starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine model's
-  cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition to
-  `Running`.
+- Fallback starter: a 96 Hz whine with wobble while the engine state is `Starting`; the engine
+  model's cranking rpm (about 280) drives the slow chug; a "catch" clip plays on the transition
+  to `Running` only when the recording is absent.
 - Off/stalled: the master gain fades out over 0.18 s.
 
 Load is the engine model's delivered torque fraction (`VehicleState::engineLoad`, 0 on

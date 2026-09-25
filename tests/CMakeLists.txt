@@ -57,6 +57,7 @@ add_executable(carsim_tests
     Traffic/RouteDriverTests.cpp
     Traffic/TrafficSoakTests.cpp
     Audio/EngineSynthTests.cpp
+    Audio/EngineRecordingTests.cpp
     Audio/AudioLayersTests.cpp
     Audio/TrafficAudioTests.cpp
     Audio/VehicleAudioRainTests.cpp
@@ -104,6 +105,7 @@ if(CARSIM_SANITIZERS)
         Traffic/RouteDriverTests.cpp
         Traffic/TrafficSoakTests.cpp
         Audio/EngineSynthTests.cpp
+        Audio/EngineRecordingTests.cpp
         Audio/AudioLayersTests.cpp
         Audio/TrafficAudioTests.cpp
     )

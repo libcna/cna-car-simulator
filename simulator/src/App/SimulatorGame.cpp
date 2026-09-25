@@ -572,7 +572,7 @@ namespace CarSim::App
             }
             std::cout << "traffic: warmed up " << options_.trafficWarmupSeconds << " s, " << traffic_->Vehicles().size() << " cars\n";
         }
-        audio_ = std::make_unique<Audio::VehicleAudio>(!options_.noAudio);
+        audio_ = std::make_unique<Audio::VehicleAudio>(!options_.noAudio, contentRoot_);
         audio_->levels.master = save_.settings.masterVolume;
         audio_->levels.engine = save_.settings.engineVolume;
         audio_->levels.effects = save_.settings.effectsVolume;

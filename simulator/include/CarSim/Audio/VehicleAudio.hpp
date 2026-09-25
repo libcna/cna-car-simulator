@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CarSim/Audio/EngineSynth.hpp"
+#include "CarSim/Audio/EngineRecording.hpp"
 #include "CarSim/Audio/RotorSynth.hpp"
 #include "CarSim/Audio/SoundSynth.hpp"
 #include "CarSim/Audio/TrafficAudio.hpp"
@@ -14,6 +15,7 @@
 
 #include <memory>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace CarSim::Audio
@@ -42,7 +44,7 @@ namespace CarSim::Audio
 #endif
 
         /// Creates the stream; `enabled = false` builds a silent no-op mixer (headless runs).
-        explicit VehicleAudio(bool enabled);
+        explicit VehicleAudio(bool enabled, const std::string& contentRoot = {});
         ~VehicleAudio();
 
         /// Mixes and submits as many blocks as the stream needs; call once per frame.
@@ -80,6 +82,7 @@ namespace CarSim::Audio
         bool enabled_ = false;
         std::unique_ptr<Microsoft::Xna::Framework::Audio::DynamicSoundEffectInstance> stream_;
         EngineSynth engine_{kSampleRate};
+        EngineRecording engineRecording_;
         RotorSynth rotor_{kSampleRate};
         RollingNoise rolling_{kSampleRate};
         TrafficAudio traffic_{kSampleRate};
@@ -89,6 +92,8 @@ namespace CarSim::Audio
         std::vector<Voice> voices_;
         OnePoleLowPass cabinLeft_, cabinRight_;
         std::vector<float> mono_;
+        std::vector<float> recordedStereo_;
+        float proceduralEngineShare_ = 0.0f;
         std::vector<float> rollingRoad_;
         std::vector<float> rollingWind_;
         std::vector<float> stereo_;

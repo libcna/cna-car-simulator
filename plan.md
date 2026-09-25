@@ -1769,9 +1769,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   deterministic and technically bounded, but the listener said it still sounded like the
   original unsatisfactory start. The [recorded-source review](docs/audio-previews/phase14-recorded-source-review.md)
   found real CC0 recordings. The listener preferred the untouched Saturn Vue preview to a
-  Fiat candidate, but rejected two edited start/idle loop probes. No recording has entered
-  the game; a coherent source with credible start, stable RPM layers and accepted loop
-  transitions remains necessary. P14-040 remains open.
+  Fiat candidate, but rejected two edited start/idle loop probes. They also rejected NHumphrey
+  even after level matching and a muted.io sample that sounded like a motorcycle. A CC0
+  2012 Honda Civic recording was accepted at a transparent +4 dB; its natural start and
+  3.6–8.0 s idle loop with a 0.18 s crossfade were accepted by listening. The public HQ
+  preview, derived PCM, hashes, licence and recipe are now in the asset manifest. The player
+  mixer uses that recording for startup/low RPM, fading to the existing dynamic engine by
+  3000 rpm; no duplicate synthetic ignition plays with it. Integrated start, idle, RPM, load,
+  lift-off, shift and engine-braking previews have been rendered. The listener accepted the
+  actual-mixer start, idle, RPM sweep and shifts, but rejected load, lift-off and engine
+  braking. P14-040 remains open for these three higher-RPM situations and full listening.
   Acceptance still requires a real-speaker review of these transitions and mix tuning
   based on listening, without clipping or loop seams.
 - [~] `P14-041` Improve surface/tyre, wind, weather, traffic, cabin/exterior and helicopter

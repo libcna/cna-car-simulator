@@ -163,7 +163,7 @@ namespace
 
     void RenderScenario(const Scenario& scenario, const std::filesystem::path& outDir)
     {
-        VehicleAudio audio(false);
+        VehicleAudio audio(false, CARSIM_SOURCE_CONTENT_DIR);
         std::vector<std::int16_t> pcm;
         const int targetFrames = static_cast<int>(std::lround(scenario.seconds * VehicleAudio::kSampleRate));
         pcm.reserve(static_cast<std::size_t>(targetFrames) * 2);
