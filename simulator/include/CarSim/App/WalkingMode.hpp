@@ -1,8 +1,11 @@
 #pragma once
 
 #include "CarSim/Sim/Vehicle.hpp"
+#include "CarSim/Collision/Shapes.hpp"
+#include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include <algorithm>
+#include <span>
 
 namespace CarSim::App
 {
@@ -33,5 +36,24 @@ namespace CarSim::App
     [[nodiscard]] inline bool CanEnterWalking(const Sim::VehicleState& car)
     {
         return !car.flightMode && car.engineState == Sim::EngineState::Off && car.speedKmh <= 0.5f;
+    }
+
+    /// Check full traffic bodies, including buses and lorries whose centre can be farther
+    /// than a short fixed-distance filter while their nose still reaches the walker.
+    [[nodiscard]] inline bool WalkingOverlapsTraffic(
+        const Microsoft::Xna::Framework::Vector3& position,
+        const std::span<const Traffic::TrafficVehicle> vehicles)
+    {
+        using Microsoft::Xna::Framework::Vector3;
+        const Collision::Obb walker = Collision::Obb::FromHeading(
+            position + Vector3(0.0f, 0.9f, 0.0f), Vector3(0.24f, 0.85f, 0.24f), 0.0f);
+        Collision::Contact contact;
+        for (const auto& car : vehicles) {
+            const Collision::Obb body = Collision::Obb::FromHeading(
+                car.position + Vector3(0.0f, car.heightM * 0.5f, 0.0f),
+                Vector3(car.widthM * 0.5f, car.heightM * 0.5f, car.lengthM * 0.5f), car.headingRad);
+            if (Collision::IntersectObbObb(walker, body, contact)) return true;
+        }
+        return false;
     }
 }

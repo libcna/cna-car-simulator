@@ -1677,7 +1677,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   staying around the parked car; a deterministic long-distance recentering test passes.
   Shared longer coat and brimmed cap meshes now vary outline as well as colour; the cap
   replaces the existing hair draw and the coat replaces the shirt draw. A fixed Radeon
-  square before/after pair is retained in `docs/screenshots/phase14/`.
+  square before/after pair is retained in `docs/screenshots/phase14/`. Walking collision
+  now tests complete traffic bodies: a 12 m bus blocks the walker even when its centre is
+  6 m away, with lateral and vertical separation regressions. The on-foot camera and
+  return-to-car proximity still need review.
   See `docs/screenshots/phase14/`; gait/clothing and more collision review remain.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions

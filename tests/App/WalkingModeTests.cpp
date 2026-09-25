@@ -55,3 +55,19 @@ TEST(WalkingMode, StartsAndStopsSmoothlyWithoutExceedingWalkingOrRunningSpeed)
     for (int i = 0; i < 10; ++i) velocity = App::StepWalkingVelocity(velocity, Vector3(0.0f, 0.0f, 0.0f), false, 0.1f);
     EXPECT_LT(velocity.Length(), 1e-4f);
 }
+
+TEST(WalkingMode, LongTrafficBodyBlocksWalkerBeyondFiveMetresFromCentre)
+{
+    using Microsoft::Xna::Framework::Vector3;
+    Traffic::TrafficVehicle bus;
+    bus.position = Vector3(0.0f, 0.0f, 6.0f);
+    bus.lengthM = 12.0f;
+    bus.widthM = 2.5f;
+    bus.heightM = 3.2f;
+    const Vector3 walker(0.0f, 0.0f, 0.0f);
+    EXPECT_TRUE(App::WalkingOverlapsTraffic(walker, std::span<const Traffic::TrafficVehicle>(&bus, 1)));
+    bus.position.X = 2.0f;
+    EXPECT_FALSE(App::WalkingOverlapsTraffic(walker, std::span<const Traffic::TrafficVehicle>(&bus, 1)));
+    bus.position = Vector3(0.0f, -4.0f, 6.0f);
+    EXPECT_FALSE(App::WalkingOverlapsTraffic(walker, std::span<const Traffic::TrafficVehicle>(&bus, 1)));
+}

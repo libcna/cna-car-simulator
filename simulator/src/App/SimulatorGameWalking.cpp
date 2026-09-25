@@ -24,15 +24,7 @@ namespace CarSim::App
             Collision::IntersectObbObb(walker, Collision::CollisionWorld::VehicleBox(*vehicle_), contact)) {
             return false;
         }
-        if (traffic_) {
-            for (const auto& car : traffic_->Vehicles()) {
-                if (Vector3::DistanceSquared(car.position, position) > 5.0f * 5.0f) continue;
-                const Collision::Obb body = Collision::Obb::FromHeading(
-                    car.position + Vector3(0.0f, car.heightM * 0.5f, 0.0f),
-                    Vector3(car.widthM * 0.5f, car.heightM * 0.5f, car.lengthM * 0.5f), car.headingRad);
-                if (Collision::IntersectObbObb(walker, body, contact)) return false;
-            }
-        }
+        if (traffic_ && WalkingOverlapsTraffic(position, traffic_->Vehicles())) return false;
         return true;
     }
 
