@@ -280,3 +280,23 @@ and [sunset snow](forest-sunset-snow-cockpit.png) show the road and cluster at t
 forest spawn; their project draw measurements are in [performance notes](../../performance.md).
 The light-coloured triangular opening by the left windscreen frame appears in clear
 weather too, so its shape remains a P14-022 cockpit item rather than a winter artifact.
+
+## Radio readout and cockpit lighting
+
+The existing centre radio glass now carries a restrained green 101.2 MHz segment
+readout and two short status strokes. Matched isolated-display 1280 × 720
+[noon before](cockpit-radio-1280-before-noon.png) /
+[after](cockpit-radio-1280-after-noon.png) and
+[night before](cockpit-radio-1280-before-night.png) /
+[after](cockpit-radio-1280-after-night.png) pairs each change exactly 480 pixels
+above a 12/255 channel threshold, confined to x845–945/y638–662 inside the radio.
+Road, cluster and dashboard silhouette are identical. The final hidden Radeon
+800 × 480 set covers [noon](cockpit-radio-noon.png),
+[sunset](cockpit-radio-sunset.png), [night](cockpit-radio-night.png),
+[rain](cockpit-radio-rain.png), [fog](cockpit-radio-fog.png),
+[snow](cockpit-radio-snow.png) and
+[rainy night](cockpit-radio-rainy_night.png). The large speed HUD obscures part of
+the radio at 800 × 480; the 1280 pair shows its actual in-world appearance.
+The seven captures were made through hidden SDL offscreen EGL on Radeon 780M,
+verified as `radeonsi`; the desktop display was not used. The remaining cockpit
+shape and night material work keep P14-022 open.

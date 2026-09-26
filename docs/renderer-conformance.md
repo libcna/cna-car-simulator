@@ -556,3 +556,22 @@ and software in fog, while the tree line and culling are consistent. The hidden 
 [matched pair](screenshots/phase14/README.md) verifies the correction on hardware.
 The public-XNA checker passed (233 files, 544 known types); no backend-specific
 application branch or physical desktop window was used.
+
+### Phase 14 cockpit radio readout checkpoint (2026-09-26)
+
+After adding the radio's separate self-lit material, all four public-XNA paths
+completed the same 40-frame, 800 × 480 night cockpit scene on isolated Xvfb `:117`:
+[OPENGL33](screenshots/renderers/phase14-cockpit-radio-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-cockpit-radio-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-cockpit-radio-software.png), and
+[Vulkan](screenshots/renderers/phase14-cockpit-radio-vulkan.png). Each reports 1,011
+scene draw submissions and 1,342.46k triangles. OPENGL33 and OPENGLES3 differ by
+at most four RGB levels per channel; relative to OPENGL33, SOFTWARE and Vulkan
+change 7,442 and 7,859 pixels above 12/255 respectively, mainly established
+gauge-edge and shading differences. All four show the same readout and intact road,
+gauges and controls. Seven-condition hidden Radeon hardware captures and matched
+1280 × 720 radio pairs are in
+[the cockpit review](screenshots/phase14/README.md). Ten procedural-car tests and
+the public-XNA checker passed (233 files, 544 known types); no backend-specific
+application code or physical desktop window was used. P14-052 remains open for
+the final Phase 14 renderer pass.

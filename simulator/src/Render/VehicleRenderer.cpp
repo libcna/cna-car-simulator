@@ -140,6 +140,11 @@ namespace CarSim::Render
                     look.specular = Vector3(0.15f, 0.15f, 0.15f);
                     look.specularPower = 12.0f;
                     break;
+                case CarMaterial::RadioBacklight:
+                    look.diffuse = Vector3(0.12f, 0.18f, 0.13f);
+                    look.emissive = Vector3(0.16f, 0.26f, 0.17f);
+                    look.specular = Vector3(0.0f, 0.0f, 0.0f);
+                    break;
                 case CarMaterial::InteriorLight:
                     look.diffuse = Vector3(0.62f, 0.62f, 0.60f);
                     look.specular = Vector3(0.02f, 0.02f, 0.02f);
@@ -383,6 +388,7 @@ namespace CarSim::Render
             case CarMaterial::InteriorMid: return plastic_.get();
             case CarMaterial::InteriorAccent: return white_.get();
             case CarMaterial::Vent: return vent_.get();
+            case CarMaterial::RadioBacklight: return white_.get();
             case CarMaterial::Fabric: return fabric_.get();
             case CarMaterial::DashSoft: return fabric_.get();
             case CarMaterial::InteriorLight: return headliner_.get();

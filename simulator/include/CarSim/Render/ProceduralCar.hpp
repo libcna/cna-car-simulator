@@ -47,6 +47,7 @@ namespace CarSim::Render
         Fabric,         // seats
         DashSoft,       // cloth-grain upper dashboard and airbag lid
         Vent,           // air vent slats
+        RadioBacklight, // modestly self-lit readout in the centre stack
         LampHead,       // headlamp lens (emissive when on)
         LampTail,       // red rear lamp (emissive when braking)
         LampIndicator,  // amber indicator lens

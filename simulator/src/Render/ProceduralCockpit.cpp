@@ -185,6 +185,7 @@ namespace CarSim::Render::CarBody
         CarPart dashSoft = MakePart("dashboard_soft", CarMaterial::DashSoft, CarPart::Role::Interior);
         CarPart gloss = MakePart("interior_gloss", CarMaterial::GlossBlack, CarPart::Role::Interior);
         CarPart vents = MakePart("interior_vents", CarMaterial::Vent, CarPart::Role::Interior);
+        CarPart radioReadout = MakePart("radio_readout", CarMaterial::RadioBacklight, CarPart::Role::Interior);
         CarPart chrome = MakePart("interior_chrome", CarMaterial::Chrome, CarPart::Role::Interior);
         CarPart cluster = MakePart("cluster", CarMaterial::Cluster, CarPart::Role::Interior);
         CarPart mirror = MakePart("mirror_face", CarMaterial::Chrome, CarPart::Role::Interior);
@@ -311,6 +312,32 @@ namespace CarSim::Render::CarBody
             AddRoundedBox(accent.mesh, Vector3(0.275f, 0.091f, 0.012f), 0.012f,
                           Matrix::CreateTranslation(0.0f, yFace + 0.005f, zStack - 0.012f));
             AddBoxTo(gloss, Vector3(0.0f, yFace + 0.005f, zStack - 0.002f), Vector3(0.22f, 0.07f, 0.008f));
+            // A small, gently lit radio frequency gives the otherwise blank dark face
+            // a readable control centre at night. Flat strokes sit above the glass;
+            // they do not change the stack shape or cover its knobs.
+            const float readoutZ = zStack + 0.007f;
+            const auto stroke = [&](const float x0, const float y0, const float x1, const float y1) {
+                radioReadout.mesh.AddQuad(Vector3(x0, y0, readoutZ), Vector3(x1, y0, readoutZ),
+                                          Vector3(x1, y1, readoutZ), Vector3(x0, y1, readoutZ),
+                                          Vector3(0, 0, 1), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
+            };
+            const float digitBottom = yFace - 0.012f;
+            constexpr int digits[4] = {6, 63, 6, 91}; // 101.2 MHz, segment bits: top, right, bottom, left, middle
+            for (int i = 0; i < 4; ++i) {
+                const float x = -0.058f + static_cast<float>(i) * 0.027f;
+                const float y = digitBottom;
+                const int m = digits[i];
+                if (m & 1)  stroke(x + 0.003f, y + 0.030f, x + 0.015f, y + 0.0325f);
+                if (m & 2)  stroke(x + 0.015f, y + 0.017f, x + 0.0175f, y + 0.030f);
+                if (m & 4)  stroke(x + 0.015f, y + 0.003f, x + 0.0175f, y + 0.016f);
+                if (m & 8)  stroke(x + 0.003f, y, x + 0.015f, y + 0.0025f);
+                if (m & 16) stroke(x, y + 0.003f, x + 0.0025f, y + 0.016f);
+                if (m & 32) stroke(x, y + 0.017f, x + 0.0025f, y + 0.030f);
+                if (m & 64) stroke(x + 0.003f, y + 0.015f, x + 0.015f, y + 0.0175f);
+            }
+            stroke(0.018f, digitBottom, 0.021f, digitBottom + 0.003f);
+            stroke(-0.095f, digitBottom + 0.024f, -0.079f, digitBottom + 0.026f);
+            stroke(-0.095f, digitBottom + 0.016f, -0.083f, digitBottom + 0.018f);
             for (const float side : {-1.0f, 1.0f}) {
                 chrome.mesh.AddCylinder(Vector3(side * 0.124f, yFace + 0.004f, zStack + 0.003f),
                                         Vector3(0, 0, 1), 0.011f, 0.006f, 12, true);
@@ -543,8 +570,8 @@ namespace CarSim::Render::CarBody
             }
         }
 
-        interior.cabin = mid.cabin = accent.cabin = light.cabin = fabric.cabin = dashSoft.cabin = steering.cabin = steeringTrim.cabin = true;
-        for (CarPart* p : {&interior, &mid, &accent, &light, &fabric, &dashSoft, &gloss, &vents, &chrome, &cluster, &steering, &steeringTrim, &steeringBadge, &gearLever, &mirror}) {
+        interior.cabin = mid.cabin = accent.cabin = light.cabin = fabric.cabin = dashSoft.cabin = radioReadout.cabin = steering.cabin = steeringTrim.cabin = true;
+        for (CarPart* p : {&interior, &mid, &accent, &light, &fabric, &dashSoft, &gloss, &vents, &radioReadout, &chrome, &cluster, &steering, &steeringTrim, &steeringBadge, &gearLever, &mirror}) {
             if (p->mesh.TriangleCount() > 0) model.parts.push_back(std::move(*p));
         }
     }

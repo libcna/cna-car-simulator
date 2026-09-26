@@ -1755,6 +1755,17 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Seven time/weather views and all four virtual-display renderers keep the same geometry
   and 1,209 draws / 1,451,464 triangles. Broader cabin shape and lower control
   readability at night keep P14-022 open.
+  A small seven-segment 101.2 MHz readout and two status strokes now occupy the existing
+  radio glass, with a separate subdued green self-lit material (18 flat quads, 36
+  triangles). In matched 1280 × 720 isolated-display noon and night pairs, exactly
+  480 pixels above 12/255 change, all within the radio face at x845–945/y638–662;
+  road, gauges and stack outline remain pixel-identical. Seven hidden Radeon 800 × 480
+  time/weather captures retain readable gauges; the lower-resolution speed HUD covers
+  part of the radio, so the 1280 review is the detailed visibility evidence. Four
+  virtual-display renderer checks agree on 1,011 scene submissions and 1,342.46k
+  triangles in the fixed 40-frame night cockpit scene, 10 procedural-car tests pass,
+  and the public-XNA checker passes. P14-022 remains open for cabin shape and night
+  visual quality.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
