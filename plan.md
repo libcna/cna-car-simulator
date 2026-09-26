@@ -1705,6 +1705,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   bounds and terrain draping. Four virtual renderer snow checks report 622 draws and
   440,919 triangles; the virtual GLES3 llvmpipe terrain has a coarser texture pattern
   also present with the previous road-mesh source, while hidden Radeon GLES3 is smooth.
+  Selected low shrubs now gain a smaller nearby companion, with independent seeded
+  placement and the same forest-boundary, road and building clearance. A matched hidden
+  Radeon interior view at `--view -243 5 -2835 180 -4` changes 548 clear and 658 snow
+  pixels above 12/255, confined to that companion; its upper leaves receive the existing
+  winter cover. The fixed virtual clear view stays at 707 draws while triangles rise
+  1,173,470→1,180,886 (+0.63%). Both map placement tests, all four virtual snow
+  renderers and the public-XNA checker pass. This remains a sparse ground layer;
+  broader forest-floor and road-surface work remain open.
   Broader road-surface texture, forest-floor variety and other winter details remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
@@ -2029,6 +2037,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   it is absent on the hidden Radeon hardware capture.
   After the P14-042 dense-fog trunk cull, all four virtual renderers show the corrected
   forest edge at 316 main-view draws / 297,397 triangles; the XNA-only check passes.
+  After the P14-021 grouped-understory increment, all four virtual renderers show the
+  paired low shrubs at 695 draws / 883,067 triangles in fixed snow. The virtual GLES3
+  tiled ground pattern remains the previously isolated llvmpipe issue, while the hidden
+  Radeon GLES3 snow frame is smooth; the XNA-only check passes.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

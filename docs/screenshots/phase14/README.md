@@ -300,3 +300,18 @@ the radio at 800 × 480; the 1280 pair shows its actual in-world appearance.
 The seven captures were made through hidden SDL offscreen EGL on Radeon 780M,
 verified as `radeonsi`; the desktop display was not used. The remaining cockpit
 shape and night material work keep P14-022 open.
+
+## Small groups in the forest undergrowth
+
+Some of the existing low forest shrubs now have a smaller neighbour 1.4–2.6 m away.
+The original plant keeps its position, size and collider state; companions use the
+same polygon, road, building and terrain clearance and remain decorative. The matched
+hidden Radeon 800 × 480 view `--view -243 5 -2835 180 -4` shows
+[clear before](forest-clump-before-clear.png) /
+[after](forest-clump-after-clear.png) and
+[snow before](forest-clump-before-snow.png) /
+[after](forest-clump-after-snow.png). The only changed object is the lower plant to
+the right of the original; 548 clear and 658 snow pixels exceed 12/255. Its leaves
+use the existing winter atlas. Four virtual-renderer winter images are in
+[renderer conformance](../../renderer-conformance.md). The wider forest floor still
+needs variation under P14-021.

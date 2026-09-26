@@ -575,3 +575,19 @@ gauges and controls. Seven-condition hidden Radeon hardware captures and matched
 the public-XNA checker passed (233 files, 544 known types); no backend-specific
 application code or physical desktop window was used. P14-052 remains open for
 the final Phase 14 renderer pass.
+
+### Phase 14 grouped forest undergrowth checkpoint (2026-09-26)
+
+The fixed 40-frame 800 × 480 snow forest view on isolated Xvfb `:119` completed on
+[OPENGL33](screenshots/renderers/phase14-forest-clump-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-forest-clump-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-forest-clump-software.png), and
+[Vulkan](screenshots/renderers/phase14-forest-clump-vulkan.png). Each reports 695
+scene draws and 883,067 triangles, and each shows both low shrubs with winter cover.
+Relative to OPENGL33, SOFTWARE and Vulkan differ by 6,570 and 7,303 pixels above
+12/255; the virtual GLES3 image differs by 62,654 pixels because the previously
+isolated llvmpipe terrain tiling recurs. The paired hidden Radeon GLES3
+[clear and snow captures](screenshots/phase14/README.md) have smooth terrain and
+show the intended new neighbour. Two map placement tests and the public-XNA check
+pass (233 files, 544 known types); no backend-specific application path or physical
+desktop window was used. P14-052 remains open for the final renderer pass.

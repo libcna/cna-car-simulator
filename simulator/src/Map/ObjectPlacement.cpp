@@ -694,6 +694,25 @@ namespace CarSim::Map
                             bush.seed = t.seed ^ 0x6ac690c5u;
                             bush.collidable = false;
                             trees_.push_back(bush);
+                            // Some understory grows in little groups instead of isolated
+                            // dots. Keep the companion lower than the first shrub and use
+                            // the same clearance rules, so snow and roadside behaviour
+                            // continue to follow the existing bush path.
+                            if (Hash01(col, row, forest.seed + 107u) < 0.58f) {
+                                const float companionAngle = angle + 1.4f + 1.4f * Hash01(col, row, forest.seed + 109u);
+                                const float companionDistance = 1.4f + 1.2f * Hash01(col, row, forest.seed + 113u);
+                                const Vector2 companion(under.X + std::cos(companionAngle) * companionDistance,
+                                                        under.Y + std::sin(companionAngle) * companionDistance);
+                                if (PointInPolygon(companion, forest.polygon) && ClearOfRoads(world, companion, forest.margin) &&
+                                    !InsideBuilding(companion, 2.0f) && world.Terrain().Contains(companion.X, companion.Y)) {
+                                    PlacedTree low = bush;
+                                    low.position = Vector3(companion.X, ground.HeightAt(companion.X, companion.Y), companion.Y);
+                                    low.scale = 0.25f + 0.18f * Hash01(col, row, forest.seed + 127u);
+                                    low.rotationRad = companionAngle;
+                                    low.seed = t.seed ^ 0x18baf2d3u;
+                                    trees_.push_back(low);
+                                }
+                            }
                         }
                     }
                     ++placed;

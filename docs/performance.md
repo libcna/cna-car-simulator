@@ -612,3 +612,16 @@ shadow rebake during the measurement, which inflated update means and worst fram
 gaps; those draw numbers describe the scenes rather than a renderer speed-up.
 They use the working public-XNA snow representation and do not indicate memory
 pressure requiring a replacement.
+
+### P14-021 grouped forest undergrowth geometry check
+
+The paired virtual GLES3 40-frame, 800 × 480 clear forest view
+([before](performance-data/p14-forest-clump-before.json) /
+[after](performance-data/p14-forest-clump-after.json)) holds 707 scene draw
+submissions and 100 visible tree batches. Triangles increase from 1,173,470 to
+1,180,886 (+7,416, 0.63%) for the added small bush cards. Project draw averages
+were 74.724 and 82.620 ms on isolated Xvfb llvmpipe; host and renderer variation
+prevents attributing that difference to these cards. Matched hidden Radeon clear
+and snow images in the [visual review](screenshots/phase14/README.md) confirm the
+localized gain. The existing low shrubs stay in place and no collision geometry is
+added. This is a visual addition rather than a speed claim.
