@@ -437,3 +437,20 @@ pixels exceeded 32 in any channel. These virtual-display renders check geometry 
 appearance, not Radeon performance. The separate hidden Radeon seven-condition review
 is in [`screenshots/phase14/`](screenshots/phase14/README.md). No renderer-specific
 application path was added.
+
+### Phase 14 Czech shop fascia checkpoint (2026-09-26)
+
+All four public-XNA renderer builds completed the same 40-frame, 800 × 480 clear
+square view on dedicated virtual Xvfb `:109` after adding fascia boards and letters:
+[OPENGLES3](screenshots/renderers/phase14-shop-sign-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-shop-sign-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-shop-sign-software.png), and
+[Vulkan](screenshots/renderers/phase14-shop-sign-vulkan.png). Each reported 1,198 draw
+submissions and 1,356,390 triangles for the complete frame. The `ELEKTRO` and
+`HODINY` boards appear in all four images; adjacent shop windows and doors remain
+visible. Relative to OPENGLES3, mean absolute RGB differences were 1.927 / 1.920 /
+1.819 for OPENGL33, 5.574 / 5.645 / 5.514 for SOFTWARE and 3.388 / 3.340 / 3.251
+for Vulkan; respectively 2,689, 10,648 and 8,512 pixels exceeded 32 in any
+channel. The larger scene differences are visible in ground shading and texture
+filtering, with no missing sign content. These captures are conformance evidence,
+not GPU timings. No renderer-specific application code was added.

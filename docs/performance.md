@@ -546,3 +546,15 @@ single-run draw submission changed from 19.651 to 14.815 ms alongside large chan
 in unrelated world, traffic and mirror passes, so this is not a measured speed-up.
 Peak process RSS was 2,248,112 versus 2,233,700 KiB, within run variation. The
 [full-resolution visual pair](screenshots/phase14/README.md) checks the actual outline.
+
+### P14-020 Czech shop sign geometry check
+
+The four seeded fascia names use 3,180 front-facing letter quads and 31 shallow board
+boxes over all 31 shipped shops: 6,732 nominal triangles. The shared frame and dark
+trim material batches remain in place. In the matched 40-frame OPENGL33 virtual-display
+square view, [before](performance-data/p14-shop-sign-gl33-before.json) and
+[after](performance-data/p14-shop-sign-gl33-after.json) report 1,198 draw submissions
+each and 1,353,628 versus 1,356,390 triangles (+2,762 visible in this view). The
+paired hidden Radeon [images](screenshots/phase14/README.md) confirm that the added
+geometry appears on the intended shop fascia. These counts describe a visual addition,
+not a speed improvement; virtual-display wall time is not a Radeon performance measure.

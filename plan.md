@@ -1644,6 +1644,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   town-house view retains 632.333 mean main-view draws and falls from 661,112 to 660,944
   triangles because its seven shuttered windows replace larger surrounds; paired JSON
   and images are in `docs/performance-data/` and `docs/screenshots/phase14/`.
+  The 31 shops now receive one of four Czech names on a shallow pale fascia board.
+  Letter and board geometry adds 6,732 nominal full-map triangles in existing material
+  batches; a matched OPENGL33 square view retains 1,198 draws and adds 2,762 visible
+  triangles. Hidden Radeon before/after and close views plus four virtual-renderer
+  checks are in `docs/screenshots/phase14/` and `docs/renderer-conformance.md`.
   Wider facade and public-space variety remain open.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.

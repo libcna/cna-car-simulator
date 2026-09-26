@@ -5,8 +5,10 @@
 #include "Microsoft/Xna/Framework/Matrix.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace CarSim::Render
@@ -293,6 +295,54 @@ namespace CarSim::Render
             trim.Append(panel, basis);
             dark.Append(grooves, basis);
             metal.Append(fittings, basis);
+        }
+
+        /// A small block-letter alphabet for the fascia of the existing shop mesh.
+        std::array<unsigned char, 7> ShopLetter(const char ch)
+        {
+            switch (ch) {
+                case 'A': return {14, 17, 17, 31, 17, 17, 17};
+                case 'D': return {30, 17, 17, 17, 17, 17, 30};
+                case 'E': return {31, 16, 16, 30, 16, 16, 31};
+                case 'H': return {17, 17, 17, 31, 17, 17, 17};
+                case 'I': return {31, 4, 4, 4, 4, 4, 31};
+                case 'K': return {17, 18, 20, 24, 20, 18, 17};
+                case 'L': return {16, 16, 16, 16, 16, 16, 31};
+                case 'N': return {17, 25, 21, 19, 17, 17, 17};
+                case 'O': return {14, 17, 17, 17, 17, 17, 14};
+                case 'P': return {30, 17, 17, 30, 16, 16, 16};
+                case 'R': return {30, 17, 17, 30, 20, 18, 17};
+                case 'T': return {31, 4, 4, 4, 4, 4, 4};
+                case 'V': return {17, 17, 17, 17, 17, 10, 4};
+                case 'Y': return {17, 17, 10, 4, 4, 4, 4};
+                default: return {};
+            }
+        }
+
+        void ShopSign(MeshData& frames, MeshData& dark, const unsigned seed, const float hd)
+        {
+            constexpr std::array<std::string_view, 4> names = {"POTRAVINY", "ELEKTRO", "OPRAVY", "HODINY"};
+            const std::string_view name = names[seed % names.size()];
+            constexpr float pixel = 0.043f;
+            const float width = (static_cast<float>(name.size() * 6 - 1)) * pixel;
+            const float left = -width * 0.5f;
+            // A shallow pale board makes the lettering legible in shade without creating
+            // another material batch or covering the full-length dark fascia.
+            Box(frames, Vector3(left - 0.17f, 2.81f, hd + 0.108f),
+                Vector3(-left + 0.17f, 3.18f, hd + 0.145f), 1.0f);
+            const float z = hd + 0.153f;
+            for (std::size_t letter = 0; letter < name.size(); ++letter) {
+                const auto rows = ShopLetter(name[letter]);
+                for (int row = 0; row < 7; ++row) {
+                    for (int col = 0; col < 5; ++col) {
+                        if ((rows[static_cast<std::size_t>(row)] & (1u << (4 - col))) == 0u) continue;
+                        const float x = left + (static_cast<float>(letter) * 6.0f + static_cast<float>(col)) * pixel;
+                        const float top = 3.14f - static_cast<float>(row) * pixel;
+                        Quad(dark, Vector3(x, top - pixel, z), Vector3(x + pixel, top - pixel, z),
+                             Vector3(x + pixel, top, z), Vector3(x, top, z), Vector3(0, 0, 1));
+                    }
+                }
+            }
         }
 
         void Chimney(MeshData& trim, MeshData& frames, MeshData& dark, const Vector3& base, const float size, const float height)
@@ -734,6 +784,7 @@ namespace CarSim::Render
                             Vector3(hw - 0.36f, 3.19f, hd + 0.105f), 1.0f);
                         Box(frames, Vector3(-hw + 0.31f, 3.19f, hd + 0.025f),
                             Vector3(hw - 0.31f, 3.27f, hd + 0.145f), 1.0f);
+                        ShopSign(frames, dark, seed, hd);
                         if (seed % 2u == 0u) {
                             Box(concrete, Vector3(-hw + 0.31f, 2.69f, hd + 0.08f),
                                 Vector3(hw - 0.31f, 2.80f, hd + 0.78f), 0.5f);
