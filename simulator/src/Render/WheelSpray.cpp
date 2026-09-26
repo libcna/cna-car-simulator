@@ -1,6 +1,7 @@
 #include "CarSim/Render/WheelSpray.hpp"
 
 #include "CarSim/Render/Image.hpp"
+#include "CarSim/Render/GpuMesh.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
@@ -177,6 +178,7 @@ namespace CarSim::Render
             passes[i]->Apply();
             device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, static_cast<int>(verts.size()), 0,
                                          static_cast<int>(verts.size()) / 3);
+            GpuMesh::RecordSubmission(static_cast<int>(verts.size()) / 3);
         }
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);

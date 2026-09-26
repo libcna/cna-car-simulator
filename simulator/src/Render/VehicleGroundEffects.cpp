@@ -3,6 +3,7 @@
 #include "CarSim/Render/VehicleRenderer.hpp"
 
 #include "CarSim/Render/ShadowGeometry.hpp"
+#include "CarSim/Render/GpuMesh.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
@@ -171,6 +172,7 @@ namespace CarSim::Render
             for (int i = 0; i < passes.getCountProperty(); ++i) {
                 passes[i]->Apply();
                 device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, contactCount + hullCount, first, count / 3);
+                GpuMesh::RecordSubmission(count / 3);
             }
             ++drawCalls_;
         };
@@ -277,6 +279,7 @@ namespace CarSim::Render
         for (int i = 0; i < passes.getCountProperty(); ++i) {
             passes[i]->Apply();
             device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, static_cast<int>(verts.size()), 0, static_cast<int>(verts.size()) / 3);
+            GpuMesh::RecordSubmission(static_cast<int>(verts.size()) / 3);
         }
         ++drawCalls_;
         e.setDiffuseColorProperty(Vector3(0.0f, 0.0f, 0.0f));

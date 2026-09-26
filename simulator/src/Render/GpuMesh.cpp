@@ -33,6 +33,8 @@ namespace CarSim::Render
 
     namespace
     {
+        thread_local GpuMesh::SubmissionTotals submissionTotals;
+
         template <typename TVertex>
         std::unique_ptr<VertexBuffer> Upload(GraphicsDevice& device, const VertexDeclaration& declaration,
                                              const std::vector<TVertex>& data)
@@ -128,5 +130,16 @@ namespace CarSim::Render
         device.SetVertexBuffer(vertices_.get());
         device.setIndicesProperty(indices_.get());
         device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, vertexCount_, 0, primitiveCount_);
+        RecordSubmission(primitiveCount_);
     }
+
+    void GpuMesh::ResetSubmissions() { submissionTotals = {}; }
+
+    void GpuMesh::RecordSubmission(const int triangles)
+    {
+        ++submissionTotals.draws;
+        submissionTotals.triangles += triangles;
+    }
+
+    GpuMesh::SubmissionTotals GpuMesh::Submissions() { return submissionTotals; }
 }

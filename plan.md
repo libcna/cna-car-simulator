@@ -2007,6 +2007,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   speed-up claim. Main-view submissions/triangles remained 1129/1.847 M and RSS varied
   within run noise. All four renderers and the XNA boundary passed afterward. P14-051 stays
   open for a stable matched total-submission comparison and any further dominant cost.
+  Project-owned indexed 3D draws now have a per-frame submission counter at their actual
+  draw sites, with a separate mirror-pass subtotal in benchmark JSON. The legacy main-view
+  counters are unchanged. A hidden Radeon 120-frame rainy-night check reports 1,766.33
+  3D draws / 3.635 M triangles with visible mirrors, including 552.74 draws / 1.232 M
+  triangles in mirror passes, versus 1,213.59 / 2.403 M with mirrors off and zero mirror
+  submissions. A matched instrumentation before/after frame is byte-identical; XNA-only
+  passes. This establishes the accounting needed for the cull A/B but does not yet close
+  the paired performance comparison.
 - [~] `P14-052` Recheck all available CNA renderers after visual/performance changes through
   the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
   renderer-specific application branch. On the real Radeon 780M desktop, OPENGLES3 and the
@@ -2041,6 +2049,11 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   paired low shrubs at 695 draws / 883,067 triangles in fixed snow. The virtual GLES3
   tiled ground pattern remains the previously isolated llvmpipe issue, while the hidden
   Radeon GLES3 snow frame is smooth; the XNA-only check passes.
+  The later indexed-3D submission counter completed a fixed rainy-night cockpit
+  check on all four virtual renderers at 1,303.5 draws / 2.95046 M triangles,
+  including 357.5 draws / 1.01299 M triangles in mirror passes. A paired hidden
+  Radeon frame is byte-identical before/after instrumentation; the public-XNA
+  checker passes. This is a measurement change, not a visual optimisation.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

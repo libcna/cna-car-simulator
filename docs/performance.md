@@ -493,6 +493,29 @@ The [before JSON](performance-data/p14-mirror-paired-800-all.json),
 All four public-XNA renderer paths were then built and their cockpit captures inspected;
 see [renderer conformance](renderer-conformance.md).
 
+### P14-051 indexed 3D submission accounting
+
+The benchmark now also counts every project-owned indexed 3D submission at its draw
+site, including the direct rain, spray, smoke, headlamp and shadow paths, and records
+the mirror interval separately. These new `mesh3dAvg` and `mirrorMesh3dAvg` JSON
+fields leave the older main-view `drawCallsAvg` and `trianglesAvg` definitions intact.
+They exclude SpriteBatch UI work. In a 120-frame (30 warm-up, 90 measured) hidden
+Radeon rainy-night cockpit check at the current wing-cull HEAD:
+
+| Mirror mode | All indexed 3D draws / triangles | Mirror indexed 3D draws / triangles | Mirror pass |
+| --- | ---: | ---: | ---: |
+| [All](performance-data/p14-mesh3d-current-all.json) | 1,766.33 / 3,635,155 | 552.74 / 1,232,076 | 4.645 ms |
+| [None](performance-data/p14-mesh3d-current-none.json) | 1,213.59 / 2,403,079 | 0 / 0 | 0 ms |
+
+The 552.74 draw / 1.232 M triangle difference agrees with the directly isolated
+mirror subtotal in this fixed scene. The [all-mirror](screenshots/phase14/mesh3d-current-all.png)
+and [no-mirror](screenshots/phase14/mesh3d-current-none.png) frames fill the offscreen
+800 × 480 surface. A matched Radeon rainy-night frame before and after adding only
+this counter has the same SHA-256
+`146b13ffdb8f9ac8eb0ac116a0b6a2cc0475c631c735d87061855a2a0db3199d`.
+These are accounting and validation data, not an optimisation result. The cull A/B
+with this shared definition is still required for P14-051.
+
 ### P14-020 shutter facade geometry check
 
 A fixed hidden Radeon 800 × 480 view of a selected Lipová house was run before and after

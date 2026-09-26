@@ -591,3 +591,19 @@ isolated llvmpipe terrain tiling recurs. The paired hidden Radeon GLES3
 show the intended new neighbour. Two map placement tests and the public-XNA check
 pass (233 files, 544 known types); no backend-specific application path or physical
 desktop window was used. P14-052 remains open for the final renderer pass.
+
+### Phase 14 3D submission counter checkpoint (2026-09-26)
+
+After adding project-level indexed 3D draw accounting, a fixed 40-frame rainy-night
+cockpit scene completed on isolated Xvfb `:120` with
+[OPENGL33](screenshots/renderers/phase14-mesh3d-counter-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-mesh3d-counter-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-mesh3d-counter-software.png), and
+[Vulkan](screenshots/renderers/phase14-mesh3d-counter-vulkan.png). All four report
+1,303.5 indexed 3D draws / 2.95046 M triangles per measured frame, including
+357.5 draws / 1.01299 M triangles in mirror passes. OPENGL33 and OPENGLES3
+differ by at most seven RGB levels; relative to OPENGL33, SOFTWARE and Vulkan
+have 7,400 and 7,926 pixels above 12/255, matching their established gauge
+shading differences. Road, mirrors, gauges and radio remain present. A separate
+hidden Radeon before/after screenshot is byte-identical; 13 focused tests and
+the public-XNA check pass. This only adds counters, not a rendering change.

@@ -40,6 +40,12 @@ namespace CarSim::Render
     class GpuMesh
     {
     public:
+        struct SubmissionTotals
+        {
+            long long draws = 0;
+            long long triangles = 0;
+        };
+
         GpuMesh() = default;
         GpuMesh(const GpuMesh&) = delete;
         GpuMesh& operator=(const GpuMesh&) = delete;
@@ -51,6 +57,12 @@ namespace CarSim::Render
 
         /// Binds the buffers and issues the indexed draw. The caller applies the effect pass.
         void Draw(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device) const;
+
+        /// Per-render-thread 3D submission accounting for project benchmarks. Direct indexed
+        /// draws call RecordSubmission too; SpriteBatch UI work is intentionally separate.
+        static void ResetSubmissions();
+        static void RecordSubmission(int triangles);
+        [[nodiscard]] static SubmissionTotals Submissions();
 
         [[nodiscard]] int VertexCount() const { return vertexCount_; }
         [[nodiscard]] int PrimitiveCount() const { return primitiveCount_; }

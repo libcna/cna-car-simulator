@@ -1,6 +1,7 @@
 #include "CarSim/Render/WindscreenRain.hpp"
 
 #include "CarSim/Render/Image.hpp"
+#include "CarSim/Render/GpuMesh.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthStencilState.hpp"
@@ -254,6 +255,7 @@ namespace CarSim::Render
             for (int i = 0; i < passes.getCountProperty(); ++i) {
                 passes[i]->Apply();
                 device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, first, count, first, count / 3);
+                GpuMesh::RecordSubmission(count / 3);
             }
         };
         draw(white_.get(), 0, static_cast<int>(bladeVerts));

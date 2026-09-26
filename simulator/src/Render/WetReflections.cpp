@@ -1,6 +1,7 @@
 #include "CarSim/Render/WetReflections.hpp"
 
 #include "CarSim/Render/Image.hpp"
+#include "CarSim/Render/GpuMesh.hpp"
 
 #include "Microsoft/Xna/Framework/Graphics/BlendState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/CullMode.hpp"
@@ -125,6 +126,7 @@ namespace CarSim::Render
         for (int i = 0; i < passes.getCountProperty(); ++i) {
             passes[i]->Apply();
             device.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, static_cast<int>(verts.size()), 0, static_cast<int>(verts.size()) / 3);
+            GpuMesh::RecordSubmission(static_cast<int>(verts.size()) / 3);
         }
         device.setBlendStateProperty(BlendState::Opaque);
         device.setDepthStencilStateProperty(DepthStencilState::Default);

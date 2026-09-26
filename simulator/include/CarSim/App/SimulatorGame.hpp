@@ -230,6 +230,8 @@ namespace CarSim::App
             double drawSum = 0.0, drawMax = 0.0;
             double wallSum = 0.0;
             long long drawCalls = 0, triangles = 0;
+            long long mesh3dDraws = 0, mesh3dTriangles = 0;
+            long long mirror3dDraws = 0, mirror3dTriangles = 0;
             long long terrainChunks = 0, roadBatches = 0, objectBatches = 0, treeBatches = 0;
             long long trafficCount = 0, trafficDrawn = 0, trafficLod0 = 0, trafficLod1 = 0, trafficLod2 = 0, parkedDrawn = 0;
             long long pedestrianCount = 0, pedestrianDrawn = 0, pedestrianDrawCalls = 0, pedestrianTriangles = 0;

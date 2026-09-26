@@ -4,6 +4,7 @@
 
 #include "CarSim/Core/Version.hpp"
 #include "CarSim/Render/Image.hpp"
+#include "CarSim/Render/GpuMesh.hpp"
 #include "CarSim/Render/Screenshot.hpp"
 #include "CarSim/Sim/Units.hpp"
 
@@ -1038,6 +1039,7 @@ namespace CarSim::App
     void SimulatorGame::Draw(const GameTime& gameTime)
     {
         updatesSinceDraw_ = 0;
+        Render::GpuMesh::ResetSubmissions();
         const auto drawStart = std::chrono::steady_clock::now();
         auto& device = getGraphicsDeviceProperty();
         const auto& viewport = device.getViewportProperty();
@@ -1076,6 +1078,7 @@ namespace CarSim::App
         cluster_->Render(device, *spriteBatch_, state, elapsedSeconds_);
         vehicleRenderer_->SetClusterTexture(cluster_->Texture());
         lap(kPassCluster);
+        const auto meshAfterCluster = Render::GpuMesh::Submissions();
         // Everything a mirror shows, into the target `m` has bound.
         const auto drawMirrorScene = [&](Render::MirrorView& m, const float distance) {
             sky_->Draw(device, m.View(), m.Projection(), m.Pose().position, true);
@@ -1140,6 +1143,7 @@ namespace CarSim::App
             vehicleRenderer_->SetWingMirrorTextures(nullptr, nullptr);
         }
         lap(kPassMirror);
+        const auto meshAfterMirror = Render::GpuMesh::Submissions();
 
         device.Clear(ClearOptions::Target | ClearOptions::DepthBuffer | ClearOptions::Stencil, Color(120, 160, 210, 255), 1.0f, 0);
 
@@ -1222,6 +1226,7 @@ namespace CarSim::App
             DrawHelp();
         }
         lap(kPassHud);
+        const auto meshAfterFrame = Render::GpuMesh::Submissions();
 
         Game::Draw(gameTime);
         const auto drawEnd = std::chrono::steady_clock::now();
@@ -1242,6 +1247,10 @@ namespace CarSim::App
                 bench_.updateMax = std::max(bench_.updateMax, static_cast<double>(frameMs_));
                 bench_.drawSum += drawMs_;
                 bench_.drawMax = std::max(bench_.drawMax, static_cast<double>(drawMs_));
+                bench_.mesh3dDraws += meshAfterFrame.draws;
+                bench_.mesh3dTriangles += meshAfterFrame.triangles;
+                bench_.mirror3dDraws += meshAfterMirror.draws - meshAfterCluster.draws;
+                bench_.mirror3dTriangles += meshAfterMirror.triangles - meshAfterCluster.triangles;
                 if (lastFrameEnd_.time_since_epoch().count() != 0) {
                     const double gap = std::chrono::duration<double, std::milli>(drawEnd - lastFrameEnd_).count();
                     bench_.wallSum += gap;
@@ -1336,6 +1345,10 @@ namespace CarSim::App
                       << wallWorst << " ms\n"
                       << "  scene   avg " << static_cast<double>(bench_.drawCalls) / n << " draw calls, "
                       << static_cast<double>(bench_.triangles) / n / 1000.0 << "k triangles\n"
+                      << "  3D mesh avg " << static_cast<double>(bench_.mesh3dDraws) / n << " draws, "
+                      << static_cast<double>(bench_.mesh3dTriangles) / n / 1000.0 << "k triangles"
+                      << " (mirror " << static_cast<double>(bench_.mirror3dDraws) / n << " draws, "
+                      << static_cast<double>(bench_.mirror3dTriangles) / n / 1000.0 << "k triangles)\n"
                       << "  passes  avg ms:";
             for (int i = 0; i < kPassCount; ++i) std::cout << " " << passNames[i] << " " << bench_.passSum[i] / n;
             std::cout << "\n  visible avg: terrain chunks " << static_cast<double>(bench_.terrainChunks) / n << ", road batches "
@@ -1363,7 +1376,12 @@ namespace CarSim::App
                          << bench_.collisionSum / n << ", \"traffic\": " << bench_.trafficMsSum / n << ", \"audio\": "
                          << bench_.audioSum / n << "}"
                          << ",\n  \"drawCallsAvg\": " << static_cast<double>(bench_.drawCalls) / n
-                         << ",\n  \"trianglesAvg\": " << static_cast<double>(bench_.triangles) / n << ",\n  \"passesMsAvg\": {";
+                         << ",\n  \"trianglesAvg\": " << static_cast<double>(bench_.triangles) / n
+                         << ",\n  \"mesh3dAvg\": {\"draws\": " << static_cast<double>(bench_.mesh3dDraws) / n
+                         << ", \"triangles\": " << static_cast<double>(bench_.mesh3dTriangles) / n << "}"
+                         << ",\n  \"mirrorMesh3dAvg\": {\"draws\": " << static_cast<double>(bench_.mirror3dDraws) / n
+                         << ", \"triangles\": " << static_cast<double>(bench_.mirror3dTriangles) / n << "}"
+                         << ",\n  \"passesMsAvg\": {";
                     for (int i = 0; i < kPassCount; ++i) json << (i ? ", " : "") << "\"" << passNames[i] << "\": " << bench_.passSum[i] / n;
                     json << "},\n  \"visibleAvg\": {\"terrainChunks\": " << static_cast<double>(bench_.terrainChunks) / n << ", \"roadBatches\": "
                          << static_cast<double>(bench_.roadBatches) / n << ", \"objectBatches\": " << static_cast<double>(bench_.objectBatches) / n
