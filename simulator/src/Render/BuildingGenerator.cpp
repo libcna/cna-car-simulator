@@ -749,6 +749,7 @@ namespace CarSim::Render
         } else {
             const unsigned seed = b.spec->seed;
             const bool hipped = type == "hall" || type == "shop" || (type == "house" && seed % 5u == 0u);
+            const bool cottageStucco = type == "cottage" && seed % 4u == 0u && seed % 3u != 1u;
             const float ridge = b.roofHeight;
             Roof(roof, walls, frames, metal, hw, hd, h, ridge, hipped, 0.45f, 0.12f, -drop + 0.3f);
             Chimney(trim, frames, dark, Vector3(hw * 0.4f, h + ridge * 0.55f, -hd * 0.3f), 0.5f, ridge * 0.6f + 0.8f);
@@ -796,7 +797,7 @@ namespace CarSim::Render
                         }
                     } else {
                         WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f,
-                                  front, true, doorSlot, dressed && !shutterFront, shutterFront);
+                                  front, true, doorSlot, (dressed && !shutterFront) || cottageStucco, shutterFront);
                     }
                     WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, back, true);
                     if (hw * 2.0f > 6.0f) {
@@ -812,6 +813,18 @@ namespace CarSim::Render
                 Box(concrete, Vector3(doorX - 0.8f, -drop, hd), Vector3(doorX + 0.8f, 0.03f, hd + 0.9f), 0.5f);
                 if (type != "shop" || seed % 2u != 0u) {
                     Box(frames, Vector3(doorX - 0.85f, 2.27f, hd), Vector3(doorX + 0.85f, 2.35f, hd + 0.75f), 1.0f);
+                }
+                if (cottageStucco) {
+                    // Limewashed corner strips and a shallow eaves frieze set selected
+                    // village cottages apart from the plain plaster fronts. These sit on
+                    // the existing facade, clear of the door and windows, and add no footprint.
+                    for (const float side : {-1.0f, 1.0f}) {
+                        const float x = side * (hw - 0.18f);
+                        Box(frames, Vector3(x - 0.18f, 0.45f, hd + 0.015f),
+                            Vector3(x + 0.18f, h - 0.27f, hd + 0.065f), 1.0f);
+                    }
+                    Box(frames, Vector3(-hw + 0.04f, h - 0.31f, hd + 0.015f),
+                        Vector3(hw - 0.04f, h - 0.18f, hd + 0.075f), 1.0f);
                 }
                 // Cornice under the eaves and a string course between floors on town houses.
                 if (floors >= 2) {

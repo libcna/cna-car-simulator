@@ -510,6 +510,18 @@ matched close [house](screenshots/phase14/facade-shutters-house-after.png) and
 [cottage](screenshots/phase14/facade-shutters-cottage-after.png) images show the new
 silhouettes at road distance.
 
+### P14-020 limewashed cottage geometry check
+
+The deterministic stucco variant selects 41 of 221 cottages in the shipped map and
+adds surrounds to 134 front windows. Each surround contributes four boxes; the two
+corner strips and eaves frieze contribute three more boxes per selected cottage.
+At 12 triangles per box this is 7,908 nominal full-map triangles. The geometry joins
+the existing frame batch, so it introduces no new material type or draw pass. The
+fixed hidden Radeon [before](screenshots/phase14/cottage-stucco-before.png) and
+[after](screenshots/phase14/cottage-stucco-after.png) road-distance frames change
+3,101 pixels above a 12/255 channel threshold. This is a geometry count, not a
+measured FPS improvement claim.
+
 ### P14-021 road-verge and winter cover check
 
 At the fixed hidden Radeon 800 × 480 forest road view, clean pushed HEAD and the new

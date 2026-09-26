@@ -252,3 +252,15 @@ Radeon forest-road view, [clear before](verge-edge-clear-before.png) /
 outer ground continuous. Fixed-scene counts are 450 draws / 529,749 triangles in clear
 weather and 622 / 440,919 in snow, unchanged from baseline. Forest-floor and wider
 road-surface variety remain open under P14-021.
+
+## Limewashed cottage frontage
+
+A seeded group of village cottages now has pale window surrounds, corner strips and
+an eaves frieze. The fixed hidden Radeon 800 × 480 [before](cottage-stucco-before.png) /
+[after](cottage-stucco-after.png) pair uses `--view -659 5 78 0 -3`, clear 13:00 and
+two lockstep frames. It changes 3,101 pixels above 12/255, concentrated on the cottage
+facade. Shutters remain a separate variant; windows, doors, roofs, footprint and
+collision geometry retain their positions. [OpenGL33](cottage-stucco-opengl33.png),
+[GLES3](cottage-stucco-opengles3-xvfb.png), [software](cottage-stucco-software.png),
+and [Vulkan](cottage-stucco-vulkan.png) virtual-display frames all show the same
+frontage. Broader town frontage and square layout work remain under P14-020.

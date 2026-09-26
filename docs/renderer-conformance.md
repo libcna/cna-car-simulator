@@ -527,3 +527,16 @@ identical between that old-source frame and the new-source two-frame capture; al
 pixels changing above 12/255 lie in the road/verge region. This discrepancy predates
 the variable verge code. It remains documented under P14-052 rather than being
 misattributed to this visual change. No renderer-specific application code was added.
+
+### Phase 14 limewashed cottage checkpoint (2026-09-26)
+
+The same 800 × 480 clear cottage-front scene completed on isolated Xvfb `:115` with
+[OPENGL33](screenshots/phase14/cottage-stucco-opengl33.png),
+[OPENGLES3](screenshots/phase14/cottage-stucco-opengles3-xvfb.png),
+[SOFTWARE](screenshots/phase14/cottage-stucco-software.png), and
+[Vulkan](screenshots/phase14/cottage-stucco-vulkan.png). All four show the new window
+surrounds, corner strips and eaves frieze without covering the original openings.
+The GLES3 llvmpipe road/ground pattern noted above is still present; the hidden Radeon
+[after frame](screenshots/phase14/cottage-stucco-after.png) has no such pattern.
+`scripts/check_xna_only.py` passes (233 files, 544 known XNA 4.0 types). No backend
+specific code was added and no physical display was used.

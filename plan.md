@@ -1650,6 +1650,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   triangles. Hidden Radeon before/after and close views plus four virtual-renderer
   checks are in `docs/screenshots/phase14/` and `docs/renderer-conformance.md`.
   Wider facade and public-space variety remain open.
+  A separate limewashed cottage-front variant now gives 41 of 221 village cottages
+  pale corner strips, an eaves frieze and window surrounds, kept distinct from the
+  shutter variant. A matched hidden Radeon road-distance pair changes 3,101 pixels
+  above 12/255; 134 front windows account for 7,908 nominal added triangles across
+  the map in existing material batches. Four virtual renderer captures and the XNA
+  boundary check pass. Wider town frontage and square layout work remain open.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic
