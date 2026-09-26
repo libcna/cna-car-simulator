@@ -741,3 +741,19 @@ byte-identical. Hidden Radeon clear and full-snow pairs confirm the hardware
 appearance, and the public-XNA boundary check passes. The change only adjusts
 existing sett vertex colours, so the paving draw and triangle counts are unchanged.
 P14-052 remains open for the final renderer pass.
+
+### Phase 14 final four-renderer count checkpoint (2026-09-26)
+
+After the square layout change, the same 800 × 480 clear-square scene ran for
+40 lockstep frames on each isolated virtual renderer with mirrors disabled.
+The final ten frames report exactly 620 main-view scene submissions and 787,905
+triangles, plus 690 indexed 3D submissions and 879,276.7 mean triangles on
+each of [OPENGLES3](performance-data/p14-final-renderer-opengles3.json),
+[OPENGL33](performance-data/p14-final-renderer-opengl33.json),
+[SOFTWARE](performance-data/p14-final-renderer-software.json), and
+[Vulkan](performance-data/p14-final-renderer-vulkan.json). The current square
+screenshots linked above were inspected on all four; the two OpenGL screenshots
+are byte-identical. The public-XNA checker passes (233 files scanned, 544 known
+public types). This completes P14-052 for the current source HEAD. The timing
+values in these Xvfb records represent different software/display paths and
+are not a Radeon GPU comparison.

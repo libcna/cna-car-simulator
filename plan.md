@@ -2093,7 +2093,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   mirror resolution/rate/distance reductions had little measured benefit or a visible
   quality trade-off, so no wider batching or snow-memory change is justified in Phase 14.
   P14-051 is complete with this narrow measured optimisation and its limits recorded.
-- [~] `P14-052` Recheck all available CNA renderers after visual/performance changes through
+- [x] `P14-052` Recheck all available CNA renderers after visual/performance changes through
   the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
   renderer-specific application branch. On the real Radeon 780M desktop, OPENGLES3 and the
   now-available Vulkan RADV path both built and rendered the same fixed town scene with
@@ -2153,7 +2153,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   retained the prior draw counts and added only 720 triangles for the three
   control rings. Seven hidden Radeon weather/time captures and a live driving
   frame with mirrors pass; 13 focused tests and the public-XNA check pass.
-  P14-052 remains open for the final pass after later Phase 14 changes.
+  The final same-HEAD, 800 × 480, 40-frame clear-square matrix ran on all four
+  isolated virtual displays after the P14-020 paving pass. Each reported exactly
+  620 main-view scene submissions / 787,905 triangles and 690 indexed 3D
+  submissions / 879,276.7 mean triangles over ten measured frames; mirror counts
+  were zero for the common free-camera view. Current square screenshots were
+  inspected on all four, OPENGL33 and OPENGLES3 were byte-identical, and the
+  public-XNA checker passed. The four JSON records and screenshot links are in
+  `docs/performance-data/` and `docs/renderer-conformance.md`.
 
 #### P4 — final audit
 
