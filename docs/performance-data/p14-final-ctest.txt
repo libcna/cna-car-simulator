@@ -1,0 +1,24 @@
+Test project /rv/data/development/github.com/libcna/cna-car-simulator/build/opengles3
+    Start 1: carsim_unit_tests
+1/6 Test #1: carsim_unit_tests ................   Passed  130.60 sec
+    Start 2: xna_only_api_check
+2/6 Test #2: xna_only_api_check ...............   Passed    1.30 sec
+    Start 3: simulator_smoke
+3/6 Test #3: simulator_smoke ..................   Passed   13.66 sec
+    Start 4: map_validate_lipova
+4/6 Test #4: map_validate_lipova ..............   Passed    2.27 sec
+    Start 5: map_regeneration_check
+5/6 Test #5: map_regeneration_check ...........   Passed    0.20 sec
+    Start 6: asset_manifest_check
+6/6 Test #6: asset_manifest_check .............   Passed    0.11 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Label Time Summary:
+content    =   2.47 sec*proc (2 tests)
+display    =  13.66 sec*proc (1 test)
+smoke      =  13.66 sec*proc (1 test)
+static     =   1.41 sec*proc (2 tests)
+unit       = 130.60 sec*proc (1 test)
+
+Total Test time (real) = 148.14 sec

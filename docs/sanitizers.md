@@ -14,9 +14,9 @@ cmake --build build/asan-ubsan --target carsim_core_tests -j2
 ctest --preset asan-ubsan -R carsim_core_sanitizer_tests --output-on-failure
 ```
 
-If a managed shell makes the shared compiler cache read-only, set
-`CCACHE_DIR=/tmp/carsim-ccache` for configure and build. A normal developer checkout does not
-need that override.
+Use the shared cache at `CCACHE_DIR=/rv/cnaccache` with `CCACHE_BASEDIR=/rv` for
+configure and build. If a restricted shell cannot write to it, run the build
+with the required filesystem permission rather than creating another cache.
 
 The core-only target links no graphics/audio device library. It includes vehicle, boost,
 helicopter, map, collision, walking, traffic, overtaking and the simulated 30-minute traffic
@@ -25,8 +25,8 @@ in `carsim_tests`; use the normal `opengles3` preset for the full six-registrati
 
 LeakSanitizer needs permission to inspect threads at process exit. The managed restricted
 shell used for the Phase 14 development run returned `LeakSanitizer has encountered a fatal
-error` even for two passing targeted tests. Running the same instrumented binary in the
-normal desktop process environment completed with leak detection **enabled**. Do not disable
+error` even for two passing targeted tests. Running the same instrumented binary
+outside that restricted shell completed with leak detection **enabled**. Do not disable
 leak checks to turn that environment error into a pass.
 
 The first core run exposed a real `stack-use-after-scope`: a helicopter collision test passed

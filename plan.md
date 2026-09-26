@@ -2160,7 +2160,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   were zero for the common free-camera view. Current square screenshots were
   inspected on all four, OPENGL33 and OPENGLES3 were byte-identical, and the
   public-XNA checker passed. The four JSON records and screenshot links are in
-  `docs/performance-data/` and `docs/renderer-conformance.md`.
+  `docs/performance-data/` and `docs/renderer-conformance.md`. The later
+  P14-060 shadow fixes were rechecked on all four renderers, including a
+  completed daylight rebake with matching scene counts and screenshots;
+  the public-XNA checker still passes.
 
 #### P4 — final audit
 
@@ -2169,21 +2172,36 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   fix findings. The normal six CTest registrations pass. The project-only `asan-ubsan` preset
   passed 213 core tests in 640.35 s with leak detection, including all three long traffic
   soaks; it found a real dangling `VehicleDefinition` reference from a temporary, fixed by
-  owning an immutable definition. See `docs/sanitizers.md`. Final clean/fresh-clone and
-  broader renderer checks remain. The 2026-09-26 reconfigure/full build in the
+  owning an immutable definition. See `docs/sanitizers.md`. The final fresh-clone
+  build remains. The 2026-09-26 reconfigure/full build in the
   reused OPENGLES3 tree and all six CTest registrations passed (148.15 s);
   the smoke run used a virtual display. A 120-frame active hidden-Radeon
   rainy-night cockpit drive exposed a repeatable 172–199 ms update hitch:
   moonlight was triggering a new sun-shadow bake. Guarding on actual solar
   elevation reduced its matched maximum update to 1.352 ms, with zero screenshot
-  pixels above 12/255 changing. The separate daylight bake/swap still shows a
-  large measured hitch and remains under investigation. The from-scratch build
-  portion is reserved for P14-062's final fresh-clone audit under the shared-build
+  pixels above 12/255 changing. The separate daylight 300-frame Radeon pair
+  reduced its maximum project update from 151.145 to 35.726 ms by preparing
+  mip data on the shadow worker and submitting complete public-XNA levels
+  together; final images are pixel-identical, scene submissions and triangles
+  match, and peak RSS was 29,756 KiB higher in that pair. All four virtual
+  renderers completed the daylight bake with matching scene geometry;
+  Vulkan's software-display timing spread does not support a GPU speed-up claim.
+  The full final-source six-registration CTest rerun passed in 148.14 s,
+  including the virtual-display smoke, asset/static gates, map regeneration
+  and all core/traffic tests; its output is in `docs/performance-data/p14-final-ctest.txt`.
+  The from-scratch build portion is reserved for P14-062's final fresh-clone audit under the shared-build
   guidance in `../AGENTS.md`.
   Acceptance: command log and exceptions are explicit.
-- [ ] `P14-061` Curate before/after screenshots and update architecture, audio provenance,
-  performance, conformance, README and handoff. Acceptance: docs distinguish measured GPU
-  results from software runs and agree on accepted features.
+- [x] `P14-061` Curate before/after screenshots and update architecture, audio provenance,
+  performance, conformance, README and handoff. The Phase 14 visual index now links the
+  final square, winter, cockpit, pedestrian and shadow pairs; the README and
+  `assets/ASSETS.md` name the accepted CC0 Honda and Mini recordings and their
+  manifest provenance. `docs/audio-design.md` records the listener verdicts,
+  `docs/performance.md` separates hidden Radeon measurements from virtual
+  renderer counts and timing limits, and `docs/renderer-conformance.md` covers
+  the four final shadow checks. `docs/phase14-handoff.md` links the audit evidence
+  and explicitly defers the fresh-clone build portion of P14-060 to P14-062.
+  Acceptance: docs distinguish measured GPU results from software runs and agree on accepted features.
 - [ ] `P14-062` Commit and push logical increments; from the *last* pushed SHA make a genuinely
   fresh clone, configure, build, run all checks and representative scenes. Acceptance: clean
   working tree and exactly one advertised final SHA, audited after the final commit.

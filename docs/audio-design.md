@@ -184,7 +184,8 @@ The road/contact signal gets an additional 0.90 cabin gain before the common cab
 airflow gets 0.55. Exterior gains remain 1.0 for both. This lets the cabin retain tyre
 contact through the structure while reducing the outside air rush more strongly. A separate
 device-free integrated test compares steady 130 km/h road and airborne cases to guard this
-relationship; actual speaker balance still needs listening review.
+relationship. The integrated tyre/road, wind and cabin-switch previews passed
+listener review in the accepted Phase 14 packs linked above.
 
 ## Nearby traffic (Phase 14)
 
@@ -207,8 +208,9 @@ beside the existing engine-layer meters; normal play has no audio telemetry over
 
 The fixed 90-frame offscreen runtime with 19–20 cars and the dummy audio device reported a
 0.37 ms mean project audio update (320 × 200, OPENGLES3 llvmpipe); this is CPU mixer time, not
-a real speaker listening review. The source remains fully procedural, and the wider engine,
-weather and cabin sound goals in Phase 14 remain open.
+a real speaker listening review. The traffic layer remains procedural; its revised
+pass-by and the recorded player-engine, weather and cabin scenarios received the
+separate listener review described above.
 
 ## Helicopter rotor (Phase 14)
 
@@ -225,6 +227,7 @@ Two device-free integrated tests characterize fade-out, bounded samples, and the
 blade cadence of normal and extreme flight modes. A 90-frame offscreen flight runtime with
 the dummy audio device, 320 × 200 low graphics and 60 measured frames reported 0.332 ms
 mean project audio update. This is a mixer CPU timing, not a speaker listening assessment.
+The actual helicopter preview in the accepted mixer pack passed listener review.
 
 ## Levels
 

@@ -37,25 +37,27 @@ town and the villages around it, the countryside and a forest, meet traffic, and
 | --- | --- |
 | ![The sky reflected off wet asphalt](docs/screenshots/wetroad.jpg) | ![Headlamps and rain after dark](docs/screenshots/rainynight.jpg) |
 
-All pictures are headless captures from the development container (Xvfb, Mesa llvmpipe
-software OpenGL ES 3, no multisampling); a GPU renders the same frames with sharper texture
-filtering. Older sets are kept in `docs/screenshots/m10-baseline/` (before Phase 11) and
-`docs/screenshots/renderers/` (the same frame on three renderers).
+The overview pictures above are headless captures from the development container
+(Xvfb, Mesa llvmpipe software OpenGL ES 3, no multisampling). Newer Phase 14
+[visual comparisons](docs/screenshots/phase14/README.md) include hidden Radeon
+780M captures and four virtual-renderer checks. Older sets are kept in
+`docs/screenshots/m10-baseline/` and `docs/screenshots/renderers/`.
 
 ## Status
 
 The initial product milestone and Phases 11–13 are complete. Phase 14, which is improving the
 architecture, world, cockpit, traffic rules, audio and measured performance, is in progress.
 [`plan.md`](plan.md) is the task ledger. The newer features listed below are accepted product
-scope, including work added after the Phase 13 audit.
+scope, including work added after the Phase 13 audit. The
+[Phase 14 handoff](docs/phase14-handoff.md) links the final evidence and remaining audit.
 
 Developer memory checks use the project-only `asan-ubsan` preset described in
 [`docs/sanitizers.md`](docs/sanitizers.md).
 
-The curated pictures below and the older Phase 13 performance tables were captured with Mesa
-llvmpipe software rendering. Phase 14 has now measured eight deterministic scenes on the
-Debian 13 desktop's AMD Radeon 780M; the GPU numbers and the desktop window-pacing caveat are
-in [`docs/performance.md`](docs/performance.md).
+The overview pictures above and the older Phase 13 performance tables used Mesa
+llvmpipe software rendering. Phase 14 measured eight deterministic scenes on an
+AMD Radeon 780M using a hidden offscreen surface. The GPU measurements, their
+limits and the mirror A/B result are in [`docs/performance.md`](docs/performance.md).
 
 What you get today:
 
@@ -91,7 +93,8 @@ What you get today:
   windscreen and wipers.
 - Physical collisions with buildings, street furniture, trees and traffic cars; hard knocks dent
   the body where it was hit and break the lamps (`Backspace` puts the car back on the road repaired).
-- Procedural engine audio driven by RPM and load, starter, tyre and wind noise, indicators,
+- Listener-selected CC0 Honda Civic startup/idle and Mini Cooper S load recordings blended
+  with RPM-driven engine synthesis; tyre and wind noise, indicators,
   horn, gear and impact sounds; tyre tread and scrub respond to rough ground, snow and slip,
   nearby traffic contributes spatially placed engine sound, and helicopter mode has its own
   rotor and turbine layer.
@@ -345,6 +348,14 @@ and input). The executable is a thin `Game` subclass.
 Simulation runs in fixed 120 Hz sub-steps inside `Vehicle::Update`; traffic, collision and
 audio mixing run at the frame rate. Coordinates are right-handed, +Y up, north = -Z.
 
+Phase 14 kept the existing `Vehicle`, `TrafficSystem`, `WorldRenderer` and
+`SimulatorGame` entry points while moving coherent responsibilities into their
+own implementation files: vehicle flight and wheel updates, traffic spawning,
+junctions, spatial queries and overtaking, world geometry and scenery, and game
+overlays. The engine recording and rotor DSP live in `carsim_core`; the XNA
+audio stream stays in `carsim_render`. The resulting ownership is reflected in
+`simulator/CMakeLists.txt` and keeps simulation tests independent of a renderer.
+
 ### API boundary
 
 Application code uses CNA only through the XNA 4.0 surface (`Microsoft::Xna::Framework::*`)
@@ -429,17 +440,17 @@ Screenshots were reviewed for every rendering change; the headless workflow is
 ## Performance
 
 The Phase 13 figures below are from Mesa llvmpipe **software** rendering, four threads. In the
-new Phase 14 AMD Radeon 780M run, clear-town CPU update averaged 1.74–1.80 ms and project draw
+Phase 14 AMD Radeon 780M run, clear-town CPU update averaged 1.74–1.80 ms and project draw
 submission 10.5 ms exterior / 16.3 ms cockpit at 1280 × 720. The mirror alone submitted for
-5.3 ms in the cockpit. The older cockpit rear-view mirror optimization capped its draw distance
-at 300 m and reduced the software measurement from 58.9 ms to
-pass into a 200-pixel strip -- and capping its draw distance at 300 m took it from 58.9 ms to
-45.5 ms. Three graphics tiers (`--quality low|medium|high`, `settings.graphicsQuality`) trade
+5.3 ms in the cockpit. The targeted Phase 14 wing-mirror cull removed about 162 indexed 3D
+draws and 388,000 triangles per frame in the matched rainy-night scene, with an identical
+image; the timing spread does not establish a whole-frame speed-up. Three graphics tiers
+(`--quality low|medium|high`, `settings.graphicsQuality`) trade
 draw distance, vegetation distance and mirror rate; `high` is the default and is what every
 picture and table was taken at. Per-scene tables, the before-and-after comparisons and the
 commands that reproduce them are in [`docs/performance.md`](docs/performance.md);
 `--benchmark-json` writes them as JSON. The same scenes were built and compared on the
-OPENGLES3, OPENGL33 and SOFTWARE renderers
+OPENGLES3, OPENGL33, SOFTWARE and Vulkan renderers
 ([`docs/renderer-conformance.md`](docs/renderer-conformance.md)), and
 [`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) describes reproduction
 on a real PC with a GPU.
@@ -450,9 +461,10 @@ Source code, documentation and project-authored data: MIT (see [`LICENSE`](LICEN
 licensed under the Microsoft Public License (Ms-PL); Sharp Runtime under its own licence; both
 are separate dependencies that are not vendored here.
 
-All textures, meshes, sounds, plate and sign faces are generated by project code. The only
-external asset is the **D-DIN** font family (Datto Inc., SIL Open Font License 1.1), used for
-the HUD, the instrument cluster and plate characters; its licence text, checksums and
-attribution are in [`assets/ASSETS.md`](assets/ASSETS.md) and `assets/manifest.json`, checked
-by `scripts/check_assets.py`. Sources that were evaluated and rejected (no verifiable licence,
-unsuitable content or unreachable hosts) are listed there as well.
+Textures, meshes, plate and sign faces, and most sound layers are generated by project code.
+The external assets are the **D-DIN** font family (SIL Open Font License 1.1) and two
+listener-selected **CC0** car-engine recordings from a 2012 Honda Civic and a Mini Cooper S.
+Their sources, hashes, conversion steps and licences are in
+[`assets/ASSETS.md`](assets/ASSETS.md) and `assets/manifest.json`, checked by
+`scripts/check_assets.py`. Reviewed recordings that were rejected are described in the
+[audio source review](docs/audio-previews/phase14-recorded-source-review.md).
