@@ -614,3 +614,17 @@ on isolated Xvfb `:121`. Each still reports 1,303.5 indexed 3D draws / 2.95046 M
 triangles, including 357.5 / 1.01299 M in mirrors. Each backend's screenshot is
 byte-identical to its own pre-switch image above, and the public-XNA checker
 passes (233 files, 544 known types). The default render path is unchanged.
+
+### Phase 14 town-house balcony check (2026-09-26)
+
+The fixed 40-frame clear square view completed on isolated Xvfb `:122` with
+[OPENGL33](screenshots/renderers/phase14-house-balcony-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-house-balcony-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-house-balcony-software.png), and
+[Vulkan](screenshots/renderers/phase14-house-balcony-vulkan.png). All four show
+the two shallow rails under the pale house windows and report 995 scene draws /
+1,041,614 triangles, or 1,058 complete indexed 3D draws / 1,409,139 triangles.
+The virtual GLES3 image has the previously isolated llvmpipe pavement tiling;
+the hidden Radeon GLES3 clear, snow and rain captures show smooth paving. The
+five focused night-lighting/map tests and public-XNA boundary check pass. This
+check uses a virtual display only; P14-052 remains open for the final pass.

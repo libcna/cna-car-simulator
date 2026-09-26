@@ -1656,6 +1656,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   above 12/255; 134 front windows account for 7,908 nominal added triangles across
   the map in existing material batches. Four virtual renderer captures and the XNA
   boundary check pass. Wider town frontage and square layout work remain open.
+  A seeded subset of two-storey town houses now has shallow first-floor Juliet
+  balconies below existing windows. Their concrete sills and slim metal rails join
+  existing material batches without changing footprints or collisions. A matched
+  hidden Radeon square view adds 5,280 visible triangles at the same 995 scene
+  submissions; clear and snow before/after images and a rain review are in
+  `docs/screenshots/phase14/`. Broader frontage and public-space variety remain open.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic
@@ -2068,6 +2074,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   After the diagnostic A/B switch, all four paths again report 1,303.5 indexed 3D
   draws / 2.95046 M triangles in the default rainy-night cockpit, with screenshots
   byte-identical to the pre-switch renderer frames. The XNA-only check still passes.
+  The later seeded town-house balcony pass also completed all four virtual clear
+  views at 995 scene draws / 1,041,614 triangles, with the new rails visible on
+  every backend. The hidden Radeon clear, snow and rain views stay coherent;
+  the public-XNA check passes.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

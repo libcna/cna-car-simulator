@@ -297,6 +297,30 @@ namespace CarSim::Render
             metal.Append(fittings, basis);
         }
 
+        /// A shallow first-floor balcony rail for a few town houses. It sits below an
+        /// existing casement window, within the frontage, and adds no collision footprint.
+        void JulietBalcony(MeshData& concrete, MeshData& metal, const float x, const float yBottom, const float hd)
+        {
+            constexpr float halfWidth = 0.69f;
+            const float front = hd + 0.38f;
+            Box(concrete, Vector3(x - halfWidth, yBottom - 0.18f, hd + 0.025f),
+                Vector3(x + halfWidth, yBottom - 0.10f, front + 0.035f), 1.0f);
+            Box(metal, Vector3(x - halfWidth, yBottom + 0.59f, front - 0.025f),
+                Vector3(x + halfWidth, yBottom + 0.64f, front + 0.025f), 1.0f);
+            Box(metal, Vector3(x - halfWidth, yBottom - 0.06f, front - 0.018f),
+                Vector3(x + halfWidth, yBottom - 0.02f, front + 0.018f), 1.0f);
+            for (int bar = 0; bar <= 6; ++bar) {
+                const float bx = x - halfWidth + static_cast<float>(bar) * (2.0f * halfWidth / 6.0f);
+                Box(metal, Vector3(bx - 0.016f, yBottom - 0.08f, front - 0.018f),
+                    Vector3(bx + 0.016f, yBottom + 0.62f, front + 0.018f), 1.0f);
+            }
+            for (const float side : {-1.0f, 1.0f}) {
+                const float edge = x + side * halfWidth;
+                Box(metal, Vector3(edge - 0.018f, yBottom + 0.59f, hd + 0.05f),
+                    Vector3(edge + 0.018f, yBottom + 0.64f, front), 1.0f);
+            }
+        }
+
         /// A small block-letter alphabet for the fascia of the existing shop mesh.
         std::array<unsigned char, 7> ShopLetter(const char ch)
         {
@@ -798,6 +822,18 @@ namespace CarSim::Render
                     } else {
                         WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f,
                                   front, true, doorSlot, (dressed && !shutterFront) || cottageStucco, shutterFront);
+                        if (type == "house" && f == 1 && seed % 4u == 1u) {
+                            const int count = std::max(1, static_cast<int>((hw * 2.0f - 0.8f) / 2.4f));
+                            if (count >= 3) {
+                                const int leftBay = count / 2 - 1;
+                                const int rightBay = count % 2 == 0 ? count / 2 : count / 2 + 1;
+                                for (const int bay : {leftBay, rightBay}) {
+                                    const float t = (static_cast<float>(bay) + 0.5f) / static_cast<float>(count) - 0.5f;
+                                    const float x = t * (hw * 2.0f - 0.8f);
+                                    JulietBalcony(concrete, metal, x, y, hd);
+                                }
+                            }
+                        }
                     }
                     WindowRow(windows, trim, &frames, &dark, hw, hd, y, 1.35f, 1.05f, 2.4f, back, true);
                     if (hw * 2.0f > 6.0f) {

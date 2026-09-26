@@ -324,3 +324,19 @@ counter shows 162.289 fewer 3D draws and 387,785 fewer submitted triangles per
 frame when the invisible right wing view is skipped. The left mirror remains live;
 the right view refreshes when brought into the cockpit frustum. Timing and RSS
 limits are recorded in [performance notes](../../performance.md).
+
+## First-floor town-house balconies
+
+A seeded subset of the existing two-storey and taller houses has shallow concrete
+sills and slim metal Juliet rails below two first-floor windows. In the fixed
+square-facing hidden Radeon 800 × 480 view (`--view -46 5 -58 0 0`), the matched
+[clear before](house-balcony-before-clear.png) /
+[after](house-balcony-after-clear.png) pair changes 427 pixels above a 12/255
+channel threshold, limited to the two rails on the pale house. The matched
+[snow before](house-balcony-before-snow.png) /
+[after](house-balcony-after-snow.png) pair changes 263 pixels at the same windows;
+the [rain view](house-balcony-after-rain.png) retains the same silhouette. The
+balconies use the existing concrete and metal material batches, stay within the
+frontage and add no collision geometry. The four virtual-renderer views are in
+[renderer conformance](../../renderer-conformance.md). P14-020 remains open for
+wider frontage and public-space variety.

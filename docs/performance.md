@@ -681,3 +681,18 @@ prevents attributing that difference to these cards. Matched hidden Radeon clear
 and snow images in the [visual review](screenshots/phase14/README.md) confirm the
 localized gain. The existing low shrubs stay in place and no collision geometry is
 added. This is a visual addition rather than a speed claim.
+
+### P14-020 town-house balcony geometry check
+
+The fixed hidden Radeon 800 × 480 square view (`--view -46 5 -58 0 0`, clear
+13:00, 40 lockstep frames with 30 warm-up) compares the exact source before and
+after the shallow balcony addition:
+[before](performance-data/p14-house-balcony-before.json) /
+[after](performance-data/p14-house-balcony-after.json). Scene submissions stay
+at 995 per frame; visible triangles increase from 1,036,334 to 1,041,614
+(+5,280, 0.51%). The complete indexed 3D counter likewise stays at 1,058
+submissions and increases from 1,403,859 to 1,409,139 triangles. There are no
+mirror passes in this view. Project draw submission averages 7.668 and 8.613 ms;
+the short runs do not establish a timing effect. Matched clear and snow images
+and a rain review are in the [visual review](screenshots/phase14/README.md).
+The existing building footprints and collision data are unchanged.
