@@ -39,6 +39,22 @@ namespace CarSim::Render
 
     }
 
+    struct WorldRenderer::ShadowBakeJob
+    {
+        struct MacroLevel
+        {
+            int width = 0;
+            int height = 0;
+            std::vector<std::uint8_t> rgba;
+        };
+        Vector3 sun;
+        std::vector<MacroLevel> macroLevels;
+        std::vector<std::vector<Color>> colours;   // per road batch, in batch order
+        std::atomic<bool> done{false};
+        std::thread worker;
+        double seconds = 0.0;
+    };
+
     WorldRenderer::WorldRenderer(GraphicsDevice& device, const LightingRig& rig, const Map::MapWorld& world, const BitmapFont* signFont)
         : world_(world), rig_(rig)
     {
@@ -190,22 +206,6 @@ namespace CarSim::Render
             treeEffect_->setFogEndProperty(rig_.fogEnd);
         }
     }
-
-    struct WorldRenderer::ShadowBakeJob
-    {
-        struct MacroLevel
-        {
-            int width = 0;
-            int height = 0;
-            std::vector<std::uint8_t> rgba;
-        };
-        Vector3 sun;
-        std::vector<MacroLevel> macroLevels;
-        std::vector<std::vector<Color>> colours;   // per road batch, in batch order
-        std::atomic<bool> done{false};
-        std::thread worker;
-        double seconds = 0.0;
-    };
 
     WorldRenderer::~WorldRenderer()
     {
