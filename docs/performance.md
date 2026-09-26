@@ -705,6 +705,20 @@ pixel-identical; 18,046 snow pixels differ by more than 12/255 in any channel.
 The [forest and close town pairs](screenshots/phase14/README.md) verify that the
 change is confined to winter vegetation. This does not establish a frame-time change.
 
+### P14-021 full-snow verge layer check
+
+The matched hidden Radeon 800 × 480 rural-road snow view uses 40 lockstep frames
+with 30 warm-up frames. The [before](performance-data/p14-verge-phase-before.json)
+OPENGL33 and [after](performance-data/p14-verge-phase-after.json) OPENGLES3 runs
+report 623 to 613 scene submissions and 444,395 to 435,319 triangles after the
+redundant grass-verge base and snow draws are omitted at full cover. The latter
+terrain snow already spans the road shoulder. Project draw submission means were
+5.829 and 7.508 ms, and process peak RSS was 2,261,888 and 2,247,208 KiB;
+these short runs on different backends do not establish a timing or memory effect.
+The [matched clear, rain and snow images](screenshots/phase14/README.md) check
+the visual result; grass and snow texture phase now follows world coordinates at
+the verge edge. No terrain mesh, collision or snow texture representation changed.
+
 ### P14-020 town-house balcony geometry check
 
 The fixed hidden Radeon 800 × 480 square view (`--view -46 5 -58 0 0`, clear

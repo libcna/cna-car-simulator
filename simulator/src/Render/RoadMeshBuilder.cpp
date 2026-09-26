@@ -87,15 +87,16 @@ namespace CarSim::Render
                 const float outer = outerAt(r);
                 const float a = side > 0.0f ? inner : -outer;
                 const float b = side > 0.0f ? outer : -inner;
-                const float u = (outer - inner) / kGrassTileM;
-                const auto vertex = [&](const float lat, const float texU) {
+                const auto vertex = [&](const float lat) {
                     const Vector3 p = r.centre + r.right * lat +
                         Vector3(0.0f, heightAt(r, lat) - r.centre.Y, 0.0f);
-                    return mesh.AddVertex(p, r.up, Vector2(texU, r.s / kGrassTileM),
+                    // The verge and terrain share grass and snow textures; matching their
+                    // world-space phase keeps both patterns aligned at the outer edge.
+                    return mesh.AddVertex(p, r.up, Vector2(p.X / kGrassTileM, p.Z / kGrassTileM),
                                           colourAt(r, lat, outer));
                 };
-                const std::uint32_t ia = vertex(a, side > 0.0f ? 0.0f : u);
-                const std::uint32_t ib = vertex(b, side > 0.0f ? u : 0.0f);
+                const std::uint32_t ia = vertex(a);
+                const std::uint32_t ib = vertex(b);
                 if (i > 0) mesh.AddQuad(prevA, prevB, ib, ia);
                 prevA = ia;
                 prevB = ib;

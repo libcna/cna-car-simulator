@@ -57,6 +57,15 @@ The asphalt material has matched [rain before](asphalt-grain-before-rain.png) /
 [after](asphalt-grain-after-rain.png) and [snow before](asphalt-grain-before-snow.png) /
 [after](asphalt-grain-after-snow.png) views at the same town camera. The wet sheen and
 snow layer still control the visible surface in those conditions.
+The final rural verge check keeps its grass and snow tile phase aligned with the
+terrain: [clear before](verge-phase-before-clear.png) /
+[after](verge-phase-after-clear.png), [rain before](verge-phase-before-rain.png) /
+[after](verge-phase-after-rain.png), and [snow before](verge-phase-before-snow.png) /
+[after](verge-phase-after-snow.png). At full cover the terrain's snow reaches the
+gravel shoulder without a second grass-verge snow pattern. All six frames use the
+hidden Radeon 800 × 480 `--spawn forest --view -228 6 -1235 327 -10`, 13:00,
+frame 2. The [final rainy forest interior](forest-ground-final-rain.png) checks the
+ground patches and undergrowth after the winter atlas change.
 The road-verge pass also has a [rain check](road-verge-rain-after.png). The clear and snow
 before frames above were captured from the clean pushed HEAD with the exact same fixed
 camera; the after frames use the final code. The snow change is plainly visible without

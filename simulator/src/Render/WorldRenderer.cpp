@@ -465,6 +465,9 @@ namespace CarSim::Render
             device.getSamplerStatesProperty()[0] = SamplerState::AnisotropicWrap;
         };
         const bool snowing = snow_ > 0.01f && snowEffect_ && snowTexture_;
+        // At full cover the terrain already supplies snow beneath the grass verge.
+        // Let it meet the gravel shoulder directly instead of layering two snow patterns.
+        const bool fullSnowGround = snowing && snow_ >= 0.98f;
         std::vector<const GpuMesh*> snowTerrain;
         if (terrainSkirt_) {
             ApplyAll(*terrainEffect_, device, *terrainSkirt_);
@@ -525,6 +528,7 @@ namespace CarSim::Render
                 if ((b.surface == Surface::Marking) != markings || !b.mesh || !frustum.Intersects(b.mesh->Sphere())) {
                     continue;
                 }
+                if (fullSnowGround && b.verge) continue;
                 if (wetness_ > 0.0f && !markings) {
                     // Wet asphalt and stone swallow light and take on the colour of the sky
                     // they reflect; grass only darkens, like the terrain beside it.
@@ -610,6 +614,7 @@ namespace CarSim::Render
             beginSnow(snow_ * 0.78f);
             for (const auto& b : roadBatches_) {
                 if (!b.mesh || !frustum.Intersects(b.mesh->Sphere())) continue;
+                if (fullSnowGround && b.verge) continue;
                 // Traffic wears snow thin on pavement. The grass verge belongs to the
                 // adjoining field, while loose gravel retains more cover than asphalt.
                 // Match those surfaces to their surroundings without another pass.

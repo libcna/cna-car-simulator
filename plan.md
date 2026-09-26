@@ -1664,7 +1664,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `docs/screenshots/phase14/`. Broader frontage and public-space variety remain open.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
-- [~] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic
+- [x] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic
   resurfaced cuts now share the urban asphalt road mesh without changing collision or lane
   geometry. A fixed Radeon road view has before/after captures plus rain/snow checks. The
   first snow pass exposed double overlay on cuts; a coarse unpatched overlay mesh, only for
@@ -1736,8 +1736,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   the seasonal blend also interpolates alpha so leaves recede across snow-cover levels.
   A fixed hidden Radeon forest-edge clear pair is pixel-identical; the snow pair changes
   18,046 pixels above 12/255. A closer town linden pair confirms the branch silhouette.
-  Three focused atlas tests and the public-XNA check pass. The final mixed-weather review
-  remains open.
+  Three focused atlas tests and the public-XNA check pass. The final rural-road review
+  found a bright full-snow strip at the grass verge: its locally mapped snow pattern
+  disagreed with the terrain, and both layers drew at full cover. The verge now uses
+  terrain-aligned world UV; when cover reaches 0.98, terrain snow directly meets the
+  gravel shoulder without the redundant verge base/snow draws. Matched hidden Radeon
+  clear, rain and snow frames plus a rainy forest interior are in the screenshot index.
+  A fixed 40-frame snow-road measurement reports 623→613 scene submissions and
+  444,395→435,319 triangles; different backends and short runs do not establish a
+  speed-up. Nine focused road/vegetation tests, all four isolated renderer screenshots
+  and the public-XNA checker pass. No lane, collision or terrain mesh changed.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [x] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather

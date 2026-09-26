@@ -714,3 +714,17 @@ screenshots are byte-identical; backend raster differences remain on SOFTWARE an
 Vulkan. Hidden Radeon forest and close town pairs verify the winter change and
 pixel-identical summer view. Three focused vegetation tests and the public-XNA
 checker pass. P14-052 remains open for the final renderer pass.
+
+### Phase 14 full-snow verge layer check (2026-09-26)
+
+The fixed two-frame rural snow-road view completed on isolated Xvfb with
+[OPENGLES3](screenshots/phase14/verge-snow-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/verge-snow-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/verge-snow-renderer-software.png), and
+[Vulkan](screenshots/phase14/verge-snow-renderer-vulkan.png). Each shows terrain
+snow meeting the gravel shoulder without the extra bright grass-verge strip.
+OPENGL33 and OPENGLES3 are byte-identical. The combined matrix process was
+interrupted during SOFTWARE startup; SOFTWARE and Vulkan were rerun separately
+and both completed with screenshots. Matched hidden Radeon clear, rain and snow
+pairs, nine focused road/vegetation tests and the public-XNA checker pass.
+P14-052 remains open for the final renderer pass after later changes.

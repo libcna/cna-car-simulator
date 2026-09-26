@@ -196,6 +196,9 @@ TEST(RoadMeshBuilder, RuralVergesDrapeFromTheShoulderToTheTerrain)
         ASSERT_GT(meshes.verge.TriangleCount(), 0u);
         bool sawInner = false, sawOuter = false;
         for (const auto& v : meshes.verge.vertices) {
+            // The grass and snow tiles meet the terrain without restarting at each road piece.
+            EXPECT_NEAR(v.uv.X, v.position.X / 7.0f, 1e-5f);
+            EXPECT_NEAR(v.uv.Y, v.position.Z / 7.0f, 1e-5f);
             const int a = static_cast<int>(v.color.getAProperty());
             if (a == 0) sawInner = true;
             if (a == 255) {
