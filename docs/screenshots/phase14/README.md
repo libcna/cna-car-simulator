@@ -340,3 +340,26 @@ balconies use the existing concrete and metal material batches, stay within the
 frontage and add no collision geometry. The four virtual-renderer views are in
 [renderer conformance](../../renderer-conformance.md). P14-020 remains open for
 wider frontage and public-space variety.
+
+## Open windscreen rail in the cockpit
+
+The inner shell no longer copies the full opaque roof-rail loft segment into the
+front windscreen. The existing narrow charcoal pillar lip remains, and the
+exterior body and glass meshes are unchanged. In the exact matched isolated
+1280 × 720 [noon before](cockpit-open-rail-1280-before-noon.png) /
+[after](cockpit-open-rail-1280-after-noon.png) pair, 11,321 pixels above a 12/255
+channel threshold change only around the two windscreen rails. The dashboard and
+central road view are pixel-identical. The [1280 night](cockpit-open-rail-1280-after-night.png)
+view retains the narrower silhouette.
+
+Final hidden Radeon 800 × 480 captures cover [noon](cockpit-open-rail-noon.png),
+[sunset](cockpit-open-rail-sunset.png), [night](cockpit-open-rail-night.png),
+[rain](cockpit-open-rail-rain.png), [fog](cockpit-open-rail-fog.png),
+[snow](cockpit-open-rail-snow.png) and
+[rainy night](cockpit-open-rail-rainy_night.png). The narrow lip remains visible
+against bright snow and fog, and the dials remain readable in both night cases.
+An [exterior Radeon view](cockpit-open-rail-exterior.png) confirms the car's roof
+and glazing remain intact.
+The 800 × 480 HUD overlays the lower centre stack; its detailed appearance is
+shown in the 1280 views. Lower controls still need a stronger night pass, so
+P14-022 remains open.

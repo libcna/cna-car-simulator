@@ -195,12 +195,11 @@ namespace CarSim::Render::CarBody
         CopyInnerShell(skin, skinMaterials, zCowl - 0.03f, zR - 0.03f, [&](int rs, float zc, float yc) -> CarPart* {
             if (rs >= Ring::kGlassBase) {
                 if (zc > zSideGlassRear + 0.3f) return &interior;
-                // Segment 12 is the dark window seal. The narrow pillar lip below is built
-                // separately so the skin's broad opaque cowl quads do not fill the side view.
+                // The narrow pillar lip is built separately. Copying the full rail loft
+                // segment here fills a broad triangle of the driver's windscreen view.
                 if (rs <= Ring::kGlassBase) return &interior;
                 if (zc < zRoofFront) {
-                    if (rs < Ring::kRail) return nullptr;
-                    if (rs == Ring::kRail) return &mid;
+                    if (rs <= Ring::kRail) return nullptr;
                 }
                 return &light;
             }

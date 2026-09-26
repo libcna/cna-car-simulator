@@ -1780,6 +1780,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   triangles in the fixed 40-frame night cockpit scene, 10 procedural-car tests pass,
   and the public-XNA checker passes. P14-022 remains open for cabin shape and night
   visual quality.
+  A fixed 1280 × 720 virtual-display pair then isolated an oversized windscreen
+  rail: the inner shell copied the full opaque roof-rail segment even though the
+  narrow charcoal lip was already present. Skipping only that duplicate inner
+  segment opens the view while leaving the exterior body and glass unchanged.
+  The matched noon pair changes 11,321 pixels only at the two rails; dashboard
+  and central road are pixel-identical. Seven hidden Radeon time/weather captures
+  retain the narrow lip and readable gauges; lower controls at night remain open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -2078,6 +2085,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   views at 995 scene draws / 1,041,614 triangles, with the new rails visible on
   every backend. The hidden Radeon clear, snow and rain views stay coherent;
   the public-XNA check passes.
+  The narrower cockpit inner rail then passed a fixed day view on all four
+  virtual renderers at 1,353 scene draws / 1.46250 M triangles. The retained
+  narrow pillar, dashboard, mirrors and dials are visible on each; seven hidden
+  Radeon time/weather views and the public-XNA check also pass.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

@@ -628,3 +628,18 @@ The virtual GLES3 image has the previously isolated llvmpipe pavement tiling;
 the hidden Radeon GLES3 clear, snow and rain captures show smooth paving. The
 five focused night-lighting/map tests and public-XNA boundary check pass. This
 check uses a virtual display only; P14-052 remains open for the final pass.
+
+### Phase 14 inner windscreen rail check (2026-09-26)
+
+After the duplicate broad inner roof-rail segment was removed, the fixed 40-frame
+day cockpit view completed on a short-lived isolated Xvfb `:126` with
+[OPENGL33](screenshots/renderers/phase14-open-rail-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-open-rail-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-open-rail-software.png), and
+[Vulkan](screenshots/renderers/phase14-open-rail-vulkan.png). All four retain the
+narrow charcoal pillar lip, road, mirrors, gauges and dashboard, and report
+1,353 main-view draws / 1.46250 M triangles plus 1,970 complete indexed 3D
+draws / 2.97373 M triangles (535 mirror draws / 0.95561 M triangles). A separate
+seven-condition hidden Radeon GLES3 review includes snow and rain. Ten
+procedural-car tests and the public-XNA checker pass. P14-052 remains open for
+the final renderer pass.
