@@ -728,3 +728,16 @@ interrupted during SOFTWARE startup; SOFTWARE and Vulkan were rerun separately
 and both completed with screenshots. Matched hidden Radeon clear, rain and snow
 pairs, nine focused road/vegetation tests and the public-XNA checker pass.
 P14-052 remains open for the final renderer pass after later changes.
+
+### Phase 14 square sett promenade check (2026-09-26)
+
+The fixed two-frame clear square view completed on isolated Xvfb displays with
+[OPENGLES3](screenshots/phase14/square-promenade-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/square-promenade-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/square-promenade-renderer-software.png), and
+[Vulkan](screenshots/phase14/square-promenade-renderer-vulkan.png). Each shows
+the darker walk and edge beside the memorial; the two OpenGL screenshots are
+byte-identical. Hidden Radeon clear and full-snow pairs confirm the hardware
+appearance, and the public-XNA boundary check passes. The change only adjusts
+existing sett vertex colours, so the paving draw and triangle counts are unchanged.
+P14-052 remains open for the final renderer pass.

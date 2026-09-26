@@ -475,12 +475,25 @@ namespace CarSim::Render
                         if (gs.onRoad || gs.distanceToPavedEdge < 0.6f) { clear = false; break; }
                     }
                     if (!clear) continue;
+                    // The broad civic square has a darker sett promenade with narrow edging.
+                    // Tinting its existing cells keeps the paving, snow cover, and walking
+                    // surface aligned without adding another raised mesh or material pass.
+                    int settShade = 255;
+                    if (square && quad && spanU > 40.0f && spanV > 40.0f) {
+                        const float axisDistance = std::abs((0.5f * (u0 + u1) - 0.5f) * spanU);
+                        const float along = 0.5f * (v0 + v1);
+                        if (along > 0.06f && along < 0.84f) {
+                            if (axisDistance < 4.5f) settShade = 224;
+                            else if (axisDistance < 6.5f) settShade = 185;
+                        }
+                    }
                     // Corner order matches the terrain mesh (counter-clockwise from above), so the
                     // paving is not back-face culled.
                     const std::uint32_t base = static_cast<std::uint32_t>(mesh.vertices.size());
                     for (const Vector2& c : corners) {
                         const Vector3 position(c.X, terrain.Height(c.X, c.Y) + kLift, c.Y);
-                        mesh.AddVertex(position, terrain.Normal(c.X, c.Y), Vector2(c.X / tile, c.Y / tile), Color(255, 255, 255, 255));
+                        mesh.AddVertex(position, terrain.Normal(c.X, c.Y), Vector2(c.X / tile, c.Y / tile),
+                                       Color(settShade, settShade, settShade, 255));
                     }
                     mesh.AddQuad(base, base + 1, base + 2, base + 3);
                     kept[static_cast<std::size_t>(iv) * static_cast<std::size_t>(nu) + static_cast<std::size_t>(iu)] = 1u;

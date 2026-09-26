@@ -734,6 +734,16 @@ the short runs do not establish a timing effect. Matched clear and snow images
 and a rain review are in the [visual review](screenshots/phase14/README.md).
 The existing building footprints and collision data are unchanged.
 
+### P14-020 square paving layout check
+
+The final civic promenade uses only tint values on the existing 2 m square
+paving cells. It adds no geometry, material pass, texture allocation or collision
+surface. Matched hidden Radeon 800 × 480 clear views change 22,522 pixels from
+walking height and 9,277 from the adjoining street at a 12/255 channel threshold;
+the full-snow pair changes zero pixels above that threshold because the existing
+snow cover masks the setts. The [paired images and overhead alignment](screenshots/phase14/README.md)
+are visual evidence, not a frame-time claim.
+
 ### P14-022 interior control geometry checkpoint
 
 In the same 40-frame, 800 × 480 isolated OPENGL33 cockpit scene with mirrors

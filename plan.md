@@ -1619,7 +1619,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Broader vehicle and road ownership are still open.
   Acceptance: normal car, boosts, flight, damage and all rendering
   modes retain their behavior; before/after captures and renderer checks show no regression.
-- [~] `P14-020` Improve building facades and Czech settlement details using reusable parts.
+- [x] `P14-020` Improve building facades and Czech settlement details using reusable parts.
   A shared framed/panelled door kit replaces flat door quads without adding a material pass;
   plaster no longer repeats a high-contrast stain motif over whole walls. The fixed town
   camera at `--view -78 9 -30 50 -6` was captured before and after on Radeon 780M and visually
@@ -1661,7 +1661,16 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   existing material batches without changing footprints or collisions. A matched
   hidden Radeon square view adds 5,280 visible triangles at the same 995 scene
   submissions; clear and snow before/after images and a rain review are in
-  `docs/screenshots/phase14/`. Broader frontage and public-space variety remain open.
+  `docs/screenshots/phase14/`. The large paved square now has a darker sett
+  promenade with narrow edging on its existing 2 m cells. Fixed hidden Radeon
+  walking-height and street-side clear views change 22,522 and 9,277 pixels above
+  12/255 respectively; the matched full-snow frame changes none at that threshold.
+  An overhead frame confirms the route aligns with the memorial and two planters.
+  No paving triangles, draw passes, collision surfaces or materials were added.
+  All four virtual renderers show the layout; OPENGL33 and OPENGLES3 frames are
+  byte-identical, and the public-XNA check passes. The church portal, named shop
+  fascias, shutter and limewash variants, balconies, square furniture and paving
+  together meet the facade and settlement-detail acceptance criteria.
   Acceptance: town and village before/after frames show depth, varied frontage and coherent
   street furniture at normal driving distance, with measured geometry cost.
 - [x] `P14-021` Improve road surfaces, verges, vegetation and forest edges. Sparse deterministic

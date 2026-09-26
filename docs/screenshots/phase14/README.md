@@ -447,3 +447,18 @@ and [live cluster image](cockpit-interior-light-live-cluster.png) show 34 km/h,
 2,518 rpm and D2 in the HUD and cluster, with active rear and wing mirrors.
 Together with the seven-condition review and four-renderer check, this meets
 P14-022's cockpit acceptance criteria.
+
+## Square sett promenade
+
+The broad paved Lipová square now has a central darker sett walk with narrow
+edging. The change tints existing paving cells and aligns with the memorial and
+its two stone planters in the [overhead view](square-promenade-overhead.png).
+Matched hidden Radeon 800 × 480 views show the
+[walking-height clear before](square-promenade-before-clear.png) /
+[after](square-promenade-after-clear.png) and the
+[street-side before](square-promenade-before-street.png) /
+[after](square-promenade-after-street.png). The
+[full-snow before](square-promenade-before-snow.png) /
+[after](square-promenade-after-snow.png) pair confirms that settled snow still
+covers the layout. The route gives the existing furniture a readable spatial
+order from both walking and driving distance.
