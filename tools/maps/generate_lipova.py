@@ -304,7 +304,7 @@ def signs_and_props():
     signs = []
     props = []
 
-    def sign(code, node_a, node_b, t, side, code_heading_from_travel=True, text="", value=0.0, right=6.0):
+    def sign(code, node_a, node_b, t, side, code_heading_from_travel=True, text="", value=0.0, right=6.0, road=""):
         """Sign along a->b at fraction t, on the given side (+1 right of travel a->b), facing back to the drivers."""
         pa, pb, h, _ = seg(node_a, node_b)
         p = offset(along(pa, pb, t), h, side * right)
@@ -314,6 +314,8 @@ def signs_and_props():
             s["text"] = text
         if value:
             s["value"] = value
+        if road:
+            s["road"] = road
         signs.append(s)
 
     # Town boundary signs (IZ 4a entering, IZ 4b leaving) at the four town entrances.
@@ -352,19 +354,19 @@ def signs_and_props():
     # The plates bracket the authored 2750-3090 m no-overtaking section in both
     # directions. Repeat B 21a after the E3 junction: Czech prohibitory signs normally
     # expire at the next junction, but this solid/no-overtaking stretch continues.
-    sign("B21a", "E2", "E3", 0.78, +1)
-    sign("B21a", "E3", "E4", 0.03, +1)
-    sign("B21b", "E3", "E4", 0.31, +1)
-    sign("B21a", "E4", "E3", 0.69, +1)
-    sign("B21a", "E3", "E2", 0.03, +1)
-    sign("B21b", "E3", "E2", 0.22, +1)
+    sign("B21a", "E2", "E3", 0.78, +1, road="main")
+    sign("B21a", "E3", "E4", 0.03, +1, road="main")
+    sign("B21b", "E3", "E4", 0.31, +1, road="main")
+    sign("B21a", "E4", "E3", 0.69, +1, road="main")
+    sign("B21a", "E3", "E2", 0.03, +1, road="main")
+    sign("B21b", "E3", "E2", 0.22, +1, road="main")
     sign("A14", "N3", "F4", 0.35, +1)          # deer, entering the forest
     sign("A14", "F1", "F2", 0.30, +1)
     sign("A22", "F3", "F2", 0.05, +1)          # forest road junction ahead
     sign("A7a", "F3", "FT1", 0.12, +1)         # rough surface on the track
     sign("B20a", "W2", "W1", 0.10, +1, value=30)   # calm street after the entrance
-    sign("IP6", "W1", "SQ", 0.93, +1)
-    sign("IP6", "SQ", "E1", 0.07, +1)
+    sign("IP6", "W1", "SQ", 0.93, +1, road="main")
+    sign("IP6", "SQ", "E1", 0.07, +1, road="main")
     sign("IJ4c", "SQ", "E1", 0.18, +1)
     sign("IJ4c", "SQ", "W1", 0.18, +1)
 
