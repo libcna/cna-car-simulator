@@ -73,6 +73,35 @@ namespace CarSim::Render
             }
         }
 
+        /// The grass/soil verge keeps its road-side edge fixed while its terrain-side edge
+        /// wanders smoothly by less than a metre. The same road station is used on both sides
+        /// of a piece boundary, so this does not open cracks between adjacent strips.
+        template <typename HeightFn, typename ColourFn, typename OuterFn>
+        void AddVergeStrip(MeshData& mesh, const std::vector<Row>& rows, const float side, const float inner,
+                           const HeightFn& heightAt, const ColourFn& colourAt, const OuterFn& outerAt)
+        {
+            if (rows.size() < 2) return;
+            std::uint32_t prevA = 0, prevB = 0;
+            for (std::size_t i = 0; i < rows.size(); ++i) {
+                const Row& r = rows[i];
+                const float outer = outerAt(r);
+                const float a = side > 0.0f ? inner : -outer;
+                const float b = side > 0.0f ? outer : -inner;
+                const float u = (outer - inner) / kGrassTileM;
+                const auto vertex = [&](const float lat, const float texU) {
+                    const Vector3 p = r.centre + r.right * lat +
+                        Vector3(0.0f, heightAt(r, lat) - r.centre.Y, 0.0f);
+                    return mesh.AddVertex(p, r.up, Vector2(texU, r.s / kGrassTileM),
+                                          colourAt(r, lat, outer));
+                };
+                const std::uint32_t ia = vertex(a, side > 0.0f ? 0.0f : u);
+                const std::uint32_t ib = vertex(b, side > 0.0f ? u : 0.0f);
+                if (i > 0) mesh.AddQuad(prevA, prevB, ib, ia);
+                prevA = ia;
+                prevB = ib;
+            }
+        }
+
         /// Vertical face between two heights at one lateral offset (kerb face).
         void AddVerticalFace(MeshData& mesh, const std::vector<Row>& rows, const float lat, const float yLowAbove, const float yHighAbove,
                              const bool facesRight, const float tileM)
@@ -311,26 +340,26 @@ namespace CarSim::Render
                 // and bare at the road (alpha 0 keeps the road tone) and blending into the
                 // terrain tint at its outer edge (alpha 255).
                 if (terrainHeight_) {
-                    const float vergeOuter = outer + kVergeWidthM;
+                    const auto vergeOuter = [&](const Row& r) {
+                        const float phase = side > 0.0f ? 7.1f : 18.3f;
+                        const float n = Core::Noise::FbmSigned(r.s * 0.035f, phase, 3, 0.55f,
+                                                                1200u + roadSeed);
+                        return outer + std::clamp(kVergeWidthM + 1.15f * n, 1.25f, 2.75f);
+                    };
                     const auto vergeHeight = [&](const Row& r, const float lat) {
                         if (std::fabs(lat) <= outer + 0.01f) return surfaceHeight(r, lat) - 0.006f;
                         const Vector3 p = r.centre + r.right * lat;
                         return terrainHeight_(p.X, p.Z) + 0.05f;
                     };
-                    const auto vergeColour = [&](const Row& r, const float lat) {
-                        const float t = std::clamp((std::fabs(lat) - outer) / kVergeWidthM, 0.0f, 1.0f);
+                    const auto vergeColour = [&](const Row& r, const float lat, const float edge) {
+                        const float t = std::clamp((std::fabs(lat) - outer) / (edge - outer), 0.0f, 1.0f);
                         const float n = 0.05f * ToneNoise(r.s + 1300.0f, roadSeed);
                         // Bare earth tone at the road edge fading to neutral grass.
                         const float rr = 0.78f + 0.22f * t + n, gg = 0.66f + 0.34f * t + n, bb = 0.50f + 0.50f * t + n;
                         return Color(static_cast<int>(std::clamp(rr, 0.0f, 1.0f) * 255.0f), static_cast<int>(std::clamp(gg, 0.0f, 1.0f) * 255.0f),
                                      static_cast<int>(std::clamp(bb, 0.0f, 1.0f) * 255.0f), static_cast<int>(t * 255.0f));
                     };
-                    const float uOuter = kVergeWidthM / kGrassTileM;
-                    if (right) {
-                        AddStrip(out.verge, rows, side * outer, side * vergeOuter, vergeHeight, 0.0f, uOuter, kGrassTileM, 0.0f, vergeColour);
-                    } else {
-                        AddStrip(out.verge, rows, side * vergeOuter, side * outer, vergeHeight, uOuter, 0.0f, kGrassTileM, 0.0f, vergeColour);
-                    }
+                    AddVergeStrip(out.verge, rows, side, outer, vergeHeight, vergeColour, vergeOuter);
                 }
             }
         }

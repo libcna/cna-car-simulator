@@ -1691,8 +1691,15 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   decorative plants do not add static colliders. The matched OPENGL33 interior view adds
   four draws and 8,784 triangles in clear weather, two draws and 5,880 triangles in snow;
   four virtual renderers and hidden Radeon clear/snow views show the same low shrub.
-  Broader road-surface/shoulder shape, forest-floor variety and other winter details
-  remain open.
+  The rural verge now wanders smoothly between 1.25 and 2.75 m outside the fixed
+  shoulder edge, using road-local deterministic noise at global stations. This changes
+  only the existing strip vertices; lane, collision, draw and triangle counts stay
+  unchanged. A matched hidden Radeon forest-road frame changes 2,858 clear and 1,311
+  snow pixels above 12/255, with rain also inspected. Six road-mesh tests pass, including
+  bounds and terrain draping. Four virtual renderer snow checks report 622 draws and
+  440,919 triangles; the virtual GLES3 llvmpipe terrain has a coarser texture pattern
+  also present with the previous road-mesh source, while hidden Radeon GLES3 is smooth.
+  Broader road-surface texture, forest-floor variety and other winter details remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
@@ -1989,6 +1996,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The subsequent A-pillar trim change was also checked on all four renderers with
   identical 1,209 draw submissions and 1,451,464 triangles; seven hidden Radeon
   time/weather captures and the public-XNA check pass.
+  The variable rural verge edge also completed all four virtual snow checks at 622
+  draws and 440,919 triangles. A coarser terrain pattern on virtual GLES3 llvmpipe
+  reproduces with the previous road-mesh source and is recorded in the conformance log;
+  it is absent on the hidden Radeon hardware capture.
 
 #### P4 — final audit
 

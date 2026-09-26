@@ -238,3 +238,17 @@ receives muted winter cover. Final hidden Radeon [clear](forest-undergrowth-rade
 and [snow](forest-undergrowth-radeon-snow.png) frames confirm its colour on hardware.
 The wider forest-edge camera did not show a change because nearby crowns hid the low
 plants. This is a sparse interior layer; deeper forest-floor variety remains open.
+
+## Rural verge edge
+
+The grass/soil transition outside the fixed gravel shoulder now varies smoothly with
+road station instead of forming a ruler-straight two-metre line. It remains between
+1.25 and 2.75 m from the shoulder and shares the existing strip vertices, so lane and
+collision geometry, submissions and triangle count do not change. In the matched hidden
+Radeon forest-road view, [clear before](verge-edge-clear-before.png) /
+[after](verge-edge-clear-after.png) changes 2,858 pixels above a 12/255 channel threshold.
+[Snow before](verge-edge-snow-before.png) / [after](verge-edge-snow-after.png) changes
+1,311 pixels, and the [rain frame](verge-edge-rain-after.png) keeps the wet road and
+outer ground continuous. Fixed-scene counts are 450 draws / 529,749 triangles in clear
+weather and 622 / 440,919 in snow, unchanged from baseline. Forest-floor and wider
+road-surface variety remain open under P14-021.

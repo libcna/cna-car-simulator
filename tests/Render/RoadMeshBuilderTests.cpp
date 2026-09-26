@@ -182,6 +182,7 @@ TEST(RoadMeshBuilder, RuralVergesDrapeFromTheShoulderToTheTerrain)
     // Without a terrain query there is no verge; with one, rural pieces get a strip whose
     // outer vertices sit just above the terrain and whose colour alpha runs from 0 to 255.
     int rural = 0;
+    float minVergeWidth = 1e9f, maxVergeWidth = 0.0f;
     for (const auto& piece : world->Roads().Pieces()) {
         const auto& road = world->Roads().Roads()[static_cast<std::size_t>(piece.road)];
         const auto& samples = road.curve.Samples();
@@ -203,11 +204,21 @@ TEST(RoadMeshBuilder, RuralVergesDrapeFromTheShoulderToTheTerrain)
                 EXPECT_NEAR(v.position.Y, terrain + 0.05f, 0.02f);
             }
         }
+        for (std::size_t i = 0; i + 1 < meshes.verge.vertices.size(); i += 2) {
+            const Vector3& a = meshes.verge.vertices[i].position;
+            const Vector3& b = meshes.verge.vertices[i + 1].position;
+            const float width = std::hypot(a.X - b.X, a.Z - b.Z);
+            minVergeWidth = std::min(minVergeWidth, width);
+            maxVergeWidth = std::max(maxVergeWidth, width);
+            EXPECT_GE(width, 1.24f);
+            EXPECT_LE(width, 2.76f);
+        }
         EXPECT_TRUE(sawInner);
         EXPECT_TRUE(sawOuter);
         if (++rural >= 4) break;
     }
     EXPECT_GE(rural, 2);
+    EXPECT_GT(maxVergeWidth - minVergeWidth, 0.30f);
 }
 
 // Markings must agree with the control at the junction they are painted for. A signalised

@@ -505,3 +505,25 @@ mirror and road visible. Relative to OPENGLES3, mean absolute RGB differences ar
 The seven-condition hidden Radeon review is in
 [`screenshots/phase14/`](screenshots/phase14/README.md). Ten procedural-car tests and
 the public-XNA boundary check pass; no renderer-specific code was added.
+
+### Phase 14 variable rural verge checkpoint (2026-09-26)
+
+All four public-XNA renderers built and completed the same 40-frame, 800 × 480 snow
+forest-road scene on dedicated virtual Xvfb `:114`:
+[OPENGLES3](screenshots/renderers/phase14-verge-edge-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-verge-edge-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-verge-edge-software.png), and
+[Vulkan](screenshots/renderers/phase14-verge-edge-vulkan.png). Each reports 622 draw
+submissions and 440,919 triangles, with a continuous snow-covered verge and road.
+Relative to OPENGLES3, mean absolute RGB differences are 2.571 / 2.390 / 3.159 for
+OPENGL33, 4.331 / 4.099 / 5.134 for SOFTWARE and 3.879 / 3.691 / 4.447 for Vulkan;
+respectively 609, 5,699 and 5,430 pixels exceed 32 in any channel.
+
+The virtual GLES3 llvmpipe image has a coarse tiled ground pattern absent from the
+other three virtual paths and from the hidden Radeon GLES3 capture. A controlled
+[two-frame build using the previous road-mesh source](screenshots/renderers/phase14-verge-edge-gles-old-source.png)
+on the same Xvfb display reproduces the pattern. The far-right terrain pixels are
+identical between that old-source frame and the new-source two-frame capture; all
+pixels changing above 12/255 lie in the road/verge region. This discrepancy predates
+the variable verge code. It remains documented under P14-052 rather than being
+misattributed to this visual change. No renderer-specific application code was added.
