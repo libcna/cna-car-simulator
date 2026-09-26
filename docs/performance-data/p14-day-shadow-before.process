@@ -1,0 +1,23 @@
+	Command being timed: "env -u DISPLAY -u WAYLAND_DISPLAY SDL_VIDEODRIVER=offscreen EGL_PLATFORM=surfaceless EGL_LOG_LEVEL=debug SDL_AUDIODRIVER=dummy build/opengles3/bin/cna-car-simulator --no-save --no-audio --lockstep --time-scale 0 --frames 300 --benchmark-json docs/performance-data/p14-day-shadow-before.json --no-mirror --spawn square --view -55 7 -65 180 -7 --width 800 --height 480 --quality high --time 13:00 --weather clear --screenshot docs/screenshots/phase14/day-shadow-before.png"
+	User time (seconds): 17.45
+	System time (seconds): 1.73
+	Percent of CPU this job got: 103%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:18.53
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2247224
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 14
+	Minor (reclaiming a frame) page faults: 418972
+	Voluntary context switches: 44747
+	Involuntary context switches: 173
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1496
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

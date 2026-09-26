@@ -193,8 +193,14 @@ namespace CarSim::Render
 
     struct WorldRenderer::ShadowBakeJob
     {
+        struct MacroLevel
+        {
+            int width = 0;
+            int height = 0;
+            std::vector<std::uint8_t> rgba;
+        };
         Vector3 sun;
-        Image macro;
+        std::vector<MacroLevel> macroLevels;
         std::vector<std::vector<Color>> colours;   // per road batch, in batch order
         std::atomic<bool> done{false};
         std::thread worker;
@@ -219,13 +225,22 @@ namespace CarSim::Render
         if (bakeJob_) {
             if (!bakeJob_->done.load()) return;
             if (bakeJob_->worker.joinable()) bakeJob_->worker.join();
-            // Swap the result in: the terrain macro at once, the road batches a few per frame so
-            // re-uploading them does not stall a frame.
-            if (swapNext_ == 0 && bakeJob_->macro.Width() > 0) {
-                macro_ = UploadTexture(device, bakeJob_->macro, true);
+            // The worker has prepared the mip chain and packed RGBA bytes. Submit all
+            // levels together so the new texture is fully defined before it is bound.
+            if (swapNext_ == 0 && !bakeJob_->macroLevels.empty()) {
+                const auto& levels = bakeJob_->macroLevels;
+                auto nextMacro = std::make_unique<Texture2D>(
+                    device, levels[0].width, levels[0].height, true, SurfaceFormat::Color);
+                for (std::size_t i = 0; i < levels.size(); ++i) {
+                    const auto& level = levels[i];
+                    nextMacro->SetData(static_cast<int>(i), nullptr,
+                        level.rgba.data(), 0, static_cast<int>(level.rgba.size()));
+                }
+                macro_ = std::move(nextMacro);
                 terrainEffect_->setTexture2Property(macro_.get());
             }
-            constexpr std::size_t kBatchesPerFrame = 48;
+            // Replace the road colours in small batches after the terrain texture.
+            constexpr std::size_t kBatchesPerFrame = 24;
             const std::size_t end = std::min(roadBatches_.size(), swapNext_ + kBatchesPerFrame);
             for (; swapNext_ < end; ++swapNext_) {
                 Batch& b = roadBatches_[swapNext_];
@@ -278,7 +293,24 @@ namespace CarSim::Render
                 out.reserve(m.vertices.size());
                 for (const auto& v : m.vertices) out.push_back(v.color);
             }
-            job->macro = std::move(macro);
+            // Downsample and pack on the worker. The byte SetData overload can copy
+            // each complete level without repacking Color objects on the update thread.
+            Image level = std::move(macro);
+            for (;;) {
+                ShadowBakeJob::MacroLevel packed;
+                packed.width = level.Width();
+                packed.height = level.Height();
+                packed.rgba.reserve(level.Pixels().size() * 4);
+                for (const Color& c : level.Pixels()) {
+                    packed.rgba.push_back(c.getRProperty());
+                    packed.rgba.push_back(c.getGProperty());
+                    packed.rgba.push_back(c.getBProperty());
+                    packed.rgba.push_back(c.getAProperty());
+                }
+                job->macroLevels.push_back(std::move(packed));
+                if (level.Width() == 1 && level.Height() == 1) break;
+                level = level.Downsampled();
+            }
             job->seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
             job->done.store(true);
         });

@@ -476,3 +476,13 @@ last frames. The speed, gauges, traffic, rain and mirrors match; no pixel
 changes by more than 12/255 in any channel. The solar-elevation guard removes
 an unnecessary nighttime terrain/road shadow re-bake, documented in the
 [matched project timings](../../performance.md).
+
+## Daylight shadow-swap timing
+
+After 300 lockstep frames at the fixed 13:00 square camera, the hidden Radeon
+[before](day-shadow-before.png) and [after](day-shadow-after.png) images are
+pixel-identical. Both include the completed daylight terrain and road shadow
+bake. The worker-prepared mip chain and smaller road swap batches reduce the
+measured update spike while retaining the existing scene. The
+[timing and peak-memory pair](../../performance.md) records the cost and its
+limits.

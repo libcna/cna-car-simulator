@@ -770,3 +770,24 @@ same rain, street lamps, trees and paving; the two OpenGL images are
 byte-identical. The separate 120-frame hidden Radeon drive confirms the guard
 removes the update hitch with no visible change above 12/255. Geometry and
 material submissions are unchanged; the public-XNA checker passes.
+
+### Phase 14 daylight shadow upload check (2026-09-26)
+
+The completed 60-degree sun-shadow bake and replacement texture were inspected
+on isolated Xvfb displays with [OPENGLES3](screenshots/phase14/day-shadow-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/day-shadow-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/day-shadow-renderer-software.png) and
+[Vulkan](screenshots/phase14/day-shadow-renderer-vulkan.png). All four logs
+confirm the bake finished. OpenGL, GL33 and Vulkan ran 300 lockstep frames;
+SOFTWARE ran 60 because its 300-frame attempt took several minutes, and the
+shorter run already reached the completed bake. All four report 620 main-view
+submissions and 787,905 triangles. The 300-frame OpenGL and Vulkan runs also
+report 690 indexed 3D submissions / 879,274.567 mean triangles; SOFTWARE's
+60-frame mean is 690 / 879,274.2 as traffic moves during the sample window.
+The [four JSON records](performance-data/) are named `p14-day-shadow-renderer-*.json`.
+The two OpenGL images are byte-identical; SOFTWARE and Vulkan show the same
+completed shadow placement. A separate 300-frame virtual Vulkan baseline had
+a 433.862 ms maximum update before this change versus 399.746 ms afterward,
+within wide host/backend timing variation. The Radeon matched pair in
+[performance](performance.md) is the timing evidence for this optimisation.
+The public-XNA checker passes.

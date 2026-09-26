@@ -763,6 +763,35 @@ finding, not a whole-frame throughput claim. A separate daylight run still
 rebakes genuine sun shadows and exposed its own larger swap hitch for the next
 targeted audit fix.
 
+### P14-060 daylight shadow-swap hitch
+
+The daylight follow-up measured the real sun-shadow texture replacement on the
+same hidden Radeon 780M, fixed square camera, 13:00 clear weather, 800 × 480,
+300 lockstep frames and 30 warm-up frames. The worker now creates the same
+downsampled macro mip chain and packs its RGBA bytes before signalling completion;
+the update thread submits the complete chain through public XNA `Texture2D::SetData`
+and replaces 24 road-colour batches per frame instead of 48. A partial-level
+upload candidate reduced timing further but produced a black terrain band, so
+it was discarded. The accepted [before](performance-data/p14-day-shadow-before.json) /
+[after](performance-data/p14-day-shadow-after.json) records and
+[before](screenshots/phase14/day-shadow-before.png) /
+[after](screenshots/phase14/day-shadow-after.png) screenshots are from the exact
+pushed baseline and this candidate under the same command. Both logs confirm
+`radeonsi` and a completed 60-degree sun bake; the final screenshots are
+pixel-identical. The [before](performance-data/p14-day-shadow-before.process) /
+[after](performance-data/p14-day-shadow-after.process) process records retain
+the peak-RSS readings.
+
+| Matched run | Update mean / max | Project draw mean | Main-view submissions / triangles | Indexed 3D submissions / triangles | Peak RSS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Before | 1.387 / 151.145 ms | 6.791 ms | 620 / 787,905 | 690 / 879,274.567 | 2,247,224 KiB |
+| After | 0.944 / 35.726 ms | 5.815 ms | 620 / 787,905 | 690 / 879,274.567 | 2,276,980 KiB |
+
+Draw-time changes are within host variation and no whole-frame throughput gain
+is claimed. Peak RSS is 29,756 KiB higher in this pair; temporary coexistence
+of packed mip bytes and shadow-bake data is a likely contributor. The existing
+Vulkan-compatible snow-terrain representation is unchanged.
+
 ### P14-022 interior control geometry checkpoint
 
 In the same 40-frame, 800 × 480 isolated OPENGL33 cockpit scene with mirrors
