@@ -1729,7 +1729,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Radeon noon pair, 2,268 pixels change below row 300 while the cluster and road stay
   aligned; seven time/weather conditions retain readable gauges. All four virtual
   renderers display the panel with 1,208 draw submissions in the fixed complete frame.
-  Broader cabin shape and finer night material separation keep P14-022 open.
+  A further cowl pass adds shallow moulded defroster outlets ahead of that pad and gives
+  its cloth-grain top and airbag lid a separate soft material from the seats. The matched
+  hidden Radeon noon pair changes 3,881 pixels above a 12/255 threshold, confined to
+  the passenger dash below row 324. Noon, sunset, night, rain, fog, snow and rainy-night
+  captures keep the cluster and road view intact. The fixed virtual-display cockpit
+  scene now reports 1,209 draws and 1,451,464 triangles on all four renderers; 10
+  procedural-car tests and the public-XNA check pass. Broader cabin shape and finer
+  night material separation keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -1971,6 +1978,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   remain byte-identical to their pre-fix images. The extra 52.9 MiB of terrain vertices
   is recorded in `docs/performance.md` for memory-pressure review.
   Repeat this checkpoint after later Phase 14 rendering or batching changes.
+  The soft dashboard/cowl visual pass was checked on all four virtual-display paths at
+  1,209 draws and 1,451,464 triangles; the cluster and passenger pad remain present in
+  each image, and the public-XNA check passes. Continue repeating after later changes.
 
 #### P4 — final audit
 

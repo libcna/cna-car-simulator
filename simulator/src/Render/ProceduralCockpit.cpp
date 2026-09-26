@@ -182,6 +182,7 @@ namespace CarSim::Render::CarBody
         CarPart accent = MakePart("interior_accent", CarMaterial::InteriorAccent, CarPart::Role::Interior);
         CarPart light = MakePart("interior_light", CarMaterial::InteriorLight, CarPart::Role::Interior);
         CarPart fabric = MakePart("interior_fabric", CarMaterial::Fabric, CarPart::Role::Interior);
+        CarPart dashSoft = MakePart("dashboard_soft", CarMaterial::DashSoft, CarPart::Role::Interior);
         CarPart gloss = MakePart("interior_gloss", CarMaterial::GlossBlack, CarPart::Role::Interior);
         CarPart vents = MakePart("interior_vents", CarMaterial::Vent, CarPart::Role::Interior);
         CarPart chrome = MakePart("interior_chrome", CarMaterial::Chrome, CarPart::Role::Interior);
@@ -258,7 +259,7 @@ namespace CarSim::Render::CarBody
             const float panelRearZ = zEdge - 0.045f;
             const float panelFrontY = yTopFront + 0.020f;
             const float panelRearY = yTopRear + 0.010f;
-            fabric.mesh.AddQuad(Vector3(panelLeft, panelFrontY, panelFrontZ), Vector3(panelLeft, panelRearY, panelRearZ),
+            dashSoft.mesh.AddQuad(Vector3(panelLeft, panelFrontY, panelFrontZ), Vector3(panelLeft, panelRearY, panelRearZ),
                                 Vector3(panelRight, panelRearY, panelRearZ), Vector3(panelRight, panelFrontY, panelFrontZ),
                                 Vector3(0, 1, -0.12f), Vector2(0, 0), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0));
             mid.mesh.AddQuad(Vector3(panelLeft, panelRearY - 0.016f, panelRearZ + 0.007f),
@@ -274,11 +275,29 @@ namespace CarSim::Render::CarBody
             const float lidZ = zFace + 0.025f;
             AddRoundedBox(accent.mesh, Vector3(lidRight - lidLeft, lidTop - lidBottom, 0.010f), 0.009f,
                           Matrix::CreateTranslation(0.5f * (lidLeft + lidRight), 0.5f * (lidBottom + lidTop), lidZ));
-            fabric.mesh.AddQuad(Vector3(lidLeft + 0.008f, lidBottom + 0.008f, lidZ + 0.006f),
+            dashSoft.mesh.AddQuad(Vector3(lidLeft + 0.008f, lidBottom + 0.008f, lidZ + 0.006f),
                                 Vector3(lidRight - 0.008f, lidBottom + 0.008f, lidZ + 0.006f),
                                 Vector3(lidRight - 0.008f, lidTop - 0.008f, lidZ + 0.006f),
                                 Vector3(lidLeft + 0.008f, lidTop - 0.008f, lidZ + 0.006f),
                                 Vector3(0, 0, 1), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0));
+
+            // Defroster outlets sit in the shallow cowl strip ahead of the soft pad.
+            // Give each one a moulded rim, dark recess and directional slats so the
+            // windscreen base reads as cabin hardware instead of a featureless slab.
+            for (const float side : {-1.0f, 1.0f}) {
+                const float width = side < 0.0f ? 0.22f : 0.30f;
+                const float x = side < 0.0f ? -cabinHalf + 0.27f : cabinHalf - 0.28f;
+                const float z = zFront + 0.095f;
+                const float y = yTopFront + 0.020f;
+                AddRoundedBox(mid.mesh, Vector3(width + 0.012f, 0.008f, 0.077f), 0.004f,
+                              Matrix::CreateTranslation(x, y, z));
+                AddBoxTo(gloss, Vector3(x, y + 0.005f, z), Vector3(width, 0.003f, 0.062f));
+                vents.mesh.AddQuad(Vector3(x - width * 0.5f + 0.007f, y + 0.007f, z - 0.024f),
+                                   Vector3(x - width * 0.5f + 0.007f, y + 0.007f, z + 0.024f),
+                                   Vector3(x + width * 0.5f - 0.007f, y + 0.007f, z + 0.024f),
+                                   Vector3(x + width * 0.5f - 0.007f, y + 0.007f, z - 0.024f),
+                                   Vector3(0, 1, 0), Vector2(0, 0), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0));
+            }
 
             // Centre stack details: display, vents, knobs; outer vents at the dash ends; glovebox line.
             const float zStack = zFace + 0.075f + 0.004f;
@@ -520,8 +539,8 @@ namespace CarSim::Render::CarBody
             }
         }
 
-        interior.cabin = mid.cabin = accent.cabin = light.cabin = fabric.cabin = steering.cabin = steeringTrim.cabin = true;
-        for (CarPart* p : {&interior, &mid, &accent, &light, &fabric, &gloss, &vents, &chrome, &cluster, &steering, &steeringTrim, &steeringBadge, &gearLever, &mirror}) {
+        interior.cabin = mid.cabin = accent.cabin = light.cabin = fabric.cabin = dashSoft.cabin = steering.cabin = steeringTrim.cabin = true;
+        for (CarPart* p : {&interior, &mid, &accent, &light, &fabric, &dashSoft, &gloss, &vents, &chrome, &cluster, &steering, &steeringTrim, &steeringBadge, &gearLever, &mirror}) {
             if (p->mesh.TriangleCount() > 0) model.parts.push_back(std::move(*p));
         }
     }

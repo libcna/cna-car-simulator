@@ -150,6 +150,11 @@ namespace CarSim::Render
                     look.specular = Vector3(0.03f, 0.03f, 0.03f);
                     look.specularPower = 4.0f;
                     break;
+                case CarMaterial::DashSoft:
+                    look.diffuse = Vector3(0.31f, 0.31f, 0.33f);
+                    look.specular = Vector3(0.025f, 0.025f, 0.025f);
+                    look.specularPower = 4.0f;
+                    break;
                 case CarMaterial::LampHead:
                     // Switched off, the lens reads as glass over a grey reflector bowl, not as
                     // white plastic: without that contrast a lit lamp is barely distinguishable
@@ -379,6 +384,7 @@ namespace CarSim::Render
             case CarMaterial::InteriorAccent: return white_.get();
             case CarMaterial::Vent: return vent_.get();
             case CarMaterial::Fabric: return fabric_.get();
+            case CarMaterial::DashSoft: return fabric_.get();
             case CarMaterial::InteriorLight: return headliner_.get();
             default: return white_.get();
         }

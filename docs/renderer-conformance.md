@@ -471,3 +471,20 @@ difference is concentrated on ground shading, with no missing vegetation. The se
 matched clear/snow pairs and hidden Radeon checks are in
 [`screenshots/phase14/`](screenshots/phase14/README.md). The public XNA boundary
 remains intact; no renderer-specific project code was added.
+
+### Phase 14 soft cockpit cowl checkpoint (2026-09-26)
+
+The moulded defroster outlets and separate soft dashboard material built and rendered
+in the same 40-frame, 800 × 480 clear cockpit scene on dedicated virtual Xvfb `:112`:
+[OPENGLES3](screenshots/renderers/phase14-soft-cowl-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-soft-cowl-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-soft-cowl-software.png), and
+[Vulkan](screenshots/renderers/phase14-soft-cowl-vulkan.png). Every backend reports
+1,209 draw submissions and 1,451,464 triangles. The passenger pad, cowl, cluster,
+mirror and road remain visible in each image. Relative to OPENGLES3, mean absolute RGB
+differences are 0.290 / 0.307 / 0.269 for OPENGL33, 2.808 / 2.844 / 2.854 for SOFTWARE,
+and 2.143 / 2.133 / 2.034 for Vulkan; respectively 0, 10,971 and 6,502 pixels exceed
+32 in any channel. The differences follow the established filtering and shading
+variation. Separate seven-condition hidden Radeon captures are in
+[`screenshots/phase14/`](screenshots/phase14/README.md). Ten procedural-car tests and
+the public-XNA boundary check pass; no renderer-specific project path was added.

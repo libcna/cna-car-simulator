@@ -175,6 +175,20 @@ The final variant was checked at [noon](cockpit-passenger-pad-noon.png),
 seven frames. These are stationary scene checks; broader cabin shape and night material
 work remain under P14-022.
 
+## Soft dashboard material and cowl outlets
+
+Two shallow defroster outlets now break up the windscreen cowl, and the existing
+passenger pad and recessed airbag lid use a separate soft cloth-grain material from
+the seats. In the matched 800 × 480 hidden Radeon [before](cockpit-soft-cowl-before.png) /
+[after](cockpit-soft-cowl-noon.png) pair, 3,881 pixels change above a 12/255 channel
+threshold, all on the passenger dash below image row 324. The dial face and road stay
+aligned. The final variant was also captured at
+[sunset](cockpit-soft-cowl-sunset.png), [night](cockpit-soft-cowl-night.png),
+[rain](cockpit-soft-cowl-rain.png), [fog](cockpit-soft-cowl-fog.png),
+[snow](cockpit-soft-cowl-snow.png) and
+[rainy night](cockpit-soft-cowl-rainy_night.png). The low cabin remains dark at night,
+so stronger night material separation is still open under P14-022.
+
 ## Walking heading and return review
 
 The original [forest entry](offscreen-800-walking-forest-review.png) faced across the

@@ -45,6 +45,7 @@ namespace CarSim::Render
         InteriorAccent, // satin trim on controls, vents and wheel spokes
         InteriorLight,  // headliner, pillar trim (light fabric)
         Fabric,         // seats
+        DashSoft,       // cloth-grain upper dashboard and airbag lid
         Vent,           // air vent slats
         LampHead,       // headlamp lens (emissive when on)
         LampTail,       // red rear lamp (emissive when braking)
