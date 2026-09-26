@@ -29,6 +29,18 @@ TEST(WalkingMode, RequiresStoppedCarWithEngineOffAndRejectsHelicopter)
     EXPECT_FLOAT_EQ(App::kRunningSpeedKmh, 16.0f);
 }
 
+TEST(WalkingMode, FacesTheCarsForwardDirectionAfterExitingAtAnAngle)
+{
+    using Microsoft::Xna::Framework::Vector3;
+    for (const Vector3 forward : {Vector3(-0.55f, 0.0f, -0.835f),
+                                  Vector3(0.55f, 0.0f, -0.835f),
+                                  Vector3(-0.55f, 0.0f, 0.835f)}) {
+        const float yaw = App::WalkingYawFromForward(forward);
+        EXPECT_NEAR(std::sin(yaw), forward.X, 0.001f);
+        EXPECT_NEAR(-std::cos(yaw), forward.Z, 0.001f);
+    }
+}
+
 TEST(WalkingMode, FootstepHasAudibleShortImpact)
 {
     const Audio::Clip step = Audio::Clips::Footstep(44100);

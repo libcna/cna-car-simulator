@@ -13,6 +13,13 @@ namespace CarSim::App
     inline constexpr float kWalkingSpeedKmh = 6.0f;
     inline constexpr float kRunningSpeedKmh = 16.0f;
 
+    /// The walking camera looks along (sin(yaw), 0, -cos(yaw)). Match both horizontal
+    /// components of the car's forward vector when the driver gets out.
+    [[nodiscard]] inline float WalkingYawFromForward(const Microsoft::Xna::Framework::Vector3& forward)
+    {
+        return std::atan2(forward.X, -forward.Z);
+    }
+
     /// Horizontal on-foot velocity with a short start/stop ramp. The caller resolves each axis
     /// against the world and zeros an axis that hits a wall, so the walker cannot accelerate
     /// through a blocked surface.

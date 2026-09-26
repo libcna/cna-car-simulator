@@ -169,3 +169,17 @@ The final variant was checked at [noon](cockpit-passenger-pad-noon.png),
 [rainy night](cockpit-passenger-pad-rainy_night.png). The cluster is readable in all
 seven frames. These are stationary scene checks; broader cabin shape and night material
 work remain under P14-022.
+
+## Walking heading and return review
+
+The original [forest entry](offscreen-800-walking-forest-review.png) faced across the
+meadow because the walking yaw mirrored the car's horizontal forward component. The
+[corrected entry](walking-forest-heading-after.png) faces along the road from the same
+spawn, time and weather. A dedicated virtual-display
+[long route frame](walking-forest-route-telemetry.png) records the walker 7.3 m from the
+parked car, stopped after forward input, with the road still in view. The position row
+and moving/stopped state are from the F3 overlay. A separate virtual-display
+[return frame](walking-return-square.png) follows an actual `G` keypress at the square;
+the log confirms entry on foot and return to the car. The focused walking regressions
+cover angled headings, kerbs, proximity and complete traffic-body overlap. Longer
+sloped and traffic-adjacent routes remain open under P14-023.

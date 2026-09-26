@@ -67,7 +67,7 @@ namespace CarSim::App
             walkingVelocity_ = Vector3(0.0f, 0.0f, 0.0f);
             walkingBobStrength_ = 0.0f;
             walkingPosition_ = foot;
-            walkingYaw_ = std::atan2(-forward.X, -forward.Z);
+            walkingYaw_ = WalkingYawFromForward(forward);
             walkingStepDistance_ = 0.5f;
             walkingBobPhase_ = 0.0f;
             std::cout << "walking: entered on foot\n";

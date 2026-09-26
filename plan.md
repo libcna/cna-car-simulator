@@ -1743,7 +1743,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   and varied slope/traffic routes remain before P14-023 can close. The walking HUD now
   prints the actual bound return-to-car key instead of the stale `W` hint, while the F3
   overlay reports walker position, horizontal distance from the car and movement state
-  for the remaining route review.
+  for the remaining route review. A forest entry review exposed a mirrored horizontal
+  walking heading at oblique car angles; matching both components to the car's forward
+  vector now makes the camera face along the road. A regression covers angled headings.
+  A virtual-display forward route ended 7.3 m from the parked car with the camera settled;
+  an actual `G` press at the square returned to driving. Before/after and route frames
+  are in `docs/screenshots/phase14/`. The longer sloped and traffic-adjacent route review
+  remains open.
   See `docs/screenshots/phase14/`; the remaining moving-route, slope and traffic review
   determines whether gait or collision needs another adjustment.
   Acceptance: people no
