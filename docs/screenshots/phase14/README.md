@@ -186,8 +186,17 @@ parked car, stopped after forward input, with the road still in view. The positi
 and moving/stopped state are from the F3 overlay. A separate virtual-display
 [return frame](walking-return-square.png) follows an actual `G` keypress at the square;
 the log confirms entry on foot and return to the car. The focused walking regressions
-cover angled headings, kerbs, proximity and complete traffic-body overlap. Longer
-sloped and traffic-adjacent routes remain open under P14-023.
+cover angled headings, kerbs, proximity and complete traffic-body overlap.
+
+The final route review ran only on a dedicated 800 × 480 Xvfb display. At the hrad spawn,
+the [stopped hill route](walking-hill-route-final.png) ended 9.5 m from the car and roughly
+1 m higher, without a camera jump. At the square, traffic was warmed for 40 simulated
+seconds (20 live vehicles), then the walker sidestepped past the parked car and continued
+beside the road. The [stopped traffic route](walking-traffic-route-final.png) ended 8.2 m
+from the car with the camera settled and traffic still active. The
+[final entry overlay](walking-traffic-overlay-final.png) names the on-foot diagnostic
+section correctly. These runs and the focused collision/slope/proximity regressions close
+P14-023.
 
 ## Sparse forest undergrowth
 

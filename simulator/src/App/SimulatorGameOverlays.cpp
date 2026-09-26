@@ -223,7 +223,7 @@ namespace CarSim::App
                                      mirror_ ? mirror_->Width() : 0, mirror_ ? mirror_->Height() : 0, mirrorEvery));
         row("simulated", text("%.1f s   %d frames drawn", elapsedSeconds_, framesDrawn_));
 
-        section("driving");
+        section(walking_ ? "walking / parked car" : "driving");
         row("speed / rpm / gear", text("%.1f km/h   %.0f rpm   %s (%s)", static_cast<double>(s.speedKmh),
                                        static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
                                        s.transmissionMode == Sim::TransmissionMode::Automatic ? "auto" : "manual"));

@@ -1732,7 +1732,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Broader cabin shape and finer night material separation keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
-- [~] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
+- [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
   torso and head geometry replaces box silhouettes; walking now accelerates and stops smoothly
   and a deterministic `--walk` capture path exists. Pedestrian draw cost is separately measured
   on the GPU. While walking, population now follows the player's on-foot position instead of
@@ -1750,19 +1750,22 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   ground step to a 24 cm rise or 35 cm drop, keeps the walker inside the terrain bounds,
   and eases camera bob as movement stops. Ten walking/pedestrian tests pass. Hidden Radeon
   800 × 480 entry captures from square, forest and kostel spawns are saved in
-  `docs/screenshots/phase14/`; all entered walking mode. A longer moving-camera review
-  and varied slope/traffic routes remain before P14-023 can close. The walking HUD now
+  `docs/screenshots/phase14/`; all entered walking mode. The walking HUD now
   prints the actual bound return-to-car key instead of the stale `W` hint, while the F3
-  overlay reports walker position, horizontal distance from the car and movement state
-  for the remaining route review. A forest entry review exposed a mirrored horizontal
+  overlay reports walker position, horizontal distance from the car and movement state.
+  A forest entry review exposed a mirrored horizontal
   walking heading at oblique car angles; matching both components to the car's forward
   vector now makes the camera face along the road. A regression covers angled headings.
   A virtual-display forward route ended 7.3 m from the parked car with the camera settled;
   an actual `G` press at the square returned to driving. Before/after and route frames
-  are in `docs/screenshots/phase14/`. The longer sloped and traffic-adjacent route review
-  remains open.
-  See `docs/screenshots/phase14/`; the remaining moving-route, slope and traffic review
-  determines whether gait or collision needs another adjustment.
+  are in `docs/screenshots/phase14/`. A dedicated Xvfb route at the hrad spawn reached
+  9.5 m from the car and climbed roughly 1 m, then stopped with a stable camera. Another
+  route at the square used 40 s of traffic warm-up (20 live vehicles), sidestepped around
+  the parked car and travelled 8.2 m beside the road; after release the position and
+  camera stayed stable. The diagnostic overlay now labels the section "walking / parked
+  car" while on foot. Final route captures are in `docs/screenshots/phase14/`; 11 focused
+  walking/pedestrian tests and the public-XNA check pass. These virtual-display runs did
+  not touch the physical desktop.
   Acceptance: people no
   longer read as debug boxes and on-foot entry, exit, slopes, traffic and proximity regressions
   pass; helicopter access remains unchanged.
