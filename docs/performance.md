@@ -744,6 +744,25 @@ the full-snow pair changes zero pixels above that threshold because the existing
 snow cover masks the setts. The [paired images and overhead alignment](screenshots/phase14/README.md)
 are visual evidence, not a frame-time claim.
 
+### P14-060 night shadow-bake hitch
+
+The final 120-frame active rainy-night cockpit audit on the hidden Radeon 780M
+repeated a 172–199 ms project update outlier across three runs, including one
+with the clock frozen. The log showed a shadow re-bake at **26 degrees** even
+though the solar elevation was −12.7 degrees: the lighting rig's nighttime key
+direction represents the moon. The shadow update now checks actual solar
+elevation before launching another sun bake; an already-running daylight job
+can still finish. In the matched [before](performance-data/p14-audit-rainy-drive.json) /
+[after](performance-data/p14-night-shadow-after.json) 800 × 480 runs, mean
+update time changes from 3.467 to 0.950 ms and the maximum from 172.496 to
+1.352 ms. Indexed 3D submissions and triangles are identical (1,305.278 and
+2,964,427.533 means), with active audio and mirrors; the last-frame screenshots
+change in zero pixels above a 12/255 channel threshold (maximum 8/255).
+Different host load changed draw timings, so this is an isolated update-hitch
+finding, not a whole-frame throughput claim. A separate daylight run still
+rebakes genuine sun shadows and exposed its own larger swap hitch for the next
+targeted audit fix.
+
 ### P14-022 interior control geometry checkpoint
 
 In the same 40-frame, 800 × 480 isolated OPENGL33 cockpit scene with mirrors

@@ -54,7 +54,8 @@ namespace CarSim::Render
         /// next frames. Call once per frame. Only the shadows move; the baked light keeps its
         /// reference so the per-frame scale stays right.
         void UpdateSunShadows(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device,
-                              const Microsoft::Xna::Framework::Vector3& sunDirection);
+                              const Microsoft::Xna::Framework::Vector3& sunDirection,
+                              float sunElevationDeg);
         /// Direction the current ground shadows were cast along.
         [[nodiscard]] const Microsoft::Xna::Framework::Vector3& ShadowSunDirection() const { return shadowSun_; }
         [[nodiscard]] bool ShadowBakeRunning() const { return bakeJob_ != nullptr; }

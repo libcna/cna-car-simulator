@@ -1,12 +1,13 @@
 # Phase 14 visual comparisons (2026-09-24)
 
-The original pairs are 1280 × 720 captures from CNA OPENGLES3 on the Debian 13 desktop's AMD Radeon
-780M (Mesa 25.0.7), with a fixed camera and clock for each pair. JPEG quality 88 was used
-for scene frames; the instrument texture remains PNG. The JPEGs are review evidence, not
-texture assets shipped by the simulator. The road-repair, asphalt-grain and close winter-linden **before** frames used OPENGL33 on
-the same Radeon while the older code was built there; the Phase 14 renderer comparison found
-OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit scenes. The
-gait pair uses the hidden 800 × 480 Radeon path described below.
+The early pairs are 1280 × 720 captures from CNA OPENGLES3 on an AMD Radeon 780M
+(Mesa 25.0.7). Later pairs use the same GPU through a hidden 800 × 480 offscreen
+surface. Every pair fixes the camera, clock and weather. JPEG quality 88 was used
+for early scene frames; the instrument texture and later comparisons are PNG.
+These files are review evidence, not shipped textures. The road-repair,
+asphalt-grain and close winter-linden **before** frames used OPENGL33 on the same
+Radeon while the older code was built there; fixed town and cockpit renderer
+comparisons found OPENGL33 and OPENGLES3 screenshots byte-identical.
 
 | Pair | What changed | Fixed view / scene |
 | --- | --- | --- |
@@ -22,11 +23,15 @@ gait pair uses the hidden 800 × 480 Radeon path described below.
 | [Church before](church-before.png) / [after](church-after.png) | Square-facing tower pilasters, circular window and stone entrance portal | `--view -78 9 -30 50 -6`, 13:00, scattered cloud, 40 frames |
 | [Forest before](forest-before.png) / [after](forest-after.png) | Two seeded crown silhouettes per species in one tree-card atlas; narrower alternate spruce with more visible trunk | `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, 40 frames |
 | [Square before](square-planters-before.jpg) / [after](square-planters-after.jpg) | Two low stone beds with shrubs frame the memorial; the open cobbled centre remains usable | `--spawn square --view -55 7 -65 180 -7`, clear 13:00, two frames |
+| [Square walk before](square-promenade-before-clear.png) / [after](square-promenade-after-clear.png) | Darker sett promenade and edge give the broad square a route aligned with the memorial | Hidden Radeon 800 × 480, same square view, clear 13:00, two frames |
 | [Shopfront before](offscreen-800-shopfront-before.png) / [after](offscreen-800-shopfront-after.png) | Shop bay piers, continuous fascia and seeded canopy or ledge; 31 shops gain 2,076 nominal triangles across the full map without another material batch | Hidden Radeon 800 × 480, `--spawn square --view -88 7 -61 180 -3`, clear 13:00, two frames |
 | [Shop signs before](shop-sign-before.png) / [after](shop-sign-after.png) | Four seeded Czech shop names on shallow pale fascia boards; the adjacent glass, doors and building footprints are unchanged | Hidden Radeon 800 × 480, `--spawn square --view -45 5 -43 90 -3`, clear 13:00, two frames |
+| [Town balconies before](house-balcony-before-clear.png) / [after](house-balcony-after-clear.png) | Shallow upper-floor sills and rails add another seeded town-house frontage | Hidden Radeon 800 × 480, square frontage, clear 13:00 |
 | [Forest ground before](offscreen-800-scene-forest.png) / [after](offscreen-800-forest-ground-after.png) | Subdued moss/needle-litter patches and a roughly 6 m forest/meadow colour transition; fixed pixels change only along the ground at the treeline | Hidden Radeon 800 × 480, `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, frame 120 |
+| [Winter linden before](broadleaf-winter-town-before-snow.png) / [after](broadleaf-winter-town-after-snow.png) | Bare branch and thinned leaf silhouette replaces a snowy summer crown | Hidden Radeon 800 × 480, town linden, snow 13:00 |
 | [Rural verge before](road-verge-clear-before.png) / [after](road-verge-clear-after.png) | Bilinear sampling of the road-distance ground tint removes five-metre steps beside the road | Hidden Radeon 800 × 480, `--spawn forest --view -228 6 -1235 327 -10`, clear 13:00, frame 2 |
 | [Snow verge before](road-verge-snow-before.png) / [after](road-verge-snow-after.png) | The grass verge now retains field-level snow cover; gravel keeps more than worn asphalt | Same hidden Radeon view, snow 13:00, frame 2 |
+| [Cockpit night before](cockpit-interior-light-1280-before-night.png) / [after](cockpit-interior-light-1280-after-night.png) | Low-light separation of dashboard, wheel and climate controls | Isolated 1280 × 720 renderer view, night at the square |
 
 Additional checks: [night cockpit](cockpit-night.jpg), [walking camera](walking.jpg),
 [helicopter aerial view](flight.jpg), [road repair in rain](road-repair-rain.jpg),
@@ -462,3 +467,12 @@ Matched hidden Radeon 800 × 480 views show the
 [after](square-promenade-after-snow.png) pair confirms that settled snow still
 covers the layout. The route gives the existing furniture a readable spatial
 order from both walking and driving distance.
+
+## Night shadow-bake guard
+
+A 120-frame active rainy-night cockpit drive on the hidden Radeon 780M has
+[before](audit-rainy-drive.png) and [after](audit-rainy-drive-after.png)
+last frames. The speed, gauges, traffic, rain and mirrors match; no pixel
+changes by more than 12/255 in any channel. The solar-elevation guard removes
+an unnecessary nighttime terrain/road shadow re-bake, documented in the
+[matched project timings](../../performance.md).

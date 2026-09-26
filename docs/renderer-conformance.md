@@ -757,3 +757,16 @@ are byte-identical. The public-XNA checker passes (233 files scanned, 544 known
 public types). This completes P14-052 for the current source HEAD. The timing
 values in these Xvfb records represent different software/display paths and
 are not a Radeon GPU comparison.
+
+### Phase 14 night sun-shadow guard check (2026-09-26)
+
+After the audit found moonlight launching a sun-shadow rebake, a fixed two-frame
+rainy-night square view was inspected on isolated Xvfb displays with
+[OPENGLES3](screenshots/phase14/night-shadow-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/night-shadow-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/night-shadow-renderer-software.png) and
+[Vulkan](screenshots/phase14/night-shadow-renderer-vulkan.png). All retain the
+same rain, street lamps, trees and paving; the two OpenGL images are
+byte-identical. The separate 120-frame hidden Radeon drive confirms the guard
+removes the update hitch with no visible change above 12/255. Geometry and
+material submissions are unchanged; the public-XNA checker passes.

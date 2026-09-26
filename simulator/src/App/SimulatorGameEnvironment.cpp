@@ -93,7 +93,7 @@ namespace CarSim::App
         }
         if (worldRenderer_) {
             worldRenderer_->SetSnow(weather_.snowCover);
-            worldRenderer_->UpdateSunShadows(getGraphicsDeviceProperty(), rig_.sunDirection);
+            worldRenderer_->UpdateSunShadows(getGraphicsDeviceProperty(), rig_.sunDirection, rig_.SunElevationDeg());
         }
         if (vehicle_) {
             vehicle_->SetRoadSnow(weather_.snowCover);

@@ -206,12 +206,14 @@ namespace CarSim::Render
         if (bakeJob_ && bakeJob_->worker.joinable()) bakeJob_->worker.join();
     }
 
-    void WorldRenderer::UpdateSunShadows(GraphicsDevice& device, const Vector3& sunDirection)
+    void WorldRenderer::UpdateSunShadows(GraphicsDevice& device, const Vector3& sunDirection,
+                                         const float sunElevationDeg)
     {
 #if defined(__EMSCRIPTEN__)
         // No worker threads in the browser build: the shadows stay as baked at load.
         (void)device;
         (void)sunDirection;
+        (void)sunElevationDeg;
         return;
 #else
         if (bakeJob_) {
@@ -242,8 +244,10 @@ namespace CarSim::Render
             }
             return;
         }
-        // Only a sun well up casts the shadows worth moving; below that they are faint and
-        // long, and at night the last bake simply stays.
+        // LightingRig switches its key direction to the moon at night. Use the actual solar
+        // elevation so that moonlight does not trigger a costly new *sun* shadow bake.
+        // A bake already running above can still finish and swap in after sunset.
+        if (sunElevationDeg < 3.5f) return;
         const Vector3 toSun = -sunDirection;
         if (toSun.Y < 0.06f) return;
         const float turned = std::acos(std::clamp(Vector3::Dot(sunDirection, shadowSun_), -1.0f, 1.0f));
