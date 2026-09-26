@@ -315,3 +315,12 @@ the right of the original; 548 clear and 658 snow pixels exceed 12/255. Its leav
 use the existing winter atlas. Four virtual-renderer winter images are in
 [renderer conformance](../../renderer-conformance.md). The wider forest floor still
 needs variation under P14-021.
+
+## Paired mirror cull result
+
+The controlled hidden Radeon rainy-night [unculled](wing-cull-ab-unculled.png) /
+[culled](wing-cull-ab-all.png) frames are byte-identical. The new benchmark
+counter shows 162.289 fewer 3D draws and 387,785 fewer submitted triangles per
+frame when the invisible right wing view is skipped. The left mirror remains live;
+the right view refreshes when brought into the cockpit frustum. Timing and RSS
+limits are recorded in [performance notes](../../performance.md).

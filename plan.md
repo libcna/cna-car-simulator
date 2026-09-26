@@ -1995,7 +1995,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Radeon baseline without touching the physical desktop or relying on compositor FPS.
   Draw/pass timings measure CPU submission, not pure GPU execution. The snow memory sample
   shows no pressure that justifies replacing its public-XNA layout.
-- [~] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
+- [x] `P14-051` Identify the dominant real-GPU costs and implement *only justified* targeted
   batching/LOD/culling. Acceptance: before/after on identical scenes reports absolute and
   percentage changes plus image and memory trade-offs. No unmeasured global batching rewrite.
   The first measured optimisation skips a wing-mirror scene when its glass is outside the
@@ -2005,16 +2005,27 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   the right reflection. A comparable before/after pair reduced direct mirror submission
   from 6.03 to 4.93 ms (18%); repeated host-load spikes prevent a precise whole-frame
   speed-up claim. Main-view submissions/triangles remained 1129/1.847 M and RSS varied
-  within run noise. All four renderers and the XNA boundary passed afterward. P14-051 stays
-  open for a stable matched total-submission comparison and any further dominant cost.
+  within run noise. All four renderers and the XNA boundary passed afterward. This left
+  matched total-submission accounting to complete.
   Project-owned indexed 3D draws now have a per-frame submission counter at their actual
   draw sites, with a separate mirror-pass subtotal in benchmark JSON. The legacy main-view
   counters are unchanged. A hidden Radeon 120-frame rainy-night check reports 1,766.33
   3D draws / 3.635 M triangles with visible mirrors, including 552.74 draws / 1.232 M
   triangles in mirror passes, versus 1,213.59 / 2.403 M with mirrors off and zero mirror
   submissions. A matched instrumentation before/after frame is byte-identical; XNA-only
-  passes. This establishes the accounting needed for the cull A/B but does not yet close
-  the paired performance comparison.
+  passes. A diagnostic `--no-wing-visibility-cull` switch then replayed the earlier wing
+  policy in the same binary. Interleaved hidden Radeon runs (`none, unculled, culled,
+  culled, unculled, none`, 120 frames each) show exact cull savings of 162.289 indexed
+  3D draws (8.41% of all scene draws) and 387,785 triangles (9.64%) per frame; within
+  mirror passes these are 22.70% and 23.94%. The culled and unculled 800 × 480 images
+  are byte-identical, and the no-mirror brackets confirm zero mirror submissions.
+  Direct mirror CPU submission averages 4.669→4.484 ms, but its per-run spread and
+  variable non-mirror work prohibit a reliable whole-frame speed-up claim. Peak RSS
+  crosses between 2189–2205 MiB without a consistent change. Four virtual renderers
+  reproduce the default scene and counts exactly; the public-XNA check passes. Further
+  mirror resolution/rate/distance reductions had little measured benefit or a visible
+  quality trade-off, so no wider batching or snow-memory change is justified in Phase 14.
+  P14-051 is complete with this narrow measured optimisation and its limits recorded.
 - [~] `P14-052` Recheck all available CNA renderers after visual/performance changes through
   the public XNA API. Acceptance: equivalent screenshots inspected as well as draw counts; no
   renderer-specific application branch. On the real Radeon 780M desktop, OPENGLES3 and the
@@ -2054,6 +2065,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   including 357.5 draws / 1.01299 M triangles in mirror passes. A paired hidden
   Radeon frame is byte-identical before/after instrumentation; the public-XNA
   checker passes. This is a measurement change, not a visual optimisation.
+  After the diagnostic A/B switch, all four paths again report 1,303.5 indexed 3D
+  draws / 2.95046 M triangles in the default rainy-night cockpit, with screenshots
+  byte-identical to the pre-switch renderer frames. The XNA-only check still passes.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

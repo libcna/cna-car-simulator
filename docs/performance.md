@@ -516,6 +516,39 @@ this counter has the same SHA-256
 These are accounting and validation data, not an optimisation result. The cull A/B
 with this shared definition is still required for P14-051.
 
+### P14-051 interleaved wing-cull A/B on Radeon 780M
+
+The same instrumented GLES3 binary replayed the earlier wing policy with
+`--no-wing-visibility-cull`. `scripts/benchmark_mirror_matrix.sh` ran six hidden
+surfaceless Radeon 780M cases in the order `none, unculled, all, all, unculled,
+none`, each with 120 lockstep frames (30 warm-up), settled rainy night, 60 seconds
+of traffic warm-up, high quality and a physical 800 × 480 offscreen surface. Every
+log reports `radeonsi` and the same 20 traffic cars, seven drawn pedestrians,
+1,127 legacy main-view draws and 1,844,156 legacy main-view triangles. The
+[unculled](screenshots/phase14/wing-cull-ab-unculled.png) and
+[culled](screenshots/phase14/wing-cull-ab-all.png) last frames are byte-identical.
+
+| Policy, mean of two runs | All indexed 3D draws / triangles | Mirror indexed 3D draws / triangles | Mirror CPU pass | Whole project draw | Frame wall | Peak RSS range |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Earlier, both wings | 1,928.622 / 4,022,940 | 715.033 / 1,619,861 | 4.669 ms | 14.923 ms | 19.099 ms | 2189–2198 MiB |
+| Frustum-cull unseen wing | 1,766.333 / 3,635,155 | 552.744 / 1,232,076 | 4.484 ms | 16.354 ms | 20.636 ms | 2190–2205 MiB |
+
+The cull removes **162.289 indexed 3D draws (8.41%) and 387,785 triangles
+(9.64%)** per frame across the entire scene; within mirror passes it removes
+22.70% of draws and 23.94% of triangles. The no-mirror first/last brackets each
+report 1,213.589 indexed 3D draws, 2,403,079 triangles and zero mirror draws;
+their project draw times are 10.710 and 10.387 ms. The two culled project draw
+times are 14.568 and 18.139 ms, while unculled times are 14.378 and 15.468 ms:
+host load altered the non-mirror passes more than the cull saves. The direct mirror
+pass decreased by 0.186 ms on the two-run mean, but its individual 3.967–5.000 ms
+spread overlaps unculled 4.517–4.821 ms. **No reliable whole-frame speed-up is
+claimed.** RSS also crosses between policies within run variation. The matching
+scene and exact geometric reduction establish the narrow optimisation without
+changing a visible reflection. All six [JSON and RSS records](performance-data/)
+are named `p14-wing-cull-ab-*`; the runnable script keeps the ordering reproducible.
+The earlier width/rate/distance matrix does not justify another Phase 14 mirror
+quality reduction, and memory data do not justify replacing the working snow mesh.
+
 ### P14-020 shutter facade geometry check
 
 A fixed hidden Radeon 800 × 480 view of a selected Lipová house was run before and after

@@ -18,6 +18,7 @@ for variant in $variants; do
     if (( runs[$variant] > 1 )); then name="$variant-r${runs[$variant]}"; fi
     case "$variant" in
         all)          extra=() ;;
+        unculled)     extra=(--no-wing-visibility-cull) ;;
         none)         extra=(--no-mirror) ;;
         rear)         extra=(--no-wing-mirrors) ;;
         rear384)      extra=(--no-wing-mirrors --mirror-width 384) ;;

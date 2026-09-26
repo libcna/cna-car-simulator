@@ -113,6 +113,8 @@ namespace CarSim::Core
                 options.noMirror = true;
             } else if (arg == "--no-wing-mirrors") {
                 options.noWingMirrors = true;
+            } else if (arg == "--no-wing-visibility-cull") {
+                options.noWingVisibilityCull = true;
             } else if (arg == "--mirror-width") {
                 int width = 0;
                 takeInt(arg, width, 128);
@@ -340,6 +342,7 @@ namespace CarSim::Core
             "  --mirror-every <n>    Redraw the rear-view mirror every n frames (1 = every frame)\n"
             "  --no-mirror           Disable rear and wing mirrors (controlled captures)\n"
             "  --no-wing-mirrors     Keep the rear mirror but skip wing mirror passes\n"
+            "  --no-wing-visibility-cull  Replay both wings for mirror A/B benchmarks\n"
             "  --mirror-width <px>   Rear mirror target width, 128–1536 (default 768)\n"
             "  --mirror-distance <m> Rear mirror draw distance, 50–500 m (default: quality tier)\n"
             "  --lockstep            One simulation step per drawn frame (deterministic captures on slow renderers)\n"

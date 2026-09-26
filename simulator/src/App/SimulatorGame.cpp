@@ -1126,7 +1126,7 @@ namespace CarSim::App
                 // The right glass is outside the driver's view in the usual cockpit pose.
                 // Invalidate its cached image while hidden so it refreshes immediately if
                 // the driver turns towards it, regardless of the alternating update side.
-                if (!cockpitFrustum.Intersects(BoundingSphere(glassWorld, 0.14f))) {
+                if (!options_.noWingVisibilityCull && !cockpitFrustum.Intersects(BoundingSphere(glassWorld, 0.14f))) {
                     wingMirrorsDrawn_[static_cast<std::size_t>(s)] = false;
                     continue;
                 }
@@ -1395,6 +1395,7 @@ namespace CarSim::App
                          << static_cast<double>(bench_.pedestrianTriangles) / n << "},\n  \"mirrorUpdateEvery\": " << std::max(1, save_.settings.mirrorUpdateEvery)
                          << ",\n  \"mirrorEnabled\": " << (mirrorEnabled_ ? "true" : "false")
                          << ",\n  \"wingMirrorsEnabled\": " << (mirrorEnabled_ && !options_.noWingMirrors && quality_ != Render::QualityTier::Low ? "true" : "false")
+                         << ",\n  \"wingVisibilityCullEnabled\": " << (options_.noWingVisibilityCull ? "false" : "true")
                          << ",\n  \"mirrorWidth\": " << mirror_->Width()
                          << ",\n  \"mirrorHeight\": " << mirror_->Height()
                          << ",\n  \"mirrorDistanceM\": " << qualitySettings_.mirrorDistanceM

@@ -607,3 +607,10 @@ have 7,400 and 7,926 pixels above 12/255, matching their established gauge
 shading differences. Road, mirrors, gauges and radio remain present. A separate
 hidden Radeon before/after screenshot is byte-identical; 13 focused tests and
 the public-XNA check pass. This only adds counters, not a rendering change.
+
+After the diagnostic wing-cull A/B switch was added, the same four renderer
+configurations were rebuilt and repeated the 40-frame rainy-night cockpit scene
+on isolated Xvfb `:121`. Each still reports 1,303.5 indexed 3D draws / 2.95046 M
+triangles, including 357.5 / 1.01299 M in mirrors. Each backend's screenshot is
+byte-identical to its own pre-switch image above, and the public-XNA checker
+passes (233 files, 544 known types). The default render path is unchanged.

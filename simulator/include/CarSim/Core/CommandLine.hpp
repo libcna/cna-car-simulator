@@ -35,6 +35,7 @@ namespace CarSim::Core
         std::optional<int> mirrorEvery;  // redraw the mirror every n frames (overrides the saved setting)
         bool noMirror = false;            // disable all mirror passes for controlled captures
         bool noWingMirrors = false;        // keep the rear view but skip the two wing mirrors
+        bool noWingVisibilityCull = false; // replay the earlier wing policy for a controlled A/B
         std::optional<int> mirrorWidth;   // rear-view target width; height keeps its normal aspect ratio
         std::optional<float> mirrorDistanceM; // rear-view draw distance, independent of the quality tier
         bool lockstep = false;          // exactly one 1/60 s simulation step per drawn frame (deterministic captures)
