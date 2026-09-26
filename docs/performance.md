@@ -585,3 +585,30 @@ and [after](performance-data/p14-undergrowth-gl33-clear-after.json) report 431 v
 [after](performance-data/p14-undergrowth-gl33-snow-after.json) report 619 versus 621
 draws and 483,056 versus 488,936 triangles. These are geometry costs, not a speed
 claim; the separate Radeon images check the visible result.
+
+### P14-042 dense-fog tree trunk cull and mixed-weather review
+
+At the fixed hidden Radeon 800 × 480 forest edge (`--spawn forest --view -228 5 -1280 0 -4`,
+13:00 frozen, fog, 120 lockstep frames with 30 warm-up), tree crowns already culled in
+dense fog while one distant 256 m trunk chunk still drew. The matched
+[before](performance-data/p14-forest-fog-trunks-before-800.json) and
+[after](performance-data/p14-forest-fog-trunks-after-800.json) runs report 317 to
+316 main-view submissions (−0.32%) and 306,679 to 297,397 triangles (−3.03%).
+Draw submission changed from 3.555 to 3.831 ms (+0.276 ms); host variation does not
+support a speed-up claim. Peak process RSS was 2,248,952 versus 2,238,776 KiB,
+also within run variation. The [paired images](screenshots/phase14/README.md) change
+5,783 pixels above 12/255, almost all where the bare trunks disappeared; the ground
+below row 235 is pixel-identical. A separate clear-weather cockpit check left the
+upper 356 image rows pixel-identical, confirming the dense-fog-only effect.
+An `EGL_LOG_LEVEL=debug` repeat of the same hidden offscreen path reported PCI
+`1002:15bf, driver radeonsi`; the four Xvfb backend checks are separate software
+conformance runs, not substitutes for these hardware measurements.
+
+The settled hidden Radeon cockpit also ran 120 frames (30 warm-up) with headlamps
+in [night fog](performance-data/p14-forest-night-fog-800.json) and
+[sunset snow](performance-data/p14-forest-sunset-snow-800.json): average project draw
+submission was 9.36 and 8.79 ms respectively. Both runs performed a one-time ground
+shadow rebake during the measurement, which inflated update means and worst frame
+gaps; those draw numbers describe the scenes rather than a renderer speed-up.
+They use the working public-XNA snow representation and do not indicate memory
+pressure requiring a replacement.

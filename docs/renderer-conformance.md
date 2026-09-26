@@ -540,3 +540,19 @@ The GLES3 llvmpipe road/ground pattern noted above is still present; the hidden 
 [after frame](screenshots/phase14/cottage-stucco-after.png) has no such pattern.
 `scripts/check_xna_only.py` passes (233 files, 544 known XNA 4.0 types). No backend
 specific code was added and no physical display was used.
+
+### Phase 14 fog trunk checkpoint (2026-09-26)
+
+After culling distant trunks with their foliage in dense fog, all four public-XNA
+renderers built and completed the same 40-frame 800 × 480 forest-edge view on isolated
+Xvfb `:116`: [OPENGL33](screenshots/renderers/phase14-fog-trunks-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-fog-trunks-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-fog-trunks-software.png), and
+[Vulkan](screenshots/renderers/phase14-fog-trunks-vulkan.png). Each reported 316
+main-view draw submissions, 297,397 triangles, 11 object and five foliage batches.
+The stray bare trunks are absent in all four images. Virtual GLES3 still has the
+previously isolated tiled ground pattern; Vulkan foliage filtering differs from GL
+and software in fog, while the tree line and culling are consistent. The hidden Radeon
+[matched pair](screenshots/phase14/README.md) verifies the correction on hardware.
+The public-XNA checker passed (233 files, 544 known types); no backend-specific
+application branch or physical desktop window was used.

@@ -264,3 +264,19 @@ collision geometry retain their positions. [OpenGL33](cottage-stucco-opengl33.pn
 [GLES3](cottage-stucco-opengles3-xvfb.png), [software](cottage-stucco-software.png),
 and [Vulkan](cottage-stucco-vulkan.png) virtual-display frames all show the same
 frontage. Broader town frontage and square layout work remain under P14-020.
+
+## Forest fog trunk alignment and mixed weather
+
+At `--view -228 5 -1280 0 -4`, dense fog first removed distant crowns but left a
+bare trunk chunk on the left. The matched hidden Radeon
+[before](forest-fog-trunks-before.png) / [after](forest-fog-trunks-after.png) pair
+changes 5,783 pixels above 12/255, almost wholly in that distant band. The nearby
+trees and ground remain, and a clear-weather cockpit comparison confirms no change
+above row 356 outside fog. Four virtual renderer checks are in
+[renderer conformance](../../renderer-conformance.md).
+
+Settled 120-frame hidden Radeon [night fog with headlamps](forest-night-fog-cockpit.png)
+and [sunset snow](forest-sunset-snow-cockpit.png) show the road and cluster at the
+forest spawn; their project draw measurements are in [performance notes](../../performance.md).
+The light-coloured triangular opening by the left windscreen frame appears in clear
+weather too, so its shape remains a P14-022 cockpit item rather than a winter artifact.

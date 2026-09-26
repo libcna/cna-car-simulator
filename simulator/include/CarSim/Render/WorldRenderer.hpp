@@ -127,6 +127,7 @@ namespace CarSim::Render
             float specularPower = 8.0f;
             float cullDistance = 0.0f;   // > 0: skipped when the batch sphere is farther than this
             bool roof = false;           // takes a layer of snow
+            bool treeTrunk = false;      // shares dense-fog chunk culling with foliage cards
         };
         struct TreeBatch
         {

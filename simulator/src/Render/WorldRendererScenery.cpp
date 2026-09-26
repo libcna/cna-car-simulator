@@ -138,7 +138,9 @@ namespace CarSim::Render
             push(pm.hedge, grass_.get(), Vector3(0.26f, 0.38f, 0.17f), matte, 6.0f);
         }
         for (auto& [key, m] : trunkChunks) {
+            const std::size_t before = objectBatches_.size();
             push(m, barkTexture_.get(), one, matte, 6.0f, noGlow, 700.0f);
+            if (objectBatches_.size() > before) objectBatches_.back().treeTrunk = true;
         }
         stats_.objectBatchesTotal = static_cast<int>(objectBatches_.size());
     }

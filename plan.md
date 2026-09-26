@@ -1922,11 +1922,21 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   sound family is open.
   Acceptance: deterministic level/spectrum tests and listening review across modes;
   debug telemetry exposes layer gains without normal-play clutter.
-- [~] `P14-042` Polish snow and fog visual/audio integration without removing either.
+- [x] `P14-042` Polish snow and fog visual/audio integration without removing either.
   Dense fog now culls alpha-tested tree chunks with the visibility horizon; fixed-camera GPU
   captures show fewer floating pale tree cards (33 to 6 visible tree batches). Snow gains a
   separate tyre texture and the gradual tree-crown winter palette noted under P14-021.
-  The forest fog edge and mixed low-light conditions still need review.
+  A fixed hidden-Radeon forest fog view exposed bare trunks left behind when their
+  foliage chunk was culled. Trunk object batches now share the dense-fog centre-distance
+  limit with the foliage cards, including their headlamp fill. Matched clear terrain and
+  near-tree pixels remain unchanged; the distant 5,783 changed pixels remove the bare
+  trunks. The paired scene drops one draw and 9,282 triangles, with variable project
+  draw timing and no memory-pressure claim. All four virtual renderers show the same
+  corrected edge and the public-XNA check passes. Settled hidden-Radeon cockpit reviews
+  cover night fog with headlamps and sunset snow, beside the existing rainy-night capture;
+  the two new project draw averages are 9.36 and 8.79 ms at 800 × 480. The listener has
+  accepted the actual-mixer snow clip under P14-041. A left windscreen-frame shape visible
+  in both clear and snow belongs to the remaining P14-022 geometry work.
   Acceptance: captured rain, snow, fog, night combinations remain readable and performant.
 
 #### P3 — measure, then optimize
@@ -2006,6 +2016,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   draws and 440,919 triangles. A coarser terrain pattern on virtual GLES3 llvmpipe
   reproduces with the previous road-mesh source and is recorded in the conformance log;
   it is absent on the hidden Radeon hardware capture.
+  After the P14-042 dense-fog trunk cull, all four virtual renderers show the corrected
+  forest edge at 316 main-view draws / 297,397 triangles; the XNA-only check passes.
+  P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit
 

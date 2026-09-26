@@ -352,6 +352,8 @@ namespace CarSim::Render
         light.setSpecularColorProperty(Vector3(0.0f, 0.0f, 0.0f));
         for (const auto& batch : objectBatches_) {
             if (!batch.mesh || !frustum.Intersects(batch.mesh->Sphere()) || !inBeam(batch.mesh->Sphere())) continue;
+            if (batch.treeTrunk && rig_.fogEnd < 400.0f &&
+                Vector3::Distance(batch.mesh->Sphere().Center, headlightPosition_) > rig_.fogEnd + 30.0f) continue;
             object.setTextureProperty(batch.texture);
             object.setDiffuseColorProperty(batch.diffuse);
             ApplyAll(object, device, *batch.mesh);
@@ -637,6 +639,8 @@ namespace CarSim::Render
             if (Vector3::Distance(eye, b.mesh->Sphere().Center) - b.mesh->Sphere().Radius > cull) {
                 continue;
             }
+            if (b.treeTrunk && rig_.fogEnd < 400.0f &&
+                Vector3::Distance(eye, b.mesh->Sphere().Center) > horizon + 30.0f) continue;
             roadEffect_->setTextureProperty(b.texture);
             // Rain-soaked plaster, roof tiles and wood darken and pick up a wet gloss.
             roadEffect_->setDiffuseColorProperty(b.diffuse * (1.0f - 0.22f * wetness_));
