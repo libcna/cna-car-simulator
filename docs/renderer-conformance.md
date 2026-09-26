@@ -643,3 +643,17 @@ draws / 2.97373 M triangles (535 mirror draws / 0.95561 M triangles). A separate
 seven-condition hidden Radeon GLES3 review includes snow and rain. Ten
 procedural-car tests and the public-XNA checker pass. P14-052 remains open for
 the final renderer pass.
+
+### Phase 14 compact cockpit HUD check (2026-09-26)
+
+The same fixed 40-frame cockpit scene completed after the cockpit-only HUD
+reflow on short-lived isolated Xvfb `:128` with
+[OPENGL33](screenshots/renderers/phase14-compact-hud-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-compact-hud-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-compact-hud-software.png), and
+[Vulkan](screenshots/renderers/phase14-compact-hud-vulkan.png). Each retains
+1,353 scene draws / 1.46250 M triangles and 1,970 indexed 3D draws / 2.97373 M
+triangles, including 535 mirror draws / 0.95561 M triangles. Against each
+backend's prior rail-check screenshot, only the two HUD text positions change;
+the central road is pixel-identical. The hidden Radeon seven-condition cockpit
+review and public-XNA check pass. P14-052 remains open for the final pass.

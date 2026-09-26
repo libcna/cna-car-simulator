@@ -363,3 +363,22 @@ and glazing remain intact.
 The 800 × 480 HUD overlays the lower centre stack; its detailed appearance is
 shown in the 1280 views. Lower controls still need a stronger night pass, so
 P14-022 remains open.
+
+## Compact driving HUD in the cockpit
+
+The speed and RPM/gear overlay now sits in a smaller block over the left roof
+corner in cockpit view. The chase and walking layouts retain their previous
+positions, and engine status remains at the lower right. A matched hidden
+Radeon chase screenshot is byte-identical before and after the change. In the
+matched hidden Radeon 800 × 480 [noon before](cockpit-open-rail-noon.png) /
+[after](cockpit-compact-hud-noon.png) and
+[night before](cockpit-open-rail-night.png) /
+[after](cockpit-compact-hud-night.png) pairs, the radio and passenger panel are
+uncovered; the central road view is pixel-identical. The full review covers
+[sunset](cockpit-compact-hud-sunset.png), [rain](cockpit-compact-hud-rain.png),
+[fog](cockpit-compact-hud-fog.png), [snow](cockpit-compact-hud-snow.png) and
+[rainy night](cockpit-compact-hud-rainy_night.png). At 1280 × 720 the
+[noon](cockpit-compact-hud-1280-noon.png) and
+[night](cockpit-compact-hud-1280-night.png) views show the exposed radio and
+lower controls in more detail. The lower controls remain dark at night, which
+keeps the material-lighting part of P14-022 open.

@@ -1787,6 +1787,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The matched noon pair changes 11,321 pixels only at the two rails; dashboard
   and central road are pixel-identical. Seven hidden Radeon time/weather captures
   retain the narrow lip and readable gauges; lower controls at night remain open.
+  At 800 × 480 the large speed/RPM overlay then obscured the radio and passenger
+  panel. Cockpit mode now places those two readouts at smaller scale over the left
+  roof corner; chase and walking layouts stay in place. Matched Radeon noon/night
+  pairs change only overlay pixels (5,961 and 5,703 above 12/255), with the
+  central road unchanged. The seven weather/time views and 1280 × 720 noon/night
+  review show the console uncovered; lower controls still need night separation.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -2089,6 +2095,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   virtual renderers at 1,353 scene draws / 1.46250 M triangles. The retained
   narrow pillar, dashboard, mirrors and dials are visible on each; seven hidden
   Radeon time/weather views and the public-XNA check also pass.
+  The cockpit-only compact HUD then passed the same 40-frame scene on all four
+  virtual renderers with unchanged 1,353 scene draws / 1.46250 M triangles and
+  1,970 indexed 3D draws / 2.97373 M triangles. Only HUD text positions change
+  relative to each renderer's prior frame; the central road is pixel-identical.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

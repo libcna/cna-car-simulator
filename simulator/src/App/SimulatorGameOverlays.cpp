@@ -41,12 +41,19 @@ namespace CarSim::App
                             &RasterizerState::CullNone);
 
         char buffer[128];
+        const bool compactCockpit = !walking_ && cameraMode_ == Render::CameraMode::Cockpit && !options_.freeView;
         std::snprintf(buffer, sizeof(buffer), "%3.0f km/h", static_cast<double>(walking_ ? (walkingMoving_ ? (running_ ? kRunningSpeedKmh : kWalkingSpeedKmh) : 0.0f) : s.speedKmh));
-        fontBold_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 120.0f), Color(255, 255, 255, 235), 1.0f, Render::TextAlign::Right);
+        fontBold_->DrawShadowed(*spriteBatch_, buffer,
+                                compactCockpit ? Vector2(20.0f, 55.0f) : Vector2(w - 24.0f, h - 120.0f),
+                                Color(255, 255, 255, compactCockpit ? 205 : 235), compactCockpit ? 0.72f : 1.0f,
+                                compactCockpit ? Render::TextAlign::Left : Render::TextAlign::Right);
         if (walking_) std::snprintf(buffer, sizeof(buffer), "%s", running_ ? "RUNNING" : "WALKING");
         else std::snprintf(buffer, sizeof(buffer), "%4.0f rpm   %s   %s", static_cast<double>(s.engineRpm), s.gearLabel.c_str(),
                            s.transmissionMode == Sim::TransmissionMode::Automatic ? "AUTO" : "MANUAL");
-        font_->DrawShadowed(*spriteBatch_, buffer, Vector2(w - 24.0f, h - 70.0f), Color(235, 235, 235, 220), 1.0f, Render::TextAlign::Right);
+        font_->DrawShadowed(*spriteBatch_, buffer,
+                            compactCockpit ? Vector2(20.0f, 83.0f) : Vector2(w - 24.0f, h - 70.0f),
+                            Color(235, 235, 235, compactCockpit ? 195 : 220), compactCockpit ? 0.72f : 1.0f,
+                            compactCockpit ? Render::TextAlign::Left : Render::TextAlign::Right);
         std::string status = walking_ ? "On foot  Arrows move/turn  A/D sidestep" :
                             s.flightMode ? "Helicopter  Space climb  Q descend  J car" :
                             std::string("Engine: ") + Sim::ToString(s.engineState);
