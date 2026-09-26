@@ -695,6 +695,16 @@ reviews. The implementation changes only the values written to the existing macr
 colour texture. It adds no terrain vertices, draw pass, texture allocation or snow
 representation. These image differences are a visual check, not a frame-rate claim.
 
+### P14-021 broadleaf winter silhouette check
+
+Winter linden, oak, birch, maple and beech now use transparent leaf clusters and
+branch strokes within their existing two-card atlases. The atlas dimensions, three
+crossed quads per tree, tree batch count and snow terrain representation are unchanged.
+At the fixed hidden Radeon 800 × 480 forest edge, the clear before/after images are
+pixel-identical; 18,046 snow pixels differ by more than 12/255 in any channel.
+The [forest and close town pairs](screenshots/phase14/README.md) verify that the
+change is confined to winter vegetation. This does not establish a frame-time change.
+
 ### P14-020 town-house balcony geometry check
 
 The fixed hidden Radeon 800 × 480 square view (`--view -46 5 -58 0 0`, clear

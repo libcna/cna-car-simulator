@@ -59,6 +59,56 @@ namespace CarSim::Render
                 }
             }
         }
+
+        void WinterBranches(Image& atlas, const TreeSpecies species, const unsigned seed)
+        {
+            const float W = static_cast<float>(VegetationGenerator::kCardWidth);
+            const float H = static_cast<float>(VegetationGenerator::kCardHeight);
+            const bool birch = species == TreeSpecies::Birch;
+            const float spread = species == TreeSpecies::Oak ? 0.43f : species == TreeSpecies::Beech ? 0.29f : 0.36f;
+            const Rgb bark = birch ? Rgb::FromBytes(211, 211, 202) : Rgb::FromBytes(103, 82, 64);
+            const Rgb shade = birch ? Rgb::FromBytes(112, 112, 108) : Rgb::FromBytes(52, 40, 32);
+            const Color branch = birch ? Color(153, 151, 145, 255) : Color(74, 61, 51, 255);
+            const Color snow = Color(178, 187, 183, 255);
+            for (int variant = 0; variant < 2; ++variant) {
+                const unsigned cardSeed = seed + static_cast<unsigned>(variant) * 2017u;
+                const float cx = static_cast<float>(VegetationGenerator::kAtlasPadding +
+                    variant * (VegetationGenerator::kCardWidth + VegetationGenerator::kAtlasPadding)) + W * 0.5f;
+                // Birch keeps its leader; the other broadleaf trunks fork below the crown.
+                Trunk(atlas, cx, H * (birch ? 0.14f : 0.32f), H, W * 0.025f, W * 0.085f, bark, shade, cardSeed);
+                if (!birch) {
+                    for (const float side : {-1.0f, 1.0f}) {
+                        const float fork = Core::Noise::Hash(side > 0.0f ? 1 : 2, 9, cardSeed);
+                        atlas.DrawLine(cx, H * 0.55f, cx + side * W * (0.11f + 0.07f * fork),
+                                       H * (0.22f + 0.05f * fork), W * 0.026f, branch);
+                    }
+                }
+                for (const float side : {-1.0f, 1.0f}) {
+                    for (int k = 0; k < 5; ++k) {
+                        const float jitter = Core::Noise::Hash(k, side > 0.0f ? 1 : 2, cardSeed);
+                        const float bend = Core::Noise::Hash(k, side > 0.0f ? 3 : 4, cardSeed);
+                        const float y0 = H * (0.38f + 0.40f * jitter);
+                        const float reach = W * spread * (0.62f + 0.55f * bend);
+                        const float xMid = cx + side * reach * (0.38f + 0.18f * bend);
+                        const float yMid = y0 - H * (0.025f + 0.035f * bend);
+                        const float xEnd = cx + side * reach;
+                        const float yEnd = yMid - H * (0.055f + 0.105f * bend);
+                        const float thick = W * (0.016f + 0.018f * y0 / H);
+                        atlas.DrawLine(cx, y0, xMid, yMid, thick, branch);
+                        atlas.DrawLine(xMid, yMid, xEnd, yEnd, thick * 0.63f, branch);
+                        atlas.DrawLine(xMid, yMid - 1.8f, xEnd, yEnd - 1.8f, 1.5f, snow);
+                        for (int twig = 0; twig < 2; ++twig) {
+                            const float t = twig == 0 ? 0.48f : 0.76f;
+                            const float tx = std::lerp(xMid, xEnd, t);
+                            const float ty = std::lerp(yMid, yEnd, t);
+                            atlas.DrawLine(tx, ty, tx + side * W * (twig == 0 ? 0.075f + 0.020f * bend : -0.025f - 0.012f * jitter),
+                                           ty - H * (twig == 0 ? 0.050f + 0.018f * jitter : 0.080f + 0.015f * bend),
+                                           thick * 0.38f, branch);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Image VegetationGenerator::CardTexture(const TreeSpecies species, const int width, const int height, const unsigned seed)
@@ -192,6 +242,7 @@ namespace CarSim::Render
     {
         Image winter = summer;
         const bool conifer = Map::IsConifer(species);
+        const bool bareBroadleaf = !conifer && species != TreeSpecies::Bush;
         for (int y = 0; y < winter.Height(); ++y) {
             // The upper crown carries the accumulation; lower boughs stay dark and visible
             // against the snow-covered ground. Avoid a random speckle mask over every leaf.
@@ -215,9 +266,14 @@ namespace CarSim::Render
                     return static_cast<int>(std::lround(static_cast<float>(original) * (1.0f - cover) +
                                                         static_cast<float>(snow) * cover));
                 };
-                pixel = Color(mix(r, pale), mix(g, pale + 4), mix(b, pale + 2), static_cast<int>(pixel.getAProperty()));
+                // Leaf clusters thin at different cover levels; the alpha-tested canopy
+                // gives way gradually to the winter branches instead of vanishing at once.
+                const int alpha = bareBroadleaf ? static_cast<int>(16.0f + 84.0f * patch) :
+                                                  static_cast<int>(pixel.getAProperty());
+                pixel = Color(mix(r, pale), mix(g, pale + 4), mix(b, pale + 2), alpha);
             }
         }
+        if (bareBroadleaf) WinterBranches(winter, species, seed);
         return winter;
     }
 
@@ -232,7 +288,7 @@ namespace CarSim::Render
             const Color& a = summer.Pixels()[i];
             const Color& b = winter.Pixels()[i];
             blended.Pixels()[i] = Color(mix(a.getRProperty(), b.getRProperty()), mix(a.getGProperty(), b.getGProperty()),
-                                        mix(a.getBProperty(), b.getBProperty()), static_cast<int>(a.getAProperty()));
+                                        mix(a.getBProperty(), b.getBProperty()), mix(a.getAProperty(), b.getAProperty()));
         }
         return blended;
     }

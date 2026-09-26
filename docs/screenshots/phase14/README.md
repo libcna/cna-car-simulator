@@ -3,7 +3,7 @@
 The original pairs are 1280 × 720 captures from CNA OPENGLES3 on the Debian 13 desktop's AMD Radeon
 780M (Mesa 25.0.7), with a fixed camera and clock for each pair. JPEG quality 88 was used
 for scene frames; the instrument texture remains PNG. The JPEGs are review evidence, not
-texture assets shipped by the simulator. The road-repair and asphalt-grain **before** frames used OPENGL33 on
+texture assets shipped by the simulator. The road-repair, asphalt-grain and close winter-linden **before** frames used OPENGL33 on
 the same Radeon while the older code was built there; the Phase 14 renderer comparison found
 OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit scenes. The
 gait pair uses the hidden 800 × 480 Radeon path described below.
@@ -65,8 +65,16 @@ The next winter-atlas step makes the low roadside shrubs lighter on top: compare
 [snow-verge result before this step](road-verge-snow-after.png) with the
 [frosted bushes](forest-bush-snow-after.png). The clear version of the same view remains
 pixel-identical; the shrub atlas keeps its dimensions and the lower foliage stays dark.
-The forest snow pair checks the gradual upper-crown tint and the unchanged card silhouettes;
-further branch geometry and deciduous winter shape work remain. The cluster is shown while stationary with its engine
+The earlier forest snow pair checks the gradual upper-crown tint on evergreen cards.
+The later broadleaf winter pass compares the same fixed forest edge in
+[clear before](broadleaf-winter-before-clear.png) /
+[after](broadleaf-winter-after-clear.png) and
+[snow before](broadleaf-winter-before-snow.png) /
+[after](broadleaf-winter-after-snow.png). The clear pair is pixel-identical; the snow
+pair shows bare deciduous branches among the frosted conifers. A closer town
+[linden before](broadleaf-winter-town-before-snow.png) /
+[after](broadleaf-winter-town-after-snow.png) checks branch silhouette at normal
+street distance. The cluster is shown while stationary with its engine
 off, so it checks layout rather than gauge motion. The night frame likewise checks cabin
 visibility; live illumination under every weather combination still needs review.
 

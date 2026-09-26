@@ -1,6 +1,7 @@
 #include "CarSim/Render/VegetationGenerator.hpp"
 
 #include <gtest/gtest.h>
+#include <algorithm>
 
 using namespace CarSim;
 
@@ -43,9 +44,9 @@ TEST(VegetationGenerator, SeededSilhouettesShareOneAtlasWithoutChangingGeometry)
     }
 }
 
-TEST(VegetationGenerator, WinterAtlasFrostsFoliageWithoutChangingTrunksOrCardEdges)
+TEST(VegetationGenerator, WinterAtlasFrostsEvergreensAndBushesWithoutChangingTheirSilhouette)
 {
-    for (const auto species : {Map::TreeSpecies::Spruce, Map::TreeSpecies::Birch, Map::TreeSpecies::Bush}) {
+    for (const auto species : {Map::TreeSpecies::Spruce, Map::TreeSpecies::Bush}) {
         const auto summer = Render::VegetationGenerator::CardAtlasTexture(species, 113u);
         const auto winter = Render::VegetationGenerator::WinterAtlasTexture(summer, species, 113u);
         const auto half = Render::VegetationGenerator::BlendSeasonalAtlases(summer, winter, 0.5f);
@@ -75,5 +76,32 @@ TEST(VegetationGenerator, WinterAtlasFrostsFoliageWithoutChangingTrunksOrCardEdg
             EXPECT_GT(unchangedBark, 100);
         }
         EXPECT_EQ(winter.At(Render::VegetationGenerator::kAtlasPadding - 1, 256).getAProperty(), 0);
+    }
+}
+
+TEST(VegetationGenerator, WinterBroadleafThinsCanopyAndRevealsBranches)
+{
+    for (const auto species : {Map::TreeSpecies::Linden, Map::TreeSpecies::Oak, Map::TreeSpecies::Birch,
+                               Map::TreeSpecies::Maple, Map::TreeSpecies::Beech}) {
+        const auto summer = Render::VegetationGenerator::CardAtlasTexture(species, 113u);
+        const auto winter = Render::VegetationGenerator::WinterAtlasTexture(summer, species, 113u);
+        const auto half = Render::VegetationGenerator::BlendSeasonalAtlases(summer, winter, 0.5f);
+        int thinnedLeaves = 0, revealedBranches = 0;
+        for (std::size_t i = 0; i < summer.Pixels().size(); ++i) {
+            const auto& a = summer.Pixels()[i];
+            const auto& b = winter.Pixels()[i];
+            const auto& m = half.Pixels()[i];
+            EXPECT_GE(m.getAProperty(), std::min(a.getAProperty(), b.getAProperty()));
+            EXPECT_LE(m.getAProperty(), std::max(a.getAProperty(), b.getAProperty()));
+            const bool foliage = a.getAProperty() > 0 && a.getGProperty() > a.getRProperty() + 9 &&
+                                 a.getGProperty() > a.getBProperty() + 5;
+            thinnedLeaves += foliage && b.getAProperty() < 128;
+            revealedBranches += a.getAProperty() == 0 && b.getAProperty() >= 128;
+        }
+        EXPECT_GT(thinnedLeaves, 1000);
+        EXPECT_GT(revealedBranches, 100);
+        EXPECT_EQ(winter.At(Render::VegetationGenerator::kAtlasPadding - 1, 256).getAProperty(), 0);
+        EXPECT_EQ(winter.At(Render::VegetationGenerator::kAtlasPadding + Render::VegetationGenerator::kCardWidth / 2,
+                            Render::VegetationGenerator::kCardHeight - 10).getAProperty(), 255);
     }
 }

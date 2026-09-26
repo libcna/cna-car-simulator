@@ -701,3 +701,16 @@ asphalt tone within the same road, markings and kerb geometry; the two OpenGL
 screenshots are byte-identical. Matched hidden Radeon clear, rain and snow frames
 check the material in actual hardware rendering. The public-XNA checker passes.
 P14-052 remains open for the final renderer pass.
+
+### Phase 14 winter broadleaf card check (2026-09-26)
+
+The fixed two-frame snowy town linden view completed on isolated Xvfb with
+[OPENGLES3](screenshots/phase14/broadleaf-winter-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/broadleaf-winter-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/broadleaf-winter-renderer-software.png), and
+[Vulkan](screenshots/phase14/broadleaf-winter-renderer-vulkan.png). All four show
+the bare branch silhouette and the same buildings and snow cover. The two OpenGL
+screenshots are byte-identical; backend raster differences remain on SOFTWARE and
+Vulkan. Hidden Radeon forest and close town pairs verify the winter change and
+pixel-identical summer view. Three focused vegetation tests and the public-XNA
+checker pass. P14-052 remains open for the final renderer pass.

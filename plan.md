@@ -1730,8 +1730,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   looked too blurred close to the car and was discarded; the retained version was checked
   at a fixed hidden Radeon town camera in clear, rain and snow. The clear road gains texture
   without a repeating large blotch, while wet sheen and snow remain coherent; matched
-  frames are linked from `docs/screenshots/phase14/`. Remaining winter vegetation detail
-  and the final mixed-weather review remain open.
+  frames are linked from `docs/screenshots/phase14/`. Winter broadleaf cards now thin
+  their summer foliage and reveal irregular branches while frosted conifers and bushes
+  keep their existing treatment. The cards retain their atlas dimensions and tree geometry;
+  the seasonal blend also interpolates alpha so leaves recede across snow-cover levels.
+  A fixed hidden Radeon forest-edge clear pair is pixel-identical; the snow pair changes
+  18,046 pixels above 12/255. A closer town linden pair confirms the branch silhouette.
+  Three focused atlas tests and the public-XNA check pass. The final mixed-weather review
+  remains open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [x] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
