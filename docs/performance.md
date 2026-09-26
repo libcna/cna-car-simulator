@@ -682,6 +682,19 @@ and snow images in the [visual review](screenshots/phase14/README.md) confirm th
 localized gain. The existing low shrubs stay in place and no collision geometry is
 added. This is a visual addition rather than a speed claim.
 
+### P14-021 interior forest-floor colour check
+
+The fixed hidden Radeon 800 × 480 forest interior view uses the same 13:00,
+two-frame camera for the clean pushed baseline and revised macro tint. It changes
+39,344 clear and 12,309 rain pixels by more than 12/255 in any channel; the tree
+region is pixel-identical in the clear pair. Snow changes zero pixels above that
+threshold (maximum 8/255) because the existing snow layer still covers the ground.
+The [matched images](screenshots/phase14/README.md) show the stronger irregular
+moss, needle-litter and soil patches, plus separate forest-edge and rural-shoulder
+reviews. The implementation changes only the values written to the existing macro
+colour texture. It adds no terrain vertices, draw pass, texture allocation or snow
+representation. These image differences are a visual check, not a frame-rate claim.
+
 ### P14-020 town-house balcony geometry check
 
 The fixed hidden Radeon 800 × 480 square view (`--view -46 5 -58 0 0`, clear

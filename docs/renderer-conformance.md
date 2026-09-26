@@ -676,3 +676,16 @@ and added only the 720 control-ring triangles. Seven hidden Radeon time/weather
 captures and a driven frame with live gauges and active mirrors were inspected.
 Thirteen focused tests and the public-XNA checker pass. P14-052 remains open for
 the final renderer pass after later changes.
+
+### Phase 14 interior forest-floor colour check (2026-09-26)
+
+The fixed two-frame clear forest interior view completed on four isolated Xvfb
+displays with [OPENGLES3](screenshots/phase14/forest-floor-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/forest-floor-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/forest-floor-renderer-software.png), and
+[Vulkan](screenshots/phase14/forest-floor-renderer-vulkan.png). All four show the
+same moss and needle-litter placement and keep the existing undergrowth. The two
+OpenGL screenshots are byte-identical; SOFTWARE and Vulkan retain their usual
+backend lighting and raster differences. Hidden Radeon GLES3 clear, rain and snow
+pairs establish the actual hardware appearance. The public-XNA checker passes;
+P14-052 remains open for the final renderer pass.

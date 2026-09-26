@@ -1719,7 +1719,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   1,173,470→1,180,886 (+0.63%). Both map placement tests, all four virtual snow
   renderers and the public-XNA checker pass. This remains a sparse ground layer;
   broader forest-floor and road-surface work remain open.
-  Broader road-surface texture, forest-floor variety and other winter details remain open.
+  The interior forest macro now separates irregular moss, needle-litter and exposed-soil
+  patches at walking distance using the existing colour bake. In a matched hidden Radeon
+  800 × 480 interior frame, 39,344 clear and 12,309 rain pixels change above 12/255;
+  snow changes none at that threshold, retaining its continuous ground cover. Fixed clear,
+  rain and snow pairs plus forest/meadow-edge and rural-shoulder views are linked from
+  `docs/screenshots/phase14/`. This adds no geometry, material pass or snow texture.
+  Broader road-surface texture and remaining winter details remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [x] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather

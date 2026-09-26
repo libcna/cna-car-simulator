@@ -42,6 +42,16 @@ The same forest-ground view under [snow before](offscreen-800-scene-forest_snow.
 [after](offscreen-800-forest-ground-snow-after.png) shows that the snow surface still covers
 the transition. A [closer interior view](offscreen-800-forest-floor-interior-after.png)
 checks the mottled floor under the canopy; undergrowth remains sparse.
+The later forest-floor pass shows stronger irregular moss, needle-litter and soil patches
+from inside the canopy: [clear before](forest-floor-patches-before-clear.png) /
+[after](forest-floor-patches-after-clear.png),
+[rain before](forest-floor-patches-before-rain.png) /
+[after](forest-floor-patches-after-rain.png), and
+[snow before](forest-floor-patches-before-snow.png) /
+[after](forest-floor-patches-after-snow.png). All use the same hidden Radeon 800 × 480
+camera at `--spawn forest --view -243 5 -2835 180 -4`, 13:00, frame 2.
+The [forest/meadow edge](forest-floor-patches-edge-clear.png) and
+[rural shoulder](forest-floor-patches-road-clear.png) were also checked in clear weather.
 The road-verge pass also has a [rain check](road-verge-rain-after.png). The clear and snow
 before frames above were captured from the clean pushed HEAD with the exact same fixed
 camera; the after frames use the final code. The snow change is plainly visible without

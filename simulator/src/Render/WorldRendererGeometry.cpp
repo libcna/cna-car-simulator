@@ -81,14 +81,15 @@ namespace CarSim::Render
                         tint = Rgb{(0.56f + 0.04f * variation) * (1.0f + 0.07f * patch), 0.60f * (1.0f + 0.07f * patch), 0.45f};
                         break;
                     case Map::RegionType::Forest: {
-                        // Needle litter, darker soil and moss occupy patches larger than the
-                        // grass detail tile. Keep them subdued under the canopy, but no longer
-                        // paint the entire forest floor the same brown.
-                        const float moss = Clamp01(0.50f + 0.55f * patch + 0.18f * variation);
-                        const float litter = Clamp01(0.28f + 0.32f * dryness - 0.20f * patch);
-                        tint = Lerp(Rgb{0.31f, 0.28f, 0.22f}, Rgb{0.43f, 0.44f, 0.27f}, moss);
-                        tint = Lerp(tint, Rgb{0.45f, 0.34f, 0.24f}, litter * 0.35f);
-                        light *= 0.72f;   // canopy shade
+                        // The shared grass detail tile cannot describe a forest floor by itself.
+                        // Broad damp areas and smaller patches of moss, needle litter and exposed
+                        // soil give the canopy floor variation at walking/driving distance.
+                        const float smallPatch = Core::Noise::FbmSigned(wx / 10.0f, z / 10.0f, 3, 0.5f, 379u);
+                        const float moss = Clamp01((0.12f + patch + 0.35f * smallPatch - 0.15f * dryness) * 2.2f);
+                        const float litter = Clamp01((0.08f + dryness - 0.45f * patch + 0.25f * smallPatch) * 2.0f);
+                        tint = Lerp(Rgb{0.40f, 0.28f, 0.18f}, Rgb{0.47f, 0.55f, 0.29f}, moss);
+                        tint = Lerp(tint, Rgb{0.55f, 0.34f, 0.19f}, litter * 0.60f);
+                        light *= 0.78f;   // canopy shade
                         break;
                     }
                     case Map::RegionType::Square:
