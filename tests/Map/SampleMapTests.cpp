@@ -353,9 +353,17 @@ TEST(SampleMap, BushesLineRuralVergesAndForestEdges)
     auto world = Map::MapWorld::Load(LipovaDirectory(), errors);
     ASSERT_TRUE(world);
     int bushes = 0;
+    int low = 0;
     for (const auto& t : world->Objects().Trees()) {
         if (t.species != Map::TreeSpecies::Bush) continue;
         ++bushes;
+        if (t.scale < 0.7f) {
+            ++low;
+            EXPECT_LT(t.Height(), 1.4f);
+            EXPECT_FALSE(t.collidable);
+        } else {
+            EXPECT_TRUE(t.collidable);
+        }
         EXPECT_LT(t.Height(), 4.0f);
         const Microsoft::Xna::Framework::Vector2 at(t.position.X, t.position.Z);
         EXPECT_FALSE(world->Objects().InsideBuilding(at, 1.0f));
@@ -366,6 +374,8 @@ TEST(SampleMap, BushesLineRuralVergesAndForestEdges)
         EXPECT_FALSE(onPaved);
     }
     EXPECT_GT(bushes, 300);
+    EXPECT_GT(low, 1000);
+    EXPECT_LT(low, 5000);
 }
 
 TEST(SampleMap, TheSquareIsPavedAndLinedWithTownHouses)

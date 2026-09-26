@@ -188,3 +188,16 @@ and moving/stopped state are from the F3 overlay. A separate virtual-display
 the log confirms entry on foot and return to the car. The focused walking regressions
 cover angled headings, kerbs, proximity and complete traffic-body overlap. Longer
 sloped and traffic-adjacent routes remain open under P14-023.
+
+## Sparse forest undergrowth
+
+A few low shrubs now occupy gaps among the forest trees, using the existing bush cards
+and their snow atlas. In the fixed virtual OPENGL33 interior view, the
+[clear before](forest-undergrowth-clear-before.png) / [after](forest-undergrowth-clear-after.png)
+pair changes 583 pixels above a 12/255 channel threshold, concentrated on a single
+visible ground patch. The matched [snow before](forest-undergrowth-snow-before.png) /
+[after](forest-undergrowth-snow-after.png) pair changes 612 pixels; the small shrub
+receives muted winter cover. Final hidden Radeon [clear](forest-undergrowth-radeon-clear.png)
+and [snow](forest-undergrowth-radeon-snow.png) frames confirm its colour on hardware.
+The wider forest-edge camera did not show a change because nearby crowns hid the low
+plants. This is a sparse interior layer; deeper forest-floor variety remains open.

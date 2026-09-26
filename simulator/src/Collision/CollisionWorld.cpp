@@ -148,6 +148,9 @@ namespace CarSim::Collision
             AddStatic(BoxCollider(ColliderKind::Building, centre, Vector3(b.halfWidth, 0.5f * (top - bottom), b.halfDepth), b.headingRad));
         }
         for (const auto& t : objects.Trees()) {
+            // Decorative forest ground cover is walk-through; all established trees
+            // and roadside bushes retain their original trunk contact.
+            if (!t.collidable) continue;
             AddStatic(CylinderCollider(ColliderKind::Tree, t.position - Vector3(0.0f, 0.5f, 0.0f), t.TrunkRadius(), 6.0f));
         }
         for (const auto& v : objects.Vehicles()) {

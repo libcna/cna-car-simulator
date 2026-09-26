@@ -66,6 +66,7 @@ namespace CarSim::Map
         float scale = 1.0f;
         float rotationRad = 0.0f;
         unsigned seed = 0;
+        bool collidable = true;   // low visual undergrowth can be walked through
         [[nodiscard]] float TrunkRadius() const;
         [[nodiscard]] float Height() const;
         [[nodiscard]] float CrownRadius() const;

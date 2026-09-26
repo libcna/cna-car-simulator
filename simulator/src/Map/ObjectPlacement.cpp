@@ -677,6 +677,25 @@ namespace CarSim::Map
                     t.seed = static_cast<unsigned>(col * 7919 + row * 104729) + forest.seed;
                     t.position = Vector3(p.X, ground.HeightAt(p.X, p.Y), p.Y);
                     trees_.push_back(t);
+                    // A small, irregular understory near a few trunks breaks up the bare
+                    // forest floor. Keep it inside the same polygon and outside the road
+                    // clearance, so it cannot spill onto the carriageway or a building.
+                    if (edgeDistance > 6.0f && Hash01(col, row, forest.seed + 83u) < 0.05f) {
+                        const float angle = Hash01(col, row, forest.seed + 89u) * 2.0f * kPi;
+                        const float offset = 4.0f + 3.0f * Hash01(col, row, forest.seed + 97u);
+                        const Vector2 under(p.X + std::cos(angle) * offset, p.Y + std::sin(angle) * offset);
+                        if (PointInPolygon(under, forest.polygon) && ClearOfRoads(world, under, forest.margin) &&
+                            !InsideBuilding(under, 2.0f) && world.Terrain().Contains(under.X, under.Y)) {
+                            PlacedTree bush;
+                            bush.species = TreeSpecies::Bush;
+                            bush.position = Vector3(under.X, ground.HeightAt(under.X, under.Y), under.Y);
+                            bush.scale = 0.36f + 0.26f * Hash01(col, row, forest.seed + 101u);
+                            bush.rotationRad = angle;
+                            bush.seed = t.seed ^ 0x6ac690c5u;
+                            bush.collidable = false;
+                            trees_.push_back(bush);
+                        }
+                    }
                     ++placed;
                 }
             }

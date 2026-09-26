@@ -558,3 +558,18 @@ each and 1,353,628 versus 1,356,390 triangles (+2,762 visible in this view). The
 paired hidden Radeon [images](screenshots/phase14/README.md) confirm that the added
 geometry appears on the intended shop fascia. These counts describe a visual addition,
 not a speed improvement; virtual-display wall time is not a Radeon performance measure.
+
+### P14-021 sparse forest undergrowth check
+
+The deterministic forest placement adds 2,771 low shrubs, 0.79–1.36 m tall, across the
+shipped map. They reuse the existing bush atlas and seasonal blend; the snow terrain
+representation is unchanged. The new low bushes are explicitly decorative and add no
+static collider, while the existing roadside bushes keep theirs. The map test checks
+height and that no bush lands on paved road. In a matched 40-frame OPENGL33 virtual
+forest interior view, clear [before](performance-data/p14-undergrowth-gl33-clear-before.json)
+and [after](performance-data/p14-undergrowth-gl33-clear-after.json) report 431 versus
+435 draw submissions and 534,668 versus 543,452 triangles. Snow
+[before](performance-data/p14-undergrowth-gl33-snow-before.json) and
+[after](performance-data/p14-undergrowth-gl33-snow-after.json) report 619 versus 621
+draws and 483,056 versus 488,936 triangles. These are geometry costs, not a speed
+claim; the separate Radeon images check the visible result.

@@ -454,3 +454,20 @@ for Vulkan; respectively 2,689, 10,648 and 8,512 pixels exceeded 32 in any
 channel. The larger scene differences are visible in ground shading and texture
 filtering, with no missing sign content. These captures are conformance evidence,
 not GPU timings. No renderer-specific application code was added.
+
+### Phase 14 sparse forest undergrowth checkpoint (2026-09-26)
+
+The final low-shrub forest interior built and rendered on all four public-XNA backends
+in the same 40-frame clear virtual Xvfb `:110` scene:
+[OPENGLES3](screenshots/renderers/phase14-undergrowth-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-undergrowth-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-undergrowth-software.png), and
+[Vulkan](screenshots/renderers/phase14-undergrowth-vulkan.png). Every backend reports
+435 draws and 543,452 triangles and shows the same low shrub between trunks. Relative
+to OPENGLES3, mean absolute RGB differences are 0.990 / 0.787 / 0.310 for OPENGL33,
+1.323 / 1.094 / 0.507 for SOFTWARE and 2.450 / 2.227 / 1.857 for Vulkan;
+respectively 33, 212 and 5,691 pixels exceed 32 in any channel. Vulkan's larger
+difference is concentrated on ground shading, with no missing vegetation. The separate
+matched clear/snow pairs and hidden Radeon checks are in
+[`screenshots/phase14/`](screenshots/phase14/README.md). The public XNA boundary
+remains intact; no renderer-specific project code was added.

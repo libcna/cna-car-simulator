@@ -1685,8 +1685,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Low bushes now receive snow on the upper leaves of their existing winter atlas rather
   than staying almost uniformly dark; the lower mass retains shade. Matched hidden Radeon
   clear frames are pixel-identical, while 11,396 snow pixels change in the forest-road
-  view. The fixed snow scene still has 685 draws and 605,315 triangles. Understory geometry,
-  broader road-surface/shoulder shape and other winter details remain open.
+  view. The fixed snow scene still has 685 draws and 605,315 triangles. A sparse interior
+  layer now places 2,771 sub-1.4 m bushes in deterministic gaps among forest trees, away
+  from roads and buildings. These reuse the existing seasonal bush atlas, while small
+  decorative plants do not add static colliders. The matched OPENGL33 interior view adds
+  four draws and 8,784 triangles in clear weather, two draws and 5,880 triangles in snow;
+  four virtual renderers and hidden Radeon clear/snow views show the same low shrub.
+  Broader road-surface/shoulder shape, forest-floor variety and other winter details
+  remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
