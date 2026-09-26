@@ -1,9 +1,11 @@
 # Phase 14 handoff (2026-09-26)
 
-Phase 14 is at formal closure. The pushed `b6e89409d7c3cdf922dd82d986bfc8126ed3153f`
-source passed a fresh-clone audit; the last pushed documentation SHA still needs
-its own fresh-clone audit under `P14-062`. The [task ledger](../plan.md) records
-the accepted criteria and remaining gate.
+Phase 14 acceptance is complete. The [task ledger](../plan.md) records each
+accepted criterion. Pushed `b6e89409d7c3cdf922dd82d986bfc8126ed3153f`
+and its documentation successor `64ee8d4e6adf44221fec285daf48f530bc9adca2`
+both passed fresh-clone audits. The commit containing this handoff is the final
+Phase 14 candidate; its acceptance is conditional on the same fresh-clone audit
+of its exact pushed SHA before that SHA is announced as final.
 
 ## Accepted work
 
@@ -85,9 +87,24 @@ on the dummy device. This closes `P14-060`; the separate sanitizer result above
 was run in the desktop process environment because the restricted shell could
 not support LeakSanitizer thread inspection.
 
-`P14-003`, `P14-010`, `P14-011` and `P14-012` also meet their Phase 14 acceptance
+## Fresh-clone audit of `64ee8d4`
+
+A second clean remote clone at exact pushed SHA
+`64ee8d4e6adf44221fec285daf48f530bc9adca2` configured and built completely
+from scratch with the same shared ccache and SDL dependency. With the physical
+display unset, the [six-registration CTest transcript](performance-data/p14-64ee8d4-fresh-ctest.txt)
+passed in 132.85 seconds, including the traffic soaks, XNA-only check, virtual
+smoke, map validation/regeneration and asset check. Five hidden-Radeon scenes
+all logged `driver radeonsi` and reached their frame limits. The clear square,
+snow verge and active rainy-night cockpit PNGs matched the three committed
+references linked above byte-for-byte; walking and helicopter captures were
+visually inspected. The rainy cockpit used a dummy audio device and logged an
+active 44.1 kHz stereo stream. Both clone and source working trees were clean,
+and remote `main` matched the audited SHA.
+
+`P14-003`, `P14-010`, `P14-011` and `P14-012` meet their Phase 14 acceptance
 criteria. Additional extraction of save/benchmark coordination, the traffic
 per-vehicle update path, or broader vehicle/road renderer ownership is deferred
-to a future phase; none is required by this closure audit. The remaining gate is
-to repeat the fresh-clone build, all checks and representative hidden-Radeon
-scenes from the exact final pushed documentation SHA (`P14-062`).
+to a future phase. `P14-062` acceptance requires the same complete audit on the
+exact pushed SHA that contains this handoff and the final status entry. The
+release report records that outcome and advertises only that final SHA.

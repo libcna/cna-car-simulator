@@ -45,11 +45,11 @@ The overview pictures above are headless captures from the development container
 
 ## Status
 
-The initial product milestone and Phases 11–13 are complete. Phase 14, which is improving the
-architecture, world, cockpit, traffic rules, audio and measured performance, is in progress.
+The initial product milestone and Phases 11–14 are complete. Phase 14 improved the
+architecture, world, cockpit, traffic rules, audio and measured performance.
 [`plan.md`](plan.md) is the task ledger. The newer features listed below are accepted product
 scope, including work added after the Phase 13 audit. The
-[Phase 14 handoff](docs/phase14-handoff.md) links the final evidence and remaining audit.
+[Phase 14 handoff](docs/phase14-handoff.md) links the acceptance evidence and exact-SHA audit.
 
 Developer memory checks use the project-only `asan-ubsan` preset described in
 [`docs/sanitizers.md`](docs/sanitizers.md).

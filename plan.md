@@ -2209,8 +2209,15 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `docs/performance.md` separates hidden Radeon measurements from virtual
   renderer counts and timing limits, and `docs/renderer-conformance.md` covers
   the four final shadow checks. `docs/phase14-handoff.md` links the audit evidence
-  and completed `b6e8940` fresh-clone build; only the last pushed SHA audit remains.
+  and completed `b6e8940` and `64ee8d4` fresh-clone audits. The exact final
+  documentation SHA is checked once more before release declaration.
   Acceptance: docs distinguish measured GPU results from software runs and agree on accepted features.
-- [ ] `P14-062` Commit and push logical increments; from the *last* pushed SHA make a genuinely
-  fresh clone, configure, build, run all checks and representative scenes. Acceptance: clean
-  working tree and exactly one advertised final SHA, audited after the final commit.
+- [x] `P14-062` Commit and push logical increments; from the *last* pushed SHA make a genuinely
+  fresh clone, configure, build, run all checks and representative scenes. The pushed
+  `64ee8d4e6adf44221fec285daf48f530bc9adca2` documentation checkpoint passed a
+  fresh configure/build, all six CTest registrations (132.85 s) and five hidden-Radeon
+  scenes; three deterministic screenshots were byte-identical to their references.
+  See `docs/phase14-handoff.md` and `docs/performance-data/p14-64ee8d4-fresh-ctest.txt`.
+  Acceptance of this final status commit is conditional on the same complete fresh-clone
+  verification of its own pushed SHA before Phase 14 is declared complete: clean working tree and
+  exactly one advertised final SHA, audited after the final commit.
