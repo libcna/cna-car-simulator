@@ -1722,21 +1722,21 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   Broader road-surface texture, forest-floor variety and other winter details remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
-- [~] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
+- [x] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather
   readability. The 420 km/h scale now uses legible label spacing while keeping fine ticks;
   odometer/trip text fits its display, and the wheel position and night cabin illumination
   expose more of the controls. Fixed noon and night GPU captures are in
   `docs/screenshots/phase14/`. The centre radio now has a moulded surround, side controls
   and preset strip instead of an isolated black rectangle; fixed Radeon noon before/after
-  and night frames are saved as `console-*.jpg` in that directory. More geometry and
-  weather review remain. A hidden Radeon 800 × 480 seven-condition review then found that
+  and night frames are saved as `console-*.jpg` in that directory. A subsequent
+  hidden Radeon 800 × 480 seven-condition review then found that
   the lower instrument face was buried behind the dashboard fascia. The cluster was moved
   into the binnacle plane, its black bezel and hood slimmed, and a thin satin rim added.
   The steering wheel sits lower/farther forward, while satin spoke, vent and radio trim now
   have their own material. Matched noon, night and rainy-night before/after images plus
   sunset, rain, fog and snow final images are in `docs/screenshots/phase14/`. The complete
-  cluster face stays visible in all seven captures. The broad A-pillar, large dark pad and
-  night material separation still need a stronger visual pass. A later hidden Radeon pass
+  cluster face stays visible in all seven captures. At that checkpoint the broad
+  A-pillar, large dark pad and night material separation needed a stronger pass. A later hidden Radeon pass
   assigns the windshield pillar's existing inward-facing triangles to matte charcoal trim
   while the headliner stays pale. Matched noon, night and rainy-night pairs plus all seven
   final weather/time views are in `docs/screenshots/phase14/`; 10 procedural-car tests and
@@ -1768,7 +1768,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   above a 12/255 threshold on the pillar, while the road and dials stay aligned.
   Seven time/weather views and all four virtual-display renderers keep the same geometry
   and 1,209 draws / 1,451,464 triangles. Broader cabin shape and lower control
-  readability at night keep P14-022 open.
+  readability at night still needed work at that checkpoint.
   A small seven-segment 101.2 MHz readout and two status strokes now occupy the existing
   radio glass, with a separate subdued green self-lit material (18 flat quads, 36
   triangles). In matched 1280 × 720 isolated-display noon and night pairs, exactly
@@ -1778,21 +1778,34 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   part of the radio, so the 1280 review is the detailed visibility evidence. Four
   virtual-display renderer checks agree on 1,011 scene submissions and 1,342.46k
   triangles in the fixed 40-frame night cockpit scene, 10 procedural-car tests pass,
-  and the public-XNA checker passes. P14-022 remains open for cabin shape and night
-  visual quality.
+  and the public-XNA checker passes. Cabin shape and night material quality
+  were addressed in the following passes.
   A fixed 1280 × 720 virtual-display pair then isolated an oversized windscreen
   rail: the inner shell copied the full opaque roof-rail segment even though the
   narrow charcoal lip was already present. Skipping only that duplicate inner
   segment opens the view while leaving the exterior body and glass unchanged.
   The matched noon pair changes 11,321 pixels only at the two rails; dashboard
   and central road are pixel-identical. Seven hidden Radeon time/weather captures
-  retain the narrow lip and readable gauges; lower controls at night remain open.
+  retain the narrow lip and readable gauges; lower controls were addressed in
+  the final material pass below.
   At 800 × 480 the large speed/RPM overlay then obscured the radio and passenger
   panel. Cockpit mode now places those two readouts at smaller scale over the left
   roof corner; chase and walking layouts stay in place. Matched Radeon noon/night
   pairs change only overlay pixels (5,961 and 5,703 above 12/255), with the
   central road unchanged. The seven weather/time views and 1280 × 720 noon/night
-  review show the console uncovered; lower controls still need night separation.
+  review show the console uncovered. A final material pass raises the low-light
+  cabin ambient floor from 0.65 to 0.82, lightens lower plastic relative to the
+  upper pad, and gives interior metal controls a satin material without exterior
+  sky reflection. Three shallow rings distinguish the climate knobs. In matched
+  1280 × 720 noon/night pairs, 5,878 / 125,172 pixels change above 12/255,
+  primarily on the cabin, while the central road remains pixel-identical.
+  Seven final hidden Radeon weather/time captures show legible dials and a clear
+  distinction between wheel, controls and dash at night.
+  A deterministic hidden-Radeon drive reaches 34 km/h, 2,518 rpm and D2 in both
+  the HUD and live cluster while the rear and wing mirrors remain active. The
+  final material/control pass passes 13 focused tests, the four renderer checks
+  and the public-XNA boundary check; screenshots and geometry counts are linked
+  from the visual review and renderer/performance notes.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -2099,6 +2112,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   virtual renderers with unchanged 1,353 scene draws / 1.46250 M triangles and
   1,970 indexed 3D draws / 2.97373 M triangles. Only HUD text positions change
   relative to each renderer's prior frame; the central road is pixel-identical.
+  The final cabin material/control pass completed a common no-mirror cockpit
+  view on all four virtual renderers at 1,353 scene draws / 1,463,220 triangles
+  and 1,435 indexed 3D draws / 2,018,840 triangles. A mirror-on OpenGL pair
+  retained the prior draw counts and added only 720 triangles for the three
+  control rings. Seven hidden Radeon weather/time captures and a live driving
+  frame with mirrors pass; 13 focused tests and the public-XNA check pass.
   P14-052 remains open for the final pass after later Phase 14 changes.
 
 #### P4 — final audit

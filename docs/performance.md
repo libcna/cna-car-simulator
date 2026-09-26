@@ -696,3 +696,16 @@ mirror passes in this view. Project draw submission averages 7.668 and 8.613 ms;
 the short runs do not establish a timing effect. Matched clear and snow images
 and a rain review are in the [visual review](screenshots/phase14/README.md).
 The existing building footprints and collision data are unchanged.
+
+### P14-022 interior control geometry checkpoint
+
+In the same 40-frame, 800 × 480 isolated OPENGL33 cockpit scene with mirrors
+active, the [before](performance-data/p14-cabin-material-before-opengl33.txt) /
+[after](performance-data/p14-cabin-material-after-opengl33.txt) logs report 1,353
+main-view scene submissions in both runs. Visible triangles rise from about
+1,462,500 to 1,463,220 (+720), the three added control rings. Complete indexed
+3D submissions remain 1,970 and triangles rise from about 2,973,730 to
+2,974,450; mirror submissions remain 535 / 955,610 triangles. These are
+software-driver geometry checks, not a GPU speed measurement. The corresponding
+hidden Radeon visual review covers seven time/weather cases, with no change to
+the central road image in paired captures.

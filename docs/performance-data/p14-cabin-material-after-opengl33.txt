@@ -1,0 +1,29 @@
+[INFO][RENDER] EasyGLRenderer initialized with OpenGL 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1
+[INFO][RENDER] CNA: EasyGL capabilities -- MSAA up to 4x; MRT up to 4 targets (GL draw buffers=8, color attachments=8, CNA/FNA cap=4); indexed color masks: supported; anisotropic filtering: supported (Task 918, up to 16x); texture SurfaceFormat: Color + NormalizedByte4/2 (RGBA8_SNORM) + Bgr565/Bgra5551/Bgra4444 + Rgba1010102 + Alpha8 + Single/Vector2/Vector4 + HalfSingle/HalfVector2/HalfVector4/HdrBlendable + Rg32/Rgba64 + Dxt1/Dxt3/Dxt5 (S3TC blocks); render-target SurfaceFormat: Color + Rgba1010102 (RGB10_A2) + Rg32 (RG16 UNORM) + Rgba64 (RGBA16 UNORM) + half-float (RGBA16F) + float (RGBA32F)
+[INFO][RENDER] CNA: graphics renderer: OPENGL33
+content root: /rv/data/development/github.com/libcna/cna-car-simulator/content
+save: disabled
+clock: 13:00, 0x (sun 60.2 deg)
+weather: Clear (cover 0.04, rain 0)
+collision: 66235 static colliders
+map: Lipová (lipova), 17 roads, 70 lanes, built in 2.50272 s
+spawn: square at (-125.4, 5.3), heading 88.3 deg
+vehicle: Lipan 1.2 (lipan_12)
+route: town -- Lipová main street east: square, parked cars, the signalised junction E1
+route: 3 steps, 1656.23 m
+world: 1920 terrain chunks, 143 road batches, built in 10.2055 s
+traffic: warmed up 60 s, 19 cars
+audio: disabled
+shadows: re-baked for the sun at 60 degrees in 2.40383 s
+screenshot saved to build/captures/p14-interior-final/renderers/opengl33.png
+benchmark: 10 frames after 30 warm-up frames, 800x480, scene 13:00 clear cockpit
+  update  avg 0.992856 ms, max 1.28121 ms (vehicle 0.390005, collision 0.0171223, traffic 0.53687, audio 0.0007836)
+  draw    avg 317.638 ms, max 370.841 ms (CPU submission)
+  frame   avg 386.682 ms wall clock, worst 1% 401.56 ms
+  scene   avg 1353 draw calls, 1463.22k triangles
+  3D mesh avg 1970 draws, 2974.45k triangles (mirror 535 draws, 955.61k triangles)
+  passes  avg ms: cluster 0.45391 mirror 70.6519 sky 0.441322 world 164.656 traffic 75.8488 vehicle 5.27357 hud 0.30886
+  visible avg: terrain chunks 205, road batches 77, object batches 501, tree batches 33
+  traffic avg: 20 cars, drawn 8 (parked drawn 13) (lod0 0, lod1 0, lod2 8)
+  people  avg: 36 alive, 7 drawn, 77 submissions, 11.072k triangles (main view)
+frame limit reached (40 frames); exiting

@@ -657,3 +657,22 @@ triangles, including 535 mirror draws / 0.95561 M triangles. Against each
 backend's prior rail-check screenshot, only the two HUD text positions change;
 the central road is pixel-identical. The hidden Radeon seven-condition cockpit
 review and public-XNA check pass. P14-052 remains open for the final pass.
+
+### Phase 14 cabin material and climate-control check (2026-09-26)
+
+The final fixed 40-frame cockpit scene completed on isolated virtual displays
+with mirrors disabled for the common four-backend check:
+[OPENGL33](screenshots/renderers/phase14-interior-light-opengl33.png),
+[OPENGLES3](screenshots/renderers/phase14-interior-light-opengles3.png),
+[SOFTWARE](screenshots/renderers/phase14-interior-light-software.png), and
+[Vulkan](screenshots/renderers/phase14-interior-light-vulkan.png). All four show
+the satin knob rings and brighter lower cabin and report 1,353 scene submissions /
+1,463,220 triangles and 1,435 indexed 3D submissions / 2,018,840 triangles;
+mirror counts are zero by design. An initial mirrors-on run completed on
+OPENGL33 and OPENGLES3, but its long SOFTWARE run lost the Xvfb server before a
+frame was saved, so the common check was repeated without mirrors. The
+mirrors-on OpenGL runs kept the prior 1,353 scene / 1,970 indexed 3D draw counts
+and added only the 720 control-ring triangles. Seven hidden Radeon time/weather
+captures and a driven frame with live gauges and active mirrors were inspected.
+Thirteen focused tests and the public-XNA checker pass. P14-052 remains open for
+the final renderer pass after later changes.

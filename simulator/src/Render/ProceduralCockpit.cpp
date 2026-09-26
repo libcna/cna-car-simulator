@@ -186,7 +186,7 @@ namespace CarSim::Render::CarBody
         CarPart gloss = MakePart("interior_gloss", CarMaterial::GlossBlack, CarPart::Role::Interior);
         CarPart vents = MakePart("interior_vents", CarMaterial::Vent, CarPart::Role::Interior);
         CarPart radioReadout = MakePart("radio_readout", CarMaterial::RadioBacklight, CarPart::Role::Interior);
-        CarPart chrome = MakePart("interior_chrome", CarMaterial::Chrome, CarPart::Role::Interior);
+        CarPart chrome = MakePart("interior_chrome", CarMaterial::InteriorSatin, CarPart::Role::Interior);
         CarPart cluster = MakePart("cluster", CarMaterial::Cluster, CarPart::Role::Interior);
         CarPart mirror = MakePart("mirror_face", CarMaterial::Chrome, CarPart::Role::Interior);
 
@@ -369,6 +369,8 @@ namespace CarSim::Render::CarBody
                 const float kx = -0.07f + 0.07f * static_cast<float>(k);
                 gloss.mesh.AddCylinder(Vector3(kx, yFace - 0.05f, zStack - 0.14f * 0.5f + 0.06f), Vector3(0, 0, 1), 0.016f, 0.02f, 12, true);
                 chrome.mesh.AddCylinder(Vector3(kx, yFace - 0.05f, zStack - 0.14f * 0.5f + 0.078f), Vector3(0, 0, 1), 0.006f, 0.004f, 8, true);
+                chrome.mesh.AddTorus(Vector3(kx, yFace - 0.05f, zStack + 0.011f), Vector3(0, 0, 1),
+                                     0.020f, 0.0015f, 20, 6);
             }
             AddBoxTo(gloss, Vector3(0.0f, yFace - 0.10f, zStack + 0.055f), Vector3(0.20f, 0.03f, 0.008f));   // hazard/buttons strip
             // Glovebox lid seam on the passenger side (thin dark line quads).
@@ -437,7 +439,7 @@ namespace CarSim::Render::CarBody
         // ---- Steering wheel, column, stalks ------------------------------------------------
         CarPart steering = MakePart("steering_wheel", CarMaterial::InteriorMid, CarPart::Role::SteeringWheel);
         CarPart steeringTrim = MakePart("steering_spokes", CarMaterial::InteriorAccent, CarPart::Role::SteeringWheel);
-        CarPart steeringBadge = MakePart("steering_badge", CarMaterial::Chrome, CarPart::Role::SteeringWheel);
+        CarPart steeringBadge = MakePart("steering_badge", CarMaterial::InteriorSatin, CarPart::Role::SteeringWheel);
         {
             const float tilt = Sim::Units::DegToRad(vis.steeringWheelTiltDeg);
             const Vector3 n(0.0f, std::sin(tilt), std::cos(tilt));

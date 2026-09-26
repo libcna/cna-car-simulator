@@ -104,7 +104,8 @@ its spokes, radio surround, vent surrounds and instrument rim from the dark text
 The final cockpit was also inspected at [sunset](cockpit-review-after-sunset.png),
 [daylight rain](cockpit-review-after-rain.png), [fog](cockpit-review-after-fog.png), and
 [snow](cockpit-review-after-snow.png). The instrument face remains legible in all seven
-conditions; the night material contrast and larger cabin surfaces still need refinement.
+conditions; night material contrast and larger cabin surfaces were refined in
+the later passes below.
 
 A later material pass gives the windshield A-pillars matte charcoal trim while leaving the
 roof lining pale. Matched hidden Radeon [noon before](cockpit-pillar-before-noon.png) /
@@ -127,8 +128,8 @@ is visible through the newly open side of the windshield. Final hidden Radeon vi
 [night](cockpit-narrow-pillar-night.png), [rain](cockpit-narrow-pillar-rain.png),
 [fog](cockpit-narrow-pillar-fog.png), [snow](cockpit-narrow-pillar-snow.png), and
 [rainy night](cockpit-narrow-pillar-rainy_night.png). The exterior body and glass meshes
-are unchanged; a chase-camera inspection showed the car remains closed. The broad lower
-dashboard and finer night material separation remain open.
+are unchanged; a chase-camera inspection showed the car remains closed. The
+lower dashboard and night material separation were addressed later below.
 
 ## Facade shutter variants
 
@@ -155,8 +156,8 @@ Final hidden Radeon 800 × 480 views check [noon](cockpit-arched-hood-noon.png),
 [rain](cockpit-arched-hood-rain.png), [fog](cockpit-arched-hood-fog.png),
 [snow](cockpit-arched-hood-snow.png) and
 [rainy night](cockpit-arched-hood-rainy_night.png). The dials remain readable in every
-view. This is an incremental binnacle shape improvement; the wide dashboard surfaces
-and finer night materials remain open under P14-022.
+view. This was an incremental binnacle shape improvement; the wide dashboard
+surfaces and finer night materials were addressed in later P14-022 passes.
 
 ## Passenger dashboard pad and lid
 
@@ -172,8 +173,8 @@ The final variant was checked at [noon](cockpit-passenger-pad-noon.png),
 [rain](cockpit-passenger-pad-rain.png), [fog](cockpit-passenger-pad-fog.png),
 [snow](cockpit-passenger-pad-snow.png) and
 [rainy night](cockpit-passenger-pad-rainy_night.png). The cluster is readable in all
-seven frames. These are stationary scene checks; broader cabin shape and night material
-work remain under P14-022.
+seven frames. These stationary checks were followed by the broader cabin and
+night material passes below.
 
 ## Soft dashboard material and cowl outlets
 
@@ -186,8 +187,8 @@ aligned. The final variant was also captured at
 [sunset](cockpit-soft-cowl-sunset.png), [night](cockpit-soft-cowl-night.png),
 [rain](cockpit-soft-cowl-rain.png), [fog](cockpit-soft-cowl-fog.png),
 [snow](cockpit-soft-cowl-snow.png) and
-[rainy night](cockpit-soft-cowl-rainy_night.png). The low cabin remains dark at night,
-so stronger night material separation is still open under P14-022.
+[rainy night](cockpit-soft-cowl-rainy_night.png). The low cabin remained dark at
+this checkpoint; the later interior material pass improves its separation.
 
 ## Charcoal inner windscreen rail
 
@@ -200,8 +201,8 @@ counterpart. The road and gauges remain aligned. Final hidden Radeon views cover
 [sunset](cockpit-charcoal-rail-sunset.png), [night](cockpit-charcoal-rail-night.png),
 [rain](cockpit-charcoal-rail-rain.png), [fog](cockpit-charcoal-rail-fog.png),
 [snow](cockpit-charcoal-rail-snow.png) and
-[rainy night](cockpit-charcoal-rail-rainy_night.png). The lower controls still need a
-stronger night pass, so P14-022 remains open.
+[rainy night](cockpit-charcoal-rail-rainy_night.png). The lower controls received
+the later material and geometry pass below.
 
 ## Walking heading and return review
 
@@ -278,8 +279,9 @@ above row 356 outside fog. Four virtual renderer checks are in
 Settled 120-frame hidden Radeon [night fog with headlamps](forest-night-fog-cockpit.png)
 and [sunset snow](forest-sunset-snow-cockpit.png) show the road and cluster at the
 forest spawn; their project draw measurements are in [performance notes](../../performance.md).
-The light-coloured triangular opening by the left windscreen frame appears in clear
-weather too, so its shape remains a P14-022 cockpit item rather than a winter artifact.
+The light-coloured triangular area by the left windscreen frame appears in clear
+weather too. A later cockpit review isolated the broad duplicate inner rail and
+opened the view while retaining the exterior body and glass.
 
 ## Radio readout and cockpit lighting
 
@@ -299,7 +301,7 @@ Road, cluster and dashboard silhouette are identical. The final hidden Radeon
 the radio at 800 × 480; the 1280 pair shows its actual in-world appearance.
 The seven captures were made through hidden SDL offscreen EGL on Radeon 780M,
 verified as `radeonsi`; the desktop display was not used. The remaining cockpit
-shape and night material work keep P14-022 open.
+shape and night material work were completed in the later passes below.
 
 ## Small groups in the forest undergrowth
 
@@ -360,9 +362,9 @@ Final hidden Radeon 800 × 480 captures cover [noon](cockpit-open-rail-noon.png)
 against bright snow and fog, and the dials remain readable in both night cases.
 An [exterior Radeon view](cockpit-open-rail-exterior.png) confirms the car's roof
 and glazing remain intact.
-The 800 × 480 HUD overlays the lower centre stack; its detailed appearance is
-shown in the 1280 views. Lower controls still need a stronger night pass, so
-P14-022 remains open.
+The 800 × 480 HUD overlays the lower centre stack in this checkpoint; its
+detailed appearance is shown in the 1280 views. The compact HUD and final night
+material pass below address those remaining issues.
 
 ## Compact driving HUD in the cockpit
 
@@ -380,5 +382,36 @@ uncovered; the central road view is pixel-identical. The full review covers
 [rainy night](cockpit-compact-hud-rainy_night.png). At 1280 × 720 the
 [noon](cockpit-compact-hud-1280-noon.png) and
 [night](cockpit-compact-hud-1280-night.png) views show the exposed radio and
-lower controls in more detail. The lower controls remain dark at night, which
-keeps the material-lighting part of P14-022 open.
+lower controls in more detail. The subsequent material pass below improves
+their night separation.
+
+## Interior material and control-light pass
+
+The lower dashboard and steering rim now separate more clearly from the darker
+upper pad in low light. A modest cabin ambient floor leaves the daytime view
+unchanged, while interior metal controls use a satin material instead of the
+exterior sky reflection. Three slim physical rings outline the climate knobs
+below the radio. Exact isolated-display 1280 × 720
+[noon before](cockpit-interior-light-1280-before-noon.png) /
+[after](cockpit-interior-light-1280-after-noon.png) and
+[night before](cockpit-interior-light-1280-before-night.png) /
+[after](cockpit-interior-light-1280-after-night.png) pairs show 5,878 and 125,172
+pixels above a 12/255 channel threshold changing respectively, primarily on
+cabin-facing surfaces; the central road is pixel-identical.
+
+The final hidden Radeon 800 × 480 review covers
+[noon](cockpit-interior-light-noon.png),
+[sunset](cockpit-interior-light-sunset.png),
+[night](cockpit-interior-light-night.png),
+[rain](cockpit-interior-light-rain.png),
+[fog](cockpit-interior-light-fog.png),
+[snow](cockpit-interior-light-snow.png) and
+[rainy night](cockpit-interior-light-rainy_night.png). The radio, knob surrounds,
+wheel and gauges remain distinguishable; the weather effects and road view are
+unchanged. The 1280 views show the lower controls more clearly than the 800
+captures, where the camera crops their bottoms.
+A short deterministic [cockpit drive](cockpit-interior-light-live-drive.png)
+and [live cluster image](cockpit-interior-light-live-cluster.png) show 34 km/h,
+2,518 rpm and D2 in the HUD and cluster, with active rear and wing mirrors.
+Together with the seven-condition review and four-renderer check, this meets
+P14-022's cockpit acceptance criteria.

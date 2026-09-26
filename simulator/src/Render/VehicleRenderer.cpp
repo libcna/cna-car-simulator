@@ -126,7 +126,7 @@ namespace CarSim::Render
                     look.specularPower = 8.0f;
                     break;
                 case CarMaterial::InteriorMid:
-                    look.diffuse = interiorColor * 2.0f + Vector3(0.04f, 0.04f, 0.04f);
+                    look.diffuse = interiorColor * 2.25f + Vector3(0.05f, 0.05f, 0.05f);
                     look.specular = Vector3(0.05f, 0.05f, 0.05f);
                     look.specularPower = 8.0f;
                     break;
@@ -134,6 +134,12 @@ namespace CarSim::Render
                     look.diffuse = Vector3(0.52f, 0.53f, 0.55f);
                     look.specular = Vector3(0.22f, 0.22f, 0.23f);
                     look.specularPower = 24.0f;
+                    break;
+                case CarMaterial::InteriorSatin:
+                    look.diffuse = Vector3(0.56f, 0.57f, 0.59f);
+                    look.specular = Vector3(0.38f, 0.39f, 0.40f);
+                    look.specularPower = 28.0f;
+                    look.emissive = state.lowBeam ? Vector3(0.025f, 0.026f, 0.028f) : Vector3(0.0f, 0.0f, 0.0f);
                     break;
                 case CarMaterial::Vent:
                     look.diffuse = Vector3(1.0f, 1.0f, 1.0f);
@@ -346,9 +352,9 @@ namespace CarSim::Render
         paint_->setFresnelFactorProperty(2.2f);
         // The cabin keeps its softer, flatter light, scaled by the outside light level.
         rig.Apply(*interiorLit_);
-        // The instruments and faint exterior spill still reveal the top of the wheel and the
-        // controls at night. A 0.10 floor left the entire lower dashboard almost pure black.
-        const float level = std::clamp((rig.skyAmbient.Y + rig.skyFillColor.Y) / 0.41f, 0.65f, 1.0f);
+        // Instrument and exterior spill should separate the wheel and controls from the
+        // upper pad at night; the previous 0.65 floor left them nearly merged.
+        const float level = std::clamp((rig.skyAmbient.Y + rig.skyFillColor.Y) / 0.41f, 0.82f, 1.0f);
         interiorLit_->setAmbientLightColorProperty(Vector3(0.50f, 0.51f, 0.55f) * level);
         interiorLit_->getDirectionalLight0Property().setDiffuseColorProperty(rig.sunColor * 0.65f);
         interiorLit_->getDirectionalLight0Property().setSpecularColorProperty(rig.sunColor * 0.3f);
@@ -386,7 +392,8 @@ namespace CarSim::Render
             case CarMaterial::Grille: return grille_.get();
             case CarMaterial::Interior:
             case CarMaterial::InteriorMid: return plastic_.get();
-            case CarMaterial::InteriorAccent: return white_.get();
+            case CarMaterial::InteriorAccent:
+            case CarMaterial::InteriorSatin: return white_.get();
             case CarMaterial::Vent: return vent_.get();
             case CarMaterial::RadioBacklight: return white_.get();
             case CarMaterial::Fabric: return fabric_.get();
