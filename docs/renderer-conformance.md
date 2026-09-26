@@ -488,3 +488,20 @@ and 2.143 / 2.133 / 2.034 for Vulkan; respectively 0, 10,971 and 6,502 pixels ex
 variation. Separate seven-condition hidden Radeon captures are in
 [`screenshots/phase14/`](screenshots/phase14/README.md). Ten procedural-car tests and
 the public-XNA boundary check pass; no renderer-specific project path was added.
+
+### Phase 14 charcoal windscreen rail checkpoint (2026-09-26)
+
+The inner windscreen rail changed material without moving geometry. The same 40-frame,
+800 × 480 clear cockpit scene completed on dedicated virtual Xvfb `:113` for
+[OPENGLES3](screenshots/renderers/phase14-charcoal-rail-opengles3.png),
+[OPENGL33](screenshots/renderers/phase14-charcoal-rail-opengl33.png),
+[SOFTWARE](screenshots/renderers/phase14-charcoal-rail-software.png), and
+[Vulkan](screenshots/renderers/phase14-charcoal-rail-vulkan.png). All four report 1,209
+draw submissions and 1,451,464 triangles, with the charcoal pillar, intact cluster,
+mirror and road visible. Relative to OPENGLES3, mean absolute RGB differences are
+0.290 / 0.307 / 0.269 for OPENGL33, 2.802 / 2.840 / 2.845 for SOFTWARE, and
+2.135 / 2.126 / 2.027 for Vulkan; respectively 0, 11,012 and 6,515 pixels exceed
+32 in any channel. Differences follow the established filtering and shading variation.
+The seven-condition hidden Radeon review is in
+[`screenshots/phase14/`](screenshots/phase14/README.md). Ten procedural-car tests and
+the public-XNA boundary check pass; no renderer-specific code was added.

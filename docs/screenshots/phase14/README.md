@@ -189,6 +189,20 @@ aligned. The final variant was also captured at
 [rainy night](cockpit-soft-cowl-rainy_night.png). The low cabin remains dark at night,
 so stronger night material separation is still open under P14-022.
 
+## Charcoal inner windscreen rail
+
+The inward-facing roof-rail strip beside the narrow A-pillar lip now uses the same
+matte charcoal trim as that lip. The main headliner remains pale, and the exterior
+shell has not moved. Against the previous [noon frame](cockpit-soft-cowl-noon.png),
+the matched [new noon frame](cockpit-charcoal-rail-noon.png) changes 4,772 pixels above
+a 12/255 channel threshold, concentrated on the sloping left pillar and its far-side
+counterpart. The road and gauges remain aligned. Final hidden Radeon views cover
+[sunset](cockpit-charcoal-rail-sunset.png), [night](cockpit-charcoal-rail-night.png),
+[rain](cockpit-charcoal-rail-rain.png), [fog](cockpit-charcoal-rail-fog.png),
+[snow](cockpit-charcoal-rail-snow.png) and
+[rainy night](cockpit-charcoal-rail-rainy_night.png). The lower controls still need a
+stronger night pass, so P14-022 remains open.
+
 ## Walking heading and return review
 
 The original [forest entry](offscreen-800-walking-forest-review.png) faced across the

@@ -1735,8 +1735,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   the passenger dash below row 324. Noon, sunset, night, rain, fog, snow and rainy-night
   captures keep the cluster and road view intact. The fixed virtual-display cockpit
   scene now reports 1,209 draws and 1,451,464 triangles on all four renderers; 10
-  procedural-car tests and the public-XNA check pass. Broader cabin shape and finer
-  night material separation keep P14-022 open.
+  procedural-car tests and the public-XNA check pass. The remaining pale inner roof-rail
+  face at the windscreen now shares matte charcoal trim with its narrow A-pillar lip;
+  the headliner stays pale. A matched hidden Radeon noon pair changes 4,772 pixels
+  above a 12/255 threshold on the pillar, while the road and dials stay aligned.
+  Seven time/weather views and all four virtual-display renderers keep the same geometry
+  and 1,209 draws / 1,451,464 triangles. Broader cabin shape and lower control
+  readability at night keep P14-022 open.
   Acceptance: curated cockpit and cluster captures at noon, sunset, night, rain,
   fog and snow; gauges remain driven by simulation state.
 - [x] `P14-023` Polish pedestrians and walking movement/collision/camera. Shared rounded limb,
@@ -1981,6 +1986,9 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The soft dashboard/cowl visual pass was checked on all four virtual-display paths at
   1,209 draws and 1,451,464 triangles; the cluster and passenger pad remain present in
   each image, and the public-XNA check passes. Continue repeating after later changes.
+  The subsequent A-pillar trim change was also checked on all four renderers with
+  identical 1,209 draw submissions and 1,451,464 triangles; seven hidden Radeon
+  time/weather captures and the public-XNA check pass.
 
 #### P4 — final audit
 

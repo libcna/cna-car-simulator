@@ -197,7 +197,11 @@ namespace CarSim::Render::CarBody
                 // Segment 12 is the dark window seal. The narrow pillar lip below is built
                 // separately so the skin's broad opaque cowl quads do not fill the side view.
                 if (rs <= Ring::kGlassBase) return &interior;
-                return zc < zRoofFront && rs < Ring::kRail ? nullptr : &light;
+                if (zc < zRoofFront) {
+                    if (rs < Ring::kRail) return nullptr;
+                    if (rs == Ring::kRail) return &mid;
+                }
+                return &light;
             }
             if (rs >= Ring::kRockerTop && zc > zCowl + 0.05f) {
                 return yc < belt - 0.30f ? &mid : &interior;
