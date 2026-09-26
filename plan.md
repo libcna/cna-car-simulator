@@ -1725,7 +1725,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   snow changes none at that threshold, retaining its continuous ground cover. Fixed clear,
   rain and snow pairs plus forest/meadow-edge and rural-shoulder views are linked from
   `docs/screenshots/phase14/`. This adds no geometry, material pass or snow texture.
-  Broader road-surface texture and remaining winter details remain open.
+  The existing four-metre asphalt tile now has stronger irregular tone variation while
+  keeping the same pixel dimensions, road mesh and lane markings. A larger-tile candidate
+  looked too blurred close to the car and was discarded; the retained version was checked
+  at a fixed hidden Radeon town camera in clear, rain and snow. The clear road gains texture
+  without a repeating large blotch, while wet sheen and snow remain coherent; matched
+  frames are linked from `docs/screenshots/phase14/`. Remaining winter vegetation detail
+  and the final mixed-weather review remain open.
   Acceptance: town, countryside and forest comparison images look less tiled/repetitive; no
   collision or lane geometry change; wet and snow variants remain coherent.
 - [x] `P14-022` Improve cockpit geometry, materials, live cluster and day/night/weather

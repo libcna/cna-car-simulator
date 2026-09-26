@@ -42,7 +42,8 @@ namespace CarSim::Render::Textures
             float g = 0.30f + (coarse - 0.5f) * 0.07f + (fine - 0.5f) * 0.09f + (aggregate - 0.5f) * 0.04f;
             g += (0.5f - cell) * 0.05f;
             const float patch = Noise::Fbm(u * 3.0f, v * 3.0f, 3, 2, 0.5f, seed + 41);
-            g *= 0.93f + patch * 0.14f;
+            // Keep the four-metre tile scale; stronger tone survives mipmapping at road distance.
+            g *= 0.74f + patch * 0.52f;
             return ToColor({g, g, g * 0.98f});
         });
         return img;

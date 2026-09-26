@@ -689,3 +689,15 @@ OpenGL screenshots are byte-identical; SOFTWARE and Vulkan retain their usual
 backend lighting and raster differences. Hidden Radeon GLES3 clear, rain and snow
 pairs establish the actual hardware appearance. The public-XNA checker passes;
 P14-052 remains open for the final renderer pass.
+
+### Phase 14 asphalt grain check (2026-09-26)
+
+The fixed two-frame clear town road view completed on four isolated Xvfb displays:
+[OPENGLES3](screenshots/phase14/asphalt-renderer-opengles3.png),
+[OPENGL33](screenshots/phase14/asphalt-renderer-opengl33.png),
+[SOFTWARE](screenshots/phase14/asphalt-renderer-software.png), and
+[Vulkan](screenshots/phase14/asphalt-renderer-vulkan.png). All four show the revised
+asphalt tone within the same road, markings and kerb geometry; the two OpenGL
+screenshots are byte-identical. Matched hidden Radeon clear, rain and snow frames
+check the material in actual hardware rendering. The public-XNA checker passes.
+P14-052 remains open for the final renderer pass.

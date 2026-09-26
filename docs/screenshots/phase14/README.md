@@ -3,7 +3,7 @@
 The original pairs are 1280 × 720 captures from CNA OPENGLES3 on the Debian 13 desktop's AMD Radeon
 780M (Mesa 25.0.7), with a fixed camera and clock for each pair. JPEG quality 88 was used
 for scene frames; the instrument texture remains PNG. The JPEGs are review evidence, not
-texture assets shipped by the simulator. The road-repair **before** frame used OPENGL33 on
+texture assets shipped by the simulator. The road-repair and asphalt-grain **before** frames used OPENGL33 on
 the same Radeon while the older code was built there; the Phase 14 renderer comparison found
 OPENGL33 and OPENGLES3 screenshots byte-identical at the fixed town and cockpit scenes. The
 gait pair uses the hidden 800 × 480 Radeon path described below.
@@ -18,6 +18,7 @@ gait pair uses the hidden 800 × 480 Radeon path described below.
 | [Cockpit before](cockpit-before.jpg) / [after](cockpit-after.jpg) | Steering wheel position, material separation and dashboard visibility | Stationary noon cockpit at the square |
 | [Cluster before](cluster-before.png) / [after](cluster-after.png) | Fewer colliding speed labels; odometer and trip fit the centre screen | Same 420 km/h instrument scale |
 | [Road before](road-repair-before.jpg) / [after](road-repair-after.jpg) | Sparse resurfaced utility cuts in the existing asphalt mesh | `--view -145 7 4 90 -25`, 13:00, two frames |
+| [Asphalt grain before](asphalt-grain-before-clear.png) / [after](asphalt-grain-after-clear.png) | Stronger irregular tone in the existing four-metre texture; road geometry, markings and vehicle positions stay fixed | Hidden Radeon 800 × 480, `--spawn square --view -145 7 4 90 -25`, clear 13:00, frame 2 |
 | [Church before](church-before.png) / [after](church-after.png) | Square-facing tower pilasters, circular window and stone entrance portal | `--view -78 9 -30 50 -6`, 13:00, scattered cloud, 40 frames |
 | [Forest before](forest-before.png) / [after](forest-after.png) | Two seeded crown silhouettes per species in one tree-card atlas; narrower alternate spruce with more visible trunk | `--spawn forest --view -228 5 -1280 0 -4`, clear 13:00, 40 frames |
 | [Square before](square-planters-before.jpg) / [after](square-planters-after.jpg) | Two low stone beds with shrubs frame the memorial; the open cobbled centre remains usable | `--spawn square --view -55 7 -65 180 -7`, clear 13:00, two frames |
@@ -52,6 +53,10 @@ from inside the canopy: [clear before](forest-floor-patches-before-clear.png) /
 camera at `--spawn forest --view -243 5 -2835 180 -4`, 13:00, frame 2.
 The [forest/meadow edge](forest-floor-patches-edge-clear.png) and
 [rural shoulder](forest-floor-patches-road-clear.png) were also checked in clear weather.
+The asphalt material has matched [rain before](asphalt-grain-before-rain.png) /
+[after](asphalt-grain-after-rain.png) and [snow before](asphalt-grain-before-snow.png) /
+[after](asphalt-grain-after-snow.png) views at the same town camera. The wet sheen and
+snow layer still control the visible surface in those conditions.
 The road-verge pass also has a [rain check](road-verge-rain-after.png). The clear and snow
 before frames above were captured from the clean pushed HEAD with the exact same fixed
 camera; the after frames use the final code. The snow change is plainly visible without
