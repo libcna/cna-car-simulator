@@ -1546,15 +1546,17 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 - [x] `P14-002` Reconcile README, handoff and plan with the accepted feature set without editing
   historical phase outcomes. Acceptance: no current-status prose says snow, fog, walking, heavy
   vehicles, pedestrians or overtaking are absent or deprecated.
-- [~] `P14-003` Characterize fragile behavior before extraction: existing traffic soaks and mode
+- [x] `P14-003` Characterize fragile behavior before extraction: existing traffic soaks and mode
   tests retained; add deterministic coverage for any untested path selected for refactoring.
   Overtaking scenarios, flight/boost drive tests and fixed before/after renderer captures now
-  guard the extracted paths. Further selected paths need their own characterization.
-  Acceptance: pre-extraction failure would expose a behavior change.
+  guard the extracted paths. Focused walking, weather, junction, following, vehicle and
+  rendering tests plus fixed captures covered each selected extraction; the full six-registration
+  suite and traffic soaks passed after the changes. No further extraction is in Phase 14 scope.
+  Acceptance met: the pre-extraction checks would expose a behavior change in the moved paths.
 
 #### P1 — coherent ownership and visible world
 
-- [~] `P14-010` Extract coherent SimulatorGame responsibilities while retaining orchestration.
+- [x] `P14-010` Extract coherent SimulatorGame responsibilities while retaining orchestration.
   First step: HUD, map, help and diagnostic drawing (341 lines, byte-identical definitions) moved
   into `SimulatorGameOverlays.cpp`; the deterministic help-overlay capture is pixel-identical
   before and after the extraction at 1280 x 720. Walking entry, occupancy and movement control
@@ -1565,11 +1567,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `SimulatorGameEnvironment.cpp`; 21 focused weather, lighting and weather-effect tests pass,
   and the fixed rainy 20:00 Radeon frame is pixel-identical before and after. The core
   `SimulatorGame.cpp` is now about 1,370 lines. The complete six-part suite and all four
-  renderer builds pass.
-  Acceptance for completion: player-mode and
-  environment responsibilities have clear ownership; walking, flight, weather, save and
-  benchmark paths still work.
-- [~] `P14-011` Extract traffic planning/queries/spawning or junction ownership incrementally.
+  renderer builds pass. Mode, environment and overlay ownership is clear; walking/flight and
+  weather tests, save round-trip/profile tests, benchmark CLI tests and the fresh-clone
+  runtime/CTest audit at `b6e8940` cover the retained orchestration. Further splitting of
+  save or benchmark coordination is deferred to a future phase.
+  Acceptance met: walking, flight, weather, save and benchmark paths still work.
+- [x] `P14-011` Extract traffic planning/queries/spawning or junction ownership incrementally.
   First step: the existing overtake and return-to-lane methods were moved unchanged into
   `TrafficOvertaking.cpp` (130 lines identical to the old definitions); four targeted overtake
   tests and the complete suite pass. The four body selection/spawn/despawn methods (120 lines)
@@ -1583,12 +1586,13 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   byte-identically into `TrafficSpatialQueries.cpp`; `LineSetback` became a shared private
   static member with its formula unchanged. Five focused following, bend and heavy-junction
   tests and the complete six-part suite, including the long soaks and smoke run, pass.
-  `TrafficSystem.cpp` is now
-  921 lines, with routing, following, pose/update and recovery logic still together.
-  Acceptance for completion:
-  review remaining route/following/recovery ownership with signal and pedestrian tests plus
-  all soaks still passing.
-- [~] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
+  `TrafficSystem.cpp` is now 921 lines. Review at `b6e8940`: route selection, leader/following,
+  pose/update and collision recovery still cooperate in the per-vehicle step, so no further
+  extraction is needed for Phase 14. Signal, pedestrian, following, route and crossing tests
+  and all three traffic soaks pass in the fresh-clone six-registration suite. Any later split
+  of that update path is deferred to a future phase.
+  Acceptance met: remaining ownership was reviewed against those tests and soaks.
+- [x] `P14-012` Separate useful vehicle, visual and world renderer responsibilities without a
   replacement architecture. The four existing scenery builders (buildings/props, lamp geometry,
   tree cards, signs) moved byte-identically into `WorldRendererScenery.cpp` while the render
   path remains in `WorldRenderer.cpp`. A fixed 1280 × 720 offscreen town capture before and
@@ -1616,9 +1620,10 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   before and after (`4a4191f323c93682e0dcf2080abf32893ec1e635640774ae5ec2558bb2dcf234`).
   All four available renderers build and show the same cockpit controls in matched frames;
   see `docs/renderer-conformance.md`.
-  Broader vehicle and road ownership are still open.
-  Acceptance: normal car, boosts, flight, damage and all rendering
-  modes retain their behavior; before/after captures and renderer checks show no regression.
+  Broader vehicle and road ownership is deferred to a future phase. Normal car, boosts,
+  flight and damage have focused tests; the complete suite, matched before/after captures
+  and final four-renderer conformance checks passed, including the later shadow fixes.
+  Acceptance met: those modes and renderer paths retained their behavior.
 - [x] `P14-020` Improve building facades and Czech settlement details using reusable parts.
   A shared framed/panelled door kit replaces flat door quads without adding a material pass;
   plaster no longer repeats a high-contrast stain motif over whole walls. The fixed town
@@ -2167,13 +2172,12 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
 
 #### P4 — final audit
 
-- [~] `P14-060` Run clean configure/build, complete tests and static checks, map validation,
+- [x] `P14-060` Run clean configure/build, complete tests and static checks, map validation,
   smoke, 30-minute traffic soak, representative runtime and practical ASan/UBSan core suites;
   fix findings. The normal six CTest registrations pass. The project-only `asan-ubsan` preset
   passed 213 core tests in 640.35 s with leak detection, including all three long traffic
   soaks; it found a real dangling `VehicleDefinition` reference from a temporary, fixed by
-  owning an immutable definition. See `docs/sanitizers.md`. The final fresh-clone
-  build remains. The 2026-09-26 reconfigure/full build in the
+  owning an immutable definition. See `docs/sanitizers.md`. The 2026-09-26 reconfigure/full build in the
   reused OPENGLES3 tree and all six CTest registrations passed (148.15 s);
   the smoke run used a virtual display. A 120-frame active hidden-Radeon
   rainy-night cockpit drive exposed a repeatable 172–199 ms update hitch:
@@ -2189,9 +2193,14 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   The full final-source six-registration CTest rerun passed in 148.14 s,
   including the virtual-display smoke, asset/static gates, map regeneration
   and all core/traffic tests; its output is in `docs/performance-data/p14-final-ctest.txt`.
-  The from-scratch build portion is reserved for P14-062's final fresh-clone audit under the shared-build
-  guidance in `../AGENTS.md`.
-  Acceptance: command log and exceptions are explicit.
+  A genuinely fresh remote clone of pushed `b6e89409d7c3cdf922dd82d986bfc8126ed3153f`
+  then configured and built from scratch with the shared ccache; all six CTest registrations
+  passed in 156.15 s, including the 30-minute simulated traffic soak, static and asset gates,
+  map validation/regeneration and virtual-display smoke. Five hidden-Radeon runtime scenes
+  passed; clear square, snow verge and rainy-night cockpit PNGs were byte-identical to the
+  committed references. See `docs/phase14-handoff.md` and
+  `docs/performance-data/p14-b6-fresh-ctest.txt`. Acceptance met: commands, results and
+  environment limits are explicit. `P14-062` separately requires the final pushed SHA audit.
 - [x] `P14-061` Curate before/after screenshots and update architecture, audio provenance,
   performance, conformance, README and handoff. The Phase 14 visual index now links the
   final square, winter, cockpit, pedestrian and shadow pairs; the README and
@@ -2200,7 +2209,7 @@ targeted and full tests, exercise the runtime, then commit. Preserve the 30-minu
   `docs/performance.md` separates hidden Radeon measurements from virtual
   renderer counts and timing limits, and `docs/renderer-conformance.md` covers
   the four final shadow checks. `docs/phase14-handoff.md` links the audit evidence
-  and explicitly defers the fresh-clone build portion of P14-060 to P14-062.
+  and completed `b6e8940` fresh-clone build; only the last pushed SHA audit remains.
   Acceptance: docs distinguish measured GPU results from software runs and agree on accepted features.
 - [ ] `P14-062` Commit and push logical increments; from the *last* pushed SHA make a genuinely
   fresh clone, configure, build, run all checks and representative scenes. Acceptance: clean

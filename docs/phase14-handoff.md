@@ -1,8 +1,9 @@
 # Phase 14 handoff (2026-09-26)
 
-Phase 14 remains in progress. The final fresh-clone audit (`P14-062`) has not
-started. The [task ledger](../plan.md) records individual acceptance checks;
-this page points to the compact evidence needed for the remaining audit.
+Phase 14 is at formal closure. The pushed `b6e89409d7c3cdf922dd82d986bfc8126ed3153f`
+source passed a fresh-clone audit; the last pushed documentation SHA still needs
+its own fresh-clone audit under `P14-062`. The [task ledger](../plan.md) records
+the accepted criteria and remaining gate.
 
 ## Accepted work
 
@@ -58,9 +59,35 @@ that pair, so [the paired timing, geometry, memory and screenshots](performance.
 are retained together. All four virtual renderers completed the daylight bake
 through public XNA calls; Vulkan's virtual-display timing remains variable.
 
-The clean from-scratch build portion of `P14-060` is deferred to `P14-062` so it
-can share the required final fresh-clone audit. `../AGENTS.md` directs routine
-work to reuse the existing build tree and shared cache. No fresh clone has been
-created for Phase 14's final audit yet. Before `P14-062`, reconcile this handoff,
-the task ledger and the final pushed HEAD, then perform the clone, build, checks
-and representative scenes from that exact SHA.
+## Fresh-clone audit of `b6e8940`
+
+A genuinely fresh clone from pushed `main` was checked against exact SHA
+`b6e89409d7c3cdf922dd82d986bfc8126ed3153f`. It configured the OPENGLES3
+Release preset from scratch with the shared `/rv/cnaccache` cache, `CCACHE_BASEDIR=/rv`,
+both CMake compiler launchers set to `ccache`, and the existing shared SDL
+prebuilt dependency. The complete build succeeded. With `DISPLAY` and
+`WAYLAND_DISPLAY` unset, `ctest --preset opengles3 --output-on-failure` passed
+all six registrations in 156.15 seconds: unit/scenario and all long traffic
+soaks, public-XNA API check, isolated-display smoke, map validation,
+byte-for-byte map regeneration, and asset manifest. The
+[complete CTest transcript](performance-data/p14-b6-fresh-ctest.txt) is retained.
+
+The same new build ran five 800 × 480 SDL offscreen scenes with surfaceless EGL,
+dummy audio and `DISPLAY` unset. Every log reported `driver radeonsi`, confirming
+Radeon 780M rather than llvmpipe. Clear square, snow verge and active rainy-night
+cockpit screenshots were byte-identical to the committed
+[square](screenshots/phase14/square-promenade-after-clear.png),
+[snow](screenshots/phase14/verge-phase-after-snow.png) and
+[rainy-night](screenshots/phase14/audit-rainy-drive-after.png) references.
+The 40-frame walking and helicopter captures completed and were visually
+inspected; the cockpit log also reported an active 44.1 kHz stereo audio stream
+on the dummy device. This closes `P14-060`; the separate sanitizer result above
+was run in the desktop process environment because the restricted shell could
+not support LeakSanitizer thread inspection.
+
+`P14-003`, `P14-010`, `P14-011` and `P14-012` also meet their Phase 14 acceptance
+criteria. Additional extraction of save/benchmark coordination, the traffic
+per-vehicle update path, or broader vehicle/road renderer ownership is deferred
+to a future phase; none is required by this closure audit. The remaining gate is
+to repeat the fresh-clone build, all checks and representative hidden-Radeon
+scenes from the exact final pushed documentation SHA (`P14-062`).
