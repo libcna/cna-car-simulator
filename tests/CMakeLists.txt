@@ -70,7 +70,13 @@ target_link_libraries(carsim_tests PRIVATE carsim_render carsim_core GTest::gtes
 target_compile_definitions(carsim_tests PRIVATE CARSIM_TEST_CONTENT_DIR="${CMAKE_SOURCE_DIR}/content")
 carsim_apply_warnings(carsim_tests)
 add_test(NAME carsim_unit_tests COMMAND carsim_tests)
-set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 300 LABELS "unit")
+if(WIN32)
+    # Unoptimized MSVC map construction takes about 26 seconds per fixture; the full suite
+    # loads it repeatedly and also runs the simulated traffic soaks.
+    set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 3600 LABELS "unit")
+else()
+    set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 300 LABELS "unit")
+endif()
 
 # A practical sanitizer gate that does not pull in the graphics/audio device libraries.
 # It still runs the complete vehicle, map, collision and traffic suites (including the

@@ -75,6 +75,9 @@ TEST(SampleMap, LipovaLoadsAndIsFullyConnected)
     // Instrumentation checks memory behavior, not production loading speed. Keep a generous
     // bound here so a stalled loader still fails without treating ASan overhead as a regression.
     EXPECT_LT(world->Stats().loadSeconds, 30.0);
+#elif defined(_MSC_VER) && defined(_DEBUG)
+    // The unoptimized MSVC Debug build is measured separately from the production speed budget.
+    EXPECT_LT(world->Stats().loadSeconds, 60.0);
 #else
     EXPECT_LT(world->Stats().loadSeconds, 6.0);
 #endif
