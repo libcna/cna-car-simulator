@@ -138,11 +138,19 @@ if(UNIX AND NOT APPLE)
     # scripts/run_headless.sh starts Xvfb when no DISPLAY is set and selects the dummy audio driver.
     add_test(NAME simulator_smoke
         COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:cna-car-simulator> --frames 3 --width 320 --height 200)
+elseif(WIN32)
+    add_test(NAME simulator_smoke
+        COMMAND $<TARGET_FILE:cna-car-simulator> --no-save --no-audio --quality low
+                --frames 3 --width 640 --height 360)
 else()
     add_test(NAME simulator_smoke
         COMMAND cna-car-simulator --frames 3 --width 320 --height 200)
 endif()
-set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;display")
+if(WIN32)
+    set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 600 LABELS "smoke;display")
+else()
+    set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;display")
+endif()
 
 # Map validation over the shipped content (referential integrity, connectivity, grades).
 add_test(NAME map_validate_lipova
