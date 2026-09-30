@@ -7,31 +7,15 @@ layers remain project-generated. Provenance and conversion hashes are in
 `DynamicSoundEffectInstance` (44.1 kHz, 16-bit) from the XNA 4.0 audio API; mixing happens in
 project code (`simulator/src/Audio`).
 
-The [Phase 14 listening pack](audio-previews/phase14/README.md) now provides reproducible,
-device-free renders of the actual mixer for startup, idle, RPM and load changes, lift-off,
-shifts, engine braking, tyre/road, wind, rain, snow, traffic pass-by, cabin switching and
-helicopter modes. The WAV outputs repeated byte-for-byte and the tracked FLAC files decode
-to the same PCM. Their peaks and file integrity have been checked. A real-speaker or headphone
-listening pass reported that the engine family sounds unnatural, especially the sputter
-during startup. A [revised engine comparison](audio-previews/phase14-revision-1/README.md)
-was judged worse at startup because the ignition sounded weak. A narrower
-[second startup comparison](audio-previews/phase14-revision-2/README.md) attenuated only
-cranking combustion and kept the original catch clip; the listener said it still sounded
-like the unsatisfactory original, so that change was reverted too. A
-[recorded-source review](audio-previews/phase14-recorded-source-review.md) then found several
-free engine recordings. The listener preferred the untouched Saturn Vue preview to a Fiat
-Punto recording, but rejected two edited start/idle loop probes made from the Saturn preview.
-The listener then accepted the [2012 Honda Civic preview and its start/idle loop](audio-previews/phase14-recorded-source-review.md).
-The listener accepted the integrated start, idle, RPM sweep and shifts, but initially
-rejected load, lift-off and engine braking; a short loop cut from the Honda rev was also
-rejected for audible repetition. The [Honda mixer pack](audio-previews/phase14-honda/README.md)
-records the full verdict: tyre/road, wind, rain/wipers, snow, cabin switching and helicopter
-passed listening, while an initially inaudible traffic pass-by passed after a mix revision.
-The listener then selected a four-second steady-RPM Mini Cooper S loop and accepted the
-new actual-mixer load, lift-off, braking, RPM sweep, shifts and cabin/exterior switch.
-These six changed files and their review are in the
-[Mini mixer pack](audio-previews/phase14-mini/README.md); all other scenario PCM remains
-identical to the accepted Honda mixer pack.
+`carsim-audiopreview` (`tools/audio_preview/`) renders fourteen deterministic, device-free
+WAV excerpts of the actual mixer -- startup, idle, RPM sweep, fixed-RPM load, lift-off, shifts,
+engine braking, tyre/road, wind, rain, snow, traffic pass-by, cabin switching and helicopter
+modes -- for listening review: `build/opengles3/bin/carsim-audiopreview build/audio-preview`.
+Two exports are byte-identical. A purely procedural engine was judged unnatural on real
+speakers, and two procedural revisions were rejected and reverted; the recorded Honda and Mini
+layers replaced its character. With both installed, every one of the fourteen scenarios passed
+listening review. [Recorded engine sources](research/recorded-engine-sources.md) has the
+candidates, the reasons, the conversion recipes and the verdicts.
 
 ## Stream and buffering
 
@@ -104,20 +88,9 @@ An offscreen 90-frame square-start run with the dummy stereo stream and 20 warme
 cars measured 0.338 ms mean audio update (60 measured frames, after 30 warm-up frames).
 The dummy stream reported no errors; this is CPU-path evidence, not a speaker check.
 
-### Recorded-source research checkpoint
-
-The [CC0 Mini Cooper engine contact recording](https://freesound.org/people/TheLittleCrow/sounds/669618/)
-and [CC0 sedan loop](https://freesound.org/people/Dmitry_mansurev64/sounds/748027/)
-have clear published redistribution rights, but Freesound requires login for their originals;
-the latter is a single loop with no documented stable RPM layers. The
-[public-domain Opel Corsa startup](https://commons.wikimedia.org/wiki/File:Open_Corsa_E_model_2014_engine_startup_sound.ogg)
-is only four seconds and does not supply the driving layers. The
-[CC BY 4.0 Beetle recording](https://commons.wikimedia.org/wiki/File:WWS_VolkswagenBeetle8211engine.ogg)
-is an air-cooled flat-four with a different character. None was added at that checkpoint: stable
-loop points, RPM labels and perceptual fit still needed validation at that checkpoint. Any adopted file requires
-the source, license, author, hash and conversion history in `assets/manifest.json`.
-The dated finding above predates the 2026-09-25 research in the linked recorded-source
-review; OpenGameArt and Freesound were reachable for previews during that later pass.
+Any further recorded layer needs the source, licence, author, hash and conversion history in
+`assets/manifest.json` and must pass the import gate in
+[Recorded engine sources](research/recorded-engine-sources.md).
 
 ### Starter-to-idle transition
 
@@ -185,7 +158,7 @@ airflow gets 0.55. Exterior gains remain 1.0 for both. This lets the cabin retai
 contact through the structure while reducing the outside air rush more strongly. A separate
 device-free integrated test compares steady 130 km/h road and airborne cases to guard this
 relationship. The integrated tyre/road, wind and cabin-switch previews passed
-listener review in the accepted Phase 14 packs linked above.
+listener review (see the recorded-sources page linked above).
 
 ## Nearby traffic (Phase 14)
 
@@ -227,7 +200,7 @@ Two device-free integrated tests characterize fade-out, bounded samples, and the
 blade cadence of normal and extreme flight modes. A 90-frame offscreen flight runtime with
 the dummy audio device, 320 × 200 low graphics and 60 measured frames reported 0.332 ms
 mean project audio update. This is a mixer CPU timing, not a speaker listening assessment.
-The actual helicopter preview in the accepted mixer pack passed listener review.
+The actual-mixer helicopter preview passed listener review.
 
 ## Levels
 

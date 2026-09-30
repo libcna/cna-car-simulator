@@ -70,7 +70,7 @@ TEST(SampleMap, LipovaLoadsAndIsFullyConnected)
         const int lane = lanes.NearestLane(spawn.position, spawn.headingDeg * 3.14159265f / 180.0f, 4.0f);
         EXPECT_GE(lane, 0) << "spawn " << spawn.name;
     }
-    // Build time budget for the sample map (plan section 17).
+    // Build time budget for the sample map (docs/performance.md, "Budgets").
 #if defined(CARSIM_SANITIZED_BUILD)
     // Instrumentation checks memory behavior, not production loading speed. Keep a generous
     // bound here so a stalled loader still fails without treating ASan overhead as a regression.

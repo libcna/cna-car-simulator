@@ -17,7 +17,7 @@ have useful results inside half an hour.
 
 ## 0. What you need
 
-- Debian 13 (or any Linux with a working GL driver), a C++23 compiler, CMake >= 3.24, Ninja.
+- Debian 13 (or any Linux with a working GL driver), a C++23 compiler, CMake >= 3.23, Ninja.
 - Checkouts of **CNA** (`next`) and **Sharp Runtime** (`next`). Either as siblings of this
   repository, or anywhere, passed with `-DCARSIM_CNA_ROOT=` and `-DCARSIM_SHARP_RUNTIME_ROOT=`.
 - `python3` (3.10+) for the static checks and the benchmark report; Pillow only if you want the
@@ -205,10 +205,10 @@ Capture the curated set so the pictures line up beside the container ones in
 `docs/screenshots/`:
 
 ```bash
-scripts/capture_set.sh build/opengles3/bin/cna-car-simulator /tmp/hw-shots
+scripts/capture_set.sh build/opengles3/bin/cna-car-simulator build/hw-shots
 ```
 
-Then compare `/tmp/hw-shots` with `docs/screenshots/` and note: sun direction and shadow
+Then compare `build/hw-shots` with `docs/screenshots/` and note: sun direction and shadow
 darkness, texture filtering (anisotropic filtering on a GPU sharpens the road wear tracks that
 llvmpipe blurs), alpha-tested tree cards (edge halos), fog banding, z-fighting on road markings
 or the car's ground shadow, and anything missing.
@@ -224,7 +224,7 @@ Run the same scene through two renderers and compare both the numbers and the pi
 for r in opengles3 opengl33; do
   ./build/$r/bin/cna-car-simulator --no-save --no-audio --lockstep --spawn square \
       --frames 120 --traffic-warmup 40 --time 13:00 --time-scale 0 --weather clear \
-      --benchmark --benchmark-json /tmp/$r.json --screenshot /tmp/$r.png
+      --benchmark --benchmark-json build/$r-compare.json --screenshot build/$r-compare.png
 done
 ```
 
@@ -266,6 +266,8 @@ test in `tests/Traffic/RouteDriverTests.cpp` immediately.
 | date | machine | renderer | what was run | where |
 | --- | --- | --- | --- | --- |
 | 2026-09-15 | container, 4-core x86-64, **no GPU** (Mesa llvmpipe) | OPENGLES3, OPENGL33, SOFTWARE | build, tests, benchmark suite, screenshots | `docs/performance.md`, `docs/renderer-conformance.md` |
+| 2026-09-24..26 | Debian 13 desktop, AMD Radeon 780M, Mesa 25.0.7 (`radeonsi`, RADV) | OPENGLES3, OPENGL33, VULKAN (SOFTWARE alongside) | benchmark suite at 1280 × 720, hidden offscreen scenes and mirror matrix at 800 × 480, renderer comparison | `docs/performance.md`, `docs/renderer-conformance.md` |
 
-**No run on real GPU hardware has been recorded yet.** When one is, add a row above and put the
-numbers in `docs/performance.md` under a heading that names the machine.
+The section 4 checklist has not been recorded as a complete pass on the Radeon. When a new
+machine is measured, add a row above and put its numbers in `docs/performance.md` under a
+heading that names the machine.

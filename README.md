@@ -37,27 +37,21 @@ town and the villages around it, the countryside and a forest, meet traffic, and
 | --- | --- |
 | ![The sky reflected off wet asphalt](docs/screenshots/wetroad.jpg) | ![Headlamps and rain after dark](docs/screenshots/rainynight.jpg) |
 
-The overview pictures above are headless captures from the development container
-(Xvfb, Mesa llvmpipe software OpenGL ES 3, no multisampling). Newer Phase 14
-[visual comparisons](docs/screenshots/phase14/README.md) include hidden Radeon
-780M captures and four virtual-renderer checks. Older sets are kept in
-`docs/screenshots/m10-baseline/` and `docs/screenshots/renderers/`.
+The pictures above are headless captures (Xvfb, Mesa llvmpipe software OpenGL ES 3, no
+multisampling); `scripts/capture_set.sh` reproduces the whole set.
 
 ## Status
 
-The initial product milestone and Phases 11–14 are complete. Phase 14 improved the
-architecture, world, cockpit, traffic rules, audio and measured performance.
-[`plan.md`](plan.md) is the task ledger. The newer features listed below are accepted product
-scope, including work added after the Phase 13 audit. The
-[Phase 14 handoff](docs/phase14-handoff.md) links the acceptance evidence and exact-SHA audit.
+Everything listed below is implemented and is the accepted scope of the project. Known
+limitations, what is deliberately out of scope and sensible next steps are in
+[`ROADMAP.md`](ROADMAP.md). How to build, test and change the code without breaking its
+constraints is in [`CONTRIBUTING.md`](CONTRIBUTING.md). Development up to September 2026 was
+tracked in a phase-by-phase task ledger with acceptance evidence (screenshots, measurements,
+listening packs); those were retired from the tree and remain in git history.
 
 Developer memory checks use the project-only `asan-ubsan` preset described in
-[`docs/sanitizers.md`](docs/sanitizers.md).
-
-The overview pictures above and the older Phase 13 performance tables used Mesa
-llvmpipe software rendering. Phase 14 measured eight deterministic scenes on an
-AMD Radeon 780M using a hidden offscreen surface. The GPU measurements, their
-limits and the mirror A/B result are in [`docs/performance.md`](docs/performance.md).
+[`docs/sanitizers.md`](docs/sanitizers.md). GPU measurements on an AMD Radeon 780M, their
+limits and how to reproduce them are in [`docs/performance.md`](docs/performance.md).
 
 What you get today:
 
@@ -101,7 +95,7 @@ What you get today:
 - Persistent odometer, trip, transmission mode and settings; key bindings configurable in the
   save file; in-game help and debug overlays.
 
-Not included (by design or deferred, see `plan.md` sections 2 and 23): mechanical damage,
+Not included (by design or deferred, see [`ROADMAP.md`](ROADMAP.md)): mechanical damage,
 real-brand car models (no legally redistributable Škoda
 model was available; the car is procedural).
 
@@ -439,18 +433,16 @@ Screenshots were reviewed for every rendering change; the headless workflow is
 
 ## Performance
 
-The Phase 13 figures below are from Mesa llvmpipe **software** rendering, four threads. In the
-Phase 14 AMD Radeon 780M run, clear-town CPU update averaged 1.74–1.80 ms and project draw
-submission 10.5 ms exterior / 16.3 ms cockpit at 1280 × 720. The mirror alone submitted for
-5.3 ms in the cockpit. The targeted Phase 14 wing-mirror cull removed about 162 indexed 3D
-draws and 388,000 triangles per frame in the matched rainy-night scene, with an identical
-image; the timing spread does not establish a whole-frame speed-up. Three graphics tiers
+On an AMD Radeon 780M (Mesa `radeonsi`, OPENGLES3, 1280 × 720) the clear-town project draw
+submission is about 10.5 ms from the chase camera and 16.3 ms from the cockpit, of which the
+rear and wing mirrors take about 5 ms; the update half averages about 1 ms. Culling a wing
+mirror whose glass is out of view removes about 162 indexed 3D draws and 388,000 triangles per
+frame in the rainy-night cockpit with an identical image. Three graphics tiers
 (`--quality low|medium|high`, `settings.graphicsQuality`) trade
 draw distance, vegetation distance and mirror rate; `high` is the default and is what every
-picture and table was taken at. Per-scene tables, the before-and-after comparisons and the
-commands that reproduce them are in [`docs/performance.md`](docs/performance.md);
-`--benchmark-json` writes them as JSON. The same scenes were built and compared on the
-OPENGLES3, OPENGL33, SOFTWARE and Vulkan renderers
+picture and table was taken at. Per-scene tables, budgets and the commands that reproduce them
+are in [`docs/performance.md`](docs/performance.md); `--benchmark-json` writes them as JSON.
+The same scenes were built and compared on the OPENGLES3, OPENGL33, SOFTWARE and Vulkan renderers
 ([`docs/renderer-conformance.md`](docs/renderer-conformance.md)), and
 [`docs/real-hardware-validation.md`](docs/real-hardware-validation.md) describes reproduction
 on a real PC with a GPU.
@@ -466,5 +458,6 @@ The external assets are the **D-DIN** font family (SIL Open Font License 1.1) an
 listener-selected **CC0** car-engine recordings from a 2012 Honda Civic and a Mini Cooper S.
 Their sources, hashes, conversion steps and licences are in
 [`assets/ASSETS.md`](assets/ASSETS.md) and `assets/manifest.json`, checked by
-`scripts/check_assets.py`. Reviewed recordings that were rejected are described in the
-[audio source review](docs/audio-previews/phase14-recorded-source-review.md).
+`scripts/check_assets.py`. How the two recordings were chosen, the rejected candidates and
+the conversion recipes are in
+[`docs/research/recorded-engine-sources.md`](docs/research/recorded-engine-sources.md).

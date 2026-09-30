@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Builds the comparison sheet for one scene from the images scripts/renderer_compare.sh wrote.
 
-    python3 scripts/renderer_sheet.py build/renderers town docs/screenshots/renderers/town.png
+    python3 scripts/renderer_sheet.py build/renderers town build/renderers/town-sheet.png
 
 The sheet is a 2 x 2 grid: OPENGLES3, OPENGL33, SOFTWARE, and the SOFTWARE-minus-OPENGLES3
 difference amplified four times so a one-level shift is visible. It also prints the mean and tail

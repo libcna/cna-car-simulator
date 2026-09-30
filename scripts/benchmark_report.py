@@ -2,7 +2,7 @@
 """Turns the JSON written by scripts/benchmark_suite.sh into a Markdown table.
 
     python3 scripts/benchmark_report.py build/benchmarks --label "Debian 13 / Radeon 780M"
-    python3 scripts/benchmark_report.py build/benchmarks --against docs/benchmarks/before
+    python3 scripts/benchmark_report.py build/benchmarks --against build/bench-before
 
 The table is what goes into docs/performance.md. With --against, a second directory of the same
 scenes is read and the difference is shown, which is how a before/after comparison is reported:

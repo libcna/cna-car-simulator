@@ -3,7 +3,7 @@
 Inspection date: 2026-09-14. Checkouts: `libcna/cna` at `e05b3d0` (branch `next`),
 `libcna/sharp-runtime` at `0c82d9b` (branch `next`). This document records what the frameworks
 actually provide, as opposed to what XNA 4.0 / MonoGame / FNA documentation might suggest. It is
-the factual basis for `docs/api-boundary.md` and for the rendering strategy in `plan.md`.
+the factual basis for `docs/api-boundary.md` and for the project's rendering strategy.
 
 ## 1. What CNA is
 
@@ -108,7 +108,7 @@ Measured with the project's own scenes under Xvfb + Mesa llvmpipe (OpenGL ES 3.2
   `TextureEnabled = true` produces the expected lit result, so the project keeps one textured
   lit path for all solid-colour parts (`VehicleMaterials::Lit`). The untextured path has not
   been reduced to a minimal reproduction yet; it is recorded here so the workaround is not
-  removed by accident (candidate upstream report, see plan risk R9).
+  removed by accident (now fixed in CNA, see the status table in section 3.4a).
 - **`EnvironmentMapEffect` adds `EnvironmentMapSpecular * cubemap.alpha`** unconditionally
   (the XNA formula). A cube map with opaque alpha therefore adds the whole specular colour to
   every pixel; the project stores a sun-highlight mask in the cube map alpha instead.

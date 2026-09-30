@@ -25,4 +25,4 @@ listed here.
 | KhronosGroup/glTF-Sample-Assets `CarConcept` | CC-BY-4.0 but a futuristic concept car unsuited to a Czech passenger-car simulator |
 | KhronosGroup/glTF-Sample-Assets `ToyCar` | CC0 but a toy car |
 | Poly Haven, Quaternius, Kenney, Poly Pizza, ambientCG, Objaverse | host unreachable during the 2026-09-14 asset pass; not verified, not used |
-| Other engine previews reviewed for Phase 14 | The Fiat Punto, Saturn Vue and other candidate recordings were rejected in listening; the selected Honda and Mini sources are listed above (see `docs/audio-previews/phase14-recorded-source-review.md`) |
+| Other engine recordings reviewed | The Fiat Punto, Saturn Vue and other candidate recordings were rejected in listening; the selected Honda and Mini sources are listed above (see [`docs/research/recorded-engine-sources.md`](../docs/research/recorded-engine-sources.md)) |

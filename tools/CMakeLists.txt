@@ -1,5 +1,5 @@
-# Command-line tools (map validation, plate generation checks, ...). Populated
-# as the corresponding subsystems land; see plan.md.
+# Command-line tools: simulation tracer, map validator and the device-free audio
+# preview renderer (see README.md, "Architecture").
 add_subdirectory(simtrace)
 add_subdirectory(mapvalidate)
 add_subdirectory(audio_preview)
