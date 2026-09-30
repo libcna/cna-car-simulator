@@ -84,6 +84,21 @@ the capability profiles are CNA-specific. The project does not call them; it rel
 XNA contract (`GraphicsProfile::HiDef` features) and treats a renderer that cannot fulfil it
 as unsupported, reporting the exception message.
 
+### 3.4a Status against CNA `next` (2026-09-30)
+
+Every CNA observation in this document was re-checked against CNA on 2026-09-30. The text below is
+left as written; this table is the current state.
+
+| Observation | Status | CNA commit |
+| --- | --- | --- |
+| §3.1 layout selected by stride; no 36-byte Position+Normal+Color+Texture | Stale when written: EasyGL binds stock-effect inputs from the `VertexDeclaration` by usage (SAMPLE-005) and draws the 36-byte vertex-coloured lit layout (FX-125). CNA's own page, which this section was copied from, is corrected | `9d31b5097` |
+| Lit `BasicEffect` with `TextureEnabled = false` renders black | Fixed: an untextured stock draw binds a white texture. `VehicleMaterials::Lit`'s 4x4 white texture can go | `ea0656ca1` |
+| `EnvironmentMapEffect` adds `EnvironmentMapSpecular * cubemap.alpha` | Not a defect: XNA's formula | -- |
+| `SpriteBatch` needs premultiplied PNGs | Not a defect: a loose PNG is not premultiplied in FNA either; a compiled `.cnb`/`.xnb` texture is premultiplied at build time | -- |
+| Stencil clears unreliable after the second frame | Not reproduced on current CNA, one frame or five, with and without MSAA. A related defect was fixed: `Clear(Target \| Stencil)` left the stencil write mask open | `731120eb9` |
+| `DrawUserPrimitives` drew nothing after the world pass | Not reproduced (a user draw after an instanced draw renders). CNA now refuses, at compile time, a user draw of a non-stock vertex struct without its `VertexDeclaration`, which used to be drawn as `VertexPositionColor` | `6bd1387bf` |
+| `DualTextureEffect` does not double `detail x macro` | Not a defect: EasyGL applies XNA's `x 2` (measured 128 x 128 -> 128). The comment in `WorldRendererGeometry.cpp` misattributes it, and the terrain has probably been tuned by eye against the doubled result. On Metal the second texture uses the first UV set: CNA METAL-282, open | `c40d00823` (record) |
+
 ### 3.4 Observed behaviour on the OPENGLES3 (EasyGL) renderer
 
 Measured with the project's own scenes under Xvfb + Mesa llvmpipe (OpenGL ES 3.2):
