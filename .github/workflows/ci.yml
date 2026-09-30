@@ -1,0 +1,87 @@
+name: CI
+
+# Builds the simulator the way README.md describes -- sibling checkouts of CNA (next),
+# Sharp Runtime (next), easy-gl and meta-gl -- runs the static checks, and runs ctest on
+# Mesa llvmpipe. The smoke test starts its own Xvfb (scripts/run_headless.sh).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      CC: gcc-14
+      CXX: g++-14
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: cna-car-simulator
+      - uses: actions/checkout@v4
+        with:
+          repository: libcna/cna
+          ref: next
+          path: cna
+      - name: CNA submodules
+        run: >
+          git -C cna submodule update --init --depth 1
+          third_party/SDL third_party/SDL_image third_party/SDL_mixer vendor/googletest
+      - uses: actions/checkout@v4
+        with:
+          repository: libcna/sharp-runtime
+          ref: next
+          path: sharp-runtime
+      - uses: actions/checkout@v4
+        with:
+          repository: libcna/easy-gl
+          path: easy-gl
+      - uses: actions/checkout@v4
+        with:
+          repository: libcna/meta-gl
+          path: meta-gl
+
+      - name: Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-14 g++-14 ninja-build ccache pkg-config python3 xvfb xauth \
+            libx11-dev libxext-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxss-dev libxtst-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libgles-dev mesa-utils libgl1-mesa-dri \
+            libasound2-dev libpulse-dev
+
+      - name: Static checks
+        working-directory: cna-car-simulator
+        run: |
+          python3 scripts/check_xna_only.py
+          python3 scripts/check_assets.py
+
+      - uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-
+
+      - name: Configure
+        working-directory: cna-car-simulator
+        run: >
+          cmake --preset opengles3 -G Ninja
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build
+        working-directory: cna-car-simulator
+        run: cmake --build --preset opengles3 --parallel 4
+
+      - name: Test
+        working-directory: cna-car-simulator
+        env:
+          SDL_AUDIODRIVER: dummy
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: ctest --preset opengles3 --output-on-failure

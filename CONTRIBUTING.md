@@ -46,6 +46,8 @@ build/opengles3/bin/carsim-mapvalidate content/maps/lipova
 The registrations are `carsim_unit_tests` (GoogleTest `carsim_tests`, including the traffic
 soaks), `xna_only_api_check`, `simulator_smoke`, `map_validate_lipova`,
 `map_regeneration_check` and `asset_manifest_check`; select with `-L unit|static|content|display`.
+GitHub Actions (`.github/workflows/ci.yml`) runs the static checks, the `opengles3` build and this
+CTest suite on Mesa llvmpipe for every push to `main` and every pull request.
 The sanitizer build is described in `docs/sanitizers.md`. New sources are registered in
 `simulator/CMakeLists.txt`, new tests in `tests/CMakeLists.txt`.
 
