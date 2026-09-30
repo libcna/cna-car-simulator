@@ -135,8 +135,9 @@ namespace CarSim::Render
                     const float t = Clamp01((roadDistance + 1.0f) / 4.0f);
                     tint = Rgb{tint.r * (0.75f + 0.25f * t) + 0.10f * (1.0f - t), tint.g * (0.72f + 0.28f * t) + 0.06f * (1.0f - t), tint.b * (0.7f + 0.3f * t) + 0.03f * (1.0f - t)};
                 }
-                // The effect multiplies detail x macro (no doubling on this renderer), so the
-                // macro carries the full lighting; sunlit meadow lands near 0.45 with the grass.
+                // DualTextureEffect computes detail x macro x 2, as XNA's does, and the factors
+                // below were tuned by eye against that doubled result (an earlier note here said
+                // the renderer did not double; it always has).
                 const float k = light * (static_cast<float>(shadow.At(x, y).getRProperty()) / 255.0f) * 1.12f;
                 const Rgb value{Clamp01(tint.r * k), Clamp01(tint.g * k), Clamp01(tint.b * k)};
                 macro.Set(x, y, value);

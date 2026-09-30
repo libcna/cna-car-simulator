@@ -32,6 +32,6 @@ __pycache__/
 *.log
 /saves/
 
-# Downloaded external assets are fetched by tools/, never committed (see assets/README.md)
+# Downloaded external assets are fetched by tools/, never committed (see assets/ASSETS.md)
 /assets/external/downloads/
 /assets/external/cache/
