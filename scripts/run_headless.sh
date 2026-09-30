@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-# Runs the simulator without a physical display (CI, containers): starts Xvfb if no DISPLAY
-# is set and forwards all arguments to the simulator binary.
+# Runs the simulator without a physical display (CI, containers): starts a private Xvfb if no
+# DISPLAY is set, forwards all arguments to the simulator binary, and stops the Xvfb afterwards.
 #
 #   scripts/run_headless.sh build/opengles3/bin/cna-car-simulator --frames 120 --screenshot out.png
 #
@@ -18,10 +18,24 @@ if [ -z "${DISPLAY:-}" ]; then
         echo "error: no DISPLAY and Xvfb is not installed" >&2
         exit 1
     fi
-    export DISPLAY=:99
-    if ! pgrep -f "Xvfb ${DISPLAY}" >/dev/null 2>&1; then
-        Xvfb "${DISPLAY}" -screen 0 1280x720x24 -nolisten tcp >/dev/null 2>&1 &
-        sleep 1
+    # A private server on a free display number, stopped when this script ends: a fixed :99
+    # collides with anything else on the machine using that display, and a server left behind
+    # outlives every run.
+    displayFile=$(mktemp)
+    Xvfb -displayfd 3 -screen 0 1280x720x24 -nolisten tcp 3>"$displayFile" >/dev/null 2>&1 &
+    xvfbPid=$!
+    trap 'kill "$xvfbPid" 2>/dev/null; rm -f "$displayFile"' EXIT INT TERM
+    tries=0
+    while [ ! -s "$displayFile" ] && [ "$tries" -lt 100 ]; do
+        sleep 0.1
+        tries=$((tries + 1))
+    done
+    if [ ! -s "$displayFile" ]; then
+        echo "error: Xvfb did not report a display" >&2
+        exit 1
     fi
+    export DISPLAY=":$(cat "$displayFile")"
+    "$BIN" "$@"
+    exit $?
 fi
 exec "$BIN" "$@"
