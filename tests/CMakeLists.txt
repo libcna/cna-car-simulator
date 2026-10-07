@@ -152,6 +152,27 @@ else()
     set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;display")
 endif()
 
+# The cockpit's off-screen passes: instrument cluster, rear-view mirror and both wing mirrors
+# (High tier). A wing mirror pass once drew its own glass with last frame's image of the target it
+# was rendering into, which XNA refuses; it needs two frames to appear, hence four.
+set(_carsim_cockpit_args --cockpit --quality high --no-save --no-audio --frames 4)
+if(UNIX AND NOT APPLE)
+    add_test(NAME simulator_cockpit_smoke
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:cna-car-simulator>
+                ${_carsim_cockpit_args} --width 320 --height 200)
+elseif(WIN32)
+    add_test(NAME simulator_cockpit_smoke
+        COMMAND $<TARGET_FILE:cna-car-simulator> ${_carsim_cockpit_args} --width 640 --height 360)
+else()
+    add_test(NAME simulator_cockpit_smoke
+        COMMAND cna-car-simulator ${_carsim_cockpit_args} --width 320 --height 200)
+endif()
+if(WIN32)
+    set_tests_properties(simulator_cockpit_smoke PROPERTIES TIMEOUT 600 LABELS "smoke;display")
+else()
+    set_tests_properties(simulator_cockpit_smoke PROPERTIES TIMEOUT 120 LABELS "smoke;display")
+endif()
+
 # Map validation over the shipped content (referential integrity, connectivity, grades).
 add_test(NAME map_validate_lipova
     COMMAND carsim-mapvalidate --content "${CMAKE_SOURCE_DIR}/content" --map lipova --quiet)

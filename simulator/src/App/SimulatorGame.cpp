@@ -1133,6 +1133,12 @@ namespace CarSim::App
                 if (s != side && wingMirrorsDrawn_[static_cast<std::size_t>(s)]) continue;
                 auto& wing = *wingMirrors_[static_cast<std::size_t>(s)];
                 wing.UpdateWing(state, glass.centre, glass.yaw);
+                // This glass would otherwise show last frame's image of the target bound below, and
+                // XNA refuses to sample a texture while it is the render target (InvalidOperation
+                // from Textures[i]). The camera sits on this glass looking out, so it is never in
+                // its own image; the other mirror keeps its texture.
+                vehicleRenderer_->SetWingMirrorTextures(s == 0 ? nullptr : wingMirrors_[0]->Texture(),
+                                                        s == 1 ? nullptr : wingMirrors_[1]->Texture());
                 wing.Begin(device);
                 drawMirrorScene(wing, std::min(150.0f, qualitySettings_.mirrorDistanceM));
                 wing.End(device);
