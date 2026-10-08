@@ -1,5 +1,7 @@
 #include "CarSim/Traffic/PlateGenerator.hpp"
 
+#include "CarSim/Core/Random.hpp"
+
 #include <algorithm>
 #include <cctype>
 
@@ -93,34 +95,34 @@ namespace CarSim::Traffic
 
     std::string PlateGenerator::Generate()
     {
-        std::uniform_real_distribution<float> unit(0.0f, 1.0f);
-        std::uniform_int_distribution<int> digit(0, 9);
-        std::uniform_int_distribution<int> firstDigit(1, 9);
-        std::uniform_int_distribution<int> letter(0, static_cast<int>(kLetters.size()) - 1);
+        const auto unit = [this] { return Core::Random::Float(rng_, 0.0f, 1.0f); };
+        const auto digit = [this] { return Core::Random::Int(rng_, 0, 9); };
+        const auto firstDigit = [this] { return Core::Random::Int(rng_, 1, 9); };
+        const auto letter = [this] { return Core::Random::Int(rng_, 0, static_cast<int>(kLetters.size()) - 1); };
         std::string plate;
-        if (unit(rng_) < electricShare_) {
+        if (unit() < electricShare_) {
             // EL + three digits + two letters ("EL0 00AA" configuration).
             plate = "EL";
-            for (int i = 0; i < 3; ++i) plate.push_back(static_cast<char>('0' + digit(rng_)));
-            for (int i = 0; i < 2; ++i) plate.push_back(kLetters[static_cast<std::size_t>(letter(rng_))]);
+            for (int i = 0; i < 3; ++i) plate.push_back(static_cast<char>('0' + digit()));
+            for (int i = 0; i < 2; ++i) plate.push_back(kLetters[static_cast<std::size_t>(letter())]);
             return Format(plate);
         }
         float total = 0.0f;
         for (const auto& r : Regions()) total += r.weight;
-        float pick = unit(rng_) * total;
+        float pick = unit() * total;
         const PlateRegion* region = &Regions().back();
         for (const auto& r : Regions()) {
             pick -= r.weight;
             if (pick <= 0.0f) { region = &r; break; }
         }
-        plate.push_back(static_cast<char>('0' + firstDigit(rng_)));
+        plate.push_back(static_cast<char>('0' + firstDigit()));
         plate.push_back(region->letter);
-        if (unit(rng_) < region->twoLetterShare) {
-            plate.push_back(kLetters[static_cast<std::size_t>(letter(rng_))]);
+        if (unit() < region->twoLetterShare) {
+            plate.push_back(kLetters[static_cast<std::size_t>(letter())]);
         } else {
-            plate.push_back(static_cast<char>('0' + digit(rng_)));
+            plate.push_back(static_cast<char>('0' + digit()));
         }
-        for (int i = 0; i < 4; ++i) plate.push_back(static_cast<char>('0' + digit(rng_)));
+        for (int i = 0; i < 4; ++i) plate.push_back(static_cast<char>('0' + digit()));
         return Format(plate);
     }
 

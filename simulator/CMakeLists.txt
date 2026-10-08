@@ -16,6 +16,7 @@ add_library(carsim_core STATIC
     src/Core/JsonReader.cpp
     src/Core/Noise.cpp
     src/Core/PiecewiseLinear.cpp
+    src/Core/Random.cpp
     src/Core/SaveData.cpp
     src/Core/Weather.cpp
     src/Core/Version.cpp

@@ -1,5 +1,7 @@
 #include "CarSim/Traffic/Pedestrians.hpp"
 
+#include "CarSim/Core/Random.hpp"
+
 #include <algorithm>
 #include <cmath>
 
@@ -60,12 +62,12 @@ namespace CarSim::Traffic
         p.walkway = walkway;
         p.s = std::clamp(s, w.s0, w.s1);
         p.direction = direction >= 0.0f ? 1.0f : -1.0f;
-        std::uniform_real_distribution<float> unit(0.0f, 1.0f);
-        p.speed = 1.1f + 0.45f * unit(rng_);
-        p.lateral = w.lateral + (unit(rng_) - 0.5f) * 0.6f;
+        const auto unit = [this] { return Core::Random::Float(rng_, 0.0f, 1.0f); };
+        p.speed = 1.1f + 0.45f * unit();
+        p.lateral = w.lateral + (unit() - 0.5f) * 0.6f;
         p.look = static_cast<unsigned>(rng_());
-        p.phase = unit(rng_) * 6.2831853f;
-        p.nextCrossChance = willCross ? 0.0f : unit(rng_);
+        p.phase = unit() * 6.2831853f;
+        p.nextCrossChance = willCross ? 0.0f : unit();
         UpdatePose(p);
         people_.push_back(p);
         return p.id;
@@ -110,7 +112,7 @@ namespace CarSim::Traffic
                              const int count)
     {
         if (walkways_.empty() || dt <= 0.0f) return;
-        std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+        const auto unit = [this] { return Core::Random::Float(rng_, 0.0f, 1.0f); };
         // Keep a crowd near the focus: drop the far ones, place new ones 60-260 m out.
         people_.erase(std::remove_if(people_.begin(), people_.end(),
                                      [&](const Pedestrian& p) { return p.crossing == -1 && Vector3::Distance(p.position, focus) > 320.0f; }),
@@ -120,15 +122,15 @@ namespace CarSim::Traffic
         const bool firstFill = people_.empty() && !filled_;
         filled_ = true;
         for (int attempt = 0; attempt < (firstFill ? 4000 : 40) && static_cast<int>(people_.size()) < count; ++attempt) {
-            const int w = static_cast<int>(unit(rng_) * static_cast<float>(walkways_.size())) % static_cast<int>(walkways_.size());
+            const int w = static_cast<int>(unit() * static_cast<float>(walkways_.size())) % static_cast<int>(walkways_.size());
             const Walkway& way = walkways_[static_cast<std::size_t>(w)];
-            const float s = way.s0 + unit(rng_) * (way.s1 - way.s0);
+            const float s = way.s0 + unit() * (way.s1 - way.s0);
             const auto& road = world_.Roads().Roads()[static_cast<std::size_t>(way.road)];
             const Vector3 at = road.curve.Evaluate(s).position;
             const float d = Vector3::Distance(at, focus);
             if (d < 60.0f && !firstFill) continue;   // not out of thin air in front of the driver
             if (d > 260.0f) continue;
-            Spawn(w, s, unit(rng_) < 0.5f ? -1.0f : 1.0f);
+            Spawn(w, s, unit() < 0.5f ? -1.0f : 1.0f);
         }
 
         for (auto& p : people_) {
@@ -162,7 +164,7 @@ namespace CarSim::Traffic
                         p.lateral = walkways_[static_cast<std::size_t>(other)].lateral;
                         p.crossing = -1;
                         p.walkedSinceCross = 0.0f;
-                        p.nextCrossChance = unit(rng_);
+                        p.nextCrossChance = unit();
                     }
                 }
                 UpdatePose(p);
@@ -194,7 +196,7 @@ namespace CarSim::Traffic
             p.walkedSinceCross += p.speed * dt;
             if (p.crossing == -1 && p.walkedSinceCross > 150.0f) {
                 p.walkedSinceCross = 0.0f;
-                if (unit(rng_) < 0.25f) {
+                if (unit() < 0.25f) {
                     const auto& road = world_.Roads().Roads()[static_cast<std::size_t>(way.road)];
                     p.crossing = -2;
                     p.crossHalf = road.profile.HalfPavedWidth();
@@ -206,7 +208,7 @@ namespace CarSim::Traffic
             if (p.nextCrossChance >= 1.0f && std::fabs(p.s - way.s0) > 1.0f && std::fabs(p.s - way.s1) > 1.0f) {
                 bool nearAny = false;
                 for (const auto& c : crossings_) nearAny = nearAny || (c.road == way.road && std::fabs(c.s - p.s) < 3.0f);
-                if (!nearAny) p.nextCrossChance = unit(rng_);
+                if (!nearAny) p.nextCrossChance = unit();
             }
             UpdatePose(p);
         }

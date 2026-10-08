@@ -3,6 +3,8 @@
 // their behaviour; this translation unit gives the population policy a clear home.
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
+#include "CarSim/Core/Random.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <numbers>
@@ -43,18 +45,14 @@ namespace CarSim::Traffic
         v.link = -1;
         v.s = std::clamp(s, 0.0f, lanes_.LaneAt(lane).length);
         v.speed = std::max(0.0f, speed);
-        std::uniform_real_distribution<float> factor(0.9f, 1.08f);
         // One draw, weighted towards the first four colours (white, silver, grey, black): they
         // take about two thirds of the cars, as they do on a real road.
         static constexpr int kPaletteDraw[24] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 15};
-        std::uniform_int_distribution<int> palette(0, 23);
-        std::uniform_real_distribution<float> roll(0.0f, 1.0f);
-        std::uniform_int_distribution<unsigned> seed(0u, 6u);
-        v.driverFactor = factor(rng_);
-        v.paletteIndex = kPaletteDraw[palette(rng_)];
-        v.body = PickBody(roll(rng_));
+        v.driverFactor = Core::Random::Float(rng_, 0.9f, 1.08f);
+        v.paletteIndex = kPaletteDraw[Core::Random::Int(rng_, 0, 23)];
+        v.body = PickBody(Core::Random::Float(rng_, 0.0f, 1.0f));
         if (body) v.body = *body;
-        v.styleSeed = seed(rng_);
+        v.styleSeed = static_cast<unsigned>(Core::Random::Int(rng_, 0, 6));
         const Sim::CarStyle style = Sim::CarStyle::Preset(v.body, v.styleSeed);
         v.lengthM = style.length;
         v.widthM = style.width;
@@ -95,13 +93,11 @@ namespace CarSim::Traffic
         spawnTimer_ = params.spawnInterval;
         const float minD = world_.Data().traffic.spawnMinDistance;
         const float maxD = world_.Data().traffic.despawnDistance * 0.85f;
-        std::uniform_int_distribution<int> pickLane(0, static_cast<int>(lanes_.Lanes().size()) - 1);
-        std::uniform_real_distribution<float> unit(0.0f, 1.0f);
         const Vector2 playerXZ(player.position.X, player.position.Z);
         for (int attempt = 0; attempt < 12; ++attempt) {
-            const Lane& lane = lanes_.LaneAt(pickLane(rng_));
+            const Lane& lane = lanes_.LaneAt(Core::Random::Int(rng_, 0, static_cast<int>(lanes_.Lanes().size()) - 1));
             if (lane.length < 20.0f) continue;
-            const float s = 8.0f + unit(rng_) * (lane.length - 16.0f);
+            const float s = 8.0f + Core::Random::Float(rng_, 0.0f, 1.0f) * (lane.length - 16.0f);
             const LanePoint p = lane.Evaluate(s);
             const float d = Vector2::Distance(Vector2(p.position.X, p.position.Z), playerXZ);
             if (d < minD || d > maxD) continue;
@@ -133,7 +129,7 @@ namespace CarSim::Traffic
                 crowded = Vector3::DistanceSquared(o.position, p.position) < 25.0f * 25.0f;
             }
             if (crowded) continue;
-            const float speed = p.speedLimitKmh * kKmhToMs * (0.6f + 0.3f * unit(rng_));
+            const float speed = p.speedLimitKmh * kKmhToMs * (0.6f + 0.3f * Core::Random::Float(rng_, 0.0f, 1.0f));
             // Not within reach of the junction ahead: a car appearing there cannot stop for
             // traffic already on its way into the box, and drove into a car crossing it.
             if (lane.toIntersection >= 0 && lane.length - s < speed * speed / (2.0f * params.comfortDecel) + 30.0f) continue;

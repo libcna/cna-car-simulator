@@ -1,5 +1,7 @@
 #include "CarSim/Map/LaneGraph.hpp"
 
+#include "CarSim/Core/Random.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -549,8 +551,7 @@ namespace CarSim::Map
             weights.push_back(w);
             total += w;
         }
-        std::uniform_real_distribution<float> pick(0.0f, total);
-        float r = pick(rng);
+        float r = Core::Random::Float(rng, 0.0f, total);
         for (std::size_t i = 0; i < out.size(); ++i) {
             r -= weights[i];
             if (r <= 0.0f) {

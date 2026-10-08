@@ -1,6 +1,7 @@
 #include "CarSim/Traffic/TrafficSystem.hpp"
 
 #include "CarSim/Collision/Shapes.hpp"
+#include "CarSim/Core/Random.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -793,8 +794,7 @@ namespace CarSim::Traffic
                         leaderSpeed = 0.0f;
                     }
                     if (ahead < 1.5f && v.speed < 0.4f) {
-                        std::uniform_real_distribution<float> dwell(12.0f, 20.0f);
-                        v.dwell = dwell(rng_);
+                        v.dwell = Core::Random::Float(rng_, 12.0f, 20.0f);
                         v.servedLane = v.lane;
                         v.servedS = stop;
                     }

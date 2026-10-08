@@ -75,7 +75,9 @@ if(WIN32)
     # loads it repeatedly and also runs the simulated traffic soaks.
     set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 3600 LABELS "unit")
 else()
-    set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 300 LABELS "unit")
+    # An unoptimized build runs the same traffic soaks: on an Apple-silicon Mac the Debug suite
+    # takes about 430 seconds (AM4-170).
+    set_tests_properties(carsim_unit_tests PROPERTIES TIMEOUT 900 LABELS "unit")
 endif()
 
 # A practical sanitizer gate that does not pull in the graphics/audio device libraries.

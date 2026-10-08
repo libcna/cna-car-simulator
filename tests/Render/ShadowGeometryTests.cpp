@@ -1,6 +1,7 @@
 // Stencil-free car shadows: hull, projection and extreme-point decimation, plus the Lipan's
 // silhouette under the fixed sun. Regression cover for the shadow that vanished after the
 // first frames when it depended on a per-frame stencil clear.
+#include "CarSim/Core/Random.hpp"
 #include "CarSim/Render/LightingRig.hpp"
 #include "CarSim/Render/ProceduralCar.hpp"
 #include "CarSim/Render/ShadowGeometry.hpp"
@@ -49,7 +50,7 @@ TEST(ShadowGeometry, ConvexHullDropsInteriorAndCollinearPoints)
 TEST(ShadowGeometry, ExtremePointsKeepTheBoundingBoxOfACloud)
 {
     std::mt19937 rng(7);
-    std::uniform_real_distribution<float> u(-1.0f, 1.0f);
+    const auto u = [](std::mt19937& engine) { return CarSim::Core::Random::Float(engine, -1.0f, 1.0f); };
     std::vector<Vector3> cloud;
     for (int i = 0; i < 4000; ++i) cloud.emplace_back(u(rng) * 2.0f, u(rng) * 0.7f, u(rng) * 1.3f);
     // A dense cloud: the sampled directions reach within a few percent of the true extent.
