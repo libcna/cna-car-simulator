@@ -3,7 +3,7 @@
 # The SDL offscreen EGL surface is 800x480; match that size to avoid clipped frames.
 set -euo pipefail
 
-bin="${1:-build/opengles3/bin/cna-car-simulator}"
+bin="${1:-build/opengles3/bin/car-simulator}"
 out="${2:-build/captures/p14-cockpit}"
 cases="${3:-noon sunset night rain fog snow rainy_night}"
 mkdir -p "$out"

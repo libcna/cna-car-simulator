@@ -533,7 +533,7 @@ def map_doc():
         "displayName": "Lipová",
         "description": "Fictional small town in the Czech countryside: square, residential streets, prefab estate, "
                        "fields with tree avenues, spruce forest with a forest road and a gravel track. About 18 km of roads.",
-        "author": "cna-car-simulator contributors",
+        "author": "car-simulator contributors",
         "license": "MIT (see LICENSE); all content is procedural or authored in this repository",
         "files": {"terrain": "terrain.json", "roads": "roads.json", "objects": "objects.json", "traffic": "traffic.json"},
     }

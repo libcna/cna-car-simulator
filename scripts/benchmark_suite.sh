@@ -2,7 +2,7 @@
 # Runs the repeatable benchmark scenarios and writes one JSON per scene.
 #
 #   scripts/benchmark_suite.sh [options]
-#     --bin PATH        simulator binary (default: build/opengles3/bin/cna-car-simulator)
+#     --bin PATH        simulator binary (default: build/opengles3/bin/car-simulator)
 #     --out DIR         where the JSON goes (default: build/benchmarks)
 #     --label NAME      what this run is called in the report (default: the host name)
 #     --width  N        viewport width  (default 1280)
@@ -21,7 +21,7 @@
 # cameras (the cockpit adds the instrument cluster and the rear-view mirror pass).
 set -eu
 
-BIN="build/opengles3/bin/cna-car-simulator"
+BIN="build/opengles3/bin/car-simulator"
 OUT="build/benchmarks"
 LABEL="$(hostname 2>/dev/null || echo unknown)"
 WIDTH=1280

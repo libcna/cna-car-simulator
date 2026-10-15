@@ -30,7 +30,7 @@ have useful results inside half an hour.
 ## 1. Build
 
 ```bash
-git clone <this repository> cna-car-simulator && cd cna-car-simulator
+git clone <this repository> car-simulator && cd car-simulator
 git checkout main
 
 cmake --preset opengles3 -DCARSIM_CNA_ROOT=../cna -DCARSIM_SHARP_RUNTIME_ROOT=../sharp-runtime
@@ -63,7 +63,7 @@ Runtime, and the ctest summary line.
 ## 3. First run and the diagnostic overlay
 
 ```bash
-./build/opengles3/bin/cna-car-simulator --debug-overlay
+./build/opengles3/bin/car-simulator --debug-overlay
 ```
 
 `F3` toggles the overlay at any time; it is off in a normal session. It reports, all from this
@@ -138,7 +138,7 @@ scripts/benchmark_suite.sh --route forest              # forest instead of town
 scripts/benchmark_suite.sh --route country
 scripts/benchmark_suite.sh --scenes "night_cockpit rainynight_cockpit"    # the expensive pair
 scripts/benchmark_suite.sh --width 1920 --height 1080
-scripts/benchmark_suite.sh --bin build/opengl33/bin/cna-car-simulator --out build/bench-gl33
+scripts/benchmark_suite.sh --bin build/opengl33/bin/car-simulator --out build/bench-gl33
 scripts/benchmark_suite.sh --quick                     # 320x200, 240 frames, for a smoke check
 ```
 
@@ -156,8 +156,8 @@ python3 scripts/benchmark_report.py build/benchmarks --against build/bench-befor
 ### Driving a route by hand
 
 ```bash
-./build/opengles3/bin/cna-car-simulator --route town --route-stay --debug-overlay
-./build/opengles3/bin/cna-car-simulator --route forest --cockpit --time 22:30 --lights
+./build/opengles3/bin/car-simulator --route town --route-stay --debug-overlay
+./build/opengles3/bin/car-simulator --route forest --cockpit --time 22:30 --lights
 ```
 
 `--route` drives one of the routes defined in `content/maps/lipova/traffic.json` (`town`,
@@ -205,7 +205,7 @@ Capture the curated set so the pictures line up beside the container ones in
 `docs/screenshots/`:
 
 ```bash
-scripts/capture_set.sh build/opengles3/bin/cna-car-simulator build/hw-shots
+scripts/capture_set.sh build/opengles3/bin/car-simulator build/hw-shots
 ```
 
 Then compare `build/hw-shots` with `docs/screenshots/` and note: sun direction and shadow
@@ -222,7 +222,7 @@ Run the same scene through two renderers and compare both the numbers and the pi
 
 ```bash
 for r in opengles3 opengl33; do
-  ./build/$r/bin/cna-car-simulator --no-save --no-audio --lockstep --spawn square \
+  ./build/$r/bin/car-simulator --no-save --no-audio --lockstep --spawn square \
       --frames 120 --traffic-warmup 40 --time 13:00 --time-scale 0 --weather clear \
       --benchmark --benchmark-json build/$r-compare.json --screenshot build/$r-compare.png
 done

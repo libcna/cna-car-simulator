@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Robert Vokac and the cna-car-simulator contributors
+Copyright (c) 2026 Robert Vokac and the car-simulator contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,6 @@ SOFTWARE.
 ----------------------------------------------------------------------------
 
 This license covers the source code, documentation and project-authored data
-of cna-car-simulator. Third-party assets and their licenses are listed in
+of car-simulator. Third-party assets and their licenses are listed in
 assets/ASSETS.md and assets/manifest.json. The CNA framework and Sharp Runtime
 are separate dependencies distributed under their own licenses.

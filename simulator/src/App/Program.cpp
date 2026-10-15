@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     const auto parsed = CarSim::Core::ParseCommandLine(argc, argv);
     if (!parsed.ok()) {
         for (const auto& error : parsed.errors) {
-            std::cerr << "cna-car-simulator: " << error << "\n";
+            std::cerr << "car-simulator: " << error << "\n";
         }
         std::cerr << "\n" << CarSim::Core::CommandLineUsage();
         return 2;
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         game->Run();
         (void)game.release();
     } catch (const std::exception& error) {
-        std::cerr << "cna-car-simulator: fatal error: " << error.what() << "\n";
+        std::cerr << "car-simulator: fatal error: " << error.what() << "\n";
         return 1;
     }
     return 0;

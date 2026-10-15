@@ -1,4 +1,4 @@
-# cna-car-simulator
+# car-simulator
 
 A realistic passenger-car driving simulator set in a fictional Czech landscape, written in
 C++23 on the **XNA 4.0-compatible public API** of the [CNA](https://github.com/libcna/cna)
@@ -120,12 +120,12 @@ git -C cna submodule update --init third_party/SDL third_party/SDL_image third_p
 git clone --branch next https://github.com/libcna/sharp-runtime.git
 git clone https://github.com/libcna/easy-gl.git
 git clone https://github.com/libcna/meta-gl.git
-git clone https://github.com/libcna/cna-car-simulator.git
-cd cna-car-simulator
+git clone https://github.com/libcna/car-simulator.git
+cd car-simulator
 cmake --preset opengles3          # or: default, opengl33, vulkan, software, debug
 cmake --build --preset opengles3 -j
 ctest --preset opengles3
-./build/opengles3/bin/cna-car-simulator
+./build/opengles3/bin/car-simulator
 ```
 
 Pass `-DCARSIM_CNA_ROOT=/path/to/cna -DCARSIM_SHARP_RUNTIME_ROOT=/path/to/sharp-runtime`
@@ -138,7 +138,7 @@ The content directory is copied next to the executable after each build; the sou
 ## Running
 
 ```
-cna-car-simulator [options]
+car-simulator [options]
   --width <px> --height <px> --fullscreen   window size (default 1280 x 720)
   --no-audio                                disable the audio stream
   --save <file> | --no-save                 save file location, or run without persistence
@@ -172,7 +172,7 @@ cna-car-simulator [options]
 Headless smoke run (Xvfb, dummy audio) as used by the tests and for screenshots:
 
 ```bash
-scripts/run_headless.sh ./build/opengles3/bin/cna-car-simulator --frames 60 --screenshot shot.png
+scripts/run_headless.sh ./build/opengles3/bin/car-simulator --frames 60 --screenshot shot.png
 scripts/capture_set.sh                      # the whole curated set in docs/screenshots/
 scripts/benchmark_suite.sh --quick          # the eight benchmark scenes
 python3 scripts/benchmark_report.py build/benchmarks --label "this machine"
@@ -271,8 +271,8 @@ impacts. Controller buttons are fixed; the keyboard bindings stay configurable.
 ## Save file and settings
 
 Odometer, trip, transmission mode, the last vehicle and map, and settings are stored as JSON
-(schema 1) in `$CARSIM_SAVE_DIR/save.json`, else `$XDG_DATA_HOME/cna-car-simulator/save.json`
-(`%APPDATA%\cna-car-simulator\save.json` on Windows, `~/.local/share/...` as the fallback).
+(schema 1) in `$CARSIM_SAVE_DIR/save.json`, else `$XDG_DATA_HOME/car-simulator/save.json`
+(`%APPDATA%\car-simulator\save.json` on Windows, `~/.local/share/...` as the fallback).
 The file is written atomically every 30 s and on exit; a file with a newer schema is opened
 read-only. Fields have been added over time (the clock and the weather in Phase 12, the graphics
 tier in Phase 13) without a schema bump: they are additive with defaults, an older build ignores

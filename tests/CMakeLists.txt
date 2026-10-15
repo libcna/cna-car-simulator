@@ -4,7 +4,7 @@ if(NOT TARGET GTest::gtest)
     set(_carsim_gtest_dir "${CARSIM_CNA_ROOT}/vendor/googletest")
     if(NOT EXISTS "${_carsim_gtest_dir}/CMakeLists.txt")
         message(FATAL_ERROR
-            "cna-car-simulator: googletest not found at ${_carsim_gtest_dir}. Run\n"
+            "car-simulator: googletest not found at ${_carsim_gtest_dir}. Run\n"
             "  git -C ${CARSIM_CNA_ROOT} submodule update --init vendor/googletest\n"
             "or configure with -DCARSIM_BUILD_TESTS=OFF.")
     endif()
@@ -139,14 +139,14 @@ endif()
 if(UNIX AND NOT APPLE)
     # scripts/run_headless.sh starts Xvfb when no DISPLAY is set and selects the dummy audio driver.
     add_test(NAME simulator_smoke
-        COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:cna-car-simulator> --frames 3 --width 320 --height 200)
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:car-simulator> --frames 3 --width 320 --height 200)
 elseif(WIN32)
     add_test(NAME simulator_smoke
-        COMMAND $<TARGET_FILE:cna-car-simulator> --no-save --no-audio --quality low
+        COMMAND $<TARGET_FILE:car-simulator> --no-save --no-audio --quality low
                 --frames 3 --width 640 --height 360)
 else()
     add_test(NAME simulator_smoke
-        COMMAND cna-car-simulator --frames 3 --width 320 --height 200)
+        COMMAND car-simulator --frames 3 --width 320 --height 200)
 endif()
 if(WIN32)
     set_tests_properties(simulator_smoke PROPERTIES TIMEOUT 600 LABELS "smoke;display")
@@ -160,14 +160,14 @@ endif()
 set(_carsim_cockpit_args --cockpit --quality high --no-save --no-audio --frames 4)
 if(UNIX AND NOT APPLE)
     add_test(NAME simulator_cockpit_smoke
-        COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:cna-car-simulator>
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/run_headless.sh $<TARGET_FILE:car-simulator>
                 ${_carsim_cockpit_args} --width 320 --height 200)
 elseif(WIN32)
     add_test(NAME simulator_cockpit_smoke
-        COMMAND $<TARGET_FILE:cna-car-simulator> ${_carsim_cockpit_args} --width 640 --height 360)
+        COMMAND $<TARGET_FILE:car-simulator> ${_carsim_cockpit_args} --width 640 --height 360)
 else()
     add_test(NAME simulator_cockpit_smoke
-        COMMAND cna-car-simulator ${_carsim_cockpit_args} --width 320 --height 200)
+        COMMAND car-simulator ${_carsim_cockpit_args} --width 320 --height 200)
 endif()
 if(WIN32)
     set_tests_properties(simulator_cockpit_smoke PROPERTIES TIMEOUT 600 LABELS "smoke;display")

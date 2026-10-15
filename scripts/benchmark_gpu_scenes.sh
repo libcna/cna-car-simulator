@@ -4,7 +4,7 @@
 # Each scene writes benchmark JSON, a final-frame PNG, process RSS and the full simulator log.
 set -euo pipefail
 
-bin="${1:-build/opengles3/bin/cna-car-simulator}"
+bin="${1:-build/opengles3/bin/car-simulator}"
 out="${2:-build/benchmarks/p14-gpu-scenes}"
 frames="${3:-120}"
 scenes="${4:-town_clear town_cockpit forest forest_snow town_fog square_people walking flight}"

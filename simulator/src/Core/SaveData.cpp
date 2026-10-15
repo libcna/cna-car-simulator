@@ -54,11 +54,11 @@ namespace CarSim::Core
         if (const char* custom = EnvOrNull("CARSIM_SAVE_DIR")) {
             dir = custom;
         } else if (const char* xdg = EnvOrNull("XDG_DATA_HOME")) {
-            dir = fs::path(xdg) / "cna-car-simulator";
+            dir = fs::path(xdg) / "car-simulator";
         } else if (const char* appdata = EnvOrNull("APPDATA")) {
-            dir = fs::path(appdata) / "cna-car-simulator";
+            dir = fs::path(appdata) / "car-simulator";
         } else if (const char* home = EnvOrNull("HOME")) {
-            dir = fs::path(home) / ".local" / "share" / "cna-car-simulator";
+            dir = fs::path(home) / ".local" / "share" / "car-simulator";
         } else {
             dir = fs::path(".");
         }

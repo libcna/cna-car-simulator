@@ -117,39 +117,39 @@ carsim_apply_warnings(carsim_render)
 # -----------------------------------------------------------------------------
 # The simulator executable.
 # -----------------------------------------------------------------------------
-add_executable(cna-car-simulator
+add_executable(car-simulator
     src/App/Program.cpp
     src/App/SimulatorGame.cpp
     src/App/SimulatorGameEnvironment.cpp
     src/App/SimulatorGameOverlays.cpp
     src/App/SimulatorGameWalking.cpp
 )
-target_link_libraries(cna-car-simulator PRIVATE carsim_render carsim_core CNA)
+target_link_libraries(car-simulator PRIVATE carsim_render carsim_core CNA)
 if(TARGET SDL3::SDL3main)
-    target_link_libraries(cna-car-simulator PRIVATE SDL3::SDL3main)
+    target_link_libraries(car-simulator PRIVATE SDL3::SDL3main)
 endif()
 if(TARGET CNA::EmscriptenAsyncify)
     # Game::Run() blocks on CNA_WaitForAnimationFrame() every frame; without Asyncify that
     # EM_ASYNC_JS call aborts at runtime with "Asyncify is not defined".
-    target_link_libraries(cna-car-simulator PRIVATE CNA::EmscriptenAsyncify)
+    target_link_libraries(car-simulator PRIVATE CNA::EmscriptenAsyncify)
 endif()
-carsim_apply_warnings(cna-car-simulator)
+carsim_apply_warnings(car-simulator)
 
 # The content root is copied next to the executable so relative paths resolve
 # at runtime; the source location is also compiled in as a development fallback
 # (used only when no content directory is found next to the binary).
 set(CARSIM_CONTENT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/content")
-target_compile_definitions(cna-car-simulator PRIVATE
+target_compile_definitions(car-simulator PRIVATE
     CARSIM_SOURCE_CONTENT_DIR="${CARSIM_CONTENT_SOURCE_DIR}")
 if(EXISTS "${CARSIM_CONTENT_SOURCE_DIR}")
-    add_custom_command(TARGET cna-car-simulator POST_BUILD
+    add_custom_command(TARGET car-simulator POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CARSIM_CONTENT_SOURCE_DIR}" "$<TARGET_FILE_DIR:cna-car-simulator>/content"
+            "${CARSIM_CONTENT_SOURCE_DIR}" "$<TARGET_FILE_DIR:car-simulator>/content"
         COMMENT "Copying simulator content next to the executable")
 endif()
 
 if(WIN32 AND COMMAND cna_copy_sdl_runtime)
-    cna_copy_sdl_runtime(cna-car-simulator)
+    cna_copy_sdl_runtime(car-simulator)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -160,18 +160,18 @@ endif()
 # alone runs into the hundreds of MB), and emit a browsable .html shell.
 # -----------------------------------------------------------------------------
 if(EMSCRIPTEN)
-    set_target_properties(cna-car-simulator PROPERTIES SUFFIX ".html")
+    set_target_properties(car-simulator PROPERTIES SUFFIX ".html")
     # EasyGL emits GLSL ES 3.00 for WEBGL2/OPENGLES3; accepting Emscripten's WebGL 1
     # default silently downgrades the context and every ES 3.00 shader then fails to
     # compile. CNA's own examples pin this via cna_apply_emscripten_renderer_link_contract()
     # (cmake/RendererSelection.cmake), but that helper is never called for this target, so
     # pin the same two flags here directly.
     if(CNA_GRAPHICS_RENDERER STREQUAL "WEBGL2")
-        target_link_options(cna-car-simulator PRIVATE "SHELL:-sMIN_WEBGL_VERSION=2" "SHELL:-sMAX_WEBGL_VERSION=2")
+        target_link_options(car-simulator PRIVATE "SHELL:-sMIN_WEBGL_VERSION=2" "SHELL:-sMAX_WEBGL_VERSION=2")
     elseif(CNA_GRAPHICS_RENDERER STREQUAL "WEBGL1")
-        target_link_options(cna-car-simulator PRIVATE "SHELL:-sMIN_WEBGL_VERSION=1" "SHELL:-sMAX_WEBGL_VERSION=1")
+        target_link_options(car-simulator PRIVATE "SHELL:-sMIN_WEBGL_VERSION=1" "SHELL:-sMAX_WEBGL_VERSION=1")
     endif()
-    target_link_options(cna-car-simulator PRIVATE
+    target_link_options(car-simulator PRIVATE
         "SHELL:--preload-file \"${CARSIM_CONTENT_SOURCE_DIR}\"@/content"
         "SHELL:-sALLOW_MEMORY_GROWTH=1"
         "SHELL:-sINITIAL_MEMORY=268435456"

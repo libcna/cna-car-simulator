@@ -8,7 +8,7 @@ using CarSim::Core::ParseCommandLine;
 
 TEST(CommandLine, DefaultsWhenNoArguments)
 {
-    const std::array<const char*, 1> argv{"cna-car-simulator"};
+    const std::array<const char*, 1> argv{"car-simulator"};
     const auto result = ParseCommandLine(static_cast<int>(argv.size()), argv.data());
     ASSERT_TRUE(result.ok());
     EXPECT_FALSE(result.options.frames.has_value());

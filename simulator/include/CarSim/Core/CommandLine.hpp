@@ -8,7 +8,7 @@
 namespace CarSim::Core
 {
     /// Options accepted by the simulator executable. All fields have sensible
-    /// defaults so `cna-car-simulator` with no arguments starts the game.
+    /// defaults so `car-simulator` with no arguments starts the game.
     struct CommandLineOptions
     {
         /// Run this many frames and then exit. std::nullopt means run until the

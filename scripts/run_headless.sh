@@ -2,12 +2,12 @@
 # Runs the simulator without a physical display (CI, containers): starts a private Xvfb if no
 # DISPLAY is set, forwards all arguments to the simulator binary, and stops the Xvfb afterwards.
 #
-#   scripts/run_headless.sh build/opengles3/bin/cna-car-simulator --frames 120 --screenshot out.png
+#   scripts/run_headless.sh build/opengles3/bin/car-simulator --frames 120 --screenshot out.png
 #
 # Environment: SDL_AUDIODRIVER defaults to "dummy" so no audio device is required.
 set -eu
 if [ "$#" -lt 1 ]; then
-    echo "usage: $0 <path-to-cna-car-simulator> [simulator arguments...]" >&2
+    echo "usage: $0 <path-to-car-simulator> [simulator arguments...]" >&2
     exit 2
 fi
 BIN="$1"; shift

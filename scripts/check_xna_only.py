@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static guard for the cna-car-simulator API boundary.
+"""Static guard for the car-simulator API boundary.
 
 Project code (simulator/, tools/, tests/) may depend only on:
 

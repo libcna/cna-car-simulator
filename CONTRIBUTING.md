@@ -92,7 +92,7 @@ tests run without a display; everything touching `GraphicsDevice`, audio devices
 - `--lockstep` runs one 1/60 s step per drawn frame: `--frames 480` is 8 s of simulated time.
   `--time-scale 0` freezes the sky, which every deterministic capture needs. `--view`'s height is
   absolute -- the terrain is not flat, so check for views from underground. `--chase-distance`
-  takes an integer. `cna-car-simulator --help` lists every switch.
+  takes an integer. `car-simulator --help` lists every switch.
 - llvmpipe needs 0.2–0.5 s per town frame and SOFTWARE several seconds; run long captures in
   the background. The hidden SDL offscreen GPU surface is fixed at 800 × 480.
 - The sample-map load test (< 6 s) can fail on a heavily loaded host; rerun it alone before

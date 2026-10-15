@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: cna-car-simulator
+          path: car-simulator
       - uses: actions/checkout@v4
         with:
           repository: libcna/cna
@@ -58,7 +58,7 @@ jobs:
             libasound2-dev libpulse-dev
 
       - name: Static checks
-        working-directory: cna-car-simulator
+        working-directory: car-simulator
         run: |
           python3 scripts/check_xna_only.py
           python3 scripts/check_assets.py
@@ -70,17 +70,17 @@ jobs:
           restore-keys: ccache-${{ runner.os }}-
 
       - name: Configure
-        working-directory: cna-car-simulator
+        working-directory: car-simulator
         run: >
           cmake --preset opengles3 -G Ninja
           -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
-        working-directory: cna-car-simulator
+        working-directory: car-simulator
         run: cmake --build --preset opengles3 --parallel 4
 
       - name: Test
-        working-directory: cna-car-simulator
+        working-directory: car-simulator
         env:
           SDL_AUDIODRIVER: dummy
           LIBGL_ALWAYS_SOFTWARE: "1"

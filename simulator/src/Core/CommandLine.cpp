@@ -329,13 +329,13 @@ namespace CarSim::Core
     std::string CommandLineUsage()
     {
         return
-            "Usage: cna-car-simulator [options]\n"
+            "Usage: car-simulator [options]\n"
             "\n"
             "  --width <px>          Back buffer width (default 1280)\n"
             "  --height <px>         Back buffer height (default 720)\n"
             "  --fullscreen          Start in full-screen mode\n"
             "  --no-audio            Disable the audio stream\n"
-            "  --save <file>         Save file (default: $XDG_DATA_HOME/cna-car-simulator/save.json)\n"
+            "  --save <file>         Save file (default: $XDG_DATA_HOME/car-simulator/save.json)\n"
             "  --no-save             Do not load or write the save file\n"
             "  --benchmark           Print frame-time statistics at exit (combine with --frames)\n"
             "  --benchmark-json <f>  Also write the frame statistics (per pass, scene counts) as JSON\n"

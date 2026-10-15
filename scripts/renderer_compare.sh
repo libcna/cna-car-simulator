@@ -42,7 +42,7 @@ echo "renderer comparison, scene '$SCENE'"
 printf '%-12s %-10s %-10s %10s %12s %14s\n' preset built started rendered "draw calls" "draw ms"
 
 for preset in $PRESETS; do
-    BIN="build/$preset/bin/cna-car-simulator"
+    BIN="build/$preset/bin/car-simulator"
     if [ ! -x "$BIN" ]; then
         printf '%-12s %-10s %-10s %10s %12s %14s\n' "$preset" "not built" "-" "-" "-" "-"
         continue

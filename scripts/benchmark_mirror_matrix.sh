@@ -5,7 +5,7 @@
 # JSON, a final-frame image, a log and peak process RSS are saved for each variant.
 set -euo pipefail
 
-bin="${1:-build/opengles3/bin/cna-car-simulator}"
+bin="${1:-build/opengles3/bin/car-simulator}"
 out="${2:-build/benchmarks/p14-mirror}"
 frames="${3:-120}"
 variants="${4:-all none rear rear384 rear192 rear_every2 rear150 rear75}"

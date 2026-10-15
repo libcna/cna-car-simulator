@@ -54,8 +54,8 @@ namespace CarSim::Core
         std::vector<std::string> warnings;
     };
 
-    /// Default location: $CARSIM_SAVE_DIR, else $XDG_DATA_HOME/cna-car-simulator, else
-    /// $HOME/.local/share/cna-car-simulator (Linux) or %APPDATA%/cna-car-simulator (Windows).
+    /// Default location: $CARSIM_SAVE_DIR, else $XDG_DATA_HOME/car-simulator, else
+    /// $HOME/.local/share/car-simulator (Linux) or %APPDATA%/car-simulator (Windows).
     [[nodiscard]] std::string DefaultSavePath();
 
     [[nodiscard]] SaveLoadResult ParseSaveData(const std::string& jsonText);

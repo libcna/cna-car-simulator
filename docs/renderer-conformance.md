@@ -85,7 +85,7 @@ For any other view, run each binary with the same fixed state and compare the PN
 
 ```bash
 for r in opengles3 opengl33 vulkan software; do
-  scripts/run_headless.sh build/$r/bin/cna-car-simulator --no-save --no-audio --lockstep \
+  scripts/run_headless.sh build/$r/bin/car-simulator --no-save --no-audio --lockstep \
       --spawn forest --frames 2 --time 13:00 --time-scale 0 --weather snow \
       --view -228 5 -1280 0 -4 --benchmark --benchmark-json build/renderers/$r-forest.json \
       --screenshot build/renderers/$r-forest.png

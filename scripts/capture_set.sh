@@ -3,12 +3,12 @@
 #
 #   scripts/capture_set.sh [binary] [output directory]
 #
-# Defaults: build/opengles3/bin/cna-car-simulator and docs/screenshots/.
+# Defaults: build/opengles3/bin/car-simulator and docs/screenshots/.
 # Runs headless through scripts/run_headless.sh, so it works over Xvfb in a container.
 # Every run is deterministic (--lockstep, fixed spawns and frame counts), so the pictures can
 # be compared between builds and between renderers.
 set -eu
-BIN="${1:-build/opengles3/bin/cna-car-simulator}"
+BIN="${1:-build/opengles3/bin/car-simulator}"
 OUT="${2:-docs/screenshots}"
 HERE="$(dirname "$0")"
 mkdir -p "$OUT"

@@ -1,5 +1,5 @@
 # =============================================================================
-# cna-car-simulator -- a Czech passenger-car driving simulator built on the
+# car-simulator -- a Czech passenger-car driving simulator built on the
 # XNA 4.0-compatible public API of the CNA framework ("next" branch) and the
 # Sharp Runtime ("next" branch).
 #
@@ -9,7 +9,7 @@
 # =============================================================================
 cmake_minimum_required(VERSION 3.23)
 
-project(CnaCarSimulator
+project(CarSimulator
     VERSION 0.1.0
     DESCRIPTION "Czech passenger-car driving simulator on the CNA XNA 4.0-compatible API"
     LANGUAGES C CXX)
@@ -31,8 +31,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # -----------------------------------------------------------------------------
 # Options
 # -----------------------------------------------------------------------------
-option(CARSIM_BUILD_TESTS "Build the cna-car-simulator unit tests" ON)
-option(CARSIM_BUILD_TOOLS "Build the cna-car-simulator command-line tools" ON)
+option(CARSIM_BUILD_TESTS "Build the car-simulator unit tests" ON)
+option(CARSIM_BUILD_TOOLS "Build the car-simulator command-line tools" ON)
 option(CARSIM_WARNINGS_AS_ERRORS "Treat warnings in project code as errors" OFF)
 option(CARSIM_SANITIZERS "Instrument simulator targets with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
@@ -44,7 +44,7 @@ set(CARSIM_SHARP_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../sharp-runtime" CAC
 foreach(_carsim_dep IN ITEMS CARSIM_CNA_ROOT CARSIM_SHARP_RUNTIME_ROOT)
     if(NOT EXISTS "${${_carsim_dep}}/CMakeLists.txt")
         message(FATAL_ERROR
-            "cna-car-simulator: ${_carsim_dep} does not point at a checkout: '${${_carsim_dep}}'.\n"
+            "car-simulator: ${_carsim_dep} does not point at a checkout: '${${_carsim_dep}}'.\n"
             "Clone the dependency next to this repository (see README.md, 'Building') or pass "
             "-D${_carsim_dep}=/path/to/checkout.")
     endif()
@@ -80,7 +80,7 @@ endif()
 # simulator uses for vehicle definitions, maps and settings.
 set(_carsim_sr_consumption "${CARSIM_CNA_ROOT}/cmake/SharpRuntimeConsumption.cmake")
 if(NOT EXISTS "${_carsim_sr_consumption}")
-    message(FATAL_ERROR "cna-car-simulator: CNA checkout lacks cmake/SharpRuntimeConsumption.cmake; "
+    message(FATAL_ERROR "car-simulator: CNA checkout lacks cmake/SharpRuntimeConsumption.cmake; "
                         "is CARSIM_CNA_ROOT on the 'next' branch?")
 endif()
 include("${_carsim_sr_consumption}")
@@ -92,19 +92,19 @@ set(SHARP_RUNTIME_COMPONENTS "${_carsim_sr_components}" CACHE STRING
 add_subdirectory("${CARSIM_CNA_ROOT}" cna EXCLUDE_FROM_ALL)
 
 if(CNA_CNAEXT)
-    message(FATAL_ERROR "cna-car-simulator: CNA_CNAEXT must stay OFF; the simulator uses only the XNA 4.0 API.")
+    message(FATAL_ERROR "car-simulator: CNA_CNAEXT must stay OFF; the simulator uses only the XNA 4.0 API.")
 endif()
 if(NOT TARGET CNA)
-    message(FATAL_ERROR "cna-car-simulator: the CNA umbrella target was not created by the CNA checkout.")
+    message(FATAL_ERROR "car-simulator: the CNA umbrella target was not created by the CNA checkout.")
 endif()
 if(NOT TARGET SharpRuntime::Text.Json)
-    message(FATAL_ERROR "cna-car-simulator: SharpRuntime::Text.Json is missing; check SHARP_RUNTIME_COMPONENTS.")
+    message(FATAL_ERROR "car-simulator: SharpRuntime::Text.Json is missing; check SHARP_RUNTIME_COMPONENTS.")
 endif()
 
-message(STATUS "cna-car-simulator ${PROJECT_VERSION}: renderer ${CNA_GRAPHICS_RENDERER}, "
+message(STATUS "car-simulator ${PROJECT_VERSION}: renderer ${CNA_GRAPHICS_RENDERER}, "
                "${CMAKE_BUILD_TYPE}, ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "cna-car-simulator: CNA at ${CARSIM_CNA_ROOT}")
-message(STATUS "cna-car-simulator: Sharp Runtime at ${CARSIM_SHARP_RUNTIME_ROOT}")
+message(STATUS "car-simulator: CNA at ${CARSIM_CNA_ROOT}")
+message(STATUS "car-simulator: Sharp Runtime at ${CARSIM_SHARP_RUNTIME_ROOT}")
 
 include(CarSimWarnings)
 

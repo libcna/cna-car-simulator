@@ -9,6 +9,6 @@ namespace CarSim::Core
 
     std::string ProductName()
     {
-        return "cna-car-simulator";
+        return "car-simulator";
     }
 }

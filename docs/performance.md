@@ -22,7 +22,7 @@ target; it currently does not warrant one (map data about 1.4 s, world geometry 
 **In the game.** `F3` shows frames per second with the worst 1 %, the update and draw halves
 split by stage and by pass, the mirror's cost and size, drawn-against-culled batches, and the
 audio mixer's gains. `--benchmark` prints the same statistics at exit (30 warm-up frames are
-excluded) and `--benchmark-json <file>` writes them. `cna-car-simulator --help` lists the
+excluded) and `--benchmark-json <file>` writes them. `car-simulator --help` lists the
 controlled-capture switches (`--no-mirror`, `--no-wing-mirrors`, `--mirror-width`,
 `--mirror-distance`, `--mirror-every`, `--quality`, `--flight`, `--walk`, ...).
 
